@@ -1,6 +1,6 @@
 # Arbeitsstand (WIP) — Codex & Schatzinsel-Durchgang
 
-Stand: 2026-08-01. Dieses Dokument hält den laufenden Arbeitsstrang fest, damit wir an genau
+Stand: 2026-08-09. Dieses Dokument hält den laufenden Arbeitsstrang fest, damit wir an genau
 dieser Stelle weitermachen können. Rein prozessual/inhaltlich — der Kampagnen-Kanon steht in
 `KAMPAGNEN-BIBEL.md`, die technische Projekt-Doku in `CLAUDE.md`.
 
@@ -72,9 +72,9 @@ Die Insel (Szene `4.1`) hat **fünf Stationen** in fester Expeditionsreihenfolge
 |---|---|---|
 | 1 | **Strand / gestrandete Golden Lion** (`schiffswrack`) | ✅ Landung + Zurückgebliebenen-Szene fertig |
 | 2 | **Der Pfad zum toten Baum** / Dschungelpfad (`zwischenstation`) | ✅ fertig |
-| 3 | **Das Dorf am knorrigen Baum** / Thahal (`stammesdorf`) | ✅ Ankunft/Zurückweisung fertig — weitere Dorf-Interaktionen (Handel/Verhandlung) noch offen |
-| 4 | **Nachtlager am Dorfrand** (`lager`) | Jagd-Teil ✅ fertig · **← NÄCHSTER SCHRITT:** Thahal-Kontakt-Szene (Diebstahl/Aufhetzen) noch offen |
-| 5 | **Die Wasserhöhle** (`hoehle`) | offen (Referenzbild existiert bereits) |
+| 3 | **Das Dorf am knorrigen Baum** / Thahal (`stammesdorf`) | ✅ Ankunft/Zurückweisung fertig. ✅ Dorf-Phase (August 2026, Bibel 2.9): 4 Sub-Orte innerhalb des Dorfbildes (`dorf_platz`/`dorf_markt`/`dorf_heilerin`/`dorf_tempel`, neues technisches Feature "Sub-Orte", siehe 13.2) mit 16 kompakten Mini-Aufgaben (10 davon reichen) + Klimax "Die Gegenrede" (Sorathi unterbricht, 3-teilige Rede mit 4 Erfolgsstufen). **← NÄCHSTER SCHRITT:** die eigentlichen Höhlen-Zugänge für Diebstahl/Gewalt fehlen noch (bisher nur der friedliche Wächter-Durchgang in Station 5) |
+| 4 | **Nachtlager am Dorfrand** (`lager`) | Jagd-Teil ✅ fertig · Thahal-Kontakt-Szene (Sorathis Besuch) ✅ fertig, inkl. `grantsQuest`-Beispiel (Bibel 2.9) |
+| 5 | **Die Wasserhöhle** (`hoehle`) | ✅ fertig ("Die Kammer der Göttin") — Siegel-Übergabe an den Höhlenwächter setzt voraus, dass die Gruppe das Siegel vorher im Dorftempel bekommen hat (siehe Station 3) |
 
 **Etablierte Namen/Fakten (neu seit 31.07.):**
 - **Vanthei** — Thahal-Name/Beiname für Harwick ("Ihr Getreuer"), von den Dorfbewohnern
@@ -86,6 +86,13 @@ Die Insel (Szene `4.1`) hat **fünf Stationen** in fester Expeditionsreihenfolge
   Spieler bisher nur als Sympathie erkennbar, kein Name.
 - **Ezra Coombe** (bereits als Bordell-Stammgast etabliert) ist der Ehering-Träger im
   Dschungelpfad — trauert um seine tote Frau, kein Widerspruch zum Bordellbesuch (2.2).
+- **Neue Dorf-NPCs (August 2026, Vorschlag/Aufschlag, noch von Hendrik zu schärfen/freizugeben):**
+  **Kelo** (der Zweifler, `dorf_platz`), **Staaf** (der Wissbegierige, `dorf_platz`), **Venari**
+  (Heilerin, `dorf_heilerin`), **Toma'ru** (Wachposten am Tempel, `dorf_tempel`).
+- **Das Siegel** wird im Dorftempel (`dorf_tempel`) bewacht — die Crew braucht es, um vom
+  Höhlenwächter in die "Kammer der Göttin" (Station 5) gelassen zu werden. Der Schatz selbst
+  wurde von Harwick über Jahre auf der Insel angehäuft; die Thahal sehen das als Nächstenliebe,
+  ohne den materiellen Wert des Metalls einschätzen zu können.
 
 **Station 1 im Detail (Ghosts, noch zu schärfen):** **Eliot Pike** (erleichtert/redselig),
 **Abel Crane** (erschöpft/verletzt), **Malachi Fenn** (misstraut dem Landstrich), **Sam
@@ -93,21 +100,21 @@ Oakley** (Reparatur, keine Zeit — jetzt auch Ziel des losen Balkens). Veranker
 Schmied** am Amboss. Optionaler 5. Ghost weiterhin offen: jemand, der am Waldrand Wasser/
 Früchte sammelt.
 
-**Beim Weitermachen:** Thahal-Kontakt-Szene im Nachtlager (Station 4) fertigstellen —
-Diebstahl/Aufhetzen-Mechanik ist noch inhaltlich leer, nur die Namen stehen fest. Danach
-Station 5 (Höhle) und die übrigen Dorf-Interaktionen.
+**Beim Weitermachen:** Höhlen-Zugänge für Diebstahl und Gewalt ausgestalten (aktuell existiert
+nur der friedliche Wächter-Durchgang in Station 5, siehe "Die Gegenrede"-Erfolgsfall in Station
+3) — bewusst als eigener, separater Schritt zurückgestellt, siehe Abschnitt 5.
 
 ## 5. Offene Story-Punkte (brauchen Hendriks Entscheidung, an der jeweiligen Station)
 
-- Genaue **Thahal-Kontakt-Szene im Nachtlager** — wie spricht der Helfer die Spieler an, was
-  bietet er konkret an, welches Risiko trägt er selbst? Die drei Routen **Diebstahl /
-  Aufhetzen / Gewalt** sind weiterhin nur benannt, nicht ausgestaltet. Schwierigkeit legt
-  Hendrik am Tisch fest, kein Code-Trigger.
+- **Höhlen-Zugänge für Diebstahl/Gewalt** — aktuell existiert nur der friedliche
+  Wächter-Durchgang (Ergebnis einer erfolgreichen Gegenrede, Station 3). Wie kommt die Gruppe
+  ohne das Siegel (oder mit gestohlenem Siegel) an Toma'ru bzw. dem Höhlenwächter vorbei?
+  Bewusst separat geplant, nicht Teil der Dorf-Phase vom August 2026.
 - **Wer beim Wildschwein-Angriff verletzt wird** (passiert auf dem RÜCKweg über den
   Dschungelpfad) — jetzt mit Vorausdeutung versehen (Cormacs "die sind keine Gefahr" beim
   Hinweg), Angriffsszene selbst fehlt noch.
-- Weitere Dorf-Interaktionen (Handel/Verhandlung mit dem Häuptling, falls die Spieler das
-  direkt versuchen) — bisher nur die Ankunfts-/Zurückweisungsszene geschrieben.
+- Die neuen Dorf-NPC-Namen (Kelo/Staaf/Venari/Toma'ru) sind Vorschlag/Aufschlag — Hendrik schärft/
+  segnet ab, bevor sie als endgültig gelten.
 
 ## 6. Datei-Wegweiser
 

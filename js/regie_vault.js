@@ -478,6 +478,33 @@ function renderOrtNote(ref, target) {
   });
 }
 
+// Rede-Bausteine (Bibel 2.9, "Gegenrede"-Interaktion): 3 Redeteile x 4
+// Erfolgsstufen als eigener, farblich unterscheidbarer Anzeige-Block mit
+// Kopieren-Knopf pro Stufe - Hendrik schickt die passende Passage je nach
+// Wurf manuell per Discord an den redenden Spieler, kein Auto-Push an
+// Spieler. Reiner Anzeige-Helfer, kein Firebase-Bezug (ia.redeTeile ist
+// statischer GM-Text wie details/trigger.info).
+const REDE_STUFEN_LABELS = { gut: 'Guter Erfolg', normal: 'Normaler Erfolg', schlecht: 'Schlechter Erfolg', miss: 'Misserfolg' };
+function redeTeileHtml(redeTeile) {
+  return '<div class="v-callout"><div class="v-callout-title">🎤 Rede-Bausteine (nach Erfolgsstufe)</div>' +
+    redeTeile.map(function (teil, i) {
+      return '<div class="v-rede-teil"><div class="v-rede-teil-titel">' + teil.titel + '</div>' +
+        ['gut', 'normal', 'schlecht', 'miss'].map(function (stufe) {
+          const elId = 'rede-' + i + '-' + stufe;
+          return '<div class="v-rede-stufe v-rede-' + stufe + '"><div class="v-rede-stufe-head"><span>' + REDE_STUFEN_LABELS[stufe] + '</span><button class="v-rede-copy" onclick="vCopyRedeText(this,\'' + elId + '\')" title="Kopieren">📋</button></div><div class="v-rede-text" id="' + elId + '">' + teil[stufe] + '</div></div>';
+        }).join('') +
+        '</div>';
+    }).join('') +
+    '</div>';
+}
+function vCopyRedeText(btn, elId) {
+  const text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(function () {
+    const original = btn.textContent;
+    btn.textContent = '✓';
+    setTimeout(function () { btn.textContent = original; }, 1200);
+  }).catch(function () {});
+}
 function renderIaNote(ref, target) {
   const sceneId = ref.sceneId, ortId = ref.ortId, iaId = ref.iaId;
   const marker = (getMarkersForScene(sceneId) || []).find(function (m) { return m.id === ortId; });
@@ -503,6 +530,7 @@ function renderIaNote(ref, target) {
     html += '<dl class="v-prop"><dt>ort</dt><dd>' + (marker ? marker.title : ortId) + '</dd><dt>tags</dt><dd><span class="v-tag">#' + fbKey(sceneId) + '</span></dd></dl>';
     html += '<div class="v-callout readaloud"><div class="v-callout-title">📖 ' + (hasInfo ? 'Kurz' : 'Lesetext') + '</div>' + (hasInfo ? ia.kurz : ia.details) + '</div>';
     html += '<div class="v-callout"><div class="v-callout-title">☑ Ablauf</div>' + triggerListHtml(dyn.trigger || {}, dyn.trigger_notizen || {}) + '</div>';
+    if (ia.redeTeile) html += redeTeileHtml(ia.redeTeile);
     html += '<div class="v-callout"><div class="v-callout-title">✎ Notiz zur Interaktion</div><textarea class="v-note-field" placeholder="z.B. besondere Reaktionen, Würfe, Abweichungen vom Skript…" data-path="' + basePath + '/notizen">' + (dyn.notizen || '') + '</textarea><div class="v-save-hint"></div></div>';
     html += '<div class="v-backlinks"><h5>Erwähnt' + (backlinks.length ? ' (' + backlinks.length + ')' : '') + '</h5>' +
       (backlinks.length ? backlinks.map(function (b) { return '<button class="v-backlink-item" onclick="paneB=' + JSON.stringify(b.ref).replace(/"/g, '&quot;') + '; renderAll();"><b>' + b.label + '</b> <span>' + b.sub + '</span></button>'; }).join('') : '<div class="v-empty">Keine Verknüpfungen gefunden.</div>') +

@@ -678,6 +678,51 @@ const ORTE = {
           { id: "abschiedsruf", label: "Junger Mann ruft Harwick in gebrochenem Englisch nach: \"Er hätte gewollt, dass du es zu ihr bringst!\"", info: "Harwick verlässt mit ernster Miene das Dorf. Der junge Mann ruft ihm in gebrochenem Englisch nach: „Er hätte gewollt, dass du es zu ihr bringst!“ (GM-Hinweis: \"er\" = der verstorbene alte Häuptling, \"sie\" = die Göttin. Für die Spieler bleibt das nur Sympathie, kein Versprechen.)" },
           { id: "lager_aufgeschlagen", label: "Bei Einbruch der Dunkelheit schlägt die Gruppe in gebührendem Abstand das Nachtlager auf", info: "Langsam wird es dunkel. In gebührendem Abstand zum Dorf macht Harwick klar, dass hier das Lager aufgeschlagen wird." }
         ]
+      },
+      // Klimax des Dorf-Durchgangs (Bibel 2.9, August 2026). Auslöser ist
+      // SL-Ermessen, kein Code-Trigger (Muster wie an anderer Stelle im
+      // Projekt): 10 der 16 Dorf-Aufgaben erledigt, ODER eine von Hendrik
+      // am Tisch spontan entschiedene Zeit läuft ab. redeTeile enthält den
+      // vollständigen, von Hendrik geschriebenen Wortlaut für die Gegenrede
+      // (3 Teile x 4 Erfolgsstufen) - wird von js/regie_vault.js in einer
+      // eigenen, schnell kopierbaren Anzeige dargestellt, damit die
+      // passende Passage während der Session manuell per Discord an den
+      // redenden Spieler geschickt werden kann (kein Auto-Push an Spieler).
+      "die_gegenrede": {
+        title: "Sorathis Unterbrechung — Die Gegenrede",
+        kurz: "SL-Ermessen: bei 10 von 16 Dorf-Aufgaben ODER wenn die Zeit abläuft, unterbricht Sorathi. Bei genug Unterstützung: Häuptling spricht gegen Vanthei, Spieler müssen mit einer Gegenrede reagieren (3 Rhetorik-Würfe, Sorathi übersetzt). Sonst/bei Misserfolg: Diebstahl-Plan.",
+        details: "Sobald genug Dorfbewohner überzeugt sind (SL-Ermessen, ca. 10 der 16 Aufgaben) oder die am Tisch spontan gesetzte Zeit abläuft, unterbricht Sorathi die aktuelle Aktion der Spieler.\n\nBei genug Unterstützung: eine Menschenmenge bildet sich auf dem Dorfplatz, eine Fraktion gegen die andere, offene Diskussion. Der Häuptling nutzt den Moment für eine Rede GEGEN Vanthei. Die Spieler müssen sofort reagieren — eine Gegenrede halten. Sorathi übersetzt für den sprechenden Spieler (Thahal-Sprache wurde bisher nur geraunt/nicht verstanden).\n\nOhne genug Unterstützung (Zeit läuft ab): Sorathi drängt stattdessen zum Diebstahl-Plan.\n\nDie Gegenrede besteht aus 3 Rhetorik-Würfen (einer je Redeteil, volle Texte in redeTeile). Verrechnung: 1 Misserfolg wird ausgeglichen durch 2 Normale Erfolge ODER 1 Guten Erfolg an anderer Stelle; bei 2 Misserfolgen rettet nur noch ein Guter Erfolg auf dem dritten Wurf die Rede. Eine Rettung pro Rede durch einen ANDEREN Spieler: Auftreten (komödiantische Ablenkung vor der Menge) ODER Drohen — nicht gegen die Menge, sondern gegen einen Störer/eine eingreifende Wache, die den Redner zum Schweigen bringen will.\n\nMisslingt die Gegenrede, fällt es ebenfalls auf \"jetzt Diebstahl planen\" zurück — mit denselben Erschwernissen wie beim Zeitablauf (z. B. schwerer ohne Toma'ru überzeugt zu haben).",
+        trigger: [
+          { id: "sorathi_unterbricht", label: "Sorathi unterbricht (SL-Ermessen: 10 Aufgaben ODER Zeit abgelaufen)", info: "Sobald genug Dorfbewohner überzeugt sind (ca. 10 der 16 Aufgaben) oder die am Tisch gesetzte Zeit abläuft, unterbricht Sorathi die aktuelle Aktion der Spieler." },
+          { id: "menge_bildet_sich", label: "Menschenmenge bildet sich auf dem Dorfplatz, Fraktionen gegeneinander", info: "Eine Menschenmenge bildet sich, eine Fraktion gegen die andere, offene Diskussion bricht aus." },
+          { id: "haeuptling_rede_gegen_vanthei", label: "Häuptling nutzt den Moment für eine Rede GEGEN Vanthei", info: "Der Häuptling nutzt die Zusammenkunft, um öffentlich gegen Vanthei zu sprechen — die Spieler müssen sofort reagieren." },
+          { id: "gegenrede_erfolg", label: "Gegenrede gelingt — Dorf fordert das Siegel für Vanthei", info: "Die Gegenrede gelingt (Verrechnung der 3 Würfe, siehe Details) — die Menge wendet sich zugunsten von Vanthei, das Siegel wird ihm überlassen." },
+          { id: "gegenrede_misslingt", label: "Gegenrede misslingt — Diebstahl-Plan nötig", info: "Die Gegenrede misslingt — fällt auf \"jetzt Diebstahl planen\" zurück, mit denselben Erschwernissen wie bei Zeitablauf." },
+          { id: "zeit_abgelaufen_diebstahl", label: "Ohne genug Unterstützung: Sorathi drängt zum Diebstahl-Plan", info: "Die Zeit läuft ab, ohne dass genug Dorfbewohner überzeugt wurden — Sorathi drängt die Spieler, stattdessen einen Diebstahl zu planen. Schwieriger ohne z. B. Toma'ru überzeugt zu haben." }
+        ],
+        redeTeile: [
+          {
+            titel: "Teil 1 — Einleitung",
+            gut: "(Geste zu Frauen und Kindern) „Meine Freunde! Großes Leid ist widerfahren, eine fest sitzende Trauer, die einen Schleier über uns legt. Ob beim Zubereiten der Nahrung oder harter körperlicher Arbeit (Geste zu den Männern) und selbst bei der Wacht (einladende große Geste)“",
+            normal: "„Liebe Gemeinde! Ich weiß von eurer Trauer, die selbst mich berührt.“",
+            schlecht: "(zeigt auf den Baum) „Leute! Ich weiß, euch fehlt dieser Baum“",
+            miss: "„Hallo! Ich weiß schon, hier sind einige ganz schön mimosig, wegen diesem ollen Baum da!“"
+          },
+          {
+            titel: "Teil 2 — Anliegen",
+            gut: "(Geste, die die ganze Insel einschließt) „In eurer eigenen Geschichte steht es geschrieben: Ein Fremder wird eure Trauer nehmen. Diesen Mann kennt ihr — Vanthai, der sich stets für eure Göttin aufgeopfert hat und euch noch immer Freund nennt. (ernster, mitfühlender Blick in die Menge) Doch auch er musste erst selbst verlieren, um euch wirklich befreien zu können: Jessica wurde auch uns genommen.“",
+            normal: "(Geste zur Insel) „Es steht geschrieben: Ein Fremder nimmt eure Trauer. Ihr kennt ihn — Vanthai, der sich für eure Göttin verzehrt hat. (Pause, ernst) Auch ihm wurde genommen. Jessica ist auch unser Verlust.“",
+            schlecht: "„Der große Vanthai ist da, um diese Trauer endlich von euch zu nehmen!“",
+            miss: "„Und wenn wir diesen riesigen Schatz da bei euch aus der Höhle ins Meer kippen, ist doch wieder alles gut, oder?“"
+          },
+          {
+            titel: "Teil 3 — Abschluss/Aufruf",
+            gut: "(Arme geöffnet, an die ganze Menge gewandt) „Ihr habt es selbst gesagt — die Prophezeiung gehört euch, nicht nur einer Stimme in eurem Rat. Wenn ihr eure Trauer wirklich enden sehen wollt, dann sprecht es jetzt gemeinsam aus, laut genug, dass auch euer Häuptling es hört: Gebt Vanthai das Siegel!“ (hält inne, lässt der Menge den Moment, es aufzugreifen)",
+            normal: "(Geste zum Häuptling, dann zur Menge) „Die Geschichte gehört euch allen — nicht nur einem Mann im Tempel. Wenn ihr an die Prophezeiung glaubt, dann verlangt jetzt, dass das Siegel an Vanthai geht!“",
+            schlecht: "(zeigt auf den Häuptling) „Warum entscheidet einer allein über eure Erlösung? Fordert das Siegel — jetzt!“",
+            miss: "„Also, wer ist jetzt eigentlich hier der Boss? Gebt uns einfach das Ding, dann ist auch gut!“"
+          }
+        ]
       }
     }
   },
@@ -723,6 +768,212 @@ const ORTE = {
               was: "Einen Weg finden, an das Siegel zu kommen."
             }
           }
+        ]
+      }
+    }
+  },
+
+  // Dorf-Sub-Orte (Bibel 2.9, August 2026): 16 kompakte Aufgaben, verteilt
+  // auf 4 Orte innerhalb des Dorfbildes (siehe schatzinsel_scenes.js,
+  // parentId "stammesdorf"). Ziel: 10 der 16 reichen, damit sich genug
+  // Dorfbewohner der Gruppe anschließen - danach unterbricht Sorathi (siehe
+  // "stammesdorf".die_gegenrede weiter unten). Die genaue Zahl bleibt den
+  // Spielern verborgen (Bibel 2.1) - rein SL-seitige Fortschrittsanzeige.
+  // NPC-Namen (Kelo/Staaf/Venari/Toma'ru) sind Vorschlag/Aufschlag, von
+  // Hendrik noch zu schärfen/freizugeben.
+  "dorf_platz": {
+    personen: "Kelo · Staaf · verschiedene Dorfbewohner",
+    kurz: "Zentraler Versammlungsort, sieben Aufgaben. Später auch Schauplatz der Gegenrede.",
+    ortHinweis: "Die meisten Ein-Wurf-Beats des Dorf-Durchgangs sitzen hier - kurz halten, nur bei Kelo (Der Zweifler) und der späteren Gegenrede echte Szenen-Zeit einplanen.",
+    interaktionen: {
+      "der_zweifler": {
+        title: "Kelo — Der Zweifler",
+        kurz: "Ein junger Mann, der aus Angst vor Konsequenzen (noch) nicht zu Sorathis Seite steht. Rhetorik/Auftreten ODER Körper (alternative Probe, wie beim Trewin-Zwillinge-Trinkspiel).",
+        details: "Kelo hält sich am Rand der Menge, beobachtet die Fremden, spricht aber niemanden direkt an. Fragt man ihn, windet er sich: er glaubt Sorathis Worten, aber was, wenn der Häuptling am Ende doch Recht behält und alles nur schlimmer wird? Er will überzeugt werden, nicht überredet.",
+        trigger: [
+          { id: "angesprochen", label: "Kelo lässt sich auf ein Gespräch ein", info: "Kelo hält sich am Rand der Menge, beobachtet die Fremden, spricht aber niemanden direkt an. Fragt man ihn, windet er sich: er glaubt Sorathis Worten, aber was, wenn der Häuptling am Ende doch Recht behält?" },
+          { id: "rhetorik_erfolg", label: "Überzeugt per Rhetorik/Auftreten", info: "Ein gutes Gespräch nimmt ihm die Angst - er sieht ein, dass Schweigen ihn nicht schützt." },
+          { id: "koerper_erfolg", label: "Überzeugt per Körper (Demonstration von Verlässlichkeit)", info: "Statt Worten zeigt der Spieler durch eine handfeste Tat, dass man sich auf ihn verlassen kann - das überzeugt Kelo mehr als jede Rede es könnte." },
+          { id: "misserfolg", label: "Kelo bleibt beim Schweigen", info: "Kelo zuckt zusammen und zieht sich zurück - für heute ist hier nichts mehr zu holen." }
+        ]
+      },
+      "der_trauernde": {
+        title: "Der Trauernde",
+        kurz: "Ein Dorfbewohner trauert um die Verbindung zur Göttin (toter heiliger Baum). Rhetorik, kurzer Beat.",
+        details: "Am Rand des Platzes sitzt jemand still vor sich hin, den Blick auf die Stelle gerichtet, wo früher der heilige Baum stand. Ein tröstendes Wort reicht - keine große Verhandlung.",
+        trigger: [
+          { id: "erfolg", label: "Tröstendes Wort gefunden", info: "Ein tröstendes Wort reicht - keine große Verhandlung. Der Dorfbewohner nickt dankbar." },
+          { id: "misserfolg", label: "Trost verfehlt Wirkung", info: "Die Worte landen falsch, der Trauernde zieht sich in sich zurück." }
+        ]
+      },
+      "wer_steht_wirklich_wo": {
+        title: "Wer steht wirklich wo?",
+        kurz: "Instinkt/Menschenkenntnis: beim Beobachten des Dorflebens erkennen, wer wirklich hinter Ta'ahal steht und wer nur schweigt.",
+        details: "Wer das Dorfleben eine Weile beobachtet - Blicke, wer mit wem redet, wer sich fernhält - kann lesen, wo die Gräben wirklich verlaufen, nicht nur, wo sie öffentlich behauptet werden.",
+        trigger: [
+          { id: "erfolg", label: "Verdeckten Verbündeten erkannt", info: "Ein Dorfbewohner hält sich auffällig zurück, wenn Ta'ahal spricht - ein möglicher stiller Verbündeter." },
+          { id: "misserfolg", label: "Nichts Eindeutiges erkannt", info: "Die Beobachtung bleibt ohne klaren Befund." }
+        ]
+      },
+      "die_luege_durchschauen": {
+        title: "Die Lüge durchschauen",
+        kurz: "Instinkt/Menschenkenntnis: jemand gibt sich neutral, verbirgt aber etwas (Bibel 2.2).",
+        details: "Ein Dorfbewohner gibt sich betont gleichgültig gegenüber der ganzen Sache - zu betont, um echt zu sein.",
+        trigger: [
+          { id: "erfolg", label: "Lüge erkannt, Gespräch öffnet sich", info: "Die aufgesetzte Gleichgültigkeit fällt auf - konfrontiert damit, gibt der Dorfbewohner zu, dass ihn die Sache doch beschäftigt, und redet." },
+          { id: "misserfolg", label: "Fassade bleibt intakt", info: "Die Gleichgültigkeit wirkt überzeugend genug, das Gespräch bleibt oberflächlich." }
+        ]
+      },
+      "der_wissbegierige": {
+        title: "Staaf — Der Wissbegierige",
+        kurz: "Ein Dorfbewohner, generell an jeglichem Fachwissen interessiert. Offener Int-/Fachwissen-Wurf auf das, was der Charakter zufällig draufhat.",
+        details: "Staaf ist fasziniert von allem, was die Fremden über die Welt jenseits der Insel wissen - gleich zu welchem Thema. Er stellt Fragen, hört aufmerksam zu, will verstehen. Der genaue Themenbereich ergibt sich aus dem Charakter am Tisch - bewusst nicht festgelegt, damit die Aufgabe für jede Gruppe funktioniert.",
+        trigger: [
+          { id: "erfolg", label: "Staaf ist begeistert", info: "Eine verständliche, richtige Antwort auf ein Fachgebiet, das der Charakter beherrscht, begeistert Staaf sichtlich - er wird zum Verbündeten." },
+          { id: "misserfolg", label: "Staaf bleibt unbeeindruckt", info: "Die Erklärung verwirrt mehr, als sie erklärt - Staaf bleibt höflich, aber unbeeindruckt." }
+        ]
+      },
+      "kraftprobe_unter_zeugen": {
+        title: "Kraftprobe unter Zeugen",
+        kurz: "Ein junger, stolzer Thahal fordert zum Kräftemessen vor kleinem Publikum. Körper-Probe.",
+        details: "Vor ein paar Zuschauern fordert ein junger Thahal zum Kräftemessen heraus - Baumstamm-Heben oder Ringen, was sich gerade anbietet. Erfolg verdient sichtbaren Respekt, nicht nur beim Gegner selbst.",
+        trigger: [
+          { id: "guter_erfolg", label: "Guter Erfolg — Respekt vor der ganzen Gruppe", info: "Ein überlegener Sieg sorgt für anerkennendes Raunen in der ganzen Zuschauermenge, nicht nur beim Herausforderer." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg — knapper Sieg", info: "Ein knapper, aber klarer Sieg - der Herausforderer erkennt es an." },
+          { id: "misserfolg", label: "Misserfolg — Niederlage", info: "Der Herausforderer gewinnt, freundschaftlich, aber unmissverständlich." }
+        ]
+      },
+      "kletter_aufgabe": {
+        title: "Kletter-Aufgabe",
+        kurz: "An einem Haus hochklettern, aus Spaß/als Mutprobe. Geschick-Probe.",
+        details: "Ein paar Dorfkinder fordern spielerisch zu einer Mutprobe heraus: an einer der kunstvoll gebauten Hütten hochklettern. Leichtfüßiger Moment, kein Ernstfall.",
+        trigger: [
+          { id: "erfolg", label: "Mutprobe gemeistert", info: "Sauber hochgeklettert - die Kinder johlen begeistert." },
+          { id: "misserfolg", label: "Abgerutscht", info: "Ein unrühmlicher Abstieg, aber niemand nimmt es ernst - die Kinder lachen mit, nicht aus." }
+        ]
+      }
+    }
+  },
+
+  "dorf_markt": {
+    personen: "Verschiedene Händler",
+    kurz: "Handelsbereich, fünf Aufgaben - hier stehen manchmal echte Besitztümer der Spieler auf dem Spiel.",
+    interaktionen: {
+      "der_pistolen_wunsch": {
+        title: "Der Pistolen-Wunsch",
+        kurz: "Ein Dorfbewohner hat ein Auge auf die Pistole eines Spielers geworfen. Handel-Probe mit echtem Risiko.",
+        details: "Ein Händler entdeckt die Pistole eines Spielers und lässt nicht locker - er will sie unbedingt eintauschen. Ein guter Handel-Wurf lenkt sein Interesse auf etwas Entbehrlicheres (Schuhe, Hemd); bei Misserfolg bleibt die Pistole hartnäckig im Gespräch.",
+        trigger: [
+          { id: "umgelenkt", label: "Interesse erfolgreich umgelenkt", info: "Ein guter Handel-Wurf lenkt sein Interesse auf etwas Entbehrlicheres - Schuhe, ein Hemd. Die Pistole bleibt, wo sie ist." },
+          { id: "misserfolg", label: "Pistole bleibt im Gespräch", info: "Der Händler lässt nicht locker - die Pistole bleibt im Gespräch, echtes Risiko, sie am Ende doch herzugeben." }
+        ]
+      },
+      "der_preis_fuer_ein_geheimnis": {
+        title: "Der Preis für ein Geheimnis",
+        kurz: "Ein Dorfbewohner weiß etwas Wichtiges, verlangt aber im Gegenzug etwas, das dem Spieler selbst wichtig ist.",
+        details: "Ein Dorfbewohner deutet an, etwas Nützliches zu wissen - verlangt aber im Gegenzug etwas Persönliches (ein Ausrüstungsstück, ein Andenken). Handel-Wurf entscheidet, wie viel tatsächlich hergegeben werden muss.",
+        trigger: [
+          { id: "guter_erfolg", label: "Guter Erfolg — Information für wenig Gegenwert", info: "Ein geschickter Handel-Wurf drückt den Preis fast auf nichts herunter." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg — fairer Tausch", info: "Ein fairer Tausch - etwas Persönliches gegen die Information." },
+          { id: "misserfolg", label: "Misserfolg — kein Deal", info: "Kein Deal zustande gekommen, das Geheimnis bleibt eines." }
+        ]
+      },
+      "der_haendler": {
+        title: "Der Händler",
+        kurz: "Kleiner Gefallen/Information gegen etwas Charme. Rhetorik, kurz.",
+        details: "Ein Händler ist für einen kleinen Gefallen zu haben, wenn man ihn charmant genug anspricht - nichts, das lange dauert.",
+        trigger: [
+          { id: "erfolg", label: "Gefallen erwirkt", info: "Ein bisschen Charme reicht - der Händler hilft gerne weiter." },
+          { id: "misserfolg", label: "Kein Gefallen", info: "Der Händler bleibt beschäftigt, kein Interesse an einem Gespräch." }
+        ]
+      },
+      "wurf_wettkampf": {
+        title: "Wurf-Wettkampf",
+        kurz: "Freundlicher Wettkampf gegen einen Dorfbewohner. Geschick-Probe, kein Fehlschlag-Malus.",
+        details: "Am Rand des Marktes wird gewettet, wer am treffsichersten wirft - ein freundschaftlicher Wettkampf ohne Konsequenzen bei Misserfolg.",
+        trigger: [
+          { id: "erfolg", label: "Wettkampf gewonnen", info: "Ein sauberer Sieg, begleitet von anerkennendem Gelächter." },
+          { id: "misserfolg", label: "Wettkampf verloren", info: "Verloren, aber mit gutem Sport - kein Malus, nur ein bisschen Spott." }
+        ]
+      },
+      "das_fallende_regal": {
+        title: "Das fallende Regal",
+        kurz: "Ein schweres Regal fällt auf einen Menschen - spontane Rettungsaktion. Körper-Probe.",
+        details: "Ohne Vorwarnung kippt ein schwer beladenes Warenregal auf einen Marktstand-Betreiber zu. Sofortiges Handeln ist gefragt, kein Zögern.",
+        trigger: [
+          { id: "erfolg", label: "Rettung gelungen", info: "Das Regal wird rechtzeitig aufgefangen/weggestemmt - der Betreiber kommt mit dem Schrecken davon, sichtlich dankbar." },
+          { id: "misserfolg", label: "Rettung misslingt teilweise", info: "Nicht schnell genug - leichte Blessuren, aber nichts Ernstes. Die Dankbarkeit fällt entsprechend verhaltener aus." }
+        ]
+      }
+    }
+  },
+
+  "dorf_heilerin": {
+    personen: "Venari (Heilerin)",
+    kurz: "Hütte der Heilerin, drei Aufgaben - zwei Heilkunde, eine Geschichte/Latein.",
+    npcs: [
+      {
+        name: "Venari",
+        rolle: "Heilerin des Dorfes",
+        verfassung: "Ruhig, aufmerksam, prüft jeden Fremden erst mit den Augen, bevor sie ein Wort wechselt.",
+        beduerfnis: "Echtes Können sehen, nicht nur Behauptungen - wer ihr etwas beweist, gewinnt ihr Vertrauen schnell."
+      }
+    ],
+    interaktionen: {
+      "sam_oakleys_wunde": {
+        title: "Sam Oakleys Wunde",
+        kurz: "Die Wunde vom losen Balken (Station 1) ist noch nicht richtig verheilt - echte Behandlung statt nur Erste Hilfe.",
+        details: "Sam Oakley humpelt noch immer sichtbar von der Verletzung am Schiffswrack. Venari bietet ihre Hütte für eine ordentliche Behandlung an, wenn jemand mit Heilkunde-Kenntnissen mit anpackt.",
+        trigger: [
+          { id: "guter_erfolg", label: "Guter Erfolg — Wunde vollständig versorgt", info: "Eine saubere, kundige Behandlung - Sam ist sichtlich erleichtert und Venari beeindruckt von echtem Können." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg — Wunde versorgt", info: "Solide Behandlung, Sam geht es merklich besser." },
+          { id: "misserfolg", label: "Misserfolg — kein Fortschritt", info: "Die Behandlung hilft kaum - Venari übernimmt selbst, mit einem stillen, wenig beeindruckten Blick." }
+        ]
+      },
+      "die_richtige_heilpflanze": {
+        title: "Die richtige Heilpflanze",
+        kurz: "Venari testet die Pflanzenkenntnis: die richtige Heilpflanze unter mehreren ähnlichen erkennen/sammeln.",
+        details: "Venari legt mehrere ähnlich aussehende getrocknete Pflanzen nebeneinander und fragt, welche wirklich heilt und welche nur ähnlich aussieht - eine stille Prüfung, kein Verhör.",
+        trigger: [
+          { id: "erfolg", label: "Richtige Pflanze erkannt", info: "Die richtige Pflanze wird sicher erkannt - Venari nickt anerkennend." },
+          { id: "misserfolg", label: "Falsche Pflanze gewählt", info: "Eine falsche Wahl - Venari korrigiert wortlos, ohne Spott, aber auch ohne Lob." }
+        ]
+      },
+      "die_figur_der_goettin": {
+        title: "Die Figur der Göttin",
+        kurz: "Eine geschnitzte Figur mit Schmuck (gehört einem Dorfbewohner, nicht Venari) trägt eine lateinische Inschrift. Geschichte-Wurf übersetzt sie - Bezug zu Vanthei.",
+        details: "Ein Dorfbewohner besitzt eine geschnitzte Figur, die er seiner Göttin zuschreibt - die Gesichtszüge ähneln eher den Inselbewohnern als Europäern, sie trägt Schmuck. Am Sockel ist eine Inschrift eingeritzt, in einer Sprache, die niemand im Dorf deuten kann. Er zeigt sie den Spielern in der Hoffnung, dass sie mehr wissen. Ein Geschichte-Wurf (Latein-/Bildungswissen) übersetzt die Inschrift: „Vertraut den Vorzeichen“ (o. ä.) - ein Satz, der sich mit Vanthei in Verbindung bringen lässt und in der Gegenrede wiederverwendet werden kann.",
+        trigger: [
+          { id: "gezeigt", label: "Figur wird gezeigt", info: "Ein Dorfbewohner zeigt die Figur den Spielern in der Hoffnung, dass sie mehr über die Inschrift wissen als er selbst." },
+          { id: "uebersetzt", label: "Inschrift übersetzt — Bezug zu Vanthei", info: "„Vertraut den Vorzeichen“ (o. ä.) - ein Satz, der sich unmittelbar mit Vanthei in Verbindung bringen lässt. Spannender Bruch zwischen dem, was die Figur zu sein scheint (Göttin), und ihrem tatsächlichen, vermutlich europäischen Ursprung." },
+          { id: "misserfolg", label: "Inschrift bleibt unübersetzt", info: "Die Zeichen bleiben ein Rätsel - der Dorfbewohner nimmt die Figur enttäuscht wieder an sich." }
+        ]
+      }
+    }
+  },
+
+  "dorf_tempel": {
+    personen: "Toma'ru (Wachposten) · Das Siegel",
+    kurz: "Der eigentliche Zielort des Dorf-Durchgangs — hier wird das Siegel bewacht, das für den Zugang zur Höhle nötig ist.",
+    ortHinweis: "Sonne/Mond scheinen durch eine schmale Dachöffnung auf Wasser im Inneren, der Schimmer erinnert an Gold und Silber. Das Siegel selbst zu bekommen (Überzeugen/Diebstahl/Gewalt) ist NICHT Teil dieser Aufgabe hier - das entscheidet sich erst bei der Gegenrede bzw. den später geplanten Höhlen-Zugängen.",
+    npcs: [
+      {
+        name: "Toma'ru",
+        rolle: "Wachposten am Tempel",
+        verfassung: "Wachsam, aber nicht unfreundlich - Pflichtbewusstsein statt Feindseligkeit.",
+        beduerfnis: "Anerkennung für seine Aufgabe, sei es durch Gespräch/Kameradschaft oder durch ehrlichen Respekt vor Stärke."
+      }
+    ],
+    interaktionen: {
+      "der_wachposten": {
+        title: "Toma'ru — Der Wachposten",
+        kurz: "Bewacht das Siegel. Rhetorik/Auftreten (Kameradschaft/Ablenkung) ODER Körper (Respekt durch Kraftprobe) - erleichtert einen späteren Diebstahl-Versuch.",
+        details: "Toma'ru steht Wache vor dem Tempeleingang, aufmerksam, aber gesprächsbereit. Zwei Wege, ihn dazu zu bringen, heute Abend „nicht so aufmerksam“ zu sein: ein gutes Gespräch (Kameradschaft, Ablenkung) oder eine Demonstration von Stärke, die seinen Respekt verdient statt seiner Worte zu bedürfen. Erfolg setzt einen Vorteil für einen späteren Schleichversuch - die eigentliche Schleich-Mechanik selbst ist Teil eines separaten, späteren Planungsschritts (Höhlen-Zugänge).",
+        trigger: [
+          { id: "angesprochen", label: "Toma'ru lässt sich auf ein Gespräch ein", info: "Toma'ru steht Wache, aufmerksam, aber gesprächsbereit - kein unfreundlicher Wächter, nur pflichtbewusst." },
+          { id: "rhetorik_erfolg", label: "Überzeugt per Rhetorik/Auftreten", info: "Kameradschaft/Ablenkung überzeugt ihn, heute Abend ein Auge zuzudrücken." },
+          { id: "koerper_erfolg", label: "Überzeugt per Körper (Respekt durch Kraftprobe)", info: "Eine beeindruckende Demonstration von Stärke verdient seinen Respekt - er lässt sich darauf ein, ohne dass viele Worte nötig wären." },
+          { id: "misserfolg", label: "Toma'ru bleibt wachsam", info: "Weder Worte noch Taten überzeugen ihn - er bleibt heute Abend besonders aufmerksam, ein späterer Schleichversuch wird dadurch schwerer." }
         ]
       }
     }
