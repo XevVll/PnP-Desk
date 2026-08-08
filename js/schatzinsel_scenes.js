@@ -71,6 +71,45 @@ const SCHATZINSEL_SCENES = {
         desc: "Zwischen kunstvoll gebauten Hütten aus Holz und Palmblatt, in geschwungenen, fast organischen Formen, öffnet sich die Lichtung um einen tempelartigen Steinbau. Kein Stück Metall ist zu sehen — Schmuck und Werkzeug sind durchweg aus Holz gearbeitet. Am Fuß der Freitreppe steht der Häuptling, unbewegt, den Blick wenig freundlich auf die Fremden gerichtet.",
         img: "images/interior_stammesdorf.webp"
       },
+      // Vier Sub-Orte INNERHALB des Dorfbildes (parentId: "stammesdorf") -
+      // erscheinen nicht auf der Hauptkarte, sondern als Hotspots im
+      // Dorf-Overlay (siehe karte.html, renderSubMarkers). Bibel 2.9: das
+      // Dorf soll sich wie ein "Haufen Mini-Quests" anfühlen statt einer
+      // einzigen langen Erzählphase. Positionen sind Platzhalter (anhand
+      // der Text-Beschreibung geschätzt) - bei Bedarf nach dem echten
+      // Referenzbild direkt hier anpassen.
+      {
+        id: "dorf_platz",
+        parentId: "stammesdorf",
+        top: 45, left: 50,
+        title: "Der Dorfplatz",
+        desc: "Der freie Platz vor der Freitreppe des Steinbaus ist das Herz des Dorfes — hier wird gekocht, gearbeitet, erzählt. Kinder flitzen zwischen den Beinen der Erwachsenen hindurch, während Alte im Schatten der Hütten sitzen und jede Bewegung der Fremden beobachten.",
+        img: "images/interior_lager.webp"
+      },
+      {
+        id: "dorf_markt",
+        parentId: "stammesdorf",
+        top: 62, left: 32,
+        title: "Der Handelsbereich",
+        desc: "Geflochtene Matten liegen ausgebreitet, beladen mit getrockneten Früchten, geschnitzten Werkzeugen und Fanggerät. Ein reger, informeller Tauschhandel läuft zwischen den Ständen — Blicke wandern neugierig zu den Fremden und ihrer ungewohnten Ausrüstung.",
+        img: "images/interior_heuer.webp"
+      },
+      {
+        id: "dorf_heilerin",
+        parentId: "stammesdorf",
+        top: 30, left: 74,
+        title: "Die Hütte der Heilerin",
+        desc: "Getrocknete Kräuterbündel hängen dicht unter dem Dach, der Geruch von Rauch und bitteren Pflanzenölen liegt schwer im Raum. Schalen mit zerstoßenen Blättern und Wurzeln stehen aufgereiht neben einer niedrigen Feuerstelle.",
+        img: "images/interior_hafenmeisterei.webp"
+      },
+      {
+        id: "dorf_tempel",
+        parentId: "stammesdorf",
+        top: 18, left: 52,
+        title: "Der Tempel",
+        desc: "Der tempelartige Steinbau, teilweise aus behauenem Fels errichtet, wirkt neben den Holzhütten fremd und alt. Durch eine schmale Öffnung im Dach fällt Licht auf eine Wasserfläche im Inneren — Sonne und Mond spiegeln sich darin und werfen einen Schimmer, der an Gold und Silber erinnert.",
+        img: "images/interior_kapitaenskajuete.webp"
+      },
       {
         // Erst NACH dem ersten Dorfbesuch relevant/aufzuschlagen, nicht auf
         // dem Hinweg (siehe Ablaufreihenfolge oben). Funktional künftig

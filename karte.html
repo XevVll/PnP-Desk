@@ -92,6 +92,42 @@
   }
   .marker:hover .label { opacity: 1; }
 
+  /* ---------- Sub-Orte (Marker innerhalb eines Overlay-Bildes) ---------- */
+  .sub-marker {
+    position: absolute;
+    width: 20px; height: 20px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 5;
+  }
+  .sub-marker .pin {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e8c876, var(--gold) 60%, #8a6a2a 100%);
+    border: 2px solid #1a1308;
+    box-shadow: 0 0 0 2px rgba(201,162,75,0.3), 0 2px 5px rgba(0,0,0,0.6);
+  }
+  .sub-marker:hover .pin { transform: scale(1.15); }
+  .sub-marker .label {
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    white-space: nowrap;
+    background: rgba(15,12,8,0.92);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .15s ease;
+  }
+  .sub-marker:hover .label { opacity: 1; }
+  #overlayBack {
+    display: none;
+    background: none; border: none; color: var(--ink-dim);
+    font-size: 13px; cursor: pointer; padding: 0 0 8px; margin: 0;
+  }
+  #overlayBack:hover { color: var(--gold); }
+  #overlayBack.show { display: block; }
+
   /* ---------- Overlay / Modal ---------- */
   #overlay {
     position: fixed; inset: 0;
@@ -113,6 +149,7 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   }
   #overlayImgWrap {
+    position: relative;
     width: 100%;
     background: #000;
     line-height: 0;
@@ -133,7 +170,7 @@
   }
   #overlayDesc { font-size: 14.5px; line-height: 1.6; color: var(--ink); margin: 0; }
   #overlayClose {
-    position: absolute; top: 14px; right: 18px;
+    position: absolute; top: 14px; right: 18px; z-index: 10;
     background: none; border: none; color: var(--ink-dim);
     font-size: 22px; cursor: pointer; line-height: 1;
   }
@@ -334,6 +371,7 @@
       <button id="overlayClose" aria-label="Schließen">✕</button>
       <div id="overlayImgWrap"><img id="overlayImg" alt=""></div>
       <div id="overlayBody">
+        <button id="overlayBack">← Zurück</button>
         <h2 id="overlayTitle"></h2>
         <p id="overlayDesc"></p>
       </div>
@@ -493,6 +531,7 @@
     const overlayImg = document.getElementById('overlayImg');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlayDesc = document.getElementById('overlayDesc');
+    const overlayBackBtn = document.getElementById('overlayBack');
 
     let currentRenderedScene = null;
 
@@ -569,7 +608,10 @@
     function renderMarkers(markers) {
       clearMarkers();
       markers
-        .filter(function (marker) { return !currentHiddenMarkerIds[marker.id]; })
+        // Sub-Orte (parentId gesetzt) erscheinen nicht auf der Hauptkarte,
+        // sondern nur als Hotspots im Overlay ihres Eltern-Markers (siehe
+        // renderSubMarkers) - reduziert auf die Elternebene, kein Nest-Konzept.
+        .filter(function (marker) { return !currentHiddenMarkerIds[marker.id] && !marker.parentId; })
         .forEach(function (marker) {
           const el = document.createElement('div');
           el.className = 'marker';
@@ -624,10 +666,44 @@
       });
     }
 
+    // ---------- Sub-Orte: Hotspots innerhalb eines Overlay-Bildes ----------
+    // Sub-Orte sind normale Marker mit parentId - dieselbe flache Liste wie
+    // currentSceneRawMarkers, nur mit Klick-Ziel "im Overlay" statt "auf der
+    // Hauptkarte". Ermöglicht z.B. ein Dorfbild mit mehreren anklickbaren
+    // Stellen (Dorfplatz/Markt/Heilerin/Tempel), ohne ein neues Nest-Konzept
+    // im Datenmodell - ORTE/Vault-Baum/Export funktionieren dadurch bereits
+    // unverändert, weil beide ohnehin flach über Marker-IDs iterieren.
+    function clearSubMarkers() {
+      overlayImgWrap.querySelectorAll('.sub-marker').forEach(function (el) { el.remove(); });
+    }
+    function renderSubMarkers(marker) {
+      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id; });
+      children.forEach(function (child) {
+        const el = document.createElement('div');
+        el.className = 'sub-marker';
+        el.style.top = child.top + '%';
+        el.style.left = child.left + '%';
+        el.innerHTML = '<div class="pin"></div><div class="label">' + child.title + '</div>';
+        el.onclick = function (e) { e.stopPropagation(); openOverlay(child); };
+        overlayImgWrap.appendChild(el);
+      });
+    }
+
     function openOverlay(marker) {
       overlayTitle.textContent = marker.title || '';
       overlayEl.classList.add('open');
       setOpenMarker(currentRenderedScene, marker.id);
+
+      const parentMarker = marker.parentId
+        ? currentSceneRawMarkers.find(function (m) { return m.id === marker.parentId; })
+        : null;
+      if (parentMarker) {
+        overlayBackBtn.classList.add('show');
+        overlayBackBtn.onclick = function () { openOverlay(parentMarker); };
+      } else {
+        overlayBackBtn.classList.remove('show');
+        overlayBackBtn.onclick = null;
+      }
 
       resolveActiveVariant(marker, function (variant) {
         // Eine Variante kann "img" und/oder "desc" überschreiben. Fehlt
@@ -639,12 +715,14 @@
         const descText = (variant && variant.desc) || marker.desc || '';
 
         overlayDesc.textContent = descText;
+        clearSubMarkers();
 
         if (imgSrc) {
           overlayImgWrap.classList.remove('empty');
           overlayImg.style.display = '';
           overlayImg.src = imgSrc;
           overlayImg.alt = marker.title || '';
+          renderSubMarkers(marker);
         } else {
           overlayImgWrap.classList.add('empty');
           overlayImg.style.display = 'none';

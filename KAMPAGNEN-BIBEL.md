@@ -1112,6 +1112,14 @@ schicken (Details und die Firebase-Falle siehe Docstring im Skript).
   Live-Zustand (ausgelöst? erledigt?) in der neuen „Szenen-Kopf"-Leiste im Admin-Panel
   angezeigt. Abschluss eines Auftrags ist bewusst SL-Handarbeit (`questDone`, siehe 13.3), nicht
   automatisch aus Spielverhalten abgeleitet
+- **Sub-Orte innerhalb eines Ortes** (neu, August 2026, `karte.html`): ein Marker kann ein
+  optionales `parentId`-Feld bekommen. Marker mit `parentId` erscheinen nicht auf der
+  Hauptkarte, sondern als kleine Pins im Overlay ihres Eltern-Markers (z. B. mehrere anklickbare
+  Stellen innerhalb eines Dorfbildes), inklusive „← Zurück"-Navigation. Bleiben im selben
+  flachen `markers[]`-Array wie bisher — kein neues Nest-Konzept, dadurch funktionieren
+  `ORTE`/Vault-Baum/Export/`hiddenMarkersLive`/`openMarkers` automatisch mit, da sie ohnehin
+  flach über Marker-IDs iterieren. Erstes Beispiel: die vier Dorf-Sub-Orte auf der Schatzinsel
+  (`dorf_platz`/`dorf_markt`/`dorf_heilerin`/`dorf_tempel`, `parentId: "stammesdorf"`)
 
 ### 13.3 Firebase-Pfade
 
