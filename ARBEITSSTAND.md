@@ -108,6 +108,11 @@ Station 5 (Höhle) und die übrigen Dorf-Interaktionen.
   Hinweg), Angriffsszene selbst fehlt noch.
 - Weitere Dorf-Interaktionen (Handel/Verhandlung mit dem Häuptling, falls die Spieler das
   direkt versuchen) — bisher nur die Ankunfts-/Zurückweisungsszene geschrieben.
+- **Grimsgate/frühe Szenen nach Bibel 2.9 überarbeiten** — zurückgestellt, bis der aktuelle
+  Durchgang (Höhle etc.) fertig ist. Wird vor einem zweiten Kampagnendurchlauf mit einer neuen
+  Gruppe nötig: übergeordnetes Ziel + mindestens ein explizit ausgesprochener Auftrag pro Szene
+  fehlen dort noch (Regel kam erst im August 2026 dazu). Bewusst nicht jetzt schon angegangen,
+  siehe Entscheidung vom 2026-08-08.
 
 ## 6. Datei-Wegweiser
 
