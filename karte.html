@@ -120,13 +120,27 @@
     transition: opacity .15s ease;
   }
   .sub-marker:hover .label { opacity: 1; }
-  #overlayBack {
+  .sub-marker-callout {
     display: none;
-    background: none; border: none; color: var(--ink-dim);
-    font-size: 13px; cursor: pointer; padding: 0 0 8px; margin: 0;
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    width: max-content; max-width: min(280px, 60vw);
+    background: rgba(15,12,8,0.96);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 14px 10px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    z-index: 20;
+    cursor: default;
   }
-  #overlayBack:hover { color: var(--gold); }
-  #overlayBack.show { display: block; }
+  .sub-marker.open .sub-marker-callout { display: block; }
+  .smc-close {
+    position: absolute; top: 4px; right: 6px;
+    background: none; border: none; color: var(--ink-dim);
+    font-size: 13px; cursor: pointer; line-height: 1; padding: 2px;
+  }
+  .smc-close:hover { color: var(--ink); }
+  .smc-title { color: var(--gold); font-size: 14px; margin: 0 16px 4px 0; }
+  .smc-desc { color: var(--ink); font-size: 12.5px; line-height: 1.5; white-space: normal; }
 
   /* ---------- Overlay / Modal ---------- */
   #overlay {
@@ -371,7 +385,6 @@
       <button id="overlayClose" aria-label="Schließen">✕</button>
       <div id="overlayImgWrap"><img id="overlayImg" alt=""></div>
       <div id="overlayBody">
-        <button id="overlayBack">← Zurück</button>
         <h2 id="overlayTitle"></h2>
         <p id="overlayDesc"></p>
       </div>
@@ -531,7 +544,6 @@
     const overlayImg = document.getElementById('overlayImg');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlayDesc = document.getElementById('overlayDesc');
-    const overlayBackBtn = document.getElementById('overlayBack');
 
     let currentRenderedScene = null;
 
@@ -676,6 +688,15 @@
     function clearSubMarkers() {
       overlayImgWrap.querySelectorAll('.sub-marker').forEach(function (el) { el.remove(); });
     }
+    // Klick auf einen Sub-Ort-Pin öffnet KEIN neues Voll-Overlay (kein
+    // Bildwechsel) - stattdessen ein kleiner Text-Callout direkt am Pin,
+    // über demselben Bild. Nur ein Callout gleichzeitig offen: ein neuer
+    // Klick schließt den vorherigen automatisch.
+    function toggleSubMarkerCallout(pinEl) {
+      const wasOpen = pinEl.classList.contains('open');
+      overlayImgWrap.querySelectorAll('.sub-marker.open').forEach(function (el) { el.classList.remove('open'); });
+      if (!wasOpen) pinEl.classList.add('open');
+    }
     function renderSubMarkers(marker) {
       const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id; });
       children.forEach(function (child) {
@@ -683,8 +704,14 @@
         el.className = 'sub-marker';
         el.style.top = child.top + '%';
         el.style.left = child.left + '%';
-        el.innerHTML = '<div class="pin"></div><div class="label">' + child.title + '</div>';
-        el.onclick = function (e) { e.stopPropagation(); openOverlay(child); };
+        el.innerHTML = '<div class="pin"></div><div class="label">' + child.title + '</div>' +
+          '<div class="sub-marker-callout">' +
+          '<button class="smc-close" aria-label="Schließen">✕</button>' +
+          '<div class="smc-title">' + child.title + '</div>' +
+          '<div class="smc-desc">' + (child.desc || '') + '</div>' +
+          '</div>';
+        el.querySelector('.pin').onclick = function (e) { e.stopPropagation(); toggleSubMarkerCallout(el); };
+        el.querySelector('.smc-close').onclick = function (e) { e.stopPropagation(); el.classList.remove('open'); };
         overlayImgWrap.appendChild(el);
       });
     }
@@ -693,17 +720,6 @@
       overlayTitle.textContent = marker.title || '';
       overlayEl.classList.add('open');
       setOpenMarker(currentRenderedScene, marker.id);
-
-      const parentMarker = marker.parentId
-        ? currentSceneRawMarkers.find(function (m) { return m.id === marker.parentId; })
-        : null;
-      if (parentMarker) {
-        overlayBackBtn.classList.add('show');
-        overlayBackBtn.onclick = function () { openOverlay(parentMarker); };
-      } else {
-        overlayBackBtn.classList.remove('show');
-        overlayBackBtn.onclick = null;
-      }
 
       resolveActiveVariant(marker, function (variant) {
         // Eine Variante kann "img" und/oder "desc" überschreiben. Fehlt
