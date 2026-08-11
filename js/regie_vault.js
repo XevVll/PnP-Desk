@@ -118,6 +118,12 @@ function getAllSceneEntries() {
   if (typeof SCHATZINSEL_SCENES !== 'undefined') {
     Object.keys(SCHATZINSEL_SCENES).forEach(function (id) { entries.push({ id: id, label: SCHATZINSEL_SCENES[id].label, source: 'island' }); });
   }
+  if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined') {
+    Object.keys(SPANISCHER_HAFEN_SCENES).forEach(function (id) { entries.push({ id: id, label: SPANISCHER_HAFEN_SCENES[id].label, source: 'spanischer_hafen' }); });
+  }
+  if (typeof SCHMUGGLERNEST_SCENES !== 'undefined') {
+    Object.keys(SCHMUGGLERNEST_SCENES).forEach(function (id) { entries.push({ id: id, label: SCHMUGGLERNEST_SCENES[id].label, source: 'schmugglernest' }); });
+  }
   return entries;
 }
 
@@ -125,6 +131,8 @@ function getSceneLabel(sceneId) {
   if (SCENES[sceneId]) return SCENES[sceneId].label;
   if (typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return GOLDEN_LION_SCENES[sceneId].label;
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].label;
+  if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined' && SPANISCHER_HAFEN_SCENES[sceneId]) return SPANISCHER_HAFEN_SCENES[sceneId].label;
+  if (typeof SCHMUGGLERNEST_SCENES !== 'undefined' && SCHMUGGLERNEST_SCENES[sceneId]) return SCHMUGGLERNEST_SCENES[sceneId].label;
   return sceneId;
 }
 
@@ -132,6 +140,8 @@ function getMarkersForScene(sceneId) {
   if (SCENES[sceneId]) return SCENES[sceneId].markers;
   if (typeof getGoldenLionMarkers === 'function' && typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return getGoldenLionMarkers(sceneId);
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].markers;
+  if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined' && SPANISCHER_HAFEN_SCENES[sceneId]) return SPANISCHER_HAFEN_SCENES[sceneId].markers;
+  if (typeof SCHMUGGLERNEST_SCENES !== 'undefined' && SCHMUGGLERNEST_SCENES[sceneId]) return SCHMUGGLERNEST_SCENES[sceneId].markers;
   return [];
 }
 

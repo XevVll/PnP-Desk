@@ -223,7 +223,62 @@ const ORTE = {
     personen: "James Harwick · Cormac Daly · Bartholomew Ashworth (nur nach vorherigem Hafenmeisterei-Besuch)",
     kurz: "Ankunft am Anleger. Ashworth stellt Harwick wegen der nicht registrierten Golden Lion zur Rede, danach Übergabe an Cormac und zügiges Ablegen.",
     ortHinweis: "Die Ankunft an Bord hängt vom Rekrutierungsweg ab (Heuer, Bibel 9.1):\n\n— Regulär angeheuert (Francesco/Tom/Zwillinge-Erfolg): zu Fuß, früh am nächsten Morgen.\n— Wat (Zwangsrekrutierung): wacht erst auf, wenn das Schiff schon unterwegs ist — verpasst die Szene unten komplett.\n— Zwillinge-Ohnmacht: kommt schon am Vorabend an Bord, direkt aus der Kneipenszene heraus (siehe Heuer/Zwillinge).\n\nFür alle, die morgens zu Fuß ankommen: War vorher ein Spieler in der Hafenmeisterei (Nachfrage oder Sonderfall), steht Ashworth bereits am Anleger und befragt hitzig die rumlungernde Crew nach dem Kapitän — die Golden Lion ist ja nicht registriert. Harwick kommt heraus, wickelt ihn mit Münzen und Charme ab: freundliches, einladendes Lächeln. Die Miene fällt ihm kurz, sobald Ashworth abzieht — aber nur Amtspersonen gegenüber, nie den Spielern. Er begrüßt die Neuen, stellt sie Cormac vor, übergibt sie ihm. Kurz danach wird abgelegt.\n\n(Beim Sonderfall zusätzlich: die Wache erkennt den Spieler wieder, der sie zum Schiff geführt hat → persönlicher Rufmalus, siehe Hafenmeisterei.)",
+    // 5.1/6.1 (nach der Insel / Flaute): komplett eigene Rahmung statt der
+    // Ankunfts-Beschreibung oben - die zentralen Inhalte dieser beiden Szenen
+    // liegen an der Kapitänskajüte und am Unterdeck (siehe dortige Einträge),
+    // hier nur die übergeordnete Einordnung/Kursfrage für den SL.
+    szenenUeberschreibungen: {
+      "5.1": {
+        personen: "James Harwick (in der Kajüte) · Cormac Daly",
+        kurz: "Übergangsszene nach der Schatzinsel: Spieler bewegen sich wieder frei auf dem Schiff. Harwick zeigt den Insel-Begleitern Dokumente zu den Artefakten (Kapitänskajüte); parallel verschlechtert sich Ezra Coombes Zustand (Unterdeck). Kursfrage: Spanischer Hafen (aktueller Plan, wegen Ezra) bleibt bestehen, sofern die Spieler Harwick nicht aktiv zum Schmugglernest überreden — geschieht gar nichts, treibt das Schiff stattdessen in die Flaute (Szene 6.1).",
+        ortHinweis: "Freies Bewegen wie in 2.1, aber mit anderer Grundstimmung: die Erleichterung über den Schatz mischt sich mit wachsender Sorge um Ezra. Spieler, die mit Harwick auf der Insel unterwegs waren (Dorf/Dschungelpfad/Nachtlager/Höhle), werden jetzt sichtbar anders behandelt — von Crew UND von Harwick selbst.\n\nDie eigentliche Weggabelung dieser Szene liegt bei der Kapitänskajüte (Interaktion \"Harwick — Die Unterlagen zu den Artefakten\") und beim Unterdeck (\"Ezra Coombe — Der Wundbrand verschlimmert sich\"), siehe dort. Drei mögliche Ausgänge, SL-Ermessen anhand des tatsächlichen Spielerverhaltens: aktiv zum Schmugglernest überredet (7.2 Bibel) / Kurs bleibt aktiv Richtung Spanischer Hafen (wegen Ezra) / gar kein Engagement → Flaute (6.1)."
+      },
+      "6.1": {
+        personen: "James Harwick (in der Kajüte)",
+        kurz: "Die Flaute — Harwicks eigener, passiver Kurs, falls in 5.1 niemand aktiv eingegriffen hat (Bibel 7.2). Kein Wind, drückende Stille. In Harwicks Unterlagen findet sich eine Warnung vor einem übernatürlichen Kampf.",
+        ortHinweis: "Die Segel hängen schlaff, kein Windhauch, das Schiff liegt fast bewegungslos auf spiegelglatter See.\n\nZentral: siehe Kapitänskajüte, Interaktion \"Die Warnung in Harwicks Unterlagen\"."
+      }
+    },
     interaktionen: {}
+  },
+
+  // Neu (Übergangsszene nach der Insel): Marker "kapitaenskajuete" existiert
+  // schon lange auf der Golden-Lion-Karte (GOLDEN_LION_MARKERS_BASE), hatte
+  // bisher aber keinen eigenen ORTE-Eintrag - die Tür war in 2.1/3.1 laut
+  // Marker-Text verriegelt, kein GM-Inhalt nötig. Beide Interaktionen hier
+  // sind scharf auf ihre jeweilige Szene begrenzt (nurSzenen).
+  "kapitaenskajuete": {
+    personen: "James Harwick",
+    kurz: "5.1: Harwick zeigt den Insel-Begleitern die Artefakt-Unterlagen, echte Chance, ihn zum Schmugglernest umzustimmen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen.",
+    interaktionen: {
+      "harwick_artefakt_dokumente": {
+        title: "Harwick — Die Unterlagen zu den Artefakten",
+        kurz: "Harwick breitet vor den Insel-Begleitern Unterlagen zu den Artefakten aus und macht die Kursfrage explizit. Echte Überzeugung (nicht nur ein Wurf) kann ihn zum Schmugglernest umstimmen — kostet aber den aktuellen Plan, wegen Ezra den spanischen Hafen anzulaufen.",
+        nurSzenen: ["5.1"],
+        details: "Harwick bittet vor allem die Spieler zu sich, die mit ihm auf der Insel unterwegs waren — wer nicht dabei war, ist nicht ausgeschlossen, bekommt aber spürbar weniger seiner Aufmerksamkeit. Auf dem Tisch liegen Karten, Skizzen und Notizen zu den Artefakten, die der Schatz erst noch bezahlen soll. Er erklärt offen, was er weiß und was ihm fehlt — Untergrundwissen, Kontakte, jemand, der mit Schmuggelware und ihren Käufern vertraut ist.\n\nEr spricht die Kursfrage direkt aus: eigentlich ist der spanische Hafen als nächstes Ziel gesetzt, wegen Ezra. Aber wenn jemand einen guten Grund hat, stattdessen das Schmugglernest anzulaufen, will er ihn jetzt hören — nicht erst, wenn es zu spät zum Umdrehen ist.\n\nÜberzeugung ist hier kein einzelner Würfelwurf, sondern hängt am tatsächlichen Argument: gutes Rollenspiel schlägt Mechanik (bestehendes Design-Prinzip). Ein Spieler, der erkennbar mit den ausliegenden Unterlagen argumentiert oder eine plausible Rhetorik-Probe dafür einsetzt, hat eine echte Chance. Bloßes Drängen ohne Bezug zu den Unterlagen prallt an Harwick ab — er ist kein Narr.\n\nSL-Ermessen für den Ausgang der ganzen Szene: Wird Harwick überzeugt, ändert sich der Kurs aufs Schmugglernest — und das bedeutet, den Plan für Ezra aufzugeben (siehe Unterdeck-Interaktion \"Ezra Coombe — Der Wundbrand verschlimmert sich\"; moralisches Gewicht dieser Entscheidung siehe Bibel 12, \"moralische Umkehrung\"). Bleibt der Kurs unangetastet, weil die Spieler sich erkennbar für Ezra einsetzen oder zumindest den Plan aktiv mittragen, läuft die Fahrt weiter Richtung spanischem Hafen. Bleibt die ganze Szene dagegen unbeachtet — niemand ergreift für irgendeine Seite Partei — treibt das Schiff stattdessen führungslos in die Flaute (Szene 6.1).",
+        trigger: [
+          { id: "doku_gezeigt", label: "Harwick zeigt die Artefakt-Unterlagen, spricht die Kursfrage offen an", info: "Harwick bittet vor allem die Insel-Begleiter zu sich, breitet Karten/Skizzen/Notizen zu den Artefakten aus. Er spricht offen: eigentlich ist der spanische Hafen als nächstes Ziel gesetzt (wegen Ezra) — aber wer einen guten Grund fürs Schmugglernest hat, soll ihn jetzt vorbringen.", grantsQuest: {
+            warum: "Harwick braucht Untergrundwissen und Kontakte für den späteren Artefakthandel, hat aber schon fast entschieden, wegen Ezra stattdessen den sicheren Weg über den spanischen Hafen zu nehmen.",
+            was: "Harwick mit einem echten Argument (gestützt auf die ausliegenden Unterlagen) davon überzeugen, stattdessen das Schmugglernest anzulaufen — oder ihn bewusst bei seinem Plan lassen."
+          } },
+          { id: "insel_begleiter_einbezogen", label: "Insel-Begleiter stärker einbezogen als der Rest der Crew", info: "Wer mit Harwick auf der Insel war, wird direkt angesprochen, nach seiner Meinung gefragt — spürbar anderes Gewicht als beim Rest der Gruppe." },
+          { id: "ueberzeugung_versucht", label: "Spieler versuchen, Harwick mit einem echten Argument umzustimmen", info: "Überzeugung ist kein einzelner Würfelwurf, sondern hängt am tatsächlichen Argument (Bezug zu den Unterlagen, ggf. gestützt durch Rhetorik-Probe). Bloßes Drängen ohne Bezug prallt ab." },
+          { id: "kurs_schmugglernest", label: "Erfolgreich überzeugt → Kurs ändert sich aufs Schmugglernest (kostet Ezra den Plan)", info: "Harwick lässt sich umstimmen. Bedeutet: der Plan für Ezra (spanischer Hafen) wird aufgegeben — moralisches Gewicht siehe Bibel 12 (\"moralische Umkehrung\")." },
+          { id: "kurs_spanischer_hafen", label: "Kurs bleibt Richtung spanischem Hafen (Spieler setzen sich erkennbar für Ezra ein oder tragen den Plan aktiv mit)", info: "Kein Umstimmen versucht oder Versuch fehlgeschlagen, aber die Spieler zeigen erkennbares Engagement für Ezra/den bestehenden Plan → Kurs bleibt wie geplant." },
+          { id: "kurs_flaute", label: "Niemand ergreift Partei → Schiff treibt führungslos in die Flaute (6.1)", info: "Bleibt die ganze Szene unbeachtet, trifft Harwick von sich aus keine klare Entscheidung — das Schiff treibt in die Flaute (Szene 6.1)." }
+        ]
+      },
+      "warnung_in_unterlagen": {
+        title: "Die Warnung in Harwicks Unterlagen",
+        kurz: "Nur relevant, wenn Szene 6.1 (Flaute) aktiv ist. Während der erzwungenen Untätigkeit verbringt Harwick auffällig viel Zeit über seinen Unterlagen — wer genau hinsieht, findet eine vage Warnung vor einem kommenden übernatürlichen Kampf.",
+        nurSzenen: ["6.1"],
+        details: "Bibel 7.2: Während der Flaute stoßen die Spieler in Harwicks Unterlagen auf die Warnung vor einem übernatürlichen Kampf. Wie genau der Zugang zustande kommt, liegt im Ermessen des Spielleiters — z.B. weil Harwick in der erzwungenen Untätigkeit sichtbar auffällig viel Zeit grübelnd über seinen Papieren verbringt und dabei unvorsichtig wird, oder weil ein Spieler mit gutem Grund direkt nachfragt und er in seiner Anspannung mehr preisgibt als sonst.\n\nDie Warnung selbst bleibt an dieser Stelle bewusst vage — keine Details zum Gegner oder zum Ritual, nur die Gewissheit, dass etwas Übernatürliches bevorsteht und dass Vorbereitung nötig sein wird. Zukunfts-Notiz: Dieser Faden führt später zum \"Hafen zur Vorbereitung\" (Bibel 7.4, freigeschaltet über den Weg durch die Flaute) — Ausarbeitung dieser Folgestation steht noch aus.",
+        trigger: [
+          { id: "harwick_gruebelt", label: "Harwick verbringt auffällig viel Zeit grübelnd über seinen Unterlagen", info: "Die erzwungene Untätigkeit der Flaute lässt ihm zu viel Zeit zum Nachdenken — er wird dabei unvorsichtiger als sonst." },
+          { id: "warnung_entdeckt", label: "Warnung vor einem übernatürlichen Kampf entdeckt (noch vage, keine Details)", info: "Wahrnehmungs-/Wissen-Probe oder direktes Nachfragen legt eine vage Warnung offen: Etwas Übernatürliches steht bevor, Vorbereitung wird nötig sein. Keine Details zu Gegner oder Ritual an dieser Stelle." }
+        ]
+      }
+    }
   },
 
   "achterdeck": {
@@ -465,14 +520,37 @@ const ORTE = {
     personen: "Crew (namenlos, rotierend schlafend)",
     kurz: "Der einzige ruhige Ort auf dem Schiff — als Falle angelegt. Durchqueren verlangt Geschick-/Geheim-Probe, Misserfolg kostet Ruf bei allen Anwesenden.",
     ortHinweis: "Enge Reihen fester Kojen (bewusst KEINE Hängematten), Vorhänge für ein wenig Privatsphäre — mehr Komfort, als man auf einem Schiff erwarten würde. Crew schläft in Schichten, rotierend, während andere Wache stehen. Wirkt wie ein Fettnäpfchen-Ort, ist aber außer im Misserfolgsfall folgenlos.",
+    // 5.1 (nach der Insel): Ezra Coombe liegt hier, siehe schiffswrack-
+    // Interaktion "eber_und_wundbrand" (Ausgangspunkt: Wildschwein-Verletzung,
+    // Wundbrand/Sepsis, Amputation am Oberschenkel technisch unmöglich).
+    // Diese Szene führt den Faden fort, statt ihn neu zu erfinden.
+    szenenUeberschreibungen: {
+      "5.1": {
+        personen: "Ezra Coombe (im Krankenlager) · Silas Pott",
+        kurz: "Ezras Wundbrand hat sich weiter ausgebreitet — wer ihn besucht, sieht deutlich, wie es um ihn steht.",
+        ortHinweis: "Zwischen den sonst ruhigen, rotierend schlafenden Kojen liegt abseits ein zusätzliches Lager: Ezra Coombe, das Bein bandagiert, im Fieber. Silas Pott wechselt sichtlich ratlos die Umschläge."
+      }
+    },
     interaktionen: {
       "durchqueren": {
         title: "Durchqueren des Unterdecks",
         kurz: "Geschick- oder Geheim-Probe. Erfolg = nichts passiert, Misserfolg = Gemecker + Ruf-Malus für alle anwesenden Spieler.",
+        nichtInSzenen: ["5.1"], // in 5.1 ist das Unterdeck kein Fettnäpfchen-Ort mehr, sondern Ezras Krankenlager - siehe "ezras_wundbrand"
         details: "Spieler, die das Unterdeck durchqueren, während dort geschlafen wird, würfeln auf Geschick oder Geheim.\n\n— Erfolg: nichts, unauffällig durch\n— Misserfolg: Gemecker von den Gestörten, Ruf-Malus für alle anwesenden Spieler (nicht nur für den Verursacher)",
         trigger: [
           { id: "erfolg", label: "Erfolg → unauffällig durch", info: "Erfolg: nichts, unauffällig durch." },
           { id: "misserfolg", label: "Misserfolg → Gemecker, Ruf-Malus für alle Anwesenden", info: "Misserfolg: Gemecker von den Gestörten, Ruf-Malus für alle anwesenden Spieler (nicht nur für den Verursacher)." }
+        ]
+      },
+      "ezras_wundbrand": {
+        title: "Ezra Coombe — Der Wundbrand verschlimmert sich",
+        kurz: "Fortsetzung von \"Der Eber und der Wundbrand\" (Schiffswrack): Ezras Zustand verschlechtert sich sichtbar. Wissen(Heilkunde)- oder Wahrnehmungs-Probe macht klar, dass er ohne echten Hafen mit richtiger Versorgung nicht mehr lange durchhält.",
+        nurSzenen: ["5.1"],
+        details: "Der Wundbrand, der schon auf der Insel einsetzte (siehe Schiffswrack-Interaktion \"Der Eber und der Wundbrand\"), hat sich weiter ausgebreitet. Ezra liegt im Fieber, das Bein geschwollen und verfärbt, der Geruch im Krankenlager unverkennbar. Silas Pott wechselt Umschläge, sichtlich überfordert — die Amputation am Oberschenkel war schon an Bord technisch unmöglich (Hauptschlagader), und ohne die Werkzeuge und Arznei eines echten Hafens ändert sich daran nichts.\n\nEin Spieler mit medizinischer Erfahrung, oder eine Wissen(Heilkunde)- bzw. Wahrnehmungs-Probe, macht unmissverständlich klar: So, wie es steht, überlebt Ezra das nicht mehr lange. Es braucht dringend einen Hafen mit richtiger Versorgung — kein Notbehelf an Bord.\n\nDieser Moment ist bewusst die emotionale Gegenseite zur Kapitänskajüte-Interaktion \"Harwick — Die Unterlagen zu den Artefakten\": Wer hier steht und sieht, wie es um Ezra bestellt ist, trägt dieses Wissen (oder zumindest den Eindruck davon) mit in die Kursfrage bei Harwick.",
+        trigger: [
+          { id: "zustand_verschlechtert", label: "Wundbrand/Sepsis sichtbar weiter ausgebreitet, Fieber steigt", info: "Ezra liegt im Fieber, das Bein geschwollen und verfärbt, der Geruch im Krankenlager unverkennbar." },
+          { id: "silas_ueberfordert", label: "Silas Pott sichtlich überfordert, wechselt nur noch Umschläge", info: "Silas Pott wechselt Umschläge, sichtlich ratlos — mehr kann er ohne die Werkzeuge/Arznei eines echten Hafens nicht tun." },
+          { id: "erkenntnis_todesnah", label: "Probe/medizinische Erfahrung macht klar: ohne echten Hafen überlebt er nicht mehr lange", info: "Wissen(Heilkunde)- oder Wahrnehmungs-Probe (bzw. ein Spieler mit medizinischer Erfahrung) macht unmissverständlich klar: Ezra braucht dringend einen Hafen mit richtiger Versorgung, sonst überlebt er das nicht." }
         ]
       }
     }
@@ -1034,6 +1112,25 @@ const ORTE = {
         ]
       }
     }
+  },
+
+  // Spanischer Hafen und Schmugglernest (Bibel 7.2, Verzweigung 1): bewusst
+  // nur ein GM-Rahmenhinweis, der die bereits in der Bibel festgelegten
+  // Eckpunkte wiedergibt - keine erfundenen NPCs/Interaktionen, da Hendrik
+  // Story-Inhalte selbst entwickelt (CLAUDE.md, Arbeitsweise). Ausarbeitung
+  // folgt in einer eigenen Runde.
+  "hafen_anlegestelle": {
+    personen: "[OFFEN — noch nicht ausgearbeitet]",
+    kurz: "[OFFEN] Suche nach Heilkräutern (für Ezra Coombe). Bibel 7.2: Risiko einer Begegnung mit dem spanischen Offizier. Kann später Route A (Bibel 7.5) entschärfen.",
+    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.2.",
+    interaktionen: {}
+  },
+
+  "schmuggler_lager": {
+    personen: "[OFFEN — noch nicht ausgearbeitet]",
+    kurz: "[OFFEN] Untergrundwissen/Artefakt-Kontakte. Bibel 7.2: schaltet später die Schamanen-Insel frei (Bibel 7.4). Bibel 12: moralisch schwerster, aber mechanisch bester Weg — kostet Ezra Coombes Überlebenschance (siehe Golden Lion 5.1, ORTE.kapitaenskajuete).",
+    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.2 und 12.",
+    interaktionen: {}
   }
 };
 
@@ -1169,6 +1266,84 @@ const SZENEN_REGIE = {
         rolle: "Zimmermannsgehilfe, mitten in der Reparatur",
         verfassung: "Angespannt, wortkarg, keine Zeit für Gespräche.",
         beduerfnis: "Werkzeug und Hände — der Rumpf muss dicht werden."
+      }
+    ]
+  },
+
+  // Übergangsszene nach der Insel. Gleicher Ghost-Pool wie 2.1 (dieselbe
+  // Crew, kein Szenenwechsel des Schiffs selbst) - Verfassung unverändert,
+  // da die Ghosts reine Statisten sind und die eigentliche Stimmungs-
+  // verschiebung über die konkreten Personen (Harwick, Ezra) läuft, nicht
+  // über den Statisten-Pool.
+  "5.1": {
+    uebergeordnetesZiel: "Den Kurs für die Weiterfahrt festlegen, während Ezra Coombes Wundbrand die Zeit knapp werden lässt.", // Bibel 2.9
+    stimmung: "Zurück auf See, mit vollen Laderäumen und einer Crew, die spürbar anders wirkt als beim Ablegen aus Grimsgate. Wer mit Harwick ins Inselinnere gezogen ist, bekommt jetzt andere Blicke — ein Nicken im Vorbeigehen, Fragen, die vorher niemand gestellt hätte. Unter der Erleichterung über den geborgenen Schatz liegt eine wachsende Unruhe: Unten liegt Ezra Coombe mit einem Bein, das nicht heilen will, und wer genau hinhört, hört, wie die Crew leise darüber tuschelt.",
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Nichts überrascht ihn mehr, kommentiert alles trocken und ungefragt.",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Toby Rennick",
+        rolle: "Grüner Rekrut, erste Fahrt",
+        verfassung: "Sturm und Insel liegen jetzt hinter ihm — merklich weniger überängstlich als noch in Grimsgate, aber Ezras Zustand macht ihm sichtbar zu schaffen.",
+        beduerfnis: "Nicht als Landratte auffallen — und wenigstens einmal für etwas gelobt werden."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Sieht in Ezras Wundbrand ein Omen, murmelt Beschwörungen gegen weiteres Unglück.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Nervös-fahrig, schuldet halbem Unterdeck Geld, redet sich mit Versprechen heraus.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Wehmütig, hält an einem abgegriffenen Andenken von zuhause fest, erzählt bei jeder Gelegenheit von seinen Kindern.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
+      }
+    ]
+  },
+
+  // Flaute (Bibel 7.2: "passiver Weg, Harwicks eigene Route") - nur relevant,
+  // falls in 5.1 niemand aktiv eingegriffen hat (siehe ORTE.golden_lion,
+  // szenenUeberschreibungen "6.1"). Gleicher Ghost-Pool wie 5.1/2.1.
+  "6.1": {
+    uebergeordnetesZiel: "Die drückende Windstille überstehen, während das Schiff führungslos Harwicks eigenem Kurs folgt.", // Bibel 2.9
+    stimmung: "Kein Windhauch, seit Tagen. Die Segel hängen schlaff, das Schiff liegt fast bewegungslos auf spiegelglatter See. Die sonst allgegenwärtigen Geräusche von Wind und Tauwerk fehlen komplett — ungewohnt still, fast bedrückend. Die Hitze staut sich unter Deck, die Vorräte werden knapper besprochen als sonst. Niemand sagt es laut, aber alle rechnen im Kopf mit, wie viele Tage das noch gutgeht.",
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Auch ihn beunruhigt eine Flaute dieser Länge sichtlich — kommentiert es trotzdem trocken: „Hab Schlimmeres gesehen. Meistens.“",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Für ihn ist eine Flaute dieser Länge kein Zufall, sondern ein Zeichen — murmelt ununterbrochen Beschwörungen, meidet bestimmte Decksstellen.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Bei so viel erzwungener Untätigkeit blüht sein Kartenspiel erst richtig auf — die Schulden wachsen entsprechend schneller.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Die erzwungene Stille lässt ihm zu viel Zeit zum Grübeln — wehmütiger als sonst, hält sein Andenken fast ständig in der Hand.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
       }
     ]
   }

@@ -157,20 +157,25 @@ const GOLDEN_LION_SCENES = {
       frachtraum: "Der Frachtraum steht knöcheltief unter Wasser — bei jeder Welle schwappt es zwischen den Fässern hin und her. Irgendwo dringt Wasser ein, das hier nicht hingehört. Wenn niemand bald etwas unternimmt, wird es mehr."
     },
     soundFile: "storm1.ogg" // war "sturm.mp3" - passte nie zur tatsaechlich abgelegten Datei
+  },
+
+  "5.1": {
+    label: "Golden Lion — Nach der Insel",
+    background: "images/golden_lion_cutaway.webp",
+    imgOverrides: {} // optisch bewusst identisch zur Basis-Szene (2.1) - Hendriks Auftrag: "optisch die Golden Lion Basis Szene kopieren"
+    // descOverrides: {} - keine nötig, Marker-Texte aus BASE passen weiterhin
+  },
+
+  "6.1": {
+    label: "Golden Lion in der Flaute",
+    background: "images/golden_lion_cutaway.webp",
+    imgOverrides: {} // ebenfalls wie Basis-Szene - kein Wetterumschwung, der eigenes Bildmaterial rechtfertigt (nur Windstille)
   }
 
-  // Beispiel für später, zum Reinkopieren und Anpassen. ACHTUNG: "4.1" ist
-  // inzwischen von der Schatzinsel belegt (schatzinsel_scenes.js) - eine
-  // neue Golden-Lion-Örtlichkeit bräuchte die nächste freie führende
-  // Ziffer (aktuell "5.1"), siehe CLAUDE.md, Szenen-ID-Konvention.
-  //
-  // "5.1": {
-  //   label: "Golden Lion in der Karibik",
-  //   background: "images/golden_lion_cutaway_karibik.webp",
-  //   imgOverrides: {
-  //     oberdeck: "images/interior_oberdeck_karibik.webp"
-  //   }
-  // }
+  // Nächste freie führende Ziffer für eine weitere neue Örtlichkeit/einen
+  // weiteren Golden-Lion-Zustand: "9.1" ("7.1" Spanischer Hafen und "8.1"
+  // Schmugglernest sind seit der Übergangsszene nach der Insel vergeben,
+  // siehe spanischer_hafen_scenes.js/schmugglernest_scenes.js).
 };
 
 // ID der Szene, die angezeigt wird, falls (noch) keine Verbindung zu

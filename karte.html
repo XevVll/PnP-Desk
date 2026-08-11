@@ -434,6 +434,8 @@
   <script src="js/scenes.js"></script>
   <script src="js/golden_lion_scenes.js"></script>
   <script src="js/schatzinsel_scenes.js"></script>
+  <script src="js/spanischer_hafen_scenes.js"></script>
+  <script src="js/schmugglernest_scenes.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/dice.js"></script>
 
@@ -486,6 +488,22 @@
         },
         getMarkers: function (sceneId) {
           return (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) ? SCHATZINSEL_SCENES[sceneId].markers : null;
+        }
+      },
+      {
+        getScene: function (sceneId) {
+          return (typeof SPANISCHER_HAFEN_SCENES !== 'undefined') ? SPANISCHER_HAFEN_SCENES[sceneId] : undefined;
+        },
+        getMarkers: function (sceneId) {
+          return (typeof SPANISCHER_HAFEN_SCENES !== 'undefined' && SPANISCHER_HAFEN_SCENES[sceneId]) ? SPANISCHER_HAFEN_SCENES[sceneId].markers : null;
+        }
+      },
+      {
+        getScene: function (sceneId) {
+          return (typeof SCHMUGGLERNEST_SCENES !== 'undefined') ? SCHMUGGLERNEST_SCENES[sceneId] : undefined;
+        },
+        getMarkers: function (sceneId) {
+          return (typeof SCHMUGGLERNEST_SCENES !== 'undefined' && SCHMUGGLERNEST_SCENES[sceneId]) ? SCHMUGGLERNEST_SCENES[sceneId].markers : null;
         }
       }
     ];
