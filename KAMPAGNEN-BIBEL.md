@@ -317,10 +317,13 @@ Freie Spielerwahl. Alle drei Wege laufen bei der Artefaktbucht wieder zusammen.
 | **Seeweg / Flaute** | Passiver Weg, Harwicks eigene Route | Während der Flaute stoßen die Spieler in Harwicks Unterlagen auf die Warnung vor einem übernatürlichen Kampf |
 | **Schmugglernest** | Untergrundwissen / Artefakt | Kontakte und Recherche, die später die Schamanen-Insel freischalten |
 
-> **[OFFEN] Designspannung:** Ursprünglich war der spanische Hafen als *erzwungener*
-> Zwischenstopp bei schlechtem Ruf konzipiert (Wildschwein-Verletzung als Auslöser). Ob beide
-> Mechaniken koexistieren — freie Wahl **und** Zwangsstopp bei schlechtem Ruf — ist nicht
-> abschließend entschieden.
+> **Umgesetzt (August 2026):** Die Wildschwein-Verletzung (Ezra Coombes Wundbrand) liefert jetzt
+> die Dringlichkeit für den spanischen Hafen, aber nicht als reiner Ruf-Zwangsstopp — siehe
+> Übergangsszene `5.1` (`js/regie.js`, `ORTE.kapitaenskajuete` und `ORTE.unterdeck`). Der
+> spanische Hafen bleibt der Default-Kurs (wegen Ezra), das Schmugglernest erfordert aktive
+> Überzeugung Harwicks (echtes Argument, keine reine Ruf-Zahl), und bei völliger Untätigkeit
+> treibt das Schiff stattdessen führungslos in die Flaute (`6.1`). SL-Ermessen entscheidet den
+> Ausgang anhand des tatsächlichen Spielerverhaltens, nicht anhand eines festen Ruf-Schwellwerts.
 
 ### 7.3 Der Artefakthandel (fest)
 
@@ -1404,7 +1407,8 @@ dafür, dass die **künstliche Verknappung** (30 Minuten bis Wat, 60 Minuten bis
   Nicht-Auffangen (Oberdeck, Sturm-Szene)
 
 ### Struktur
-- Koexistenz von freier Wahl und Zwangsstopp (spanischer Hafen bei schlechtem Ruf)
+> **Erledigt (August 2026):** Koexistenz von freier Wahl und Zwangsstopp (spanischer Hafen bei
+> schlechtem Ruf) — siehe 7.2, umgesetzt über die Übergangsszene `5.1`.
 - Ruf-Preis für einen Schatten-Meuchelmord beim Artefakthandel
 - Schicksal des niedergemetzelten Schmugglerschiffs: versenkt oder als treibendes Totenschiff
   wiederkehrend?
@@ -1432,6 +1436,11 @@ dafür, dass die **künstliche Verknappung** (30 Minuten bis Wat, 60 Minuten bis
   Angriffsszene fehlt aber noch.
 - Schaden aus der Kanonen-Szene (Sturm) muss auf der Schatzinsel noch konkret ausgestaltet
   werden (kann gefährlich werden oder von der Schatzsuche ausschließen — Details offen)
+- Spanischer Hafen (`7.1`, `js/spanischer_hafen_scenes.js`) und Schmugglernest (`8.1`,
+  `js/schmugglernest_scenes.js`) sind seit August 2026 als eigene Karten registriert (Marker,
+  Platzhalterbild), aber inhaltlich noch komplett offen — kein Referenzbild, keine NPCs, keine
+  Interaktionen. Die Übergangsszene davor (`5.1`) und die Flaute (`6.1`) sind dagegen fertig
+  ausgearbeitet.
 
 > **Erledigt (Juli 2026):** Alle Ortsinhalte der Golden Lion sind jetzt ausgearbeitet —
 > Achterdeck, Oberdeck, Bug, Batteriedeck, Werkstatt, Unterdeck, Kombüse, Frachtraum,
