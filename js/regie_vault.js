@@ -43,6 +43,19 @@ let questDone = {};     // { [fbKey(sceneId)]: { [triggerId]: true } } - SL-Erme
 let vOpenNodes = new Set();
 let vShowAdd = null;    // 'npc' | 'pc' | null
 
+// Reihenfolge im Regie-Baum orientiert sich am tatsächlichen Handlungsablauf
+// (Bibel 7.1), NICHT an der Datei-Gruppierung oder der Szenen-ID-Nummer -
+// z.B. steht die Flaute ("6.1") trotz kleinerer Nummer hinter dem Spanischen
+// Hafen ("7.1"), weil Bibel 7.2 die drei Wege der Verzweigung 1 in dieser
+// Reihenfolge auflistet (Spanischer Hafen / Seeweg-Flaute / Schmugglernest).
+// Neue Szenen hier manuell einsortieren, nicht einfach anhängen. Fehlt eine
+// ID hier (vergessen bei einer künftigen Szene), taucht sie trotzdem auf -
+// nur am Ende statt an der eigentlich richtigen Stelle. MUSS vor dem
+// Firebase-Init weiter unten stehen (dessen catch-Zweig ruft renderAll() ->
+// getAllSceneEntries() synchron auf, noch bevor eine spätere const-Deklaration
+// in diesem Modul ausgeführt wäre - Temporal Dead Zone).
+const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1'];
+
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
   const toggle = document.getElementById('previewToggle');
@@ -110,21 +123,23 @@ function firstOrtOf(sceneId) {
 }
 
 function getAllSceneEntries() {
-  const entries = [];
-  Object.keys(SCENES).forEach(function (id) { entries.push({ id: id, label: SCENES[id].label, source: 'town' }); });
+  const bySource = {};
+  Object.keys(SCENES).forEach(function (id) { bySource[id] = { label: SCENES[id].label, source: 'town' }; });
   if (typeof GOLDEN_LION_SCENES !== 'undefined') {
-    Object.keys(GOLDEN_LION_SCENES).forEach(function (id) { entries.push({ id: id, label: GOLDEN_LION_SCENES[id].label, source: 'ship' }); });
+    Object.keys(GOLDEN_LION_SCENES).forEach(function (id) { bySource[id] = { label: GOLDEN_LION_SCENES[id].label, source: 'ship' }; });
   }
   if (typeof SCHATZINSEL_SCENES !== 'undefined') {
-    Object.keys(SCHATZINSEL_SCENES).forEach(function (id) { entries.push({ id: id, label: SCHATZINSEL_SCENES[id].label, source: 'island' }); });
+    Object.keys(SCHATZINSEL_SCENES).forEach(function (id) { bySource[id] = { label: SCHATZINSEL_SCENES[id].label, source: 'island' }; });
   }
   if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined') {
-    Object.keys(SPANISCHER_HAFEN_SCENES).forEach(function (id) { entries.push({ id: id, label: SPANISCHER_HAFEN_SCENES[id].label, source: 'spanischer_hafen' }); });
+    Object.keys(SPANISCHER_HAFEN_SCENES).forEach(function (id) { bySource[id] = { label: SPANISCHER_HAFEN_SCENES[id].label, source: 'spanischer_hafen' }; });
   }
   if (typeof SCHMUGGLERNEST_SCENES !== 'undefined') {
-    Object.keys(SCHMUGGLERNEST_SCENES).forEach(function (id) { entries.push({ id: id, label: SCHMUGGLERNEST_SCENES[id].label, source: 'schmugglernest' }); });
+    Object.keys(SCHMUGGLERNEST_SCENES).forEach(function (id) { bySource[id] = { label: SCHMUGGLERNEST_SCENES[id].label, source: 'schmugglernest' }; });
   }
-  return entries;
+  const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  return ordered.concat(remaining);
 }
 
 function getSceneLabel(sceneId) {
