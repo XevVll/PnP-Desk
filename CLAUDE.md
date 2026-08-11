@@ -67,7 +67,10 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
   Funktionen direkt per `page.evaluate()` aufrufen (z. B. `getMarkersForScene('4.1')`), da ohne
   echte Firebase-Verbindung nichts live geschaltet werden kann.
 - **Merge-Ablauf:** Branch → Commit → Push → PR → auf Hendriks explizites „merge" warten →
-  Squash-Merge. Nie ungefragt mergen.
+  Squash-Merge. Nie ungefragt mergen. **Ausnahme (seit 08/2026):** kleine Fix-Branches (Korrektur
+  an etwas gerade Gebautem, z. B. Positions-/Verhaltens-Korrekturen) werden nach Test direkt
+  gemergt, ohne jedes Mal auf ein explizites „merge" zu warten — gilt nicht für neue
+  Features/Inhalte, da bleibt der normale Ablauf.
 
 ## Arbeitsweise (siehe Bibel 17)
 
