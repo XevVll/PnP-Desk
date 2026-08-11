@@ -120,27 +120,38 @@
     transition: opacity .15s ease;
   }
   .sub-marker:hover .label { opacity: 1; }
+  /* Offenes Callout muss ÜBER allen anderen Pins liegen, nicht nur über
+     seinem eigenen - sonst kann ein benachbarter Pin (gleicher z-index,
+     spätere DOM-Position) quer über den Text gerendert werden. */
+  .sub-marker.open { z-index: 50; }
   .sub-marker-callout {
     display: none;
     position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
-    width: max-content; max-width: min(280px, 60vw);
-    background: rgba(15,12,8,0.96);
+    width: max-content; max-width: min(320px, 70vw);
+    background: rgba(15,12,8,0.97);
     border: 1px solid var(--line);
     border-radius: 6px;
-    padding: 10px 14px 10px 12px;
+    padding: 12px 18px 12px 16px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.6);
     z-index: 20;
     cursor: default;
   }
   .sub-marker.open .sub-marker-callout { display: block; }
+  /* Pins nahe am Bildrand: Callout würde sonst vom umgebenden
+     overflow:hidden abgeschnitten - Öffnungsrichtung je nach Pin-Position
+     umkehren statt immer zentriert nach oben (siehe renderSubMarkers, wo
+     diese Klassen anhand von top/left vergeben werden). */
+  .sub-marker.edge-bottom .sub-marker-callout { bottom: auto; top: 130%; }
+  .sub-marker.edge-left .sub-marker-callout { left: 0; transform: none; }
+  .sub-marker.edge-right .sub-marker-callout { left: auto; right: 0; transform: none; }
   .smc-close {
-    position: absolute; top: 4px; right: 6px;
+    position: absolute; top: 5px; right: 7px;
     background: none; border: none; color: var(--ink-dim);
-    font-size: 13px; cursor: pointer; line-height: 1; padding: 2px;
+    font-size: 15px; cursor: pointer; line-height: 1; padding: 2px;
   }
   .smc-close:hover { color: var(--ink); }
-  .smc-title { color: var(--gold); font-size: 14px; margin: 0 16px 4px 0; }
-  .smc-desc { color: var(--ink); font-size: 12.5px; line-height: 1.5; white-space: normal; }
+  .smc-title { color: var(--gold); font-size: 17px; margin: 0 20px 6px 0; }
+  .smc-desc { color: var(--ink); font-size: 14.5px; line-height: 1.55; white-space: normal; }
 
   /* ---------- Overlay / Modal ---------- */
   #overlay {
@@ -701,7 +712,14 @@
       const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id; });
       children.forEach(function (child) {
         const el = document.createElement('div');
-        el.className = 'sub-marker';
+        // Pins nahe am Rand: Callout würde sonst vom umgebenden Bild
+        // abgeschnitten - Öffnungsrichtung umkehren statt immer zentriert
+        // nach oben (siehe .edge-*-Klassen im CSS).
+        let cls = 'sub-marker';
+        if (child.top < 45) cls += ' edge-bottom';
+        if (child.left < 20) cls += ' edge-left';
+        else if (child.left > 80) cls += ' edge-right';
+        el.className = cls;
         el.style.top = child.top + '%';
         el.style.left = child.left + '%';
         el.innerHTML = '<div class="pin"></div><div class="label">' + child.title + '</div>' +
