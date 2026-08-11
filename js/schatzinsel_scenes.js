@@ -75,18 +75,19 @@ const SCHATZINSEL_SCENES = {
       // erscheinen nicht auf der Hauptkarte, sondern als Hotspots im
       // Dorf-Overlay (siehe karte.html, renderSubMarkers). Bibel 2.9: das
       // Dorf soll sich wie ein "Haufen Mini-Quests" anfühlen statt einer
-      // einzigen langen Erzählphase. Positionen anhand des echten
-      // Referenzbilds (interior_stammesdorf.webp) mit Hendrik abgestimmt
-      // (08/2026) - Tempel auf dem Steinbau, Dorfplatz bei der Hütte mit
-      // Feuer im Vordergrund links, Heilerin beim Baumhaus-Cluster oben,
-      // Markt zentral/tiefer im Dorf (eigene Fläche, kein markierter Punkt
-      // im Referenzbild). "img" ist bewusst vorerst das Dorf-Übersichtsbild
+      // einzigen langen Erzählphase. Positionen laut Hendriks
+      // Pfeil-Annotation auf dem echten Referenzbild (08/2026, zweite
+      // Korrekturrunde) - Heilerin wandert zum kleinen Fenster im hohlen
+      // Baumstamm ganz rechts, Dorfplatz zum Häuptling in der Bildmitte,
+      // Tempel bleibt am Steinbau (nur leicht Richtung Freitreppe
+      // nachjustiert), Markt bleibt zentral im Dorf, nah am Feuer rechts
+      // vom Häuptling. "img" ist bewusst vorerst das Dorf-Übersichtsbild
       // selbst als Platzhalter (statt unpassender fremder Marker-Bilder) -
       // eigene Detailbilder pro Sub-Ort folgen über die Asset-Pipeline.
       {
         id: "dorf_platz",
         parentId: "stammesdorf",
-        top: 47, left: 27,
+        top: 72, left: 49,
         title: "Der Dorfplatz",
         desc: "Der freie Platz vor der Freitreppe des Steinbaus ist das Herz des Dorfes — hier wird gekocht, gearbeitet, erzählt. Kinder flitzen zwischen den Beinen der Erwachsenen hindurch, während Alte im Schatten der Hütten sitzen und jede Bewegung der Fremden beobachten.",
         img: "images/interior_stammesdorf.webp"
@@ -94,7 +95,7 @@ const SCHATZINSEL_SCENES = {
       {
         id: "dorf_markt",
         parentId: "stammesdorf",
-        top: 55, left: 48,
+        top: 68, left: 58,
         title: "Der Handelsbereich",
         desc: "Geflochtene Matten liegen ausgebreitet, beladen mit getrockneten Früchten, geschnitzten Werkzeugen und Fanggerät. Ein reger, informeller Tauschhandel läuft zwischen den Ständen — Blicke wandern neugierig zu den Fremden und ihrer ungewohnten Ausrüstung.",
         img: "images/interior_stammesdorf.webp"
@@ -102,7 +103,7 @@ const SCHATZINSEL_SCENES = {
       {
         id: "dorf_heilerin",
         parentId: "stammesdorf",
-        top: 8, left: 44,
+        top: 36, left: 91,
         title: "Die Hütte der Heilerin",
         desc: "Getrocknete Kräuterbündel hängen dicht unter dem Dach, der Geruch von Rauch und bitteren Pflanzenölen liegt schwer im Raum. Schalen mit zerstoßenen Blättern und Wurzeln stehen aufgereiht neben einer niedrigen Feuerstelle.",
         img: "images/interior_stammesdorf.webp"
@@ -110,7 +111,7 @@ const SCHATZINSEL_SCENES = {
       {
         id: "dorf_tempel",
         parentId: "stammesdorf",
-        top: 32, left: 48,
+        top: 40, left: 48,
         title: "Der Tempel",
         desc: "Der tempelartige Steinbau, teilweise aus behauenem Fels errichtet, wirkt neben den Holzhütten fremd und alt. Durch eine schmale Öffnung im Dach fällt Licht auf eine Wasserfläche im Inneren — Sonne und Mond spiegeln sich darin und werfen einen Schimmer, der an Gold und Silber erinnert.",
         img: "images/interior_stammesdorf.webp"
