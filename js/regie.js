@@ -279,6 +279,20 @@ const ORTE = {
     }
   },
 
+  // Neu: Marker "offiziersquartier" existiert schon lange auf der Golden-
+  // Lion-Karte, hatte aber noch nie einen ORTE-Eintrag - bisher nur
+  // Marker-Beschreibung ohne GM-Inhalt. 5.1 bekommt hier einen reinen
+  // Flavor-Zusatz, kein Plot-Gewicht (Hendriks Auftrag: "kleine lustige
+  // simple Storys, die nichts Besonderes zur Geschichte beitragen").
+  "offiziersquartier": {
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Toms Kammer hat neuen Zuwachs bekommen: An einer Schnur von der Deckenbalken baumelt ein getrocknetes, reichlich fragwürdig aussehendes exotisches Fruchtstück, dazu ein paar bunte Federn, achtlos über den Würfeltisch verteilt. Niemand weiß so recht, was das Fruchtstück eigentlich ist oder werden soll — Tom behauptet steif und fest, es bringe Glück, und wehrt sich energisch dagegen, es „auch nur anzufassen, geschweige denn wegzuwerfen“."
+      }
+    },
+    interaktionen: {}
+  },
+
   "achterdeck": {
     personen: "Tom Fletcher",
     kurz: "Tom am Ruder, wirkt nebenbei, hält aber mühelos Kurs. Zwei NPC-Wünsche statt fester Trigger.",
@@ -291,6 +305,13 @@ const ORTE = {
         personen: "Tom Fletcher (kämpft mit dem Ruder)",
         kurz: "Tom kämpft mit dem Ruder, sichtlich angestrengt — hat aber trotzdem einen Spruch auf den Lippen und lotst Spieler weiter, wo sie gebraucht werden.",
         ortHinweis: "Tom kämpft mit dem Ruder, beide Hände fest um die Speichen, Muskeln sichtbar angespannt — von der lässigen Mühelosigkeit sonst keine Spur. Jede Welle versucht, ihm das Ruder aus der Hand zu reißen.\n\nKein Auftrag, kein Small Talk im bisherigen Sinn — Tom ist vollständig mit dem Ruder beschäftigt und verlässt seinen Posten nicht (Harwick verlässt sich blind auf ihn). Knoten-Streich und Ruder-Bitte setzen beide voraus, dass er entspannt bei der Sache ist, und sind für diese Szene deshalb ausgesetzt. Stattdessen: reiner Charaktermoment, siehe Interaktion \"Am Ruder, mit losem Mundwerk\"."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht (Hendriks Auftrag: "kleine
+        // lustige simple Storys, die nichts Besonderes zur Geschichte
+        // beitragen"). Knoten-Streich/Ruder-Bitte bleiben unverändert aktiv
+        // (kein nichtInSzenen für 5.1), dieser Text ergänzt nur den ortHinweis.
+        ortHinweis: "Tom hält mühelos Kurs, auffällig gut gelaunt — summt vor sich hin, fast schon einen Ton daneben. Wer fragt, was ihn so freut, bekommt nur ein breites Grinsen und den Satz: „Ruhiges Wasser, volle Truhen, und keiner will gerade mein Ruder. Was soll da nicht gut sein?“ Er wiederholt die Zeile im Laufe der Szene mit stoischer Freude noch mindestens zweimal, für jeden neuen Spieler in Hörweite."
       }
     },
     interaktionen: {
@@ -344,6 +365,10 @@ const ORTE = {
         personen: "Cormac Daly · Ned Sharpe (situativ, stürzt) · Tom Fletcher (kommt später dazu) · Wat Crozier (situativ, rettet einen Spieler)",
         kurz: "Cormac ruft Befehle, schickt die geschicktesten Spieler zum Segel-Einschnüren hoch. Ned rutscht am Bug aus und wird übers Deck geschliffen — auffangbar. Später eskaliert es weiter: Mast reißt, Tom kommt vom Achterdeck dazu und steuert das Schiff per Anker auf eine Insel zu.",
         ortHinweis: "Regen peitscht fast waagerecht über das Deck, Blitze zerreißen den Himmel. Cormac steht mitten im Chaos und ruft Befehle — die Segel sind noch zu weit draußen, es droht, den Mast abzureißen, wenn sie nicht bald eingeschnürt werden.\n\nKommen Spieler in seine Nähe, schickt er die zwei mit dem höchsten Geschick-Wert hoch in die Takelage (siehe Interaktion \"Segel einschnüren\").\n\nEin paar Minuten später (SL-Ermessen) eskaliert die Lage weiter: Der Mast reißt trotzdem, das Ruder klemmt, und Tom kommt vom Achterdeck aufs Oberdeck — siehe Interaktion \"Der Höhepunkt des Sturms\"."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        ortHinweis: "Francesco lehnt an der Reling und blickt der schwindenden Insel hinterher, als würde er einem Liebsten nachtrauern — übertrieben theatralisch, eine Hand aufs Herz gepresst. „Ein paar Tage Sonne, und schon soll es vorbei sein? Grausames Schicksal.“ Wer ihn direkt anspricht, bekommt eine kleine, komplett improvisierte Trauerrede auf die Insel zu hören, inklusive einer imaginären Rose, die er theatralisch über die Reling ins Kielwasser wirft."
       }
     },
     interaktionen: {
@@ -427,10 +452,21 @@ const ORTE = {
     personen: "Ned Sharpe · Ezra Coombe",
     kurz: "Unterhalten sich über den Bordellbesuch. Reaktion hängt vom Bordell-Ausgang des jeweiligen Spielers ab (vier Varianten).",
     ortHinweis: "Beziehen sich konkret auf den Raubein-Vorfall im Bordell (der raue Gast, Constance' Reaktion) — kein allgemeines, unverfängliches Geplauder.",
+    // 5.1 (nach der Insel): Ezra liegt krank im Unterdeck, kann hier nicht
+    // mit Ned zusammenstehen - siehe "bordell_nachklang" (nichtInSzenen)
+    // und den ortHinweis-Ersatz. Reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        personen: "Ned Sharpe (allein)",
+        kurz: "Ned lungert ohne Ezra am Bug — und ohne sein übliches Publikum.",
+        ortHinweis: "Ned Sharpe lungert allein am Bug — ohne Ezra fehlt ihm offenbar das Publikum. Er fängt bei jedem Vorbeigehenden dieselbe Sturm-Geschichte an, jedes Mal ein bisschen dramatischer als beim letzten Mal (inzwischen hat er angeblich drei Mann im Alleingang aus den Wellen gezogen). Irgendwann brüllt Tom quer übers Deck: „Beim letzten Mal warst du selbst derjenige, der gerettet werden musste!“ — Ned zieht sich kurz beleidigt zurück, fängt bei der nächsten Gelegenheit aber wieder von vorne an."
+      }
+    },
     interaktionen: {
       "bordell_nachklang": {
         title: "Ned & Ezra — Nachklang aus dem Bordell",
         kurz: "Reaktion variiert je nachdem, wie der Spieler die Raubein-Szene im Bordell gelöst hat (oder ob er überhaupt dort war).",
+        nichtInSzenen: ["5.1"], // Ezra liegt krank im Unterdeck, kann hier nicht mit Ned zusammen auftreten
         details: "Ned und Ezra reden über den Bordellbesuch, konkret über den Vorfall mit dem groben Gast und Constance' Reaktion darauf. Erkennen einen vorbeikommenden Spieler, falls der dort war — mit deutlich unterschiedlichem Ton je nach Ausgang:\n\n— War dort, hat physisch eingegriffen (Raubein-Szene, Bordell): warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen\n— War dort, hat sozial deeskaliert: anerkennend, ruhiger, würdigend, weniger überschwänglich\n— War dort, hat nicht eingegriffen: erkennen den Spieler, aber kühler — knapper, leicht distanzierter Kommentar, kein offener Vorwurf\n— War nicht dort: Ned wird sichtlich unangenehm berührt, wechselt das Thema — reine Verlegenheit, keine Folge",
         trigger: [
           { id: "physisch", label: "Spieler hatte Raubein-Szene physisch gelöst → warm/bewundernd", info: "War dort, hat physisch eingegriffen: warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen." },
@@ -455,6 +491,10 @@ const ORTE = {
         personen: "Anonyme Crew (keine benannte Figur, siehe Hinweis)",
         kurz: "Losgerissene Kanone im Sturmchaos — anonyme Crew, keine benannten Figuren.",
         ortHinweis: "Wasser strömt in Schwällen von oben herein, das Deck liegt unter einer rutschigen Wasserschicht. Eine der Kanonen hat sich losgerissen und rollt bei jeder Welle bedrohlich hin und her. Lärm und Chaos, so weit man hört.\n\nBewusst keine Namen im Flavortext - Dirk hilft zwar mit und ruft Anweisungen, wird aber nicht genannt (siehe Interaktion \"Losgerissene Kanone\")."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        ortHinweis: "Die Trewin-Zwillinge streiten sich lautstark darüber, wer von ihnen auf der Insel eigentlich die größere Krabbe „bezwungen“ hat — mit jeder Wiederholung wächst das Tier um eine Handbreit, mittlerweile sind sie bei „fast so groß wie ein Hund“ angelangt. Dirk poliert daneben stoisch eine Kanone und ignoriert beide komplett, bis einer der Zwillinge ihn als Zeugen aufrufen will — dann hebt er nur kurz den Blick, sagt kein Wort, und poliert weiter."
       }
     },
     interaktionen: {
@@ -498,6 +538,12 @@ const ORTE = {
     personen: "Schiffszimmermann · weitere Handwerker (namenlos)",
     kurz: "Ordentlicher als der Rest des Schiffs. Erster Spieler im Raum wird direkt eingespannt — Mechanik-Probe, nur die Extreme wirken sich auf den Ruf aus.",
     ortHinweis: "Mehrere gelernte Handwerker bei der Arbeit, spürbar ordentlicher als sonst auf dem Schiff. Gute Wahrnehmung oder Mechanik erkennt: keine einfachen Matrosen, sondern Leute vom Fach. Namenlose Crewmitglieder — bewusst kein Wiedererkennungs-Bogen, kein späterer Zahltag (anders als bei Dirk auf dem Batteriedeck).",
+    // 5.1 (nach der Insel): reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Die Handwerker sind hörbar zufrieden mit sich — wer hier hereinkommt, bekommt ungefragt erzählt, wessen Idee der entscheidende Hebel beim Freirollen von der Sandbank war. Jeder erzählt eine andere Version, jede macht ihn selbst zum eigentlichen Kopf der Aktion. Der Streit ist gutmütig, wird aber mit wachsender Lautstärke geführt, je länger man zuhört."
+      }
+    },
     interaktionen: {
       "eingespannt": {
         title: "Erster Spieler im Raum — direkt eingespannt",
@@ -571,13 +617,21 @@ const ORTE = {
         personen: "–",
         kurz: "Wassereinbruch im Sturm — kein Bezug mehr zum blinden Passagier. Zwei Schritte nötig (Pumpen + Abdichten).",
         ortHinweis: "Der Frachtraum steht knöcheltief unter Wasser — bei jeder Welle schwappt es zwischen den Fässern hin und her. Irgendwo dringt Wasser ein, das hier nicht hingehört. Wenn niemand bald etwas unternimmt, wird es mehr.\n\nDie Bildvarianten (Standard/Leer) und der blinde Passagier spielen hier keine Rolle mehr, siehe Interaktion \"Wassereinbruch\"."
+      },
+      "5.1": {
+        // Blinder Passagier ist zu diesem Zeitpunkt der Kampagne längst kein
+        // Thema mehr (Subplot früh im Spiel, siehe nichtInSzenen unten).
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        personen: "Ein Crewmitglied beim Zählen der Truhen",
+        kurz: "Der geborgene Schatz lagert jetzt hier — ein sichtlich überforderter Crewmann versucht, ihn zu zählen.",
+        ortHinweis: "Der geborgene Schatz der Thahal lagert jetzt hier, Truhe an Truhe gestapelt. Ein einzelnes Crewmitglied wurde offenbar zum Zählen abgestellt — laut murmelnd, mit dem Finger auf die Münzstapel zeigend. Bei jeder Ablenkung (ein Geräusch, eine Frage, das Schiff, das leicht schlingert) verliert er den Faden und fängt laut fluchend wieder bei eins an. Nach eigener Aussage ist er jetzt schon zum siebten Mal von vorne dran."
       }
     },
     interaktionen: {
       "blinder_passagier": {
         title: "Der blinde Passagier — Fund im Frachtraum (Abschnitt 11, Pfad A)",
         kurz: "Kein Wurf nötig — aktive Suche bei Variante \"Standard\" findet ihn automatisch. Vier mögliche Folgen je nach Spielerverhalten danach.",
-        nichtInSzenen: ["3.1"], // T+30 (spätestens Wat) liegt vor T+60 (Sturm) - Subplot ist bis dahin immer durch
+        nichtInSzenen: ["3.1", "5.1"], // T+30 (spätestens Wat) liegt vor T+60 (Sturm) - Subplot ist bis dahin immer durch, in 5.1 lagert hier ohnehin der Schatz statt des Jungen
         details: "Ist die Bildvariante \"Standard\" aktiv und durchsucht ein Spieler gezielt den Raum (z.B. „ich durchsuche den Raum“), wird der Junge ohne Probe gefunden.\n\nDanach, drei mögliche Verläufe:\n— Spieler holen ihn aus dem Frachtraum heraus → Wat bekommt es mit, die Konfrontationsszene an Deck (Pfad B) startet\n— Spieler lassen ihn dort, gehen aber vor T+30 direkt zu Josiah, Francesco, Cormac oder Tom → Wat findet ihn nicht\n— Spieler lassen ihn dort, unternehmen lange Zeit nichts → er findet irgendwann aus Hunger von selbst zu Josiah\n\nSL-Ermessen: Ob und wie hart Pfad B (Wat-Konfrontation) tatsächlich ausfällt, liegt im Spielraum des Spielleiters — abhängig z.B. davon, ob die Gruppe Wat schon kennengelernt hat, ob eine härtere Version gerade der Charakterbildung nützt, oder ob die Gruppe ohnehin aggressiv gestimmt ist und eskalieren würde. Keine feste Regel, reine Spielleiter-Freiheit (vgl. Design-Prinzip \"Gutes Rollenspiel schlägt Mechanik\").",
         trigger: [
           { id: "gefunden", label: "Junge im Frachtraum gefunden", info: "Ist die Bildvariante \"Standard\" aktiv und durchsucht ein Spieler gezielt den Raum, wird der Junge ohne Probe gefunden." },
@@ -589,7 +643,7 @@ const ORTE = {
       "knoten_streich": {
         title: "Knoten-Streich — Anlaufpunkt (ausgelöst vom Achterdeck)",
         kurz: "Wer wegen Toms Streich in den Frachtraum läuft, trifft je nach aktiver Bildvariante auf den versteckten Jungen oder einen leeren Raum.",
-        nichtInSzenen: ["3.1"], // dito - Frachtraum-Varianten spielen im Sturm keine Rolle mehr, siehe "wassereinbruch_sturm"
+        nichtInSzenen: ["3.1", "5.1"], // dito - Frachtraum-Varianten spielen im Sturm keine Rolle mehr, siehe "wassereinbruch_sturm"; in 5.1 lagert hier der Schatz
         details: "Siehe Achterdeck-Interaktion „Knoten-Streich“: Tom schickt den Spieler mit dem niedrigsten Seefahrt-Wert in den Frachtraum, um „ein paar Knoten mehr“ zu holen. Trifft der Spieler dort ein, hängt der Zustand von der aktiven Bildvariante ab — versteckter Junge (Standard) oder leerer Raum (Leer).",
         trigger: [
           { id: "angekommen", label: "Spieler wegen Knoten-Streich im Frachtraum angekommen", info: "Trifft der Spieler dort ein, hängt der Zustand von der aktiven Bildvariante ab — versteckter Junge (Standard) oder leerer Raum (Leer)." }
@@ -614,6 +668,12 @@ const ORTE = {
     personen: "Josiah Pryce",
     kurz: "Herzlicher Empfang für jeden, unabhängig vom Ruf. Bewusst kein aktiver Wunsch, keine Ruf-Mechanik — reiner Charakter zum Spielen.",
     ortHinweis: "Anlaufstelle für den blinden Passagier (siehe Frachtraum-Interaktion „Der blinde Passagier“ und Abschnitt 11).",
+    // 5.1 (nach der Insel): reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Aus der Kombüse zieht ein Geruch, den noch niemand an Bord einordnen kann — irgendwo zwischen süß und beunruhigend. Josiah experimentiert mit einer unbekannten Frucht, die jemand von der Insel mitgebracht hat, und verrät partout nicht, was genau er da eigentlich kocht. „Vertraut mir einfach.“ Wer probiert, findet es überraschend gut — was die Sache irgendwie nur unheimlicher macht."
+      }
+    },
     interaktionen: {
       "standardverhalten": {
         title: "Josiah — Herzlicher Empfang (kein aktiver Wunsch)",
