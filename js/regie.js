@@ -290,7 +290,21 @@ const ORTE = {
         ortHinweis: "Toms Kammer hat neuen Zuwachs bekommen: An einer Schnur von der Deckenbalken baumelt ein getrocknetes, reichlich fragwürdig aussehendes exotisches Fruchtstück, dazu ein paar bunte Federn, achtlos über den Würfeltisch verteilt. Niemand weiß so recht, was das Fruchtstück eigentlich ist oder werden soll — Tom behauptet steif und fest, es bringe Glück, und wehrt sich energisch dagegen, es „auch nur anzufassen, geschweige denn wegzuwerfen“."
       }
     },
-    interaktionen: {}
+    interaktionen: {
+      "kartenrunde": {
+        title: "Kartenrunde unter Deck",
+        kurz: "Ein paar Crewmitglieder pokern um Kleinigkeiten. Menschenkenntnis- oder Rhetorik-Probe zum Bluffen, rein für Spaß, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Ein paar off-duty Crewmitglieder sitzen um den kleinen Tisch, Karten in der Hand — gespielt wird um Knöpfe, Tabak und andere Kleinigkeiten, nicht um echtes Geld. Wer mitspielen will, ist willkommen, einer rückt bereitwillig zur Seite.\n\nMenschenkenntnis- oder Rhetorik-Probe (Bluffen).\n\n— Guter Erfolg: Meisterhaft geblufft, räumt den kleinen Pott ab — johlender Beifall.\n— Normaler Erfolg: Solides Spiel, am Ende ungefähr ein Nullsummenspiel.\n— Schlechter Erfolg: Durchschaut, verliert den Einsatz, wird freundlich aufgezogen.\n— Misserfolg: Komplett durchschaut, verliert deutlich mehr als geplant — großes Gelächter, aber gutmütig.\n\nKein Ruf-Effekt, kein echter Verlust (Knöpfe und Tabak, keine Wertsachen) — reiner Zeitvertreib.",
+        trigger: [
+          { id: "mitgespielt", label: "Spieler steigt in die Kartenrunde ein", info: "Gespielt wird um Knöpfe, Tabak und andere Kleinigkeiten, nicht um echtes Geld. Einer rückt bereitwillig zur Seite." },
+          { id: "guter_erfolg", label: "Guter Erfolg → meisterhaft geblufft, räumt den Pott ab", info: "Meisterhaft geblufft, räumt den kleinen Pott ab — johlender Beifall." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → ungefähr Nullsummenspiel", info: "Solides Spiel, am Ende ungefähr ein Nullsummenspiel." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → durchschaut, verliert Einsatz", info: "Durchschaut, verliert den Einsatz, wird freundlich aufgezogen." },
+          { id: "misserfolg", label: "Misserfolg → komplett durchschaut, deutlicher Verlust", info: "Komplett durchschaut, verliert deutlich mehr als geplant — großes Gelächter, aber gutmütig." }
+        ]
+      }
+    }
   },
 
   "achterdeck": {
@@ -348,6 +362,19 @@ const ORTE = {
           { id: "angenommen_erfolg", label: "Angenommen, Probe(n) erfolgreich → Ruf-Plus", info: "Greift sofort zu, Seefahrt-Probe gelingt (bei Körper ≤2 zusätzlich Körper-Probe nötig, beide müssen gelingen) → Ruf-Plus bei Tom." },
           { id: "angenommen_misserfolg", label: "Angenommen, Kontrolle verloren → Ruf-Minus", info: "Greift zu, Probe(n) misslingen, Kontrolle verloren (Ruder schlägt aus o.ä.) → Ruf-Minus bei Tom." },
           { id: "abgelehnt", label: "Abgelehnt / gezögert → neutral", info: "Lehnt ab oder zögert → neutral, kein Risiko." }
+        ]
+      },
+      "knotenwettstreit": {
+        title: "Tom — Der Knotenwettstreit",
+        kurz: "Tom fordert zum Wettstreit im schnellen Knotenbinden heraus. Geschick-Probe, rein für Spaß und Prahlrecht — kein Ruf-Effekt, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "In der ruhigen Fahrt hat Tom sichtlich Langeweile — und Zeit für Unfug. Er wirft einem Spieler ein Stück Tauwerk zu: „Zeig mir einen Palstek, bevor ich bis fünf zähle. Los!“\n\nGeschick-Probe.\n\n— Guter Erfolg: Der Knoten sitzt tadellos, noch bevor Tom fertig gezählt hat. Er nickt anerkennend, verlangt sofort eine Revanche.\n— Normaler Erfolg: Knoten hält, aber knapp zu spät. Tom grinst: „Nicht schlecht — für einen Landbewohner.“\n— Schlechter Erfolg: Der Knoten hält gerade so, sieht aber aus wie ein Vogelnest. Tom lacht sich kaputt, bindet ihn demonstrativ in zwei Sekunden neu.\n— Misserfolg: Das Tauwerk verheddert sich komplett, Tom muss es selbst entwirren. „Also DAS lernt ihr an Land wohl nicht, was?“\n\nRein für den Spaß — kein Ruf-Effekt, keine weiteren Folgen. Kann beliebig oft wiederholt werden, wenn Tom gerade Lust hat.",
+        trigger: [
+          { id: "herausgefordert", label: "Tom fordert zum Knotenwettstreit heraus", info: "Er wirft einem Spieler ein Stück Tauwerk zu: „Zeig mir einen Palstek, bevor ich bis fünf zähle. Los!“" },
+          { id: "guter_erfolg", label: "Guter Erfolg → Tom verlangt sofort Revanche", info: "Der Knoten sitzt tadellos, noch bevor Tom fertig gezählt hat. Er nickt anerkennend, verlangt sofort eine Revanche." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → knapp zu spät, hält aber", info: "Knoten hält, aber knapp zu spät. Tom grinst: „Nicht schlecht — für einen Landbewohner.“" },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → hält kaum, sieht chaotisch aus", info: "Der Knoten hält gerade so, sieht aber aus wie ein Vogelnest. Tom lacht sich kaputt." },
+          { id: "misserfolg", label: "Misserfolg → Tauwerk verheddert sich komplett", info: "Das Tauwerk verheddert sich komplett, Tom muss es selbst entwirren." }
         ]
       }
     }
@@ -444,6 +471,18 @@ const ORTE = {
           { id: "gefragt_josiah", label: "Nach Josiah gefragt (Kombüse-Hinweis gegeben)", info: "Josiah: \"Eine gute Seele\" — schlägt vor, ihn in der Kombüse zu besuchen, falls die Spieler ihn noch nicht kennen." },
           { id: "gefragt_dirk", label: "Nach Dirk gefragt", info: "Dirk: \"Fast mit dem Schiff verwachsen\", lieber in Gesellschaft von Kanonen/Werkzeug als Menschen — bester Ansprechpartner bei Reparaturen." }
         ]
+      },
+      "wuerfelspiel": {
+        title: "Francesco — Ein Würfelspiel",
+        kurz: "Francesco schlägt ein simples Würfelspiel vor (höher gewürfelt gewinnt), reiner Zufall, kleine imaginäre Einsätze — nichts Ernstes, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Francesco holt zwei abgewetzte Würfel aus der Tasche, wedelt einladend damit: „Ein Spielchen? Wer höher würfelt, hat gewonnen — wer verliert, erzählt eine peinliche Geschichte.“ Reiner Zufall, keine Probe nötig, einfach würfeln (SL-Ermessen, z.B. zwei W6 oder ein einfacher d100-Vergleich).\n\n— Spieler gewinnt deutlich: Francesco verliert sichtbar unwillig, muss eine (frei erfundene) peinliche Geschichte aus seiner Heimat zum Besten geben.\n— Knappes Ergebnis, egal wer gewinnt: Beide lachen, Francesco schlägt sofort eine Revanche vor.\n— Francesco gewinnt deutlich: Grinst triumphierend, verlangt vom Spieler die versprochene peinliche Geschichte — und hört mit ehrlichem Interesse zu, ganz ohne Spott.\n\nRein für die Stimmung, keine mechanischen Folgen, kein Ruf-Effekt.",
+        trigger: [
+          { id: "vorschlag", label: "Francesco schlägt das Würfelspiel vor", info: "Er holt zwei abgewetzte Würfel aus der Tasche: „Ein Spielchen? Wer höher würfelt, hat gewonnen — wer verliert, erzählt eine peinliche Geschichte.“" },
+          { id: "spieler_gewinnt", label: "Spieler gewinnt deutlich → Francesco erzählt eine peinliche Geschichte", info: "Francesco verliert sichtbar unwillig, muss eine (frei erfundene) peinliche Geschichte aus seiner Heimat zum Besten geben." },
+          { id: "unentschieden", label: "Knappes Ergebnis → Francesco fordert Revanche", info: "Beide lachen, Francesco schlägt sofort eine Revanche vor." },
+          { id: "francesco_gewinnt", label: "Francesco gewinnt deutlich → Spieler muss erzählen", info: "Francesco verlangt die versprochene peinliche Geschichte — und hört mit ehrlichem Interesse zu, ganz ohne Spott." }
+        ]
       }
     }
   },
@@ -473,6 +512,19 @@ const ORTE = {
           { id: "sozial", label: "Spieler hatte sozial deeskaliert → anerkennend", info: "War dort, hat sozial deeskaliert: anerkennend, ruhiger, würdigend, weniger überschwänglich." },
           { id: "nicht_eingegriffen", label: "War dort, nicht eingegriffen → kühl/distanziert", info: "War dort, hat nicht eingegriffen: erkennen den Spieler, aber kühler — knapper, leicht distanzierter Kommentar, kein offener Vorwurf." },
           { id: "nicht_dort", label: "War nicht dort → Ned unangenehm, Themawechsel", info: "War nicht dort: Ned wird sichtlich unangenehm berührt, wechselt das Thema — reine Verlegenheit, keine Folge." }
+        ]
+      },
+      "weitspuckwettbewerb": {
+        title: "Ned — Der Weitspuckwettbewerb",
+        kurz: "Ned fordert zum Weitspucken über die Reling heraus. Geschick-Probe, rein alberner Zeitvertreib, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Zwischen zwei Sturmgeschichten kommt Ned auf eine seiner Ansicht nach brillante Idee: „Wetten, ich spuck weiter als du?“ Er tritt an die Reling, spuckt theatralisch weit hinaus, wischt sich stolz den Mund ab — und fordert jeden Vorbeikommenden zum Duell.\n\nGeschick-Probe.\n\n— Guter Erfolg: Der Spieler übertrifft Ned deutlich — der ist ehrlich beeindruckt und fast ein bisschen eingeschnappt.\n— Normaler Erfolg: Ordentliches Ergebnis, Ned erklärt sich trotzdem knapp zum Sieger („Wind stand ungünstig für dich“).\n— Schlechter Erfolg: Kläglicher Versuch, kaum über die Reling hinaus. Ned feiert sich lautstark selbst.\n— Misserfolg: Der Wind dreht im ungünstigsten Moment. Ned lacht Tränen, erzählt es garantiert noch beim Abendessen weiter.\n\nRein albern, kein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "herausgefordert", label: "Ned fordert zum Weitspuckwettbewerb heraus", info: "„Wetten, ich spuck weiter als du?“ Er tritt an die Reling, spuckt theatralisch weit hinaus." },
+          { id: "guter_erfolg", label: "Guter Erfolg → Ned ehrlich beeindruckt", info: "Der Spieler übertrifft Ned deutlich — der ist ehrlich beeindruckt und fast ein bisschen eingeschnappt." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → Ned erklärt sich trotzdem zum Sieger", info: "Ordentliches Ergebnis, Ned erklärt sich trotzdem knapp zum Sieger: „Wind stand ungünstig für dich.“" },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → kläglicher Versuch", info: "Kläglicher Versuch, kaum über die Reling hinaus. Ned feiert sich lautstark selbst." },
+          { id: "misserfolg", label: "Misserfolg → Wind dreht im ungünstigsten Moment", info: "Der Wind dreht im ungünstigsten Moment. Ned lacht Tränen, erzählt es garantiert noch beim Abendessen weiter." }
         ]
       }
     }
@@ -530,6 +582,19 @@ const ORTE = {
           { id: "verloren", label: "Spieler hat verloren → triumphierend/spöttisch", info: "Verloren: triumphierend, spöttisch gegenüber dem Spieler." },
           { id: "nie_angetreten", label: "Nie angetreten → neutral", info: "Nie angetreten: neutral, ignorieren den Spieler weitgehend." }
         ]
+      },
+      "schiedsrichter_gesucht": {
+        title: "Die Trewin-Zwillinge — Schiedsrichter gesucht",
+        kurz: "Die Zwillinge bitten einen Spieler, eine krude Seemannsweisheit per Wissens-Probe zu schlichten. Rein komödiantisch, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Die Zwillinge streiten mal wieder — diesmal darüber, ob ein Albatros an Bord Unglück bringt oder Glück. Keiner gibt nach, also greifen sie sich den nächstbesten Spieler als Schiedsrichter: „Du wirkst gebildet. Sag ihm, dass ich recht habe.“\n\nWissen-Probe.\n\n— Guter Erfolg: Überzeugende, detailreiche Antwort — beide Zwillinge sind gleichermaßen beeindruckt und einigen sich sofort auf eine dritte, noch absurdere Theorie.\n— Normaler Erfolg: Brauchbare Antwort, einer der Zwillinge fühlt sich bestätigt, der andere schmollt kurz.\n— Schlechter Erfolg: Unsichere, vage Antwort — beide Zwillinge erklären sich gegenseitig für bestätigt und streiten munter weiter.\n— Misserfolg: Hörbar frei erfunden. Beide Zwillinge starren nur, dann streiten sie weiter, als wäre nichts gewesen.\n\nDirk (falls anwesend) verdreht bei alldem sichtbar die Augen, sagt aber kein Wort. Kein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "schiedsrichter_gebeten", label: "Zwillinge bitten um Schlichtung (Albatros-Streit)", info: "„Du wirkst gebildet. Sag ihm, dass ich recht habe“ — Streit, ob ein Albatros an Bord Unglück oder Glück bringt." },
+          { id: "guter_erfolg", label: "Guter Erfolg → beide beeindruckt, neue gemeinsame Theorie", info: "Überzeugende, detailreiche Antwort — beide Zwillinge einigen sich sofort auf eine dritte, noch absurdere Theorie." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → einer bestätigt, einer schmollt", info: "Brauchbare Antwort, einer der Zwillinge fühlt sich bestätigt, der andere schmollt kurz." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → beide fühlen sich bestätigt, Streit geht weiter", info: "Unsichere, vage Antwort — beide Zwillinge erklären sich gegenseitig für bestätigt und streiten munter weiter." },
+          { id: "misserfolg", label: "Misserfolg → hörbar frei erfunden, Streit geht unbeeindruckt weiter", info: "Hörbar frei erfunden. Beide Zwillinge starren nur, dann streiten sie weiter, als wäre nichts gewesen." }
+        ]
       }
     }
   },
@@ -555,6 +620,19 @@ const ORTE = {
           { id: "normaler_erfolg", label: "Normaler Erfolg → neutral", info: "Normaler Erfolg: brauchbar, kein Kommentar → neutral." },
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → neutral", info: "Schlechter Erfolg: sichtbar daneben, wortlos beiseitegelegt → neutral." },
           { id: "misserfolg", label: "Misserfolg → Ruf-Malus", info: "Misserfolg: Kanthol splittert oder grob falsches Maß — einziger Moment, in dem er wirklich aufsieht → Ruf-Malus. Nachkommende Spieler bekommen keine eigene Aufgabe: „Wir kommen zurecht, geh zu Cormac, wenn du Arbeit suchst.“" }
+        ]
+      },
+      "schnitzwettbewerb": {
+        title: "Handwerker — Kleiner Schnitzwettbewerb",
+        kurz: "Ein gelangweilter Handwerker fordert zum Schnitzen einer möglichst überzeugenden Miniatur heraus. Geschick-Probe, reiner Zeitvertreib, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Einer der Handwerker hat sichtlich Zeit übrig und ein Stück Treibholz in der Hand. „Schnitz was Ordentliches draus, und ich sag dir, dass du Talent hast.“ Reicht Messer und Holz herüber.\n\nGeschick-Probe.\n\n— Guter Erfolg: Eine erstaunlich detaillierte kleine Figur (SL-Ermessen, was genau) — der Handwerker ist ernsthaft beeindruckt, bietet an, sie zu behalten und in seiner Kammer auszustellen.\n— Normaler Erfolg: Erkennbare Form, nicht perfekt, aber solide. Anerkennendes Nicken.\n— Schlechter Erfolg: Unförmiger Klumpen, kaum als irgendetwas erkennbar. Herzhaftes Lachen, aber wohlwollend.\n— Misserfolg: Das Holz splittert komplett, vielleicht sogar ein kleiner Schnitt in den Finger. Der Handwerker nimmt kommentarlos Messer und Rest zurück.\n\nKein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "herausgefordert", label: "Handwerker fordert zum Schnitzwettbewerb heraus", info: "„Schnitz was Ordentliches draus, und ich sag dir, dass du Talent hast.“ Reicht Messer und ein Stück Treibholz herüber." },
+          { id: "guter_erfolg", label: "Guter Erfolg → Handwerker ernsthaft beeindruckt", info: "Eine erstaunlich detaillierte kleine Figur — der Handwerker bietet an, sie in seiner Kammer auszustellen." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → erkennbare, solide Form", info: "Erkennbare Form, nicht perfekt, aber solide. Anerkennendes Nicken." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → unförmiger Klumpen", info: "Unförmiger Klumpen, kaum als irgendetwas erkennbar. Herzhaftes, wohlwollendes Lachen." },
+          { id: "misserfolg", label: "Misserfolg → Holz splittert komplett", info: "Das Holz splittert komplett, vielleicht sogar ein kleiner Schnitt in den Finger." }
         ]
       }
     }
@@ -660,6 +738,19 @@ const ORTE = {
           { id: "auf_anweisung", label: "Auf Anweisung (Cormac/Dirk) → neutral", info: "Auf Anweisung von Cormac oder Dirk (falls Spieler nicht selbst aktiv werden) → neutral." },
           { id: "geloest", label: "Pumpen + Abdichten erfolgreich → Problem gelöst", info: "Misserfolg bei Pumpen/Abdichten → kein Malus, geht im allgemeinen Chaos des Sturms unter." }
         ]
+      },
+      "beim_zaehlen_helfen": {
+        title: "Beim Zählen helfen",
+        kurz: "Das überforderte Crewmitglied bittet um Hilfe beim Zählen des Schatzes. Wissen- oder Handel-Probe, rein komödiantisch, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "Der zum Zählen abgestellte Crewmann (siehe ortHinweis) sieht jeden Vorbeikommenden mit unverhohlener Hoffnung an. „Bitte. Hilf mir. Ich krieg die Zahl einfach nicht zusammen.“\n\nWissen- oder Handel-Probe (Münzen/Wertgegenstände einschätzen und sauber zählen).\n\n— Guter Erfolg: Eine saubere, plausible Zahl steht — der Crewmann ist überglücklich, fast den Tränen nahe vor Erleichterung.\n— Normaler Erfolg: Eine grobe Schätzung reicht ihm fürs Erste, auch wenn beide wissen, dass sie nicht ganz exakt ist.\n— Schlechter Erfolg: Am Ende sind sich beide nicht mehr sicher, ob es dieselbe Zahl war wie vorhin. Der Crewmann seufzt, fängt sichtbar innerlich wieder von vorne an.\n— Misserfolg: Ein Münzstapel kippt um, verteilt sich klirrend über den Boden. Gemeinsames Aufsammeln, die Zählung beginnt komplett neu.\n\nKein Ruf-Effekt — reine Randnotiz, keine tatsächliche Konsequenz für den späteren Artefakthandel (die Schiffsbuchhaltung ist ohnehin nicht das, was dort zählt).",
+        trigger: [
+          { id: "um_hilfe_gebeten", label: "Crewmann bittet um Hilfe beim Zählen", info: "„Bitte. Hilf mir. Ich krieg die Zahl einfach nicht zusammen.“" },
+          { id: "guter_erfolg", label: "Guter Erfolg → saubere Zahl, Crewmann überglücklich", info: "Eine saubere, plausible Zahl steht — der Crewmann ist überglücklich, fast den Tränen nahe vor Erleichterung." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → grobe Schätzung reicht", info: "Eine grobe Schätzung reicht ihm fürs Erste, auch wenn beide wissen, dass sie nicht ganz exakt ist." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → Unsicherheit, fängt innerlich neu an", info: "Am Ende sind sich beide nicht mehr sicher, ob es dieselbe Zahl war wie vorhin. Der Crewmann seufzt." },
+          { id: "misserfolg", label: "Misserfolg → Münzstapel kippt um, komplett neu zählen", info: "Ein Münzstapel kippt um, verteilt sich klirrend über den Boden. Gemeinsames Aufsammeln, die Zählung beginnt komplett neu." }
+        ]
       }
     }
   },
@@ -680,6 +771,19 @@ const ORTE = {
         kurz: "Begrüßt jeden herzlich, unabhängig vom Ruf oder davon, ob der Spieler freiwillig/gepresst an Bord ist. Bewusst keine Ruf-Mechanik, kein Trigger-Automat.",
         details: "Josiah begrüßt jeden, der die Kombüse betritt, herzlich — unabhängig vom Ruf, unabhängig davon, ob der Spieler freiwillig oder durch Erpressung/Gewalt an Bord ist. Bietet von sich aus etwas zu essen oder Ähnliches an. Beantwortet Fragen offen und ehrlich.\n\nSieht in jedem das Gute — redet über niemanden schlecht, egal wer gerade Zielscheibe ist. Lästern Spieler vor ihm über irgendjemanden an Bord, widerspricht er warm und automatisch, nie belehrend, einfach weil er es so empfindet.\n\nBewusst kein aktiver Wunsch und keine Ruf-Mechanik hier — anders als Tom, Dirk oder die Werkstatt. Reiner Charakter zum Spielen, kein Trigger-Automat.\n\nSein großer Moment: die Wat-Konfrontationsszene (Frachtraum-Interaktion „Der blinde Passagier“, Pfad B) — kommt schwer atmend an Deck (die Kombüse liegt tief unten, er ist kein schneller Mann) und hält Wat auf.",
         trigger: []
+      },
+      "blindverkostung": {
+        title: "Josiah — Die Blindverkostung",
+        kurz: "Josiah lässt die mysteriöse Insel-Frucht probieren und die Zutat erraten. Wahrnehmungs- oder Wissen-Probe, komödiantische Reaktionen, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "Josiah hält einen Löffel mit etwas Dampfendem hin, Augen erwartungsvoll. „Na los, koste — und sag mir, was du schmeckst.“ Verrät selbst nichts.\n\nWahrnehmungs- oder Wissen-Probe.\n\n— Guter Erfolg: Erkennt tatsächlich mehrere Zutaten korrekt (SL-Ermessen, welche) — Josiah ist ehrlich baff, verlangt sofort zu wissen, wie das gemacht wurde.\n— Normaler Erfolg: Erkennt vage „irgendwas Süßes, irgendwas Scharfes“ — Josiah nickt zufrieden, mehr wollte er auch nicht hören.\n— Schlechter Erfolg: Kann nichts Genaues benennen, nur dass es „ungewöhnlich, aber gut“ schmeckt. Josiah lacht, bleibt bei seinem Geheimnis.\n— Misserfolg: Verschluckt sich, muss husten — die Würze war stärker als erwartet. Josiah klopft mitleidig auf den Rücken, grinst dabei aber breit.\n\nKein Ruf-Effekt, keine Folgen — Josiah bleibt bei jedem Ergebnis genauso freundlich wie immer.",
+        trigger: [
+          { id: "angeboten", label: "Josiah bietet die Blindverkostung an", info: "„Na los, koste — und sag mir, was du schmeckst.“ Verrät selbst nichts." },
+          { id: "guter_erfolg", label: "Guter Erfolg → mehrere Zutaten korrekt erkannt", info: "Josiah ist ehrlich baff, verlangt sofort zu wissen, wie das gemacht wurde." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → vage Beschreibung reicht", info: "Erkennt vage „irgendwas Süßes, irgendwas Scharfes“ — Josiah nickt zufrieden." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → nichts Genaues benennbar", info: "Kann nichts Genaues benennen, nur dass es „ungewöhnlich, aber gut“ schmeckt." },
+          { id: "misserfolg", label: "Misserfolg → verschluckt sich", info: "Verschluckt sich, muss husten — die Würze war stärker als erwartet." }
+        ]
       }
     }
   },
