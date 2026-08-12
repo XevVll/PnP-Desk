@@ -370,6 +370,15 @@ function vOpenOrtFolder(key, sceneId, ortId) {
   paneA = { type: 'ort', sceneId: sceneId, ortId: ortId };
   renderAll();
 }
+// Gleiches Prinzip wie vOpenOrtFolder, eine Ebene höher: Klick auf die
+// Szenen-Zeile selbst klappt auf UND zeigt die Szenen-Hauptseite (Ziel/
+// Stimmung/Ghosts) in Pane A - vorher passierte beim Klick nur das Aufklappen,
+// keine Übersicht öffnete sich (Hendriks Bug-Report).
+function vOpenSceneFolder(key, sceneId) {
+  vOpenNodes.has(key) ? vOpenNodes.delete(key) : vOpenNodes.add(key);
+  paneA = { type: 'scene', sceneId: sceneId };
+  renderAll();
+}
 function paneMatches(paneRef, ref) {
   if (!paneRef || paneRef.type !== ref.type) return false;
   return Object.keys(ref).every(function (k) { return paneRef[k] === ref[k]; });
@@ -392,7 +401,8 @@ function renderTree() {
   getAllSceneEntries().forEach(function (entry) {
     const sceneId = entry.id;
     const sKey = 'scene:' + sceneId, oKey = sKey + ':orte', sOpen = vOpenNodes.has(sKey);
-    html += '<div class="v-node lvl0" onclick="vToggleNode(\'' + sKey + '\')"><span class="v-caret">' + (sOpen ? '▾' : '▸') + '</span>' +
+    const sceneActive = paneMatches(paneA, { type: 'scene', sceneId: sceneId });
+    html += '<div class="v-node lvl0' + (sceneActive ? ' active' : '') + '" onclick="vOpenSceneFolder(\'' + sKey + '\',\'' + sceneId + '\')"><span class="v-caret">' + (sOpen ? '▾' : '▸') + '</span>' +
       (sceneId === liveScene ? '<span class="v-live-dot" title="aktuell live"></span>' : '<span style="width:6px"></span>') +
       '<span class="v-file-label">' + entry.label + '</span>' +
       '<button class="v-live-btn' + (sceneId === liveScene ? ' is-live' : '') + '" style="margin-left:auto" onclick="event.stopPropagation(); setLiveScene(\'' + sceneId + '\')">' + (sceneId === liveScene ? 'live' : 'live setzen') + '</button></div>';
@@ -422,6 +432,7 @@ function renderTree() {
 // ---------- Notiz-Panes ----------
 function paneLabel(ref) {
   if (ref.type === 'ia') { const ort = ORTE[ref.ortId]; return '📄 ' + ((ort && ort.interaktionen[ref.iaId]) ? ort.interaktionen[ref.iaId].title : '?'); }
+  if (ref.type === 'scene') return '🎬 ' + getSceneLabel(ref.sceneId);
   if (ref.type === 'ort') { const marker = (getMarkersForScene(ref.sceneId) || []).find(function (m) { return m.id === ref.ortId; }); return '📄 ' + (marker ? marker.title : ref.ortId); }
   if (ref.type === 'npc') { const n = npcRecord(ref.npcId); return '👤 ' + (n ? n.name : '?'); }
   if (ref.type === 'ghost') { const g = ghostById(ref.sceneId, ref.ghostId); return '👻 ' + (g ? g.name : '?'); }
@@ -471,6 +482,41 @@ function bindNoteFields(container) {
     const save = debounce(function () { saveField(ta.dataset.path, ta.value, hint); }, 600);
     ta.addEventListener('input', save);
     ta.addEventListener('blur', function () { saveField(ta.dataset.path, ta.value, hint); });
+  });
+}
+
+// Szenen-Hauptseite: Ziel/Stimmung/Ghosts/aktive Aufträge auf einen Blick,
+// analog zu renderOrtNote eine Ebene höher. Zeigt inhaltlich dasselbe wie
+// der immer sichtbare #sceneHead oben (Bibel 2.9), aber gezielt für die im
+// Baum angeklickte Szene statt nur für viewState.szene (die "live"/zuletzt
+// gewählte Szene) - man kann so eine ANDERE Szene als die gerade laufende
+// vorab durchlesen, ohne sie live zu schalten.
+function renderSceneNote(ref, target) {
+  const sceneId = ref.sceneId;
+  const sr = (typeof SZENEN_REGIE !== 'undefined') ? SZENEN_REGIE[sceneId] : null;
+  const ghosts = ghostsOfScene(sceneId);
+  const quests = activeQuestsForScene(sceneId, (sceneId === sceneRegieScene) ? sceneRegieSnapshot : {});
+  const dynPath = 'regie/' + fbKey(sceneId) + '/szenenNotizen';
+
+  let html = '<h1 class="v-h1">' + getSceneLabel(sceneId) + '</h1>';
+  if (sr && sr.uebergeordnetesZiel) html += '<div class="v-callout"><div class="v-callout-title">🎯 Übergeordnetes Ziel</div>' + sr.uebergeordnetesZiel + '</div>';
+  if (sr && sr.stimmung) html += '<div class="v-callout"><div class="v-callout-title">Stimmung</div>' + sr.stimmung + '</div>';
+  if (quests.length) {
+    html += '<div class="v-callout"><div class="v-callout-title">📜 Aktive Aufträge (' + quests.length + ')</div>' +
+      quests.map(function (q) { return '<div class="v-sb"><div class="v-sb-line"><b>Was</b> ' + q.was + '</div><div class="v-sb-line"><b>Warum</b> ' + q.warum + '</div><div class="v-sb-line">' + q.ortTitle + ' — ' + q.iaTitle + '</div></div>'; }).join('') +
+      '</div>';
+  }
+  if (ghosts.length) html += '<div class="v-callout"><div class="v-callout-title">Ghosts (' + ghosts.length + ')</div>' + steckbriefCardsHTML(ghosts) + '</div>';
+  html += '<div class="v-callout"><div class="v-callout-title">Notizen zur Szene</div><textarea class="v-note-field" placeholder="z.B. wie die Szene tatsächlich verlief, Abweichungen vom Text…" data-path="' + dynPath + '"></textarea><div class="v-save-hint"></div></div>';
+
+  target.innerHTML = html;
+  bindNoteFields(target);
+  if (!db) return;
+  db.ref(dynPath).once('value').then(function (snap) {
+    if (typeof snap.val() === 'string') {
+      const ta = target.querySelector('textarea[data-path="' + dynPath + '"]');
+      if (ta) ta.value = snap.val();
+    }
   });
 }
 
@@ -644,6 +690,7 @@ function renderPcNote(ref, target) {
 }
 
 function renderPane(ref, target) {
+  if (ref.type === 'scene') return renderSceneNote(ref, target);
   if (ref.type === 'ort') return renderOrtNote(ref, target);
   if (ref.type === 'ia') return renderIaNote(ref, target);
   if (ref.type === 'npc') return renderNpcNote(ref, target);
