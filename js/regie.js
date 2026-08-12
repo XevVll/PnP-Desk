@@ -230,8 +230,8 @@ const ORTE = {
     szenenUeberschreibungen: {
       "5.1": {
         personen: "James Harwick (in der Kajüte) · Cormac Daly",
-        kurz: "Übergangsszene nach der Schatzinsel: Spieler bewegen sich wieder frei auf dem Schiff. Harwick zeigt den Insel-Begleitern Dokumente zu den Artefakten (Kapitänskajüte); parallel verschlechtert sich Ezra Coombes Zustand (Unterdeck). Kursfrage: Spanischer Hafen (aktueller Plan, wegen Ezra) bleibt bestehen, sofern die Spieler Harwick nicht aktiv zum Schmugglernest überreden — geschieht gar nichts, treibt das Schiff stattdessen in die Flaute (Szene 6.1).",
-        ortHinweis: "Freies Bewegen wie in 2.1, aber mit anderer Grundstimmung: die Erleichterung über den Schatz mischt sich mit wachsender Sorge um Ezra. Spieler, die mit Harwick auf der Insel unterwegs waren (Dorf/Dschungelpfad/Nachtlager/Höhle), werden jetzt sichtbar anders behandelt — von Crew UND von Harwick selbst.\n\nDie eigentliche Weggabelung dieser Szene liegt bei der Kapitänskajüte (Interaktion \"Harwick — Die Unterlagen zu den Artefakten\") und beim Unterdeck (\"Ezra Coombe — Der Wundbrand verschlimmert sich\"), siehe dort. Drei mögliche Ausgänge, SL-Ermessen anhand des tatsächlichen Spielerverhaltens: aktiv zum Schmugglernest überredet (7.2 Bibel) / Kurs bleibt aktiv Richtung Spanischer Hafen (wegen Ezra) / gar kein Engagement → Flaute (6.1)."
+        kurz: "Übergangsszene nach der Schatzinsel: Spieler haben Freizeit, keine angeordnete Aufgabe. Zwei Stränge ziehen in Gegenrichtungen: Ezra Coombes Wundbrand (Unterdeck) Richtung spanischem Hafen, Harwicks Artefakt-Gespräch bei Wein (Kapitänskajüte) Richtung Schmugglernest. Beide Ziele liegen NICHT auf Harwicks eigener Route und brauchen jeweils echte Überzeugung — bleibt beides aus, hält er seinen Kurs und das Schiff treibt in die Flaute (Szene 6.1).",
+        ortHinweis: "Freies Bewegen wie in 2.1, keine angeordnete Aufgabe (bewusste Entscheidung: die beiden Stränge tragen die Szene von selbst). Die Erleichterung über den Schatz mischt sich mit wachsender Sorge um Ezra. Spieler, die mit Harwick auf der Insel unterwegs waren (Dorf/Dschungelpfad/Nachtlager/Höhle), werden jetzt sichtbar anders behandelt — von Crew UND von Harwick selbst.\n\nDie eigentliche Weggabelung dieser Szene liegt bei der Kapitänskajüte (Interaktion \"Harwick — Wein und die Karten auf dem Schreibtisch\") und beim Unterdeck (\"Ezra Coombe — Der Wundbrand verschlimmert sich\"), siehe dort. Beide Ziele — spanischer Hafen wie Schmugglernest — sind gleichrangig aktiv zu erkämpfende Kursänderungen, keines ist der Default. SL-Ermessen anhand des tatsächlichen Spielerverhaltens: glaubwürdig zum Schmugglernest überzeugt / glaubwürdig zum spanischen Hafen überzeugt / kein Versuch bei beidem → Flaute (6.1)."
       },
       "6.1": {
         personen: "James Harwick (in der Kajüte)",
@@ -249,23 +249,21 @@ const ORTE = {
   // sind scharf auf ihre jeweilige Szene begrenzt (nurSzenen).
   "kapitaenskajuete": {
     personen: "James Harwick",
-    kurz: "5.1: Harwick zeigt den Insel-Begleitern die Artefakt-Unterlagen, echte Chance, ihn zum Schmugglernest umzustimmen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen.",
+    kurz: "5.1: Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit Wein und ehrlichen Antworten — Artefakte fallen dabei über Wahrnehmung/Instinkt/Interesse auf, der Schmugglernest-Tipp über Handels-/Untergrundwissen. Echte Überzeugung kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen.",
     interaktionen: {
       "harwick_artefakt_dokumente": {
-        title: "Harwick — Die Unterlagen zu den Artefakten",
-        kurz: "Harwick breitet vor den Insel-Begleitern Unterlagen zu den Artefakten aus und macht die Kursfrage explizit. Echte Überzeugung (nicht nur ein Wurf) kann ihn zum Schmugglernest umstimmen — kostet aber den aktuellen Plan, wegen Ezra den spanischen Hafen anzulaufen.",
+        title: "Harwick — Wein und die Karten auf dem Schreibtisch",
+        kurz: "Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit einer Einladung zu Wein und beantwortet ab jetzt ehrlich fast jede Frage. Wer die ausliegenden Karten beachtet, stößt auf die Artefakte; Handels-/Untergrundwissen liefert dabei den Schmugglernest-Tipp. Echtes Argument (kein Wurf) kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen.",
         nurSzenen: ["5.1"],
-        details: "Harwick bittet vor allem die Spieler zu sich, die mit ihm auf der Insel unterwegs waren — wer nicht dabei war, ist nicht ausgeschlossen, bekommt aber spürbar weniger seiner Aufmerksamkeit. Auf dem Tisch liegen Karten, Skizzen und Notizen zu den Artefakten, die der Schatz erst noch bezahlen soll. Er erklärt offen, was er weiß und was ihm fehlt — Untergrundwissen, Kontakte, jemand, der mit Schmuggelware und ihren Käufern vertraut ist.\n\nEr spricht die Kursfrage direkt aus: eigentlich ist der spanische Hafen als nächstes Ziel gesetzt, wegen Ezra. Aber wenn jemand einen guten Grund hat, stattdessen das Schmugglernest anzulaufen, will er ihn jetzt hören — nicht erst, wenn es zu spät zum Umdrehen ist.\n\nÜberzeugung ist hier kein einzelner Würfelwurf, sondern hängt am tatsächlichen Argument: gutes Rollenspiel schlägt Mechanik (bestehendes Design-Prinzip). Ein Spieler, der erkennbar mit den ausliegenden Unterlagen argumentiert oder eine plausible Rhetorik-Probe dafür einsetzt, hat eine echte Chance. Bloßes Drängen ohne Bezug zu den Unterlagen prallt an Harwick ab — er ist kein Narr.\n\nSL-Ermessen für den Ausgang der ganzen Szene: Wird Harwick überzeugt, ändert sich der Kurs aufs Schmugglernest — und das bedeutet, den Plan für Ezra aufzugeben (siehe Unterdeck-Interaktion \"Ezra Coombe — Der Wundbrand verschlimmert sich\"; moralisches Gewicht dieser Entscheidung siehe Bibel 12, \"moralische Umkehrung\"). Bleibt der Kurs unangetastet, weil die Spieler sich erkennbar für Ezra einsetzen oder zumindest den Plan aktiv mittragen, läuft die Fahrt weiter Richtung spanischem Hafen. Bleibt die ganze Szene dagegen unbeachtet — niemand ergreift für irgendeine Seite Partei — treibt das Schiff stattdessen führungslos in die Flaute (Szene 6.1).",
+        details: "Harwick sucht das Gespräch mit der Gruppe — vor allem, aber nicht nur, mit denen, die mit ihm im Dorf der Thahal unterwegs waren. Sie haben sich dort als loyal, diszipliniert und vertrauenswürdig erwiesen, und das honoriert er sichtbar: eine Einladung in seine Kajüte, guter Wein wird eingeschenkt, der Ton ist offen wie selten. Ab jetzt beantwortet er nahezu jede Frage ehrlich — kein Ausweichen, keine Floskeln.\n\nAuf seinem Schreibtisch liegen Karten und Notizen, unaufgeräumt, so wie er sie zuletzt liegen ließ. Er präsentiert nichts davon aktiv — wer aber gute Wahrnehmung oder Instinkt mitbringt, oder einfach von sich aus echtes Interesse an den Karten zeigt, erkennt schnell: Es geht um bestimmte Artefakte.\n\nWird das Gespräch vertieft, kann ein Spieler mit Handels- oder Untergrundwissen daraus einen konkreten Tipp mitnehmen: Es gibt ein Schmugglernest in der Nähe — in genau entgegengesetzter Richtung zum spanischen Hafen, der zwei bis drei Tagesreisen entfernt liegt.\n\nWichtig: Harwicks eigener Kurs führt derzeit weder zum einen noch zum anderen Ziel. Beide Ziele — spanischer Hafen wie Schmugglernest — sind Abweichungen von seiner Route und brauchen echte Überzeugung. Kein Würfelwurf entscheidet das, sondern gutes Rollenspiel: ein Spieler, der glaubwürdig argumentiert (sei es mit Ezras Zustand, sei es mit dem, was er über die Artefakte erfahren hat), kann Harwick umstimmen.\n\nSL-Ermessen für den Ausgang: Überzeugen Spieler ihn glaubwürdig zum Schmugglernest, ändert sich der Kurs dorthin — was bedeutet, den spanischen Hafen und damit Ezras beste Überlebenschance aufzugeben (moralisches Gewicht siehe Bibel 12, \"moralische Umkehrung\"). Überzeugen sie ihn stattdessen zum spanischen Hafen, hält er darauf Kurs. Bleibt beides aus — niemand argumentiert glaubwürdig für die eine oder andere Seite —, behält Harwick seinen eigenen Kurs bei, und das Schiff treibt in die Flaute (Szene 6.1).",
         trigger: [
-          { id: "doku_gezeigt", label: "Harwick zeigt die Artefakt-Unterlagen, spricht die Kursfrage offen an", info: "Harwick bittet vor allem die Insel-Begleiter zu sich, breitet Karten/Skizzen/Notizen zu den Artefakten aus. Er spricht offen: eigentlich ist der spanische Hafen als nächstes Ziel gesetzt (wegen Ezra) — aber wer einen guten Grund fürs Schmugglernest hat, soll ihn jetzt vorbringen.", grantsQuest: {
-            warum: "Harwick braucht Untergrundwissen und Kontakte für den späteren Artefakthandel, hat aber schon fast entschieden, wegen Ezra stattdessen den sicheren Weg über den spanischen Hafen zu nehmen.",
-            was: "Harwick mit einem echten Argument (gestützt auf die ausliegenden Unterlagen) davon überzeugen, stattdessen das Schmugglernest anzulaufen — oder ihn bewusst bei seinem Plan lassen."
-          } },
-          { id: "insel_begleiter_einbezogen", label: "Insel-Begleiter stärker einbezogen als der Rest der Crew", info: "Wer mit Harwick auf der Insel war, wird direkt angesprochen, nach seiner Meinung gefragt — spürbar anderes Gewicht als beim Rest der Gruppe." },
-          { id: "ueberzeugung_versucht", label: "Spieler versuchen, Harwick mit einem echten Argument umzustimmen", info: "Überzeugung ist kein einzelner Würfelwurf, sondern hängt am tatsächlichen Argument (Bezug zu den Unterlagen, ggf. gestützt durch Rhetorik-Probe). Bloßes Drängen ohne Bezug prallt ab." },
-          { id: "kurs_schmugglernest", label: "Erfolgreich überzeugt → Kurs ändert sich aufs Schmugglernest (kostet Ezra den Plan)", info: "Harwick lässt sich umstimmen. Bedeutet: der Plan für Ezra (spanischer Hafen) wird aufgegeben — moralisches Gewicht siehe Bibel 12 (\"moralische Umkehrung\")." },
-          { id: "kurs_spanischer_hafen", label: "Kurs bleibt Richtung spanischem Hafen (Spieler setzen sich erkennbar für Ezra ein oder tragen den Plan aktiv mit)", info: "Kein Umstimmen versucht oder Versuch fehlgeschlagen, aber die Spieler zeigen erkennbares Engagement für Ezra/den bestehenden Plan → Kurs bleibt wie geplant." },
-          { id: "kurs_flaute", label: "Niemand ergreift Partei → Schiff treibt führungslos in die Flaute (6.1)", info: "Bleibt die ganze Szene unbeachtet, trifft Harwick von sich aus keine klare Entscheidung — das Schiff treibt in die Flaute (Szene 6.1)." }
+          { id: "einladung_wein", label: "Harwick lädt zu Wein, honoriert die Loyalität aus dem Thahal-Dorf", info: "Er sucht das Gespräch, vor allem mit den Insel-Begleitern — Wein wird eingeschenkt, der Ton offen wie selten. Ab jetzt beantwortet er nahezu jede Frage ehrlich." },
+          { id: "artefakte_bemerkt", label: "Wahrnehmung/Instinkt/Interesse: Artefakte auf den ausliegenden Karten bemerkt", info: "Er präsentiert nichts aktiv — wer gute Wahrnehmung oder Instinkt hat, oder einfach echtes Interesse an den Karten zeigt, erkennt: Es geht um bestimmte Artefakte." },
+          { id: "schmugglernest_tipp", label: "Handels-/Untergrundwissen: Tipp auf ein nahes Schmugglernest", info: "Vertieftes Gespräch liefert einem Spieler mit Handels- oder Untergrundwissen den konkreten Tipp: Schmugglernest in der Nähe, entgegengesetzt zum spanischen Hafen (2-3 Tage entfernt)." },
+          { id: "ueberzeugung_versucht", label: "Spieler versuchen, Harwick mit einem echten Argument umzustimmen (kein Wurf)", info: "Gutes Rollenspiel entscheidet, kein Würfelwurf — ein glaubwürdiges Argument (Ezras Zustand oder Artefakt-Wissen) hat eine echte Chance." },
+          { id: "kurs_schmugglernest", label: "Erfolgreich zum Schmugglernest überzeugt (kostet Ezra die beste Überlebenschance)", info: "Kurs ändert sich aufs Schmugglernest — bedeutet, den spanischen Hafen aufzugeben. Moralisches Gewicht siehe Bibel 12 (\"moralische Umkehrung\")." },
+          { id: "kurs_spanischer_hafen", label: "Erfolgreich zum spanischen Hafen überzeugt", info: "Kurs ändert sich Richtung spanischem Hafen — genauso das Ergebnis aktiver Überzeugung wie beim Schmugglernest, kein Default." },
+          { id: "kurs_flaute", label: "Keine glaubwürdige Überzeugung bei beidem → Schiff bleibt auf Harwicks eigenem Kurs, treibt in die Flaute (6.1)", info: "Ohne glaubwürdiges Argument für die eine oder andere Seite bleibt Harwick auf seinem eigenen Kurs — das Schiff treibt in die Flaute." }
         ]
       },
       "warnung_in_unterlagen": {
@@ -276,6 +274,34 @@ const ORTE = {
         trigger: [
           { id: "harwick_gruebelt", label: "Harwick verbringt auffällig viel Zeit grübelnd über seinen Unterlagen", info: "Die erzwungene Untätigkeit der Flaute lässt ihm zu viel Zeit zum Nachdenken — er wird dabei unvorsichtiger als sonst." },
           { id: "warnung_entdeckt", label: "Warnung vor einem übernatürlichen Kampf entdeckt (noch vage, keine Details)", info: "Wahrnehmungs-/Wissen-Probe oder direktes Nachfragen legt eine vage Warnung offen: Etwas Übernatürliches steht bevor, Vorbereitung wird nötig sein. Keine Details zu Gegner oder Ritual an dieser Stelle." }
+        ]
+      }
+    }
+  },
+
+  // Neu: Marker "offiziersquartier" existiert schon lange auf der Golden-
+  // Lion-Karte, hatte aber noch nie einen ORTE-Eintrag - bisher nur
+  // Marker-Beschreibung ohne GM-Inhalt. 5.1 bekommt hier einen reinen
+  // Flavor-Zusatz, kein Plot-Gewicht (Hendriks Auftrag: "kleine lustige
+  // simple Storys, die nichts Besonderes zur Geschichte beitragen").
+  "offiziersquartier": {
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Toms Kammer hat neuen Zuwachs bekommen: An einer Schnur von der Deckenbalken baumelt ein getrocknetes, reichlich fragwürdig aussehendes exotisches Fruchtstück, dazu ein paar bunte Federn, achtlos über den Würfeltisch verteilt. Niemand weiß so recht, was das Fruchtstück eigentlich ist oder werden soll — Tom behauptet steif und fest, es bringe Glück, und wehrt sich energisch dagegen, es „auch nur anzufassen, geschweige denn wegzuwerfen“."
+      }
+    },
+    interaktionen: {
+      "kartenrunde": {
+        title: "Kartenrunde unter Deck",
+        kurz: "Ein paar Crewmitglieder pokern um Kleinigkeiten. Menschenkenntnis- oder Rhetorik-Probe zum Bluffen, rein für Spaß, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Ein paar off-duty Crewmitglieder sitzen um den kleinen Tisch, Karten in der Hand — gespielt wird um Knöpfe, Tabak und andere Kleinigkeiten, nicht um echtes Geld. Wer mitspielen will, ist willkommen, einer rückt bereitwillig zur Seite.\n\nMenschenkenntnis- oder Rhetorik-Probe (Bluffen).\n\n— Guter Erfolg: Meisterhaft geblufft, räumt den kleinen Pott ab — johlender Beifall.\n— Normaler Erfolg: Solides Spiel, am Ende ungefähr ein Nullsummenspiel.\n— Schlechter Erfolg: Durchschaut, verliert den Einsatz, wird freundlich aufgezogen.\n— Misserfolg: Komplett durchschaut, verliert deutlich mehr als geplant — großes Gelächter, aber gutmütig.\n\nKein Ruf-Effekt, kein echter Verlust (Knöpfe und Tabak, keine Wertsachen) — reiner Zeitvertreib.",
+        trigger: [
+          { id: "mitgespielt", label: "Spieler steigt in die Kartenrunde ein", info: "Gespielt wird um Knöpfe, Tabak und andere Kleinigkeiten, nicht um echtes Geld. Einer rückt bereitwillig zur Seite." },
+          { id: "guter_erfolg", label: "Guter Erfolg → meisterhaft geblufft, räumt den Pott ab", info: "Meisterhaft geblufft, räumt den kleinen Pott ab — johlender Beifall." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → ungefähr Nullsummenspiel", info: "Solides Spiel, am Ende ungefähr ein Nullsummenspiel." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → durchschaut, verliert Einsatz", info: "Durchschaut, verliert den Einsatz, wird freundlich aufgezogen." },
+          { id: "misserfolg", label: "Misserfolg → komplett durchschaut, deutlicher Verlust", info: "Komplett durchschaut, verliert deutlich mehr als geplant — großes Gelächter, aber gutmütig." }
         ]
       }
     }
@@ -293,6 +319,13 @@ const ORTE = {
         personen: "Tom Fletcher (kämpft mit dem Ruder)",
         kurz: "Tom kämpft mit dem Ruder, sichtlich angestrengt — hat aber trotzdem einen Spruch auf den Lippen und lotst Spieler weiter, wo sie gebraucht werden.",
         ortHinweis: "Tom kämpft mit dem Ruder, beide Hände fest um die Speichen, Muskeln sichtbar angespannt — von der lässigen Mühelosigkeit sonst keine Spur. Jede Welle versucht, ihm das Ruder aus der Hand zu reißen.\n\nKein Auftrag, kein Small Talk im bisherigen Sinn — Tom ist vollständig mit dem Ruder beschäftigt und verlässt seinen Posten nicht (Harwick verlässt sich blind auf ihn). Knoten-Streich und Ruder-Bitte setzen beide voraus, dass er entspannt bei der Sache ist, und sind für diese Szene deshalb ausgesetzt. Stattdessen: reiner Charaktermoment, siehe Interaktion \"Am Ruder, mit losem Mundwerk\"."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht (Hendriks Auftrag: "kleine
+        // lustige simple Storys, die nichts Besonderes zur Geschichte
+        // beitragen"). Knoten-Streich/Ruder-Bitte bleiben unverändert aktiv
+        // (kein nichtInSzenen für 5.1), dieser Text ergänzt nur den ortHinweis.
+        ortHinweis: "Tom hält mühelos Kurs, auffällig gut gelaunt — summt vor sich hin, fast schon einen Ton daneben. Wer fragt, was ihn so freut, bekommt nur ein breites Grinsen und den Satz: „Ruhiges Wasser, volle Truhen, und keiner will gerade mein Ruder. Was soll da nicht gut sein?“ Er wiederholt die Zeile im Laufe der Szene mit stoischer Freude noch mindestens zweimal, für jeden neuen Spieler in Hörweite."
       }
     },
     interaktionen: {
@@ -330,6 +363,19 @@ const ORTE = {
           { id: "angenommen_misserfolg", label: "Angenommen, Kontrolle verloren → Ruf-Minus", info: "Greift zu, Probe(n) misslingen, Kontrolle verloren (Ruder schlägt aus o.ä.) → Ruf-Minus bei Tom." },
           { id: "abgelehnt", label: "Abgelehnt / gezögert → neutral", info: "Lehnt ab oder zögert → neutral, kein Risiko." }
         ]
+      },
+      "knotenwettstreit": {
+        title: "Tom — Der Knotenwettstreit",
+        kurz: "Tom fordert zum Wettstreit im schnellen Knotenbinden heraus. Geschick-Probe, rein für Spaß und Prahlrecht — kein Ruf-Effekt, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "In der ruhigen Fahrt hat Tom sichtlich Langeweile — und Zeit für Unfug. Er wirft einem Spieler ein Stück Tauwerk zu: „Zeig mir einen Palstek, bevor ich bis fünf zähle. Los!“\n\nGeschick-Probe.\n\n— Guter Erfolg: Der Knoten sitzt tadellos, noch bevor Tom fertig gezählt hat. Er nickt anerkennend, verlangt sofort eine Revanche.\n— Normaler Erfolg: Knoten hält, aber knapp zu spät. Tom grinst: „Nicht schlecht — für einen Landbewohner.“\n— Schlechter Erfolg: Der Knoten hält gerade so, sieht aber aus wie ein Vogelnest. Tom lacht sich kaputt, bindet ihn demonstrativ in zwei Sekunden neu.\n— Misserfolg: Das Tauwerk verheddert sich komplett, Tom muss es selbst entwirren. „Also DAS lernt ihr an Land wohl nicht, was?“\n\nRein für den Spaß — kein Ruf-Effekt, keine weiteren Folgen. Kann beliebig oft wiederholt werden, wenn Tom gerade Lust hat.",
+        trigger: [
+          { id: "herausgefordert", label: "Tom fordert zum Knotenwettstreit heraus", info: "Er wirft einem Spieler ein Stück Tauwerk zu: „Zeig mir einen Palstek, bevor ich bis fünf zähle. Los!“" },
+          { id: "guter_erfolg", label: "Guter Erfolg → Tom verlangt sofort Revanche", info: "Der Knoten sitzt tadellos, noch bevor Tom fertig gezählt hat. Er nickt anerkennend, verlangt sofort eine Revanche." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → knapp zu spät, hält aber", info: "Knoten hält, aber knapp zu spät. Tom grinst: „Nicht schlecht — für einen Landbewohner.“" },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → hält kaum, sieht chaotisch aus", info: "Der Knoten hält gerade so, sieht aber aus wie ein Vogelnest. Tom lacht sich kaputt." },
+          { id: "misserfolg", label: "Misserfolg → Tauwerk verheddert sich komplett", info: "Das Tauwerk verheddert sich komplett, Tom muss es selbst entwirren." }
+        ]
       }
     }
   },
@@ -346,6 +392,10 @@ const ORTE = {
         personen: "Cormac Daly · Ned Sharpe (situativ, stürzt) · Tom Fletcher (kommt später dazu) · Wat Crozier (situativ, rettet einen Spieler)",
         kurz: "Cormac ruft Befehle, schickt die geschicktesten Spieler zum Segel-Einschnüren hoch. Ned rutscht am Bug aus und wird übers Deck geschliffen — auffangbar. Später eskaliert es weiter: Mast reißt, Tom kommt vom Achterdeck dazu und steuert das Schiff per Anker auf eine Insel zu.",
         ortHinweis: "Regen peitscht fast waagerecht über das Deck, Blitze zerreißen den Himmel. Cormac steht mitten im Chaos und ruft Befehle — die Segel sind noch zu weit draußen, es droht, den Mast abzureißen, wenn sie nicht bald eingeschnürt werden.\n\nKommen Spieler in seine Nähe, schickt er die zwei mit dem höchsten Geschick-Wert hoch in die Takelage (siehe Interaktion \"Segel einschnüren\").\n\nEin paar Minuten später (SL-Ermessen) eskaliert die Lage weiter: Der Mast reißt trotzdem, das Ruder klemmt, und Tom kommt vom Achterdeck aufs Oberdeck — siehe Interaktion \"Der Höhepunkt des Sturms\"."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        ortHinweis: "Francesco lehnt an der Reling und blickt der schwindenden Insel hinterher, als würde er einem Liebsten nachtrauern — übertrieben theatralisch, eine Hand aufs Herz gepresst. „Ein paar Tage Sonne, und schon soll es vorbei sein? Grausames Schicksal.“ Wer ihn direkt anspricht, bekommt eine kleine, komplett improvisierte Trauerrede auf die Insel zu hören, inklusive einer imaginären Rose, die er theatralisch über die Reling ins Kielwasser wirft."
       }
     },
     interaktionen: {
@@ -421,6 +471,18 @@ const ORTE = {
           { id: "gefragt_josiah", label: "Nach Josiah gefragt (Kombüse-Hinweis gegeben)", info: "Josiah: \"Eine gute Seele\" — schlägt vor, ihn in der Kombüse zu besuchen, falls die Spieler ihn noch nicht kennen." },
           { id: "gefragt_dirk", label: "Nach Dirk gefragt", info: "Dirk: \"Fast mit dem Schiff verwachsen\", lieber in Gesellschaft von Kanonen/Werkzeug als Menschen — bester Ansprechpartner bei Reparaturen." }
         ]
+      },
+      "wuerfelspiel": {
+        title: "Francesco — Ein Würfelspiel",
+        kurz: "Francesco schlägt ein simples Würfelspiel vor (höher gewürfelt gewinnt), reiner Zufall, kleine imaginäre Einsätze — nichts Ernstes, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Francesco holt zwei abgewetzte Würfel aus der Tasche, wedelt einladend damit: „Ein Spielchen? Wer höher würfelt, hat gewonnen — wer verliert, erzählt eine peinliche Geschichte.“ Reiner Zufall, keine Probe nötig, einfach würfeln (SL-Ermessen, z.B. zwei W6 oder ein einfacher d100-Vergleich).\n\n— Spieler gewinnt deutlich: Francesco verliert sichtbar unwillig, muss eine (frei erfundene) peinliche Geschichte aus seiner Heimat zum Besten geben.\n— Knappes Ergebnis, egal wer gewinnt: Beide lachen, Francesco schlägt sofort eine Revanche vor.\n— Francesco gewinnt deutlich: Grinst triumphierend, verlangt vom Spieler die versprochene peinliche Geschichte — und hört mit ehrlichem Interesse zu, ganz ohne Spott.\n\nRein für die Stimmung, keine mechanischen Folgen, kein Ruf-Effekt.",
+        trigger: [
+          { id: "vorschlag", label: "Francesco schlägt das Würfelspiel vor", info: "Er holt zwei abgewetzte Würfel aus der Tasche: „Ein Spielchen? Wer höher würfelt, hat gewonnen — wer verliert, erzählt eine peinliche Geschichte.“" },
+          { id: "spieler_gewinnt", label: "Spieler gewinnt deutlich → Francesco erzählt eine peinliche Geschichte", info: "Francesco verliert sichtbar unwillig, muss eine (frei erfundene) peinliche Geschichte aus seiner Heimat zum Besten geben." },
+          { id: "unentschieden", label: "Knappes Ergebnis → Francesco fordert Revanche", info: "Beide lachen, Francesco schlägt sofort eine Revanche vor." },
+          { id: "francesco_gewinnt", label: "Francesco gewinnt deutlich → Spieler muss erzählen", info: "Francesco verlangt die versprochene peinliche Geschichte — und hört mit ehrlichem Interesse zu, ganz ohne Spott." }
+        ]
       }
     }
   },
@@ -429,16 +491,40 @@ const ORTE = {
     personen: "Ned Sharpe · Ezra Coombe",
     kurz: "Unterhalten sich über den Bordellbesuch. Reaktion hängt vom Bordell-Ausgang des jeweiligen Spielers ab (vier Varianten).",
     ortHinweis: "Beziehen sich konkret auf den Raubein-Vorfall im Bordell (der raue Gast, Constance' Reaktion) — kein allgemeines, unverfängliches Geplauder.",
+    // 5.1 (nach der Insel): Ezra liegt krank im Unterdeck, kann hier nicht
+    // mit Ned zusammenstehen - siehe "bordell_nachklang" (nichtInSzenen)
+    // und den ortHinweis-Ersatz. Reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        personen: "Ned Sharpe (allein)",
+        kurz: "Ned lungert ohne Ezra am Bug — und ohne sein übliches Publikum.",
+        ortHinweis: "Ned Sharpe lungert allein am Bug — ohne Ezra fehlt ihm offenbar das Publikum. Er fängt bei jedem Vorbeigehenden dieselbe Sturm-Geschichte an, jedes Mal ein bisschen dramatischer als beim letzten Mal (inzwischen hat er angeblich drei Mann im Alleingang aus den Wellen gezogen). Irgendwann brüllt Tom quer übers Deck: „Beim letzten Mal warst du selbst derjenige, der gerettet werden musste!“ — Ned zieht sich kurz beleidigt zurück, fängt bei der nächsten Gelegenheit aber wieder von vorne an."
+      }
+    },
     interaktionen: {
       "bordell_nachklang": {
         title: "Ned & Ezra — Nachklang aus dem Bordell",
         kurz: "Reaktion variiert je nachdem, wie der Spieler die Raubein-Szene im Bordell gelöst hat (oder ob er überhaupt dort war).",
+        nichtInSzenen: ["5.1"], // Ezra liegt krank im Unterdeck, kann hier nicht mit Ned zusammen auftreten
         details: "Ned und Ezra reden über den Bordellbesuch, konkret über den Vorfall mit dem groben Gast und Constance' Reaktion darauf. Erkennen einen vorbeikommenden Spieler, falls der dort war — mit deutlich unterschiedlichem Ton je nach Ausgang:\n\n— War dort, hat physisch eingegriffen (Raubein-Szene, Bordell): warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen\n— War dort, hat sozial deeskaliert: anerkennend, ruhiger, würdigend, weniger überschwänglich\n— War dort, hat nicht eingegriffen: erkennen den Spieler, aber kühler — knapper, leicht distanzierter Kommentar, kein offener Vorwurf\n— War nicht dort: Ned wird sichtlich unangenehm berührt, wechselt das Thema — reine Verlegenheit, keine Folge",
         trigger: [
           { id: "physisch", label: "Spieler hatte Raubein-Szene physisch gelöst → warm/bewundernd", info: "War dort, hat physisch eingegriffen: warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen." },
           { id: "sozial", label: "Spieler hatte sozial deeskaliert → anerkennend", info: "War dort, hat sozial deeskaliert: anerkennend, ruhiger, würdigend, weniger überschwänglich." },
           { id: "nicht_eingegriffen", label: "War dort, nicht eingegriffen → kühl/distanziert", info: "War dort, hat nicht eingegriffen: erkennen den Spieler, aber kühler — knapper, leicht distanzierter Kommentar, kein offener Vorwurf." },
           { id: "nicht_dort", label: "War nicht dort → Ned unangenehm, Themawechsel", info: "War nicht dort: Ned wird sichtlich unangenehm berührt, wechselt das Thema — reine Verlegenheit, keine Folge." }
+        ]
+      },
+      "weitspuckwettbewerb": {
+        title: "Ned — Der Weitspuckwettbewerb",
+        kurz: "Ned fordert zum Weitspucken über die Reling heraus. Geschick-Probe, rein alberner Zeitvertreib, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Zwischen zwei Sturmgeschichten kommt Ned auf eine seiner Ansicht nach brillante Idee: „Wetten, ich spuck weiter als du?“ Er tritt an die Reling, spuckt theatralisch weit hinaus, wischt sich stolz den Mund ab — und fordert jeden Vorbeikommenden zum Duell.\n\nGeschick-Probe.\n\n— Guter Erfolg: Der Spieler übertrifft Ned deutlich — der ist ehrlich beeindruckt und fast ein bisschen eingeschnappt.\n— Normaler Erfolg: Ordentliches Ergebnis, Ned erklärt sich trotzdem knapp zum Sieger („Wind stand ungünstig für dich“).\n— Schlechter Erfolg: Kläglicher Versuch, kaum über die Reling hinaus. Ned feiert sich lautstark selbst.\n— Misserfolg: Der Wind dreht im ungünstigsten Moment. Ned lacht Tränen, erzählt es garantiert noch beim Abendessen weiter.\n\nRein albern, kein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "herausgefordert", label: "Ned fordert zum Weitspuckwettbewerb heraus", info: "„Wetten, ich spuck weiter als du?“ Er tritt an die Reling, spuckt theatralisch weit hinaus." },
+          { id: "guter_erfolg", label: "Guter Erfolg → Ned ehrlich beeindruckt", info: "Der Spieler übertrifft Ned deutlich — der ist ehrlich beeindruckt und fast ein bisschen eingeschnappt." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → Ned erklärt sich trotzdem zum Sieger", info: "Ordentliches Ergebnis, Ned erklärt sich trotzdem knapp zum Sieger: „Wind stand ungünstig für dich.“" },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → kläglicher Versuch", info: "Kläglicher Versuch, kaum über die Reling hinaus. Ned feiert sich lautstark selbst." },
+          { id: "misserfolg", label: "Misserfolg → Wind dreht im ungünstigsten Moment", info: "Der Wind dreht im ungünstigsten Moment. Ned lacht Tränen, erzählt es garantiert noch beim Abendessen weiter." }
         ]
       }
     }
@@ -457,6 +543,10 @@ const ORTE = {
         personen: "Anonyme Crew (keine benannte Figur, siehe Hinweis)",
         kurz: "Losgerissene Kanone im Sturmchaos — anonyme Crew, keine benannten Figuren.",
         ortHinweis: "Wasser strömt in Schwällen von oben herein, das Deck liegt unter einer rutschigen Wasserschicht. Eine der Kanonen hat sich losgerissen und rollt bei jeder Welle bedrohlich hin und her. Lärm und Chaos, so weit man hört.\n\nBewusst keine Namen im Flavortext - Dirk hilft zwar mit und ruft Anweisungen, wird aber nicht genannt (siehe Interaktion \"Losgerissene Kanone\")."
+      },
+      "5.1": {
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        ortHinweis: "Die Trewin-Zwillinge streiten sich lautstark darüber, wer von ihnen auf der Insel eigentlich die größere Krabbe „bezwungen“ hat — mit jeder Wiederholung wächst das Tier um eine Handbreit, mittlerweile sind sie bei „fast so groß wie ein Hund“ angelangt. Dirk poliert daneben stoisch eine Kanone und ignoriert beide komplett, bis einer der Zwillinge ihn als Zeugen aufrufen will — dann hebt er nur kurz den Blick, sagt kein Wort, und poliert weiter."
       }
     },
     interaktionen: {
@@ -492,6 +582,19 @@ const ORTE = {
           { id: "verloren", label: "Spieler hat verloren → triumphierend/spöttisch", info: "Verloren: triumphierend, spöttisch gegenüber dem Spieler." },
           { id: "nie_angetreten", label: "Nie angetreten → neutral", info: "Nie angetreten: neutral, ignorieren den Spieler weitgehend." }
         ]
+      },
+      "schiedsrichter_gesucht": {
+        title: "Die Trewin-Zwillinge — Schiedsrichter gesucht",
+        kurz: "Die Zwillinge bitten einen Spieler, eine krude Seemannsweisheit per Wissens-Probe zu schlichten. Rein komödiantisch, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Die Zwillinge streiten mal wieder — diesmal darüber, ob ein Albatros an Bord Unglück bringt oder Glück. Keiner gibt nach, also greifen sie sich den nächstbesten Spieler als Schiedsrichter: „Du wirkst gebildet. Sag ihm, dass ich recht habe.“\n\nWissen-Probe.\n\n— Guter Erfolg: Überzeugende, detailreiche Antwort — beide Zwillinge sind gleichermaßen beeindruckt und einigen sich sofort auf eine dritte, noch absurdere Theorie.\n— Normaler Erfolg: Brauchbare Antwort, einer der Zwillinge fühlt sich bestätigt, der andere schmollt kurz.\n— Schlechter Erfolg: Unsichere, vage Antwort — beide Zwillinge erklären sich gegenseitig für bestätigt und streiten munter weiter.\n— Misserfolg: Hörbar frei erfunden. Beide Zwillinge starren nur, dann streiten sie weiter, als wäre nichts gewesen.\n\nDirk (falls anwesend) verdreht bei alldem sichtbar die Augen, sagt aber kein Wort. Kein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "schiedsrichter_gebeten", label: "Zwillinge bitten um Schlichtung (Albatros-Streit)", info: "„Du wirkst gebildet. Sag ihm, dass ich recht habe“ — Streit, ob ein Albatros an Bord Unglück oder Glück bringt." },
+          { id: "guter_erfolg", label: "Guter Erfolg → beide beeindruckt, neue gemeinsame Theorie", info: "Überzeugende, detailreiche Antwort — beide Zwillinge einigen sich sofort auf eine dritte, noch absurdere Theorie." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → einer bestätigt, einer schmollt", info: "Brauchbare Antwort, einer der Zwillinge fühlt sich bestätigt, der andere schmollt kurz." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → beide fühlen sich bestätigt, Streit geht weiter", info: "Unsichere, vage Antwort — beide Zwillinge erklären sich gegenseitig für bestätigt und streiten munter weiter." },
+          { id: "misserfolg", label: "Misserfolg → hörbar frei erfunden, Streit geht unbeeindruckt weiter", info: "Hörbar frei erfunden. Beide Zwillinge starren nur, dann streiten sie weiter, als wäre nichts gewesen." }
+        ]
       }
     }
   },
@@ -500,6 +603,12 @@ const ORTE = {
     personen: "Schiffszimmermann · weitere Handwerker (namenlos)",
     kurz: "Ordentlicher als der Rest des Schiffs. Erster Spieler im Raum wird direkt eingespannt — Mechanik-Probe, nur die Extreme wirken sich auf den Ruf aus.",
     ortHinweis: "Mehrere gelernte Handwerker bei der Arbeit, spürbar ordentlicher als sonst auf dem Schiff. Gute Wahrnehmung oder Mechanik erkennt: keine einfachen Matrosen, sondern Leute vom Fach. Namenlose Crewmitglieder — bewusst kein Wiedererkennungs-Bogen, kein späterer Zahltag (anders als bei Dirk auf dem Batteriedeck).",
+    // 5.1 (nach der Insel): reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Die Handwerker sind hörbar zufrieden mit sich — wer hier hereinkommt, bekommt ungefragt erzählt, wessen Idee der entscheidende Hebel beim Freirollen von der Sandbank war. Jeder erzählt eine andere Version, jede macht ihn selbst zum eigentlichen Kopf der Aktion. Der Streit ist gutmütig, wird aber mit wachsender Lautstärke geführt, je länger man zuhört."
+      }
+    },
     interaktionen: {
       "eingespannt": {
         title: "Erster Spieler im Raum — direkt eingespannt",
@@ -511,6 +620,19 @@ const ORTE = {
           { id: "normaler_erfolg", label: "Normaler Erfolg → neutral", info: "Normaler Erfolg: brauchbar, kein Kommentar → neutral." },
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → neutral", info: "Schlechter Erfolg: sichtbar daneben, wortlos beiseitegelegt → neutral." },
           { id: "misserfolg", label: "Misserfolg → Ruf-Malus", info: "Misserfolg: Kanthol splittert oder grob falsches Maß — einziger Moment, in dem er wirklich aufsieht → Ruf-Malus. Nachkommende Spieler bekommen keine eigene Aufgabe: „Wir kommen zurecht, geh zu Cormac, wenn du Arbeit suchst.“" }
+        ]
+      },
+      "schnitzwettbewerb": {
+        title: "Handwerker — Kleiner Schnitzwettbewerb",
+        kurz: "Ein gelangweilter Handwerker fordert zum Schnitzen einer möglichst überzeugenden Miniatur heraus. Geschick-Probe, reiner Zeitvertreib, kein Ruf-Effekt.",
+        nurSzenen: ["5.1"],
+        details: "Einer der Handwerker hat sichtlich Zeit übrig und ein Stück Treibholz in der Hand. „Schnitz was Ordentliches draus, und ich sag dir, dass du Talent hast.“ Reicht Messer und Holz herüber.\n\nGeschick-Probe.\n\n— Guter Erfolg: Eine erstaunlich detaillierte kleine Figur (SL-Ermessen, was genau) — der Handwerker ist ernsthaft beeindruckt, bietet an, sie zu behalten und in seiner Kammer auszustellen.\n— Normaler Erfolg: Erkennbare Form, nicht perfekt, aber solide. Anerkennendes Nicken.\n— Schlechter Erfolg: Unförmiger Klumpen, kaum als irgendetwas erkennbar. Herzhaftes Lachen, aber wohlwollend.\n— Misserfolg: Das Holz splittert komplett, vielleicht sogar ein kleiner Schnitt in den Finger. Der Handwerker nimmt kommentarlos Messer und Rest zurück.\n\nKein Ruf-Effekt, keine Folgen.",
+        trigger: [
+          { id: "herausgefordert", label: "Handwerker fordert zum Schnitzwettbewerb heraus", info: "„Schnitz was Ordentliches draus, und ich sag dir, dass du Talent hast.“ Reicht Messer und ein Stück Treibholz herüber." },
+          { id: "guter_erfolg", label: "Guter Erfolg → Handwerker ernsthaft beeindruckt", info: "Eine erstaunlich detaillierte kleine Figur — der Handwerker bietet an, sie in seiner Kammer auszustellen." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → erkennbare, solide Form", info: "Erkennbare Form, nicht perfekt, aber solide. Anerkennendes Nicken." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → unförmiger Klumpen", info: "Unförmiger Klumpen, kaum als irgendetwas erkennbar. Herzhaftes, wohlwollendes Lachen." },
+          { id: "misserfolg", label: "Misserfolg → Holz splittert komplett", info: "Das Holz splittert komplett, vielleicht sogar ein kleiner Schnitt in den Finger." }
         ]
       }
     }
@@ -527,8 +649,8 @@ const ORTE = {
     szenenUeberschreibungen: {
       "5.1": {
         personen: "Ezra Coombe (im Krankenlager) · Silas Pott",
-        kurz: "Ezras Wundbrand hat sich weiter ausgebreitet — wer ihn besucht, sieht deutlich, wie es um ihn steht.",
-        ortHinweis: "Zwischen den sonst ruhigen, rotierend schlafenden Kojen liegt abseits ein zusätzliches Lager: Ezra Coombe, das Bein bandagiert, im Fieber. Silas Pott wechselt sichtlich ratlos die Umschläge."
+        kurz: "Silas Pott beschwichtigt Harwick nach außen (\"kleine Verletzung, komme klar\") — wer sich tatsächlich Zugang zum Krankenlager verschafft, sieht: das stimmt nicht.",
+        ortHinweis: "Zwischen den sonst ruhigen, rotierend schlafenden Kojen liegt abseits ein zusätzliches Lager: Ezra Coombe, das Bein bandagiert, im Fieber. Silas Pott wechselt sichtlich ratlos die Umschläge — nach außen, Harwick gegenüber, spielt er die Lage herunter."
       }
     },
     interaktionen: {
@@ -544,13 +666,18 @@ const ORTE = {
       },
       "ezras_wundbrand": {
         title: "Ezra Coombe — Der Wundbrand verschlimmert sich",
-        kurz: "Fortsetzung von \"Der Eber und der Wundbrand\" (Schiffswrack): Ezras Zustand verschlechtert sich sichtbar. Wissen(Heilkunde)- oder Wahrnehmungs-Probe macht klar, dass er ohne echten Hafen mit richtiger Versorgung nicht mehr lange durchhält.",
+        kurz: "Fortsetzung von \"Der Eber und der Wundbrand\" (Schiffswrack). Zugang über Rhetorik/interessierten Austausch mit Silas Pott ODER Cormacs Befehl. Vor Ort: Amputation + entgiftende Arznei nötig, kleine Heilkräuter reichen nicht mehr — der nächste Hafen liegt nicht auf Harwicks Route.",
         nurSzenen: ["5.1"],
-        details: "Der Wundbrand, der schon auf der Insel einsetzte (siehe Schiffswrack-Interaktion \"Der Eber und der Wundbrand\"), hat sich weiter ausgebreitet. Ezra liegt im Fieber, das Bein geschwollen und verfärbt, der Geruch im Krankenlager unverkennbar. Silas Pott wechselt Umschläge, sichtlich überfordert — die Amputation am Oberschenkel war schon an Bord technisch unmöglich (Hauptschlagader), und ohne die Werkzeuge und Arznei eines echten Hafens ändert sich daran nichts.\n\nEin Spieler mit medizinischer Erfahrung, oder eine Wissen(Heilkunde)- bzw. Wahrnehmungs-Probe, macht unmissverständlich klar: So, wie es steht, überlebt Ezra das nicht mehr lange. Es braucht dringend einen Hafen mit richtiger Versorgung — kein Notbehelf an Bord.\n\nDieser Moment ist bewusst die emotionale Gegenseite zur Kapitänskajüte-Interaktion \"Harwick — Die Unterlagen zu den Artefakten\": Wer hier steht und sieht, wie es um Ezra bestellt ist, trägt dieses Wissen (oder zumindest den Eindruck davon) mit in die Kursfrage bei Harwick.",
+        details: "Harwick erkundigt sich bei Silas Pott nach Ezra, der seit dem Wildschwein-Angriff im Fieber liegt (siehe Schiffswrack-Interaktion \"Der Eber und der Wundbrand\"). Silas beruhigt den Kapitän: eine kleine Verletzung, damit komme er zurecht — konsistent mit seiner Angst um seinen Posten, die ihn schon bei der ersten Amputationsverweigerung getrieben hat.\n\nEin interessierter Spieler verschafft sich auf zwei möglichen Wegen Zugang zum Patienten: durch Rhetorik und einen interessierten Austausch mit Silas selbst, oder durch einen Befehl von Cormac. Vor Ort wird schnell klar, dass an Silas' Beschwichtigung nichts dran ist — er ist mit der Lage hoffnungslos überfordert. Das Bein hätte längst abgenommen werden müssen. Lila Adern ziehen sich das Bein hoch. Ezra schwitzt, bringt außer Stöhnen kaum ein Wort heraus.\n\nSchnell wird klar: Wenn nichts weiter unternommen wird, übersteht Ezra die Fahrt nicht. Das Bein muss ab, dazu braucht es entgiftende Arznei — kleine Heilkräuter helfen hier nicht mehr. Der nächste Hafen liegt allerdings nicht auf Harwicks Route (siehe Kapitänskajüte). Ob Ezra auch nur einen weiteren Tag übersteht, ist offen.\n\nDieser Moment ist bewusst die emotionale Gegenseite zur Kapitänskajüte-Interaktion \"Harwick — Wein und die Karten auf dem Schreibtisch\": Wer hier steht und sieht, wie es um Ezra bestellt ist, trägt dieses Wissen mit in ein mögliches Überzeugungs-Gespräch bei Harwick.",
         trigger: [
-          { id: "zustand_verschlechtert", label: "Wundbrand/Sepsis sichtbar weiter ausgebreitet, Fieber steigt", info: "Ezra liegt im Fieber, das Bein geschwollen und verfärbt, der Geruch im Krankenlager unverkennbar." },
-          { id: "silas_ueberfordert", label: "Silas Pott sichtlich überfordert, wechselt nur noch Umschläge", info: "Silas Pott wechselt Umschläge, sichtlich ratlos — mehr kann er ohne die Werkzeuge/Arznei eines echten Hafens nicht tun." },
-          { id: "erkenntnis_todesnah", label: "Probe/medizinische Erfahrung macht klar: ohne echten Hafen überlebt er nicht mehr lange", info: "Wissen(Heilkunde)- oder Wahrnehmungs-Probe (bzw. ein Spieler mit medizinischer Erfahrung) macht unmissverständlich klar: Ezra braucht dringend einen Hafen mit richtiger Versorgung, sonst überlebt er das nicht." }
+          { id: "zugang_rhetorik", label: "Zugang über Rhetorik/interessierten Austausch mit Silas Pott", info: "Ein interessierter Spieler verschafft sich durch Rhetorik und Austausch mit Silas Zugang zum Krankenlager." },
+          { id: "zugang_cormac", label: "ODER: Zugang durch Cormacs Befehl", info: "Alternativ verschafft ein Befehl von Cormac Zugang zum Patienten." },
+          { id: "silas_beschwichtigt_harwick", label: "Silas beschwichtigt Harwick nach außen — stimmt nicht", info: "Silas versichert dem Kapitän, es sei nur eine kleine Verletzung, mit der er zurechtkomme — konsistent mit seiner Angst um seinen Posten. Vor Ort zeigt sich: das stimmt nicht." },
+          { id: "zustand_verschlechtert", label: "Bein hätte längst ab müssen, lila Adern, Ezra kaum ansprechbar", info: "Das Bein hätte längst abgenommen werden müssen. Lila Adern ziehen sich das Bein hoch. Ezra schwitzt, bringt außer Stöhnen kaum ein Wort heraus." },
+          { id: "erkenntnis_todesnah", label: "Klar: Amputation + entgiftende Arznei nötig, nächster Hafen liegt nicht auf der Route", info: "Kleine Heilkräuter reichen nicht mehr. Ob Ezra auch nur einen weiteren Tag übersteht, ist offen.", grantsQuest: {
+            warum: "Ohne Amputation und entgiftende Arznei übersteht Ezra die Fahrt nicht — kleine Heilkräuter reichen nicht mehr, und der nötige Hafen liegt nicht auf Harwicks derzeitigem Kurs.",
+            was: "Harwick glaubwürdig überzeugen, Kurs auf den spanischen Hafen zu nehmen — oder in Kauf nehmen, dass Ezra die Fahrt nicht übersteht."
+          } }
         ]
       }
     }
@@ -568,13 +695,21 @@ const ORTE = {
         personen: "–",
         kurz: "Wassereinbruch im Sturm — kein Bezug mehr zum blinden Passagier. Zwei Schritte nötig (Pumpen + Abdichten).",
         ortHinweis: "Der Frachtraum steht knöcheltief unter Wasser — bei jeder Welle schwappt es zwischen den Fässern hin und her. Irgendwo dringt Wasser ein, das hier nicht hingehört. Wenn niemand bald etwas unternimmt, wird es mehr.\n\nDie Bildvarianten (Standard/Leer) und der blinde Passagier spielen hier keine Rolle mehr, siehe Interaktion \"Wassereinbruch\"."
+      },
+      "5.1": {
+        // Blinder Passagier ist zu diesem Zeitpunkt der Kampagne längst kein
+        // Thema mehr (Subplot früh im Spiel, siehe nichtInSzenen unten).
+        // Reiner Flavor-Zusatz, kein Plot-Gewicht.
+        personen: "Ein Crewmitglied beim Zählen der Truhen",
+        kurz: "Der geborgene Schatz lagert jetzt hier — ein sichtlich überforderter Crewmann versucht, ihn zu zählen.",
+        ortHinweis: "Der geborgene Schatz der Thahal lagert jetzt hier, Truhe an Truhe gestapelt. Ein einzelnes Crewmitglied wurde offenbar zum Zählen abgestellt — laut murmelnd, mit dem Finger auf die Münzstapel zeigend. Bei jeder Ablenkung (ein Geräusch, eine Frage, das Schiff, das leicht schlingert) verliert er den Faden und fängt laut fluchend wieder bei eins an. Nach eigener Aussage ist er jetzt schon zum siebten Mal von vorne dran."
       }
     },
     interaktionen: {
       "blinder_passagier": {
         title: "Der blinde Passagier — Fund im Frachtraum (Abschnitt 11, Pfad A)",
         kurz: "Kein Wurf nötig — aktive Suche bei Variante \"Standard\" findet ihn automatisch. Vier mögliche Folgen je nach Spielerverhalten danach.",
-        nichtInSzenen: ["3.1"], // T+30 (spätestens Wat) liegt vor T+60 (Sturm) - Subplot ist bis dahin immer durch
+        nichtInSzenen: ["3.1", "5.1"], // T+30 (spätestens Wat) liegt vor T+60 (Sturm) - Subplot ist bis dahin immer durch, in 5.1 lagert hier ohnehin der Schatz statt des Jungen
         details: "Ist die Bildvariante \"Standard\" aktiv und durchsucht ein Spieler gezielt den Raum (z.B. „ich durchsuche den Raum“), wird der Junge ohne Probe gefunden.\n\nDanach, drei mögliche Verläufe:\n— Spieler holen ihn aus dem Frachtraum heraus → Wat bekommt es mit, die Konfrontationsszene an Deck (Pfad B) startet\n— Spieler lassen ihn dort, gehen aber vor T+30 direkt zu Josiah, Francesco, Cormac oder Tom → Wat findet ihn nicht\n— Spieler lassen ihn dort, unternehmen lange Zeit nichts → er findet irgendwann aus Hunger von selbst zu Josiah\n\nSL-Ermessen: Ob und wie hart Pfad B (Wat-Konfrontation) tatsächlich ausfällt, liegt im Spielraum des Spielleiters — abhängig z.B. davon, ob die Gruppe Wat schon kennengelernt hat, ob eine härtere Version gerade der Charakterbildung nützt, oder ob die Gruppe ohnehin aggressiv gestimmt ist und eskalieren würde. Keine feste Regel, reine Spielleiter-Freiheit (vgl. Design-Prinzip \"Gutes Rollenspiel schlägt Mechanik\").",
         trigger: [
           { id: "gefunden", label: "Junge im Frachtraum gefunden", info: "Ist die Bildvariante \"Standard\" aktiv und durchsucht ein Spieler gezielt den Raum, wird der Junge ohne Probe gefunden." },
@@ -586,7 +721,7 @@ const ORTE = {
       "knoten_streich": {
         title: "Knoten-Streich — Anlaufpunkt (ausgelöst vom Achterdeck)",
         kurz: "Wer wegen Toms Streich in den Frachtraum läuft, trifft je nach aktiver Bildvariante auf den versteckten Jungen oder einen leeren Raum.",
-        nichtInSzenen: ["3.1"], // dito - Frachtraum-Varianten spielen im Sturm keine Rolle mehr, siehe "wassereinbruch_sturm"
+        nichtInSzenen: ["3.1", "5.1"], // dito - Frachtraum-Varianten spielen im Sturm keine Rolle mehr, siehe "wassereinbruch_sturm"; in 5.1 lagert hier der Schatz
         details: "Siehe Achterdeck-Interaktion „Knoten-Streich“: Tom schickt den Spieler mit dem niedrigsten Seefahrt-Wert in den Frachtraum, um „ein paar Knoten mehr“ zu holen. Trifft der Spieler dort ein, hängt der Zustand von der aktiven Bildvariante ab — versteckter Junge (Standard) oder leerer Raum (Leer).",
         trigger: [
           { id: "angekommen", label: "Spieler wegen Knoten-Streich im Frachtraum angekommen", info: "Trifft der Spieler dort ein, hängt der Zustand von der aktiven Bildvariante ab — versteckter Junge (Standard) oder leerer Raum (Leer)." }
@@ -603,6 +738,19 @@ const ORTE = {
           { id: "auf_anweisung", label: "Auf Anweisung (Cormac/Dirk) → neutral", info: "Auf Anweisung von Cormac oder Dirk (falls Spieler nicht selbst aktiv werden) → neutral." },
           { id: "geloest", label: "Pumpen + Abdichten erfolgreich → Problem gelöst", info: "Misserfolg bei Pumpen/Abdichten → kein Malus, geht im allgemeinen Chaos des Sturms unter." }
         ]
+      },
+      "beim_zaehlen_helfen": {
+        title: "Beim Zählen helfen",
+        kurz: "Das überforderte Crewmitglied bittet um Hilfe beim Zählen des Schatzes. Wissen- oder Handel-Probe, rein komödiantisch, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "Der zum Zählen abgestellte Crewmann (siehe ortHinweis) sieht jeden Vorbeikommenden mit unverhohlener Hoffnung an. „Bitte. Hilf mir. Ich krieg die Zahl einfach nicht zusammen.“\n\nWissen- oder Handel-Probe (Münzen/Wertgegenstände einschätzen und sauber zählen).\n\n— Guter Erfolg: Eine saubere, plausible Zahl steht — der Crewmann ist überglücklich, fast den Tränen nahe vor Erleichterung.\n— Normaler Erfolg: Eine grobe Schätzung reicht ihm fürs Erste, auch wenn beide wissen, dass sie nicht ganz exakt ist.\n— Schlechter Erfolg: Am Ende sind sich beide nicht mehr sicher, ob es dieselbe Zahl war wie vorhin. Der Crewmann seufzt, fängt sichtbar innerlich wieder von vorne an.\n— Misserfolg: Ein Münzstapel kippt um, verteilt sich klirrend über den Boden. Gemeinsames Aufsammeln, die Zählung beginnt komplett neu.\n\nKein Ruf-Effekt — reine Randnotiz, keine tatsächliche Konsequenz für den späteren Artefakthandel (die Schiffsbuchhaltung ist ohnehin nicht das, was dort zählt).",
+        trigger: [
+          { id: "um_hilfe_gebeten", label: "Crewmann bittet um Hilfe beim Zählen", info: "„Bitte. Hilf mir. Ich krieg die Zahl einfach nicht zusammen.“" },
+          { id: "guter_erfolg", label: "Guter Erfolg → saubere Zahl, Crewmann überglücklich", info: "Eine saubere, plausible Zahl steht — der Crewmann ist überglücklich, fast den Tränen nahe vor Erleichterung." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → grobe Schätzung reicht", info: "Eine grobe Schätzung reicht ihm fürs Erste, auch wenn beide wissen, dass sie nicht ganz exakt ist." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → Unsicherheit, fängt innerlich neu an", info: "Am Ende sind sich beide nicht mehr sicher, ob es dieselbe Zahl war wie vorhin. Der Crewmann seufzt." },
+          { id: "misserfolg", label: "Misserfolg → Münzstapel kippt um, komplett neu zählen", info: "Ein Münzstapel kippt um, verteilt sich klirrend über den Boden. Gemeinsames Aufsammeln, die Zählung beginnt komplett neu." }
+        ]
       }
     }
   },
@@ -611,12 +759,31 @@ const ORTE = {
     personen: "Josiah Pryce",
     kurz: "Herzlicher Empfang für jeden, unabhängig vom Ruf. Bewusst kein aktiver Wunsch, keine Ruf-Mechanik — reiner Charakter zum Spielen.",
     ortHinweis: "Anlaufstelle für den blinden Passagier (siehe Frachtraum-Interaktion „Der blinde Passagier“ und Abschnitt 11).",
+    // 5.1 (nach der Insel): reiner Flavor-Zusatz, kein Plot-Gewicht.
+    szenenUeberschreibungen: {
+      "5.1": {
+        ortHinweis: "Aus der Kombüse zieht ein Geruch, den noch niemand an Bord einordnen kann — irgendwo zwischen süß und beunruhigend. Josiah experimentiert mit einer unbekannten Frucht, die jemand von der Insel mitgebracht hat, und verrät partout nicht, was genau er da eigentlich kocht. „Vertraut mir einfach.“ Wer probiert, findet es überraschend gut — was die Sache irgendwie nur unheimlicher macht."
+      }
+    },
     interaktionen: {
       "standardverhalten": {
         title: "Josiah — Herzlicher Empfang (kein aktiver Wunsch)",
         kurz: "Begrüßt jeden herzlich, unabhängig vom Ruf oder davon, ob der Spieler freiwillig/gepresst an Bord ist. Bewusst keine Ruf-Mechanik, kein Trigger-Automat.",
         details: "Josiah begrüßt jeden, der die Kombüse betritt, herzlich — unabhängig vom Ruf, unabhängig davon, ob der Spieler freiwillig oder durch Erpressung/Gewalt an Bord ist. Bietet von sich aus etwas zu essen oder Ähnliches an. Beantwortet Fragen offen und ehrlich.\n\nSieht in jedem das Gute — redet über niemanden schlecht, egal wer gerade Zielscheibe ist. Lästern Spieler vor ihm über irgendjemanden an Bord, widerspricht er warm und automatisch, nie belehrend, einfach weil er es so empfindet.\n\nBewusst kein aktiver Wunsch und keine Ruf-Mechanik hier — anders als Tom, Dirk oder die Werkstatt. Reiner Charakter zum Spielen, kein Trigger-Automat.\n\nSein großer Moment: die Wat-Konfrontationsszene (Frachtraum-Interaktion „Der blinde Passagier“, Pfad B) — kommt schwer atmend an Deck (die Kombüse liegt tief unten, er ist kein schneller Mann) und hält Wat auf.",
         trigger: []
+      },
+      "blindverkostung": {
+        title: "Josiah — Die Blindverkostung",
+        kurz: "Josiah lässt die mysteriöse Insel-Frucht probieren und die Zutat erraten. Wahrnehmungs- oder Wissen-Probe, komödiantische Reaktionen, keine Story-Relevanz.",
+        nurSzenen: ["5.1"],
+        details: "Josiah hält einen Löffel mit etwas Dampfendem hin, Augen erwartungsvoll. „Na los, koste — und sag mir, was du schmeckst.“ Verrät selbst nichts.\n\nWahrnehmungs- oder Wissen-Probe.\n\n— Guter Erfolg: Erkennt tatsächlich mehrere Zutaten korrekt (SL-Ermessen, welche) — Josiah ist ehrlich baff, verlangt sofort zu wissen, wie das gemacht wurde.\n— Normaler Erfolg: Erkennt vage „irgendwas Süßes, irgendwas Scharfes“ — Josiah nickt zufrieden, mehr wollte er auch nicht hören.\n— Schlechter Erfolg: Kann nichts Genaues benennen, nur dass es „ungewöhnlich, aber gut“ schmeckt. Josiah lacht, bleibt bei seinem Geheimnis.\n— Misserfolg: Verschluckt sich, muss husten — die Würze war stärker als erwartet. Josiah klopft mitleidig auf den Rücken, grinst dabei aber breit.\n\nKein Ruf-Effekt, keine Folgen — Josiah bleibt bei jedem Ergebnis genauso freundlich wie immer.",
+        trigger: [
+          { id: "angeboten", label: "Josiah bietet die Blindverkostung an", info: "„Na los, koste — und sag mir, was du schmeckst.“ Verrät selbst nichts." },
+          { id: "guter_erfolg", label: "Guter Erfolg → mehrere Zutaten korrekt erkannt", info: "Josiah ist ehrlich baff, verlangt sofort zu wissen, wie das gemacht wurde." },
+          { id: "normaler_erfolg", label: "Normaler Erfolg → vage Beschreibung reicht", info: "Erkennt vage „irgendwas Süßes, irgendwas Scharfes“ — Josiah nickt zufrieden." },
+          { id: "schlechter_erfolg", label: "Schlechter Erfolg → nichts Genaues benennbar", info: "Kann nichts Genaues benennen, nur dass es „ungewöhnlich, aber gut“ schmeckt." },
+          { id: "misserfolg", label: "Misserfolg → verschluckt sich", info: "Verschluckt sich, muss husten — die Würze war stärker als erwartet." }
+        ]
       }
     }
   },
@@ -1276,8 +1443,8 @@ const SZENEN_REGIE = {
   // verschiebung über die konkreten Personen (Harwick, Ezra) läuft, nicht
   // über den Statisten-Pool.
   "5.1": {
-    uebergeordnetesZiel: "Den Kurs für die Weiterfahrt festlegen, während Ezra Coombes Wundbrand die Zeit knapp werden lässt.", // Bibel 2.9
-    stimmung: "Zurück auf See, mit vollen Laderäumen und einer Crew, die spürbar anders wirkt als beim Ablegen aus Grimsgate. Wer mit Harwick ins Inselinnere gezogen ist, bekommt jetzt andere Blicke — ein Nicken im Vorbeigehen, Fragen, die vorher niemand gestellt hätte. Unter der Erleichterung über den geborgenen Schatz liegt eine wachsende Unruhe: Unten liegt Ezra Coombe mit einem Bein, das nicht heilen will, und wer genau hinhört, hört, wie die Crew leise darüber tuschelt.",
+    uebergeordnetesZiel: "Den weiteren Kurs bestimmen — frei, ohne Anweisung von oben —, während Ezra Coombes Wundbrand Richtung spanischem Hafen und Harwicks Artefakt-Wissen Richtung Schmugglernest ziehen.", // Bibel 2.9
+    stimmung: "Ein Dutzend abgeschlagener Bäume und die zurückkehrende Flut rollen die Golden Lion zurück ins Wasser — noch einmal zeigt sich das Geschick der Zimmermänner an Bord, das Schiff wirkt fast wie neu. Nur der fehlende Lack erinnert daran, dass die Arbeit im nächsten sicheren Hafen fortgesetzt werden muss. An Bord geht es ruhig zu, die Segel stehen seicht im Wind, das Schiff hat wieder Fahrt aufgenommen.\n\nZurück auf See, mit vollen Laderäumen und einer Crew, die spürbar anders wirkt als beim Ablegen aus Grimsgate. Wer mit Harwick ins Inselinnere gezogen ist, bekommt jetzt andere Blicke — ein Nicken im Vorbeigehen, Fragen, die vorher niemand gestellt hätte. Unter der Erleichterung über den geborgenen Schatz liegt eine wachsende Unruhe: Unten liegt Ezra Coombe mit einem Bein, das nicht heilen will, und wer genau hinhört, hört, wie die Crew leise darüber tuschelt.",
     ghosts: [
       {
         name: "Amos Hale",
