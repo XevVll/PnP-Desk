@@ -353,6 +353,12 @@ Engagement ans Licht und gibt dem Gelehrten seinen großen Moment.
 | **Schamanen-Insel** | Kontakte und Recherche aus dem Schmugglernest | Informant/Schamane. Kulturelle Variante: der zentraleuropäische Blick trifft auf eine fremde, ursprüngliche Tradition. Liefert **konkrete Ritual-Informationen**: Schwächen der Untoten, wie sich der Finalkampf entschärfen lässt — Grundlage für ein gutes Ende |
 | **Hafen zur Vorbereitung** | Weg über die Flaute | **Emergenter Ort** — die Spieler fordern ihn selbst ein, weil sie in Harwicks Unterlagen von der übernatürlichen Gefahr gelesen haben. Ausrüstung und Proviant, etwa Kanonen vom Schiff für das Ritual |
 
+> **[OFFEN] Zukunfts-Faden (August 2026):** Ist die Kneipen-Provokation im spanischen Hafen (`7.1`,
+> `ORTE.hafen_kneipe`) eskaliert und Ezra Coombe blieb unabgeholt zurück, haben die Spanier ihn in
+> ihrer Gewalt. Wenn hier das spanische Kriegsschiff die Golden Lion einholt, könnte das eine
+> grausame Szene liefern: Ezra wird von den Spaniern als Spott aufgeknüpft ausgehängt. Nur als
+> Faden vermerkt (Hendriks Idee), noch nicht ausformuliert.
+
 ### 7.5 Offizierskonferenz & Verzweigung 3
 
 **Zugang:** Ein Spieler, der sich bis dahin einen so guten Ruf erarbeitet hat, dass er zwar

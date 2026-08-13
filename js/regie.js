@@ -1281,23 +1281,105 @@ const ORTE = {
     }
   },
 
-  // Spanischer Hafen und Schmugglernest (Bibel 7.2, Verzweigung 1): bewusst
-  // nur ein GM-Rahmenhinweis, der die bereits in der Bibel festgelegten
-  // Eckpunkte wiedergibt - keine erfundenen NPCs/Interaktionen, da Hendrik
-  // Story-Inhalte selbst entwickelt (CLAUDE.md, Arbeitsweise). Ausarbeitung
-  // folgt in einer eigenen Runde.
+  // Spanischer Hafen (Bibel 7.2, Verzweigung 1): ausgearbeitet nach Hendriks
+  // Vorgaben (Dialog, nicht von Claude erfunden) - vier Orte, Sub-Orte-Muster
+  // wie beim Thahal-Dorf (parentId in js/spanischer_hafen_scenes.js).
+  // Reihenfolge: Anlegestelle (Francesco fragen + Straßen-Passage) -> Arzt
+  // -> Kneipe/Markt (parallel, keine feste Reihenfolge).
   "hafen_anlegestelle": {
-    personen: "[OFFEN — noch nicht ausgearbeitet]",
-    kurz: "[OFFEN] Suche nach Heilkräutern (für Ezra Coombe). Bibel 7.2: Risiko einer Begegnung mit dem spanischen Offizier. Kann später Route A (Bibel 7.5) entschärfen.",
-    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.2.",
-    interaktionen: {}
+    personen: "Ezra Coombe (im Sterben liegend) · Francesco Almeida (falls mitgenommen)",
+    kurz: "Ausgangspunkt: Francesco kann vorher gebeten werden mitzukommen (übersetzt später beim Arzt), dann trägt die Gruppe Ezra durch die vollen Gassen zum Arzt — Proben unterwegs, aber kein Fehlschlag-Ende.",
+    interaktionen: {
+      "francesco_mitnehmen": {
+        title: "Francesco vorher fragen",
+        kurz: "Bevor die Gruppe mit Ezra von Bord geht, kann sie Francesco Almeida bitten mitzukommen — er übersetzt später beim Arzt. Fragt niemand, sitzt er stattdessen in der Kneipe.",
+        details: "Noch während an Deck alles für den Landgang mit Ezra vorbereitet wird, ist auch Francesco im Aufbruch begriffen. Ein Spieler kann ihn direkt bitten mitzukommen. Er sagt ohne Zögern zu, wenn gefragt wird, und begleitet die Gruppe die ganze Station über.\n\nFragt ihn niemand, verschwindet er auf eigene Faust in die Stadt — die Gruppe trifft ihn später in der Kneipe wieder (siehe dort), nur eben nicht als verfügbaren Dolmetscher beim Arzt.",
+        trigger: [
+          { id: "gefragt", label: "Francesco wird gebeten mitzukommen", info: "Ein Spieler bittet Francesco direkt, mit an Land zu kommen, bevor die Gruppe mit Ezra losläuft." },
+          { id: "zugesagt", label: "Francesco sagt zu, begleitet die Gruppe", info: "Er sagt ohne Zögern zu und begleitet die Gruppe die ganze Station über — übersetzt später beim Arzt." },
+          { id: "nicht_gefragt", label: "Niemand fragt Francesco → er geht eigene Wege", info: "Fragt ihn niemand, verschwindet er auf eigene Faust in die Stadt. Die Gruppe trifft ihn später in der Kneipe wieder, aber nicht als Dolmetscher beim Arzt." }
+        ]
+      },
+      "weg_durch_die_strassen": {
+        title: "Der Weg durch die Straßen",
+        kurz: "Die Gruppe trägt Ezra auf den Schultern durch die vollen Gassen zum Arzt. Körper-/Geschick-Proben, um ihn nicht fallen zu lassen; Wahrnehmung/Instinkt warnt vor Hindernissen. Kein Fehlschlag-Ende — sie kommen so oder so an.",
+        details: "Vier tragen, so gut es eben geht — Ezra auf improvisierter Trage aus Segeltuch und Rudern, mitten durch enge, überfüllte Gassen. Passanten weichen nur widerwillig aus, Karren und Stände versperren immer wieder den direkten Weg.\n\nKörper- und Geschick-Proben der Tragenden halten Ezra ruhig und sicher oben, ohne ihn bei einem Stoß oder Ausweichmanöver fallen zu lassen. Wer gute Wahrnehmung oder Instinkt mitbringt, erkennt Hindernisse (ein Karren, eine enge Ecke, eine Menschentraube) rechtzeitig genug, um die Gruppe vorbei zu lotsen.\n\nMisslingt eine Probe, ist das keine Katastrophe — kurzes Stolpern, ein schmerzerfüllter Aufschrei von Ezra, ein paar Sekunden Verzögerung, vielleicht ein böser Blick von einem Passanten, dem sie zu nah gekommen sind. Die Gruppe kommt in jedem Fall an der Arztpraxis an (siehe ORTE.hafen_arzt) — hier entscheidet sich nur, wie glatt oder holprig der Weg dorthin war.",
+        trigger: [
+          { id: "aufbruch", label: "Die Gruppe bricht mit Ezra auf den Schultern auf", info: "Vier tragen, so gut es eben geht — Ezra auf improvisierter Trage aus Segeltuch und Rudern, mitten durch enge, überfüllte Gassen.", grantsQuest: {
+            warum: "Ohne Amputation und entgiftende Arznei übersteht Ezra die Fahrt nicht (siehe Golden Lion 5.1) — jetzt, im Hafen angekommen, zählt jede Minute.",
+            was: "Ezra sicher und rechtzeitig zum Arzt bringen."
+          } },
+          { id: "koerper_geschick_proben", label: "Körper-/Geschick-Proben durch die vollen Gassen", info: "Halten Ezra ruhig und sicher oben, ohne ihn bei einem Stoß oder Ausweichmanöver fallen zu lassen." },
+          { id: "warnung_hindernis", label: "Wahrnehmung/Instinkt warnt rechtzeitig vor Hindernissen", info: "Wer gute Wahrnehmung oder Instinkt mitbringt, erkennt Hindernisse (Karren, enge Ecke, Menschentraube) rechtzeitig genug, um die Gruppe vorbei zu lotsen." },
+          { id: "komplikation", label: "Bei Misserfolg: kurze Komplikation, kein Abbruch", info: "Kurzes Stolpern, ein schmerzerfüllter Aufschrei von Ezra, ein paar Sekunden Verzögerung — keine Katastrophe, die Gruppe kommt so oder so an." },
+          { id: "ankunft_arzt", label: "Ankunft an der Arztpraxis", info: "Die Gruppe erreicht die Arztpraxis — wie glatt oder holprig der Weg war, entscheidet sich hier, nicht ob sie ankommen." }
+        ]
+      }
+    }
   },
 
-  "schmuggler_lager": {
-    personen: "[OFFEN — noch nicht ausgearbeitet]",
-    kurz: "[OFFEN] Untergrundwissen/Artefakt-Kontakte. Bibel 7.2: schaltet später die Schamanen-Insel frei (Bibel 7.4). Bibel 12: moralisch schwerster, aber mechanisch bester Weg — kostet Ezra Coombes Überlebenschance (siehe Golden Lion 5.1, ORTE.kapitaenskajuete).",
-    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.2 und 12.",
-    interaktionen: {}
+  "hafen_arzt": {
+    personen: "Der Wundarzt (unbenannt)",
+    kurz: "Alter, kauziger Wundarzt mit anfänglich deutlicher Abneigung gegen Engländer — sieht er den Ernst von Ezras Zustand, lenkt er ein und behandelt mit vollem Einsatz. Ohne Francesco Verständigungsprobleme. Die Rettung selbst ist medizinisch sicher.",
+    interaktionen: {
+      "ablehnung_und_umschwung": {
+        title: "Der Wundarzt — erste Ablehnung, dann voller Einsatz",
+        kurz: "Reserviert-schroffer Empfang wegen der Engländer-Abneigung des Arztes, Verständigung ohne Francesco nur mühsam. Sobald er Ezras Wunde sieht, kippt seine Haltung vollständig.",
+        details: "Ein alter Mann öffnet, fleckige Schürze, misstrauischer Blick. Sein Ton wird sofort kühl, kaum dass er die englische Sprache oder Kleidung erkennt — ein paar scharfe, abweisende Worte, fast so, als wolle er die Tür wieder schließen.\n\nOhne Francesco ist die Verständigung mühsam — Pantomime, einzelne Brocken, viel Zeigen auf Ezras Bein. Mit Francesco geht es deutlich schneller: er übersetzt, findet die richtigen Worte, um die Dringlichkeit klarzumachen.\n\nWas den Arzt tatsächlich umstimmt, ist nicht das Argument, sondern der Anblick selbst: Sobald er den Verband löst und die Wunde sieht, verschwindet die Abweisung sofort. Sein Gesicht wird ernst, professionell — er scheucht alle beiseite, die ihm im Weg stehen, und macht sich mit vollem Elan an die Arbeit.\n\nDie Behandlung gelingt — Ezra überlebt. Was an dieser Stelle offen bleibt, ist nicht seine Rettung, sondern ob die Gruppe ihn hinterher auch abholt (siehe ORTE.hafen_kneipe).",
+        trigger: [
+          { id: "empfang_ablehnend", label: "Empfang reserviert/ablehnend (Engländer-Abneigung)", info: "Ein alter Mann öffnet, misstrauischer Blick, sein Ton wird sofort kühl, kaum dass er Sprache oder Kleidung erkennt — fast, als wolle er die Tür wieder schließen." },
+          { id: "sprachbarriere", label: "Ohne Francesco: Verständigung nur mühsam", info: "Pantomime, einzelne Brocken, viel Zeigen auf Ezras Bein." },
+          { id: "mit_francesco", label: "Mit Francesco: reibungslose Übersetzung", info: "Er übersetzt, findet die richtigen Worte, um die Dringlichkeit klarzumachen — deutlich schneller als ohne ihn." },
+          { id: "umschwung", label: "Anblick der Wunde lässt die Abweisung sofort verschwinden", info: "Sobald er den Verband löst und die Wunde sieht, wird sein Gesicht ernst, professionell — er scheucht alle beiseite und macht sich mit vollem Elan an die Arbeit." },
+          { id: "rettung_gesichert", label: "Behandlung gelingt — Ezra überlebt", info: "Was offen bleibt, ist nicht seine Rettung, sondern ob die Gruppe ihn hinterher auch abholt." }
+        ]
+      }
+    }
+  },
+
+  "hafen_kneipe": {
+    personen: "Francesco Almeida (falls nicht vorher mitgenommen) · Mehrere spanische Soldaten",
+    kurz: "Falls nicht schon mitgenommen, sitzt Francesco hier. Eine Gruppe spanischer Soldaten provoziert Spieler und Crew spürbar — bewusst stark genug für eine mögliche Eskalation. Eskaliert es wirklich, erscheint der Offizier mit Garde: Flucht ohne Ezra, der beim Arzt zurückbleibt.",
+    interaktionen: {
+      "francesco_in_der_kneipe": {
+        title: "Francesco in der Kneipe",
+        kurz: "Falls niemand ihn vorher gefragt hat, sitzt Francesco bereits hier — kann sich noch anschließen, kommt aber zu spät für die Übersetzung beim Arzt.",
+        details: "Wurde Francesco an der Anlegestelle nicht gefragt (siehe ORTE.hafen_anlegestelle), findet die Gruppe ihn hier wieder — an einem ruhigeren Tisch, gut gelaunt, mitten im Gespräch mit Einheimischen. Er schließt sich gern an, wenn die Gruppe ihn jetzt noch braucht, aber die Übersetzung beim Arzt ist zu diesem Zeitpunkt bereits gelaufen (siehe ORTE.hafen_arzt).",
+        trigger: [
+          { id: "francesco_gefunden", label: "Francesco in der Kneipe gefunden (falls vorher nicht gefragt)", info: "Er sitzt an einem ruhigeren Tisch, gut gelaunt, mitten im Gespräch mit Einheimischen." }
+        ]
+      },
+      "provokation_soldaten": {
+        title: "Die Soldaten am Tisch",
+        kurz: "Eine Gruppe spanischer Soldaten provoziert Spieler und Crew spürbar — anrempeln, auslachen, bedrängen. Deeskaliert die Gruppe, läuft alles normal weiter. Eskaliert es wirklich, erscheint der Offizier mit Garde, Flucht ohne Ezra.",
+        details: "An einem der vorderen Tische sitzt eine Gruppe Soldaten, bereits einige Krüge tief. Sie haben die Fremden längst bemerkt — erst abschätzende Blicke, dann offene Kommentare, dann handfestes Anrempeln, wenn jemand an ihrem Tisch vorbeimuss. Auch Crewmitglieder, die zufällig hier sind, bleiben nicht verschont.\n\nDie Provokation ist bewusst deutlich genug angelegt, dass eine Eskalation eine nachvollziehbare Reaktion wäre, kein Zufall — dieser Moment liefert später den Grund für die persönliche Feindschaft des wiederkehrenden spanischen Offiziers (Bibel 8.1).\n\nHalten die Spieler stand oder deeskalieren sie glaubwürdig (Rhetorik, Menschenkenntnis, einfach Ignorieren und Gehen), bleibt es bei der Provokation — die Gruppe holt Ezra normal beim Arzt ab, kehrt vollständig zum Schiff zurück.\n\nKippt die Situation dagegen wirklich — Fäuste fliegen, ein Soldat wird niedergeschlagen oder Ähnliches —, dauert es nicht lange, bis der Offizier mit seiner Garde erscheint. Der Gruppe bleibt nur die fluchtartige Flucht zurück zum Schiff. Für Ezra, der noch beim Arzt liegt, bleibt keine Zeit mehr — er wird nicht abgeholt und bleibt zurück. Erst nachdem das Schiff schon abgelegt hat, fällt jemandem auf, dass er fehlt.",
+        trigger: [
+          { id: "anrempeln", label: "Soldaten rempeln an, lästern über die Fremden", info: "Erst abschätzende Blicke, dann offene Kommentare, dann handfestes Anrempeln — auch anwesende Crewmitglieder bleiben nicht verschont." },
+          { id: "eskalationsdruck", label: "Provokation steigert sich spürbar", info: "Bewusst deutlich genug angelegt, dass eine Eskalation eine nachvollziehbare Reaktion wäre, kein Zufall." },
+          { id: "deeskaliert", label: "Deeskaliert/standgehalten → Ezra wird normal abgeholt", info: "Rhetorik, Menschenkenntnis, oder einfach Ignorieren und Gehen — die Gruppe holt Ezra normal beim Arzt ab, kehrt vollständig zurück." },
+          { id: "eskaliert", label: "Eskaliert wirklich → Offizier erscheint mit Garde", info: "Fäuste fliegen, ein Soldat wird niedergeschlagen oder Ähnliches — der Offizier erscheint mit seiner Garde." },
+          { id: "flucht_ohne_ezra", label: "Fluchtartiger Rückzug ohne Ezra", info: "Der Gruppe bleibt nur die Flucht zurück zum Schiff. Für Ezra, der noch beim Arzt liegt, bleibt keine Zeit mehr — er wird nicht abgeholt." },
+          { id: "vermisst_bemerkt", label: "Erst nach dem Ablegen fällt auf, dass Ezra fehlt", info: "Erst nachdem das Schiff schon abgelegt hat, fällt jemandem auf, dass er fehlt." }
+        ]
+      }
+    }
+  },
+
+  "hafen_markt": {
+    personen: "Mehrere spanische Wachen (patrouillierend)",
+    kurz: "Bewusst kurz gehalten: wiederholte kleine Reibung — Anrempeln, Auslachen, misstrauische Blicke, auch von offiziellen Wachen. Kein Eskalationsrisiko wie in der Kneipe.",
+    interaktionen: {
+      "kleine_reibung": {
+        title: "Kleine Reibungen auf dem Markt",
+        kurz: "Wiederholte kleine Unfreundlichkeiten beim Durchqueren des Markts, ausdrücklich von den patrouillierenden Wachen — Anrempeln, Auslachen, misstrauisches Beäugen. Kein Wurf nötig, keine Eskalation.",
+        details: "Der Markt ist eng, laut, dicht gedrängt — und die Fremden fallen auf. Patrouillierende Wachen rempeln beim Vorbeigehen an, ohne sich umzudrehen. Von einer anderen Stelle folgt ihnen Gelächter und ein spöttischer Kommentar. Wieder woanders hält eine Wache mitten in der Bewegung inne und mustert sie einen Moment zu lang, bevor sie weitergeht.\n\nBewusst kurz gehalten — die Gruppe soll hier nicht lange verweilen. Keine Proben, keine Eskalation, kein Ruf-Effekt — reine wiederholte kleine Reibung, die den Spanien-Konflikt spürbar macht, ohne selbst zum großen Moment zu werden (der liegt in der Kneipe, siehe ORTE.hafen_kneipe).",
+        trigger: [
+          { id: "angerempelt", label: "Eine Wache rempelt im Vorbeigehen an", info: "Rempelt beim Vorbeigehen an, ohne sich umzudrehen." },
+          { id: "ausgelacht", label: "Gelächter und ein spöttischer Kommentar", info: "Von einer anderen Stelle folgt ihnen Gelächter und ein spöttischer Kommentar." },
+          { id: "beaeugt", label: "Eine Wache mustert sie misstrauisch", info: "Hält mitten in der Bewegung inne und mustert sie einen Moment zu lang, bevor sie weitergeht." }
+        ]
+      }
+    }
   }
 };
 
@@ -1513,5 +1595,13 @@ const SZENEN_REGIE = {
         beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
       }
     ]
+  },
+
+  // Spanischer Hafen (Bibel 7.2). Bewusst ohne stimmung/ghosts in dieser
+  // Runde - die vier Marker (Anlegestelle/Arzt/Kneipe/Markt) tragen den
+  // eigentlichen Inhalt, siehe ORTE weiter oben. uebergeordnetesZiel hält
+  // fest, wofür die ganze Station eigentlich da ist (Hendriks Vorgabe).
+  "7.1": {
+    uebergeordnetesZiel: "Der Konflikt mit den Spaniern — Ezra rechtzeitig zum Arzt bringen, während Provokationen im Hafen echt genug sind, um eine Eskalation nachvollziehbar zu machen." // Bibel 2.9
   }
 };
