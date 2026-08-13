@@ -9,7 +9,8 @@ zusätzlich einen laufenden Changelog.
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
 > an diesem Strang gearbeitet wird). Der **Schatzinsel-Szenen-Durchgang** ist seit August 2026
 > abgeschlossen (siehe Changelog unten) — der laufende Strang jetzt: die **Übergangsszenen nach
-> der Insel** (`5.1`/`6.1`/`7.1`/`8.1`).
+> der Insel** (`5.1`/`6.1`/`7.1`/`8.1`). `5.1`/`6.1`/`7.1` sind fertig, `8.1` (Schmugglernest)
+> steht noch als reines Gerüst aus.
 
 ## Projekt in Kürze
 
@@ -80,6 +81,21 @@ Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge 
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
 ## Changelog
+
+### 2026-08-13
+- **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
+  (nicht von Claude erfunden): vier Orte als Sub-Orte unter `hafen_anlegestelle`
+  (`hafen_arzt`/`hafen_kneipe`/`hafen_markt`, `parentId`-Muster wie beim Thahal-Dorf). Ablauf:
+  Francesco kann vor dem Landgang als Dolmetscher gefragt werden (sonst taucht er später in der
+  Kneipe wieder auf), die Gruppe trägt Ezra Coombe durch die Straßen zum Arzt (Körper-/
+  Geschick-Proben, kein Fehlschlag-Ende), ein kauziger Wundarzt mit anfänglicher
+  Engländer-Abneigung rettet ihn sicher. In der Kneipe provozieren spanische Soldaten spürbar —
+  eskaliert das wirklich, erscheint der Offizier mit Garde, die Gruppe flieht ohne Ezra, der
+  unabgeholt zurückbleibt (Grundlage für dessen spätere persönliche Feindschaft, Bibel 8.1;
+  Zukunfts-Faden dazu in Bibel 7.4 vermerkt: Ezra könnte beim späteren spanischen Angriff
+  aufgeknüpft ausgehängt werden). Markt bekam nur kurze, wiederholte Wachen-Reibung
+  (bewusst kein Eskalationsrisiko). `SZENEN_REGIE["7.1"]` neu mit `uebergeordnetesZiel`.
+  Offline mit Playwright verifiziert (siehe Skill `pnp-safe-test`).
 
 ### 2026-08-11
 - **Schatzinsel-Durchgang abgeschlossen:** neue Interaktion `kajuete_unterlagen`
