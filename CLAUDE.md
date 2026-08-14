@@ -91,6 +91,34 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-14 (Fortsetzung 2)
+- **Neue Szene `9.1` „Artefakthandel" (Bibel 7.3) als Dummy angelegt**: ein Marker „Das
+  Handelstreffen", flaches Muster (bewusst keine Sub-Orte, Hendriks Vorgabe), bereits mit
+  echtem Referenzbild (`scene_artefakthandel.webp`, seit dem 14.08. vorbereitet) statt
+  Platzhalter. Registry-Einträge in `karte.html`/`regie.html`/`js/regie_vault.js`
+  (`getAllSceneEntries`/`getSceneLabel`/`getMarkersForScene`, `SCENE_ORDER`). `ORTE.
+  handelstreffen` bewusst nur ein `[OFFEN]`-Rahmenhinweis, Ausarbeitung folgt in eigener Runde.
+- **Ghosts für alle bisher leeren Szenen ergänzt** (Claude-Aufschlag, von Hendrik freizugeben):
+  `3.1` (Golden Lion im Sturm — hatte bisher gar keinen `SZENEN_REGIE`-Eintrag, jetzt derselbe
+  Crew-Pool wie `2.1`/`5.1`/`6.1` mit sturmgerechter Verfassung), `7.1` (neue, ortstypische
+  Statisten für den spanischen Hafen), `8.1` (neue Statisten fürs Schmugglernest), `9.1`
+  (wieder der Golden-Lion-Crew-Pool, Verfassung an die angespannte Wartesituation vor dem
+  Handelstreffen angepasst).
+- **`mystic.ogg` neu konvertiert** (Opus, 64 kbps) aus `mystic.mp3` (183 MB) — Quelldatei
+  bewusst nicht committet (zu groß fürs Repo-Limit, wird laut Workflow ohnehin nicht
+  dauerhaft gehalten), noch keiner Szene zugeordnet.
+- **Zwei weitere Hintergrundtöne eingebunden**, `BBay.ogg` und `flamenco.ogg` (aus `BBay.mp3`/
+  `flamenco.mp3` konvertiert) — ebenfalls noch keiner Szene zugeordnet. Beim Pushen fiel auf,
+  dass `flamenco.mp3` (134 MB) GitHubs 100-MB-Hardlimit reißt, obwohl die Datei in einem
+  späteren Commit schon wieder gelöscht war — Git überträgt trotzdem den vollen
+  Objekt-Verlauf. Mehrere lokale Einzel-Commits (u. a. von GitHub Desktop) mussten dafür zu
+  einem sauberen Commit zusammengefasst werden (`git reset --soft` auf den letzten bereits
+  gepushten Stand, neu committet) — nur möglich, weil diese Commits noch nirgends gepusht
+  waren. Faustregel für künftige Audio-Uploads: Quelldateien über 100 MB nie einzeln
+  committen, auch nicht kurzzeitig.
+- **ffmpeg nachinstalliert** (`winget install Gyan.FFmpeg`) — war für `tools/optimize_audio.py`
+  nicht im PATH vorhanden.
+
 ### 2026-08-14 (Fortsetzung)
 - **Marker-Feinjustage 7.1/8.1** nach Hendriks Sichtprüfung der Kartenvorlagen: Arztpraxis/
   Kneipe/Markt in `7.1` neu positioniert, Fischerdorf/Höhlenstadt-Punkte in `8.1` getauscht.
