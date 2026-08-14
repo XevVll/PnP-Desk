@@ -956,7 +956,19 @@ unmenschlich wirkenden Entscheidung könnte am Schluss die schönste Auflösung 
 **Grundsatz:** Kein Weg ist eine Strafe. Jeder ist ein anderer Trade-off. Die Spieler sollen
 spüren, dass sie etwas verpasst haben — es aber nicht bereuen.
 
-**[OFFEN]** Ob die Tochter tatsächlich wiederbelebt wird, ist bewusst noch nicht entschieden.
+**Der Schutz-Anhänger (nur über den Schmugglernest-Weg, August 2026):** Beim Artefakthändler in
+der Schmugglernest-Höhlenstadt (Szene `8.1`, `ORTE.schmuggler_artefakthaendler`) erhält die
+Gruppe einen einzelnen Anhänger, der vor der Magie der Geisterwelt schützt — nur ein Exemplar,
+kein zweites vorhanden. Im Finale stehen zwei Verwendungen offen, sich gegenseitig
+ausschließend:
+
+- **Von einem Kämpfer getragen:** schützt seinen Träger tatsächlich vor Schaden im Endkampf.
+- **Der Tochter gegeben:** Das Ritual gelingt dadurch — aber nur kurz. Kurz genug, dass sie
+  ihrem Vater sagt, dass ihn keine Schuld trifft, dass sie durch seine Trauer im Zwischen
+  gefangen ist, und dass er sie loslassen muss, damit sie die Ruhe findet, die sie verdient.
+
+Damit ist die vorherige offene Frage entschieden: Die Tochter wird **nicht** dauerhaft
+wiederbelebt — das kurze Gelingen des Rituals ist ein Abschied, kein zweites Leben.
 
 **Alternatives Ende:** Bei höchstem Ruf opfert sich Harwick für die Spieler. Andernfalls
 können sie mit ihm zusammen überleben — als gebrochener Mann, der schmerzlich erkennt, dass

@@ -1446,9 +1446,23 @@ const ORTE = {
   },
 
   "schmuggler_artefakthaendler": {
-    personen: "Ein Straßenkind (Dieb, unbenannt) · 3-4 ältere Männer (unbenannt)",
-    kurz: "Gefangen und beruhigt, führt das Kind die Gruppe hierher — und streckt dann die Hand aus. Wird es belohnt, zieht es zufrieden ab. Wird es nicht belohnt (oder wurde es gar nicht erst gefangen), greifen 3-4 ältere Männer die Gruppe an, vom Kind aufgehetzt.",
+    personen: "Der Artefakthändler (unbenannt) · Ein Straßenkind (Dieb, unbenannt) · 3-4 ältere Männer (unbenannt)",
+    kurz: "Der Händler ordnet das Artefakt einer fremden Zivilisation zu, nennt Koordinaten zur Schamaneninsel, warnt vor der Geisterwelt und gibt der Gruppe einen einzelnen Schutz-Anhänger mit (Verwendung im Finale, siehe Bibel 12.1). Vorher: Gefangen und beruhigt, führt das Straßenkind die Gruppe hierher und verlangt eine Belohnung — verweigert, hetzt es später 3-4 ältere Männer auf sie.",
     interaktionen: {
+      "der_artefaktkenner": {
+        title: "Der Artefakthändler — Herkunft, Warnung, der Anhänger",
+        kurz: "Der Händler ordnet das Artefakt anhand von Harwicks Unterlagen einer fremden Zivilisation zu, nennt Koordinaten zu einer Schamaneninsel und warnt eindringlich: solche Artefakte berühren die Geisterwelt. Er gibt der Gruppe einen einzigen Schutz-Anhänger mit.",
+        details: "Der Händler studiert Harwicks Unterlagen lange, bevor er überhaupt etwas sagt. Was er darin erkennt, ordnet er einer fremden, den Spielern bislang unbekannten Zivilisation zu — mehr über deren Herkunft verrät er nicht, verweist aber auf eine Schamaneninsel und nennt Koordinaten dorthin.\n\nSeine Warnung ist unmissverständlich: Artefakte dieser Art berühren die Geisterwelt. Wer sich darauf einlässt, muss sich wappnen.\n\nAls einziges konkretes Hilfsmittel gibt er der Gruppe einen Anhänger mit — nur ein Exemplar, kein zweites vorhanden. Er soll Schutz vor genau dieser Art von Magie bieten.\n\nSpätere Verwendung (außerhalb dieser Szene, im Finale — siehe KAMPAGNEN-BIBEL.md 12.1): Der Anhänger schützt seinen Träger tatsächlich vor Schaden. Er kann stattdessen aber auch der Tochter übergeben werden — dann gelingt das Ritual, wenn auch nur kurz: lange genug, dass sie ihrem Vater sagt, dass ihn keine Schuld trifft, dass sie durch seine Trauer im Zwischen gefangen ist, und dass er sie loslassen muss, damit sie ihre Ruhe findet.",
+        trigger: [
+          { id: "artefakt_zugeordnet", label: "Der Händler ordnet das Artefakt einer fremden Zivilisation zu", info: "Studiert Harwicks Unterlagen lange, bevor er überhaupt etwas sagt — erkennt die Herkunft, verrät aber nicht mehr darüber." },
+          { id: "koordinaten_schamaneninsel", label: "Koordinaten zu einer Schamaneninsel", info: "Verweist auf eine Schamaneninsel und nennt Koordinaten dorthin.", grantsQuest: {
+            warum: "Harwicks Ritual ist unvollständig, und der Weg über das Schmugglernest liefert als einziger konkrete Ritual-Informationen (Bibel 7.4).",
+            was: "Kurs auf die Schamaneninsel nehmen."
+          } },
+          { id: "warnung_geisterwelt", label: "Eindringliche Warnung: Artefakte dieser Art berühren die Geisterwelt", info: "Wer sich darauf einlässt, muss sich wappnen." },
+          { id: "anhaenger_erhalten", label: "Die Gruppe erhält einen einzigen Schutz-Anhänger", info: "Nur ein Exemplar, kein zweites vorhanden. Soll Schutz vor dieser Art Magie bieten — spätere Verwendung im Finale, siehe Bibel 12.1." }
+        ]
+      },
       "die_belohnung": {
         title: "Die Belohnung des Straßenkinds",
         kurz: "Gefangen und beruhigt, führt das Kind die Gruppe zum Laden des Artefakthändlers — und streckt dann die Hand aus. Wird es belohnt, zieht es zufrieden ab. Wird es nicht belohnt, greifen später 3-4 ältere Männer die Gruppe an, vom Kind aufgehetzt.",
