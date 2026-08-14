@@ -116,6 +116,14 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   `tools/optimize_images.py` die richtige Größen-Kappung anwendet (`MAP_NAMES` erweitert). Ein
   bereits konvertiertes Bild (`scene_artefakthandel.webp`) liegt noch ungenutzt bereit für die
   künftige Artefakthandel-Szene.
+- **Marker-Hierarchie in `7.1`/`8.1` nachträglich korrigiert** (Hendriks Vorgabe): In `8.1`
+  ist die Höhlenstadt jetzt ein eigener Haupt-Marker statt Sub-Ort des Fischerdorfs, der
+  Artefakthändler hängt als Sub-Ort an der Höhlenstadt statt am Fischerdorf. In `7.1` sind
+  Arzt/Kneipe/Markt jetzt eigene Haupt-Marker direkt auf der Karte statt Sub-Orte der
+  Anlegestelle; die Anlegestelle bleibt als Marker bestehen (trägt weiter ihre zwei
+  Interaktionen fürs Admin-Panel), soll aber selbst kein Kartenpunkt sein — dafür muss die SL
+  sie einmalig über `hiddenMarkersLive` im Admin-Panel ausblenden (kann nicht aus dem Code
+  vorbelegt werden, ist Firebase-Live-Zustand).
 
 ### 2026-08-13
 - **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
