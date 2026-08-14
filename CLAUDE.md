@@ -8,9 +8,8 @@ zusätzlich einen laufenden Changelog.
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
 > an diesem Strang gearbeitet wird). Der **Schatzinsel-Szenen-Durchgang** ist seit August 2026
-> abgeschlossen (siehe Changelog unten) — der laufende Strang jetzt: die **Übergangsszenen nach
-> der Insel** (`5.1`/`6.1`/`7.1`/`8.1`). `5.1`/`6.1`/`7.1` sind fertig, `8.1` (Schmugglernest)
-> steht noch als reines Gerüst aus.
+> abgeschlossen (siehe Changelog unten) — die **Übergangsszenen nach der Insel**
+> (`5.1`/`6.1`/`7.1`/`8.1`) sind damit ebenfalls alle vier fertig. Nächster Schritt offen.
 
 ## Projekt in Kürze
 
@@ -81,6 +80,27 @@ Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge 
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
 ## Changelog
+
+### 2026-08-14
+- **Szene `8.1` (Schmugglernest) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
+  (nicht von Claude erfunden): drei Orte als Sub-Orte unter `schmuggler_lager`
+  (`schmuggler_hoehlenstadt`/`schmuggler_artefakthaendler`, `parentId`-Muster wie beim
+  Thahal-Dorf und `7.1`). Von außen ein unauffälliges Fischerdorf mit stillen
+  Wohlstands-Indizien an drei Dorfbewohnern (Halskette/Brille/Gehstock) und einem
+  periodischen Donnern — der Zugang liegt in einem als Fischkühlung getarnten Eisschrank,
+  der nur auf ein hineingelegtes Stück Kohle reagiert (Hinweis dazu als geheimes
+  Schmugglerlied mit echten Koordinaten, Dead Chest Island BVI, in `ORTE.kapitaenskajuete`
+  Szene `5.1`). Dahinter: Treppe, Stahltür, Waffenkontrolle, dann die gewaltige Höhlenstadt
+  (See, angelegte Schiffe, Zielübungen als Donnern-Quelle, Markt). Kernaufgabe: einen
+  Artefakt-Kenner finden — ein Straßenkind stiehlt dabei Harwicks Unterlagen
+  (Verfolgungsjagd bewusst kaum zu gewinnen, SL-Hinweis: Fang in der Praxis oft zulassen),
+  führt bei Erfolg zum Artefakthändler, verlangt dort eine Belohnung — verweigert, hetzt es
+  3-4 ältere Männer auf die Gruppe. `SZENEN_REGIE["8.1"]` neu mit `uebergeordnetesZiel`.
+  Technischer Nebenbefund: Sub-Orte lassen sich nur eine Ebene tief verschachteln
+  (`karte.html` öffnet Kind-Marker nicht rekursiv) — der Artefakthändler hängt deshalb
+  direkt an `schmuggler_lager`, nicht an `schmuggler_hoehlenstadt`. Offline mit Playwright
+  verifiziert (siehe Skill `pnp-safe-test`). Damit sind alle vier Übergangsszenen nach der
+  Insel (`5.1`/`6.1`/`7.1`/`8.1`) fertig.
 
 ### 2026-08-13
 - **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
