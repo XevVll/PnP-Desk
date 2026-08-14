@@ -9,15 +9,14 @@
 // Golden Lion (2.x/3.x/5.x/6.x), Schatzinsel (4.x), Spanischer Hafen (7.x)
 // und Schmugglernest (8.x) - siehe CLAUDE.md, Szenen-ID-Konvention.
 //
-// STAND: bewusst nur ein technisches Grundgerüst (ein Marker, aber schon
-// mit echtem Referenzbild) - Inhalt/NPCs/Interaktionen noch nicht
-// ausgearbeitet, siehe KAMPAGNEN-BIBEL.md Abschnitt 7.3. Aus dem bisherigen
-// Gespräch mit Hendrik schon feststehend (noch nicht in Interaktionen
-// gegossen): Nebel liegt auf fast stillem Wasser, ein exotisch wirkendes
-// fremdes Schiff mit noch exotischer wirkender Crew, spürbar bedrohliche
-// Grundstimmung; Harwick geht mit Cormac/Wat/Tom in die Kajüte des anderen
-// Schiffs, während der Rest der Gruppe ein paar Minuten Zeit zur
-// Vorbereitung hat, ohne zu wissen, was kommt.
+// STAND: Ankunfts-Beat ausformuliert (siehe ORTE.handelstreffen,
+// js/regie.js) - Windstille, Nebel, das fremde Schiff erscheint. Weiterhin
+// offen: die eigentliche Verhandlung/das NPC-Drama und die Eskalations-/
+// Massaker-Frage (Bibel 7.3/12.1). Aus dem bisherigen Gespräch mit Hendrik
+// schon feststehend, noch nicht in Interaktionen gegossen: Harwick geht mit
+// Cormac/Wat/Tom in die Kajüte des anderen Schiffs, während der Rest der
+// Gruppe ein paar Minuten Zeit zur Vorbereitung hat, ohne zu wissen, was
+// kommt.
 //
 // Bild: "scene_artefakthandel.webp" existiert bereits (PNG->WebP schon
 // konvertiert, siehe CLAUDE.md-Changelog 14.08.) - zeigt Golden Lion neben
@@ -31,7 +30,7 @@ const ARTEFAKTHANDEL_SCENES = {
         id: "handelstreffen",
         top: 50, left: 50,
         title: "Das Handelstreffen",
-        desc: "Nebel liegt auf fast stillem Wasser. Die Golden Lion liegt neben einem fremden, exotisch wirkenden Schiff — noch exotischer als das Schiff selbst wirkt die Crew an Bord. [Platzhalter — weitere Ortsbeschreibung folgt.]",
+        desc: "Die Golden Lion liegt bei Windstille reglos auf spiegelglattem Wasser. Harwick steht am Bug, den Blick unverwandt aufs offene Meer gerichtet. Nebel zieht auf, verschluckt langsam den Horizont — noch ist kein Schiff zu sehen, doch die Anspannung an Bord ist deutlich zu spüren.",
         img: "images/scene_artefakthandel.webp"
       }
     ]

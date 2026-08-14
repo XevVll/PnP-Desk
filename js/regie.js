@@ -1477,16 +1477,29 @@ const ORTE = {
     }
   },
 
-  // Artefakthandel (Bibel 7.3, fest): bewusst nur ein GM-Rahmenhinweis -
-  // keine erfundenen NPCs/Interaktionen, da Hendrik Story-Inhalte selbst
-  // entwickelt (CLAUDE.md, Arbeitsweise). Ausarbeitung folgt in einer
-  // eigenen Runde (u.a. noch offen: löst die Eskalation den Angriff der
-  // anderen Crew aus, oder ist das Massaker so oder so ein fester Beat?).
+  // Artefakthandel (Bibel 7.3, fest): Ankunfts-Beat nach Hendriks Vorgabe
+  // ausformuliert (Dialog, nicht von Claude erfunden). Die eigentliche
+  // Verhandlung/das NPC-Drama und die Eskalations-/Massaker-Frage (löst sie
+  // den Angriff der anderen Crew aus, oder ist das Massaker so oder so ein
+  // fester Beat?) bleiben bewusst offen für eine eigene Runde.
   "handelstreffen": {
-    personen: "[OFFEN — noch nicht ausgearbeitet]",
-    kurz: "[OFFEN] Golden Lion trifft ein fremdes Schiff zum Artefakthandel. Bibel 7.3: wuchtiger Auftakt von Session 2, NPC-Drama, mögliches Massaker. Harwick geht mit Cormac/Wat/Tom in die fremde Kajüte, der Rest hat ein paar Minuten Vorbereitungszeit ohne zu wissen, was kommt.",
-    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.3.",
-    interaktionen: {}
+    personen: "James Harwick",
+    kurz: "Windstille, Nebel zieht auf, spürbare Anspannung. Fast lautlos erscheint ein fremdartiges Schiff aus dem Nebel — ungewöhnliche Form/Segel, Crew in merkwürdigen Rüstungen an Bord — und hält direkt auf die Golden Lion zu. Harwick geht mit Cormac/Wat/Tom in die fremde Kajüte, der Rest hat ein paar Minuten Vorbereitungszeit, ohne zu wissen, was kommt.",
+    interaktionen: {
+      "das_fremde_schiff": {
+        title: "Das fremde Schiff erscheint",
+        kurz: "Fast lautlos kommt ein fremdartiges Schiff aus dem Nebel — ungewöhnliche Form und Segel, Crew in merkwürdigen Rüstungen an Bord. Es hält direkt auf die Golden Lion zu.",
+        details: "Die Golden Lion liegt bei Windstille reglos auf dem Wasser. Harwick steht am Bug, den Blick unverwandt aufs offene Meer gerichtet — er wartet auf etwas. Nebel zieht auf, verschluckt langsam den Horizont. Noch ist kein Schiff zu sehen, aber die Anspannung an Bord ist förmlich zu greifen.\n\nDann, fast lautlos, löst sich eine Silhouette aus dem Nebel: ein fremdartiges Schiff, ungewöhnliche Formen, fremde Segel — nichts, was der Crew der Golden Lion vertraut vorkommt. An Bord sind Männer in merkwürdigen Rüstungen zu erkennen. Das Schiff hält direkt auf die Golden Lion zu.",
+        trigger: [
+          { id: "windstille_anspannung", label: "Windstille, Harwick blickt aufs offene Wasser, spürbare Anspannung", info: "Die Golden Lion liegt bei Windstille reglos auf dem Wasser. Harwick steht am Bug, den Blick unverwandt aufs offene Meer gerichtet — er wartet auf etwas." },
+          { id: "nebel_zieht_auf", label: "Nebel zieht auf, noch kein Schiff in Sicht", info: "Nebel zieht auf, verschluckt langsam den Horizont. Noch ist kein Schiff zu sehen, aber die Anspannung an Bord ist förmlich zu greifen." },
+          { id: "schiff_erscheint", label: "Fast lautlos löst sich ein fremdes Schiff aus dem Nebel", info: "Eine Silhouette löst sich fast lautlos aus dem Nebel." },
+          { id: "fremde_form", label: "Ungewöhnliche Formen und Segel, unbekannte Bauart", info: "Nichts, was der Crew der Golden Lion vertraut vorkommt." },
+          { id: "ruestungen_gesichtet", label: "Männer in merkwürdigen Rüstungen an Bord erkennbar", info: "An Bord sind Männer in merkwürdigen Rüstungen zu erkennen." },
+          { id: "kurs_golden_lion", label: "Das fremde Schiff hält direkt auf die Golden Lion zu", info: "Das Schiff hält direkt auf die Golden Lion zu." }
+        ]
+      }
+    }
   }
 };
 
@@ -1835,6 +1848,7 @@ const SZENEN_REGIE = {
   // Verfassung an die angespannte Wartesituation vor dem Handelstreffen
   // angepasst - Rest der Szene noch Grundgerüst, siehe ORTE.handelstreffen.
   "9.1": {
+    stimmung: "Windstille. Die Golden Lion liegt reglos auf spiegelglattem Wasser, kein Lufthauch in den Segeln. Harwick steht am Bug, den Blick unverwandt aufs offene Meer gerichtet — er wartet auf etwas, das er niemandem erklärt. Nebel zieht auf, verschluckt langsam den Horizont, dämpft jedes Geräusch. Die Anspannung an Bord ist förmlich zu greifen, noch bevor irgendjemand weiß, worauf.\n\nDann, fast lautlos, löst sich eine Silhouette aus dem Nebel: ein fremdartiges Schiff, ungewöhnliche Formen, fremde Segel — nichts, was der Crew vertraut vorkommt. An Bord sind Gestalten in merkwürdigen Rüstungen zu erkennen. Das Schiff hält direkt auf die Golden Lion zu.",
     ghosts: [
       {
         name: "Amos Hale",
