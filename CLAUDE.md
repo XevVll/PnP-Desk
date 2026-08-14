@@ -91,6 +91,21 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-14 (Fortsetzung)
+- **Marker-Feinjustage 7.1/8.1** nach Hendriks Sichtprüfung der Kartenvorlagen: Arztpraxis/
+  Kneipe/Markt in `7.1` neu positioniert, Fischerdorf/Höhlenstadt-Punkte in `8.1` getauscht.
+- **`karte.html`: Sub-Orte respektieren jetzt `hiddenMarkersLive`** — vorher wurde ein
+  Sub-Ort (z. B. der Artefakthändler) im Overlay immer angezeigt, unabhängig vom Live-
+  Sichtbarkeits-Schalter im Admin-Panel. `renderSubMarkers` filtert jetzt danach, inklusive
+  Live-Update, falls das Overlay beim Umschalten schon offen ist.
+- **Bug-Fix: Werkzeugleiste folgte nicht der im Baum navigierten Szene** (Hendriks Bug-Report:
+  Sound-Auswahl/Charakterleiste ließen sich für einzelne Szenen nicht mehr anpassen).
+  Ursache: `viewState.szene` (`js/regie_vault.js`) wurde nur einmal beim Laden der Seite
+  gesetzt und nie wieder aktualisiert, obwohl Sound-/Charakterleiste sowie die Live-Listener
+  (`hiddenMarkersLive`/`openMarkers`/Szenen-Notizen) direkt daran hängen. Kein Folgefehler der
+  heutigen Marker-Arbeiten, sondern ein eigenständiger, vorbestehender Bug — `vOpenSceneFolder`/
+  `vOpenOrtFolder` aktualisieren `viewState.szene` jetzt bei jeder Navigation im Baum.
+
 ### 2026-08-14
 - **Szene `8.1` (Schmugglernest) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
   (nicht von Claude erfunden): drei Orte als Sub-Orte unter `schmuggler_lager`
