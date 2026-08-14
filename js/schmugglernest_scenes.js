@@ -51,14 +51,14 @@ const SCHMUGGLERNEST_SCENES = {
     markers: [
       {
         id: "schmuggler_lager",
-        top: 50, left: 50,
+        top: 58, left: 60,
         title: "Kleines Fischerdorf",
         desc: "Ein verschlafenes Fischerdorf zwischen kargen Feldern und Küste — windschiefe Hütten, Netze zum Trocknen aufgehängt, der Geruch von Salz und Fisch in der Luft. Eine Frau entsorgt am Ufer Fischköpfe, um ihren Hals blitzt eine auffällig prunkvolle, juwelenbesetzte Kette. Vor der kleinen Backstube sitzt ein Bäcker, seine Brille in einen goldenen Rahmen gefasst. Ein alter Mann stützt sich auf einen Gehstock, dessen Knauf im Licht wie seltenes Metall schimmert. Alle grüßen freundlich, bleiben aber bei oberflächlichen Floskeln. In unregelmäßigen Abständen ist ein dumpfes Donnern zu hören, der Boden bebt für einen Moment — niemand im Dorf scheint das zu bemerken.",
         img: "images/interior_schmuggler_dorf.webp"
       },
       {
         id: "schmuggler_hoehlenstadt",
-        top: 58, left: 60,
+        top: 50, left: 50,
         title: "Die Höhlenstadt",
         desc: "Eine gewaltige Höhle öffnet sich im Innern des Felsens, ein großer See erstreckt sich über einen Großteil der Fläche, über eine schmale Zufahrt mit dem offenen Meer verbunden. Auf Holzgerüsten, halb an die Felswand gebaut, halb über dem Wasser, drängen sich Buden und Häuser dicht an dicht, erhellt von unzähligen Fackeln und Lampen. Mehrere Schiffe liegen vertäut, eines mitten auf dem See beschießt in regelmäßigen Abständen entfernte Ziele auf hohen Pfählen — das dumpfe Donnern und leichte Beben von oben. Stimmengewirr, Musik und geschäftiges Feilschen erfüllen die Luft, ein ausladender Markt zieht sich durch die Gassen.",
         img: "images/interior_schmuggler_hoehlenstadt.webp"
