@@ -91,6 +91,25 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-14 (Fortsetzung 3)
+- **Szene `9.1` (Artefakthandel) — Ankunfts-Beat und Kernszene ausformuliert**, Inhalt im
+  Dialog mit Hendrik entwickelt (nicht von Claude erfunden): Windstille, Nebel, ein
+  fremdartiges Schiff erscheint fast lautlos und hält auf die Golden Lion zu (`ORTE.
+  handelstreffen`, Interaktion `das_fremde_schiff`). Danach die Kernszene — die Enthüllung, die
+  Bibel 7.3/12.1 seit langem ankündigt ("Das Massaker zeigt Harwick als gefährlich"): Harwick,
+  Cormac und Wat werden in der fremden Kajüte gefangen genommen (angeblich zu wenig Handelsware
+  gebracht; Tom bewusst nicht Teil der Szene), die Gruppe kämpft sich im ersten wirklich
+  ernsten Kampf der Kampagne frei, entdeckt dabei versklavte Kinder an Bord. Harwick denkt an
+  seine für immer verlorene Tochter und gerät in manischen Blutrausch, will alle an Bord töten
+  — Wat gehorcht ohne Murren, Cormac hält nur bei den Kindern inne. Die Kinder-Rettung hat einen
+  echten SL-Ermessen-Fehlschlag: gelingt das Einschreiten nicht, sterben die Kinder und Harwick
+  bleibt dauerhaft manisch, nicht mehr zu retten (permanente Konsequenz für seinen weiteren
+  Handlungsbogen). Auflösung: Das Artefakt ist tatsächlich an Bord, gerettete Kinder verlangen
+  die Übergabe des Schiffs (Harwick/Crew lenken ein), optionaler starker Ruf-Weg bei Cormac
+  (Schatz-Anteil für die Kinder einfordern) — fest und unabhängig vom Spielerverhalten: alle
+  Erwachsenen an Bord werden getötet. Offline mit Playwright verifiziert (siehe Skill
+  `pnp-safe-test`).
+
 ### 2026-08-14 (Fortsetzung 2)
 - **Neue Szene `9.1` „Artefakthandel" (Bibel 7.3) als Dummy angelegt**: ein Marker „Das
   Handelstreffen", flaches Muster (bewusst keine Sub-Orte, Hendriks Vorgabe), bereits mit
