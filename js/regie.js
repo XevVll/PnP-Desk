@@ -1475,6 +1475,18 @@ const ORTE = {
         ]
       }
     }
+  },
+
+  // Artefakthandel (Bibel 7.3, fest): bewusst nur ein GM-Rahmenhinweis -
+  // keine erfundenen NPCs/Interaktionen, da Hendrik Story-Inhalte selbst
+  // entwickelt (CLAUDE.md, Arbeitsweise). Ausarbeitung folgt in einer
+  // eigenen Runde (u.a. noch offen: löst die Eskalation den Angriff der
+  // anderen Crew aus, oder ist das Massaker so oder so ein fester Beat?).
+  "handelstreffen": {
+    personen: "[OFFEN — noch nicht ausgearbeitet]",
+    kurz: "[OFFEN] Golden Lion trifft ein fremdes Schiff zum Artefakthandel. Bibel 7.3: wuchtiger Auftakt von Session 2, NPC-Drama, mögliches Massaker. Harwick geht mit Cormac/Wat/Tom in die fremde Kajüte, der Rest hat ein paar Minuten Vorbereitungszeit ohne zu wissen, was kommt.",
+    ortHinweis: "Noch keine ausgearbeiteten Inhalte — siehe KAMPAGNEN-BIBEL.md 7.3.",
+    interaktionen: {}
   }
 };
 
@@ -1574,6 +1586,46 @@ const SZENEN_REGIE = {
         name: "Edmund Grey",
         rolle: "Heimwehkranker Familienvater",
         verfassung: "Wehmütig, hält an einem abgegriffenen Andenken von zuhause fest, erzählt bei jeder Gelegenheit von seinen Kindern.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
+      }
+    ]
+  },
+
+  // Golden Lion im Sturm. Bisher ohne eigenen SZENEN_REGIE-Eintrag (Nachtrag,
+  // August 2026, Claude-Aufschlag/von Hendrik freizugeben) - gleicher
+  // Ghost-Pool wie 2.1/5.1/6.1 (dieselbe Crew), nur die Verfassung an den
+  // Sturm angepasst, exakt wie beim Umbau für 5.1/6.1 gehandhabt.
+  "3.1": {
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Oben in der Takelage im Einsatz, klammert sich mit routinierter Ruhe fest — kommentiert den Sturm trotzdem trocken, weil es ohne den Spruch nicht ginge.",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Toby Rennick",
+        rolle: "Grüner Rekrut, erste Fahrt",
+        verfassung: "Kreidebleich, hält sich an jedem erreichbaren Tau fest, kämpft sichtlich mit Übelkeit und Angst zugleich.",
+        beduerfnis: "Nicht als Landratte auffallen — und wenigstens einmal für etwas gelobt werden."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Der Sturm ist für ihn ein klares Zeichen — murmelt ununterbrochen Beschwörungen, während er verzweifelt versucht, ein Leck abzudichten.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Selbst er hat für einmal die Karten weggesteckt — hilft mit zitternden Händen beim Festzurren der Ladung, sichtlich außerhalb seiner Komfortzone.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Betet leise vor sich hin zwischen den Kommandos, die Gedanken sichtbar bei seiner Familie — macht trotzdem zuverlässig jeden Handgriff.",
         beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
       }
     ]
@@ -1692,22 +1744,129 @@ const SZENEN_REGIE = {
     ]
   },
 
-  // Spanischer Hafen (Bibel 7.2). Bewusst ohne ghosts in dieser Runde - die
-  // drei Marker (Arzt/Kneipe/Markt) tragen den eigentlichen Inhalt, siehe
-  // ORTE weiter oben. stimmung trägt die allgemeine Hafen-Atmosphäre (früher
-  // im jetzt entfernten "hafen_anlegestelle"-Marker, siehe CLAUDE.md-
-  // Changelog) - genau wie bei Grimsgate liegt sie hier auf Szenen-Ebene,
-  // nicht an einem einzelnen Marker. uebergeordnetesZiel hält fest, wofür
-  // die ganze Station eigentlich da ist (Hendriks Vorgabe).
+  // Spanischer Hafen (Bibel 7.2). stimmung trägt die allgemeine Hafen-
+  // Atmosphäre (früher im jetzt entfernten "hafen_anlegestelle"-Marker,
+  // siehe CLAUDE.md-Changelog) - genau wie bei Grimsgate liegt sie hier auf
+  // Szenen-Ebene, nicht an einem einzelnen Marker. uebergeordnetesZiel hält
+  // fest, wofür die ganze Station eigentlich da ist (Hendriks Vorgabe).
+  // Ghosts (Nachtrag, August 2026, Claude-Aufschlag/von Hendrik
+  // freizugeben): plot-neutrale Statisten des Hafenviertels, bewusst
+  // eigenständig von den bereits verankerten NPCs (Wundarzt/Soldaten/
+  // Wachen) - ein koerperlicher Ghost (Mateo) für Proben, die einen
+  // kräftigen Statisten brauchen.
   "7.1": {
     uebergeordnetesZiel: "Der Konflikt mit den Spaniern — Ezra rechtzeitig zum Arzt bringen, während Provokationen im Hafen echt genug sind, um eine Eskalation nachvollziehbar zu machen.", // Bibel 2.9
-    stimmung: "Ein spanischer Hafen — Handelsschiffe liegen dicht an dicht am Kai, gestapelte Fässer und Ballen versperren stellenweise den Weg. Möwen kreischen über den Ständen der Fischer, fremde Zungen mischen sich ins allgemeine Stimmengewirr. Enge, verwinkelte Gassen ziehen sich vom Kai landeinwärts, dicht gedrängt mit niedrigen Häusern."
+    stimmung: "Ein spanischer Hafen — Handelsschiffe liegen dicht an dicht am Kai, gestapelte Fässer und Ballen versperren stellenweise den Weg. Möwen kreischen über den Ständen der Fischer, fremde Zungen mischen sich ins allgemeine Stimmengewirr. Enge, verwinkelte Gassen ziehen sich vom Kai landeinwärts, dicht gedrängt mit niedrigen Häusern.",
+    ghosts: [
+      {
+        name: "Rosa Vega",
+        rolle: "Fischverkäuferin am Kai",
+        verfassung: "Laut, geschäftstüchtig, feilscht mit jedem, der auch nur in die Nähe ihres Standes kommt.",
+        beduerfnis: "Den Tagesfang loswerden, bevor er in der Hitze verdirbt."
+      },
+      {
+        name: "Padre Anselmo",
+        rolle: "Alter Priester auf seiner Runde durchs Viertel",
+        verfassung: "Freundlich-distanziert, mustert Fremde mit stiller Neugier, ohne aufdringlich zu werden.",
+        beduerfnis: "Ein Gespräch, das über Höflichkeiten hinausgeht — oder wenigstens eine kleine Spende für die Kirche."
+      },
+      {
+        name: "Diego Ruiz",
+        rolle: "Überlasteter Zollschreiber",
+        verfassung: "Gehetzt, ein Papierstapel unterm Arm, hat für nichts Zeit außer seine Listen.",
+        beduerfnis: "Dass ihn niemand aufhält — er ist ohnehin schon spät dran."
+      },
+      {
+        name: "Constanza",
+        rolle: "Bettlerin vor der Kirche",
+        verfassung: "Ruhig, beobachtet mehr, als sie sagt, kennt jedes Gesicht im Viertel.",
+        beduerfnis: "Eine Münze — oder einfach, dass man sie nicht übersieht."
+      },
+      {
+        name: "Mateo",
+        rolle: "Lastenträger am Kai",
+        verfassung: "Breite Schultern, wortkarg, schleppt schwerste Fässer, als wären sie leer.",
+        beduerfnis: "Der nächste Auftrag, der nächste Lohn — keine Zeit für Small Talk.",
+        koerperlich: true
+      }
+    ]
   },
 
-  // Schmugglernest (Bibel 7.2, 12.1). Bewusst ohne stimmung/ghosts in dieser
-  // Runde - die drei Marker (Fischerdorf/Eisschrank/Höhlenstadt) tragen den
-  // eigentlichen Inhalt, siehe ORTE weiter oben.
+  // Schmugglernest (Bibel 7.2, 12.1). uebergeordnetesZiel hält fest, wofür
+  // die Station da ist. Ghosts (Nachtrag, August 2026, Claude-Aufschlag/von
+  // Hendrik freizugeben): plot-neutrale Statisten, passend sowohl fürs
+  // Fischerdorf als auch die Höhlenstadt (Szenen-weit, nicht Marker-fest) -
+  // ein koerperlicher Ghost (Boas) für Proben, die einen kräftigen
+  // Statisten brauchen.
   "8.1": {
-    uebergeordnetesZiel: "Einen Artefakt-Kenner im verborgenen Schmugglernest finden — auf Kosten von Ezra Coombes bester Überlebenschance (Bibel 12, \"moralische Umkehrung\")." // Bibel 2.9
+    uebergeordnetesZiel: "Einen Artefakt-Kenner im verborgenen Schmugglernest finden — auf Kosten von Ezra Coombes bester Überlebenschance (Bibel 12, \"moralische Umkehrung\").", // Bibel 2.9
+    ghosts: [
+      {
+        name: "Perico",
+        rolle: "Händler mit zwielichtiger Ware",
+        verfassung: "Aalglatt, wechselt ständig den Standort, immer ein Auge auf mögliche Käufer.",
+        beduerfnis: "Die Ware endlich loswerden, bevor unbequeme Fragen kommen."
+      },
+      {
+        name: "Greta Vance",
+        rolle: "Ehemalige Seefahrerin, jetzt an Land",
+        verfassung: "Vernarbt, wortkarg, mustert jeden Neuankömmling erst lange, bevor sie überhaupt reagiert.",
+        beduerfnis: "Respekt — und dass niemand nach ihrer Vergangenheit fragt."
+      },
+      {
+        name: "Junger Nico",
+        rolle: "Laufbursche zwischen den Ständen",
+        verfassung: "Flink, neugierig, hört mehr mit, als ihm zusteht.",
+        beduerfnis: "Ein paar Münzen für Botengänge — oder etwas Aufregendes zu erleben."
+      },
+      {
+        name: "Boas",
+        rolle: "Fassbinder am Rand der Höhlenstadt",
+        verfassung: "Ruhig, kräftig, arbeitet unbeirrt weiter, egal was um ihn herum passiert.",
+        beduerfnis: "Seine Arbeit erledigen — Ärger geht er lieber aus dem Weg.",
+        koerperlich: true
+      }
+    ]
+  },
+
+  // Artefakthandel (Bibel 7.3). Ghosts (Nachtrag, August 2026, Claude-
+  // Aufschlag/von Hendrik freizugeben): gleicher Golden-Lion-Crew-Pool wie
+  // 2.1/3.1/5.1/6.1 (dieselbe Crew, kein Szenenwechsel des Schiffs selbst),
+  // Verfassung an die angespannte Wartesituation vor dem Handelstreffen
+  // angepasst - Rest der Szene noch Grundgerüst, siehe ORTE.handelstreffen.
+  "9.1": {
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Ungewohnt still für seine Verhältnisse, mustert das fremde Schiff lange, bevor er überhaupt etwas sagt.",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Toby Rennick",
+        rolle: "Grüner Rekrut, erste Fahrt",
+        verfassung: "Blass, wagt kaum zu atmen, starrt hinüber zum fremden Schiff, als könnte allein das Hinsehen etwas auslösen.",
+        beduerfnis: "Nicht als Landratte auffallen — und wenigstens einmal für etwas gelobt werden."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Sieht in der Stille auf dem Wasser ein schlechtes Omen, murmelt so leise Beschwörungen, dass ihn kaum jemand hört.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Sogar er hat für den Moment die Karten weggesteckt, die Hand unruhig am Gürtel.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Denkt sichtbar an seine Familie, während er gebannt zum fremden Schiff hinüberblickt.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
+      }
+    ]
   }
 };

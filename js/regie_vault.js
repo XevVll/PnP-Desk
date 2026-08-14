@@ -54,7 +54,7 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // Firebase-Init weiter unten stehen (dessen catch-Zweig ruft renderAll() ->
 // getAllSceneEntries() synchron auf, noch bevor eine spätere const-Deklaration
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
-const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1'];
+const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1'];
 
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
@@ -137,6 +137,9 @@ function getAllSceneEntries() {
   if (typeof SCHMUGGLERNEST_SCENES !== 'undefined') {
     Object.keys(SCHMUGGLERNEST_SCENES).forEach(function (id) { bySource[id] = { label: SCHMUGGLERNEST_SCENES[id].label, source: 'schmugglernest' }; });
   }
+  if (typeof ARTEFAKTHANDEL_SCENES !== 'undefined') {
+    Object.keys(ARTEFAKTHANDEL_SCENES).forEach(function (id) { bySource[id] = { label: ARTEFAKTHANDEL_SCENES[id].label, source: 'artefakthandel' }; });
+  }
   const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   return ordered.concat(remaining);
@@ -148,6 +151,7 @@ function getSceneLabel(sceneId) {
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].label;
   if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined' && SPANISCHER_HAFEN_SCENES[sceneId]) return SPANISCHER_HAFEN_SCENES[sceneId].label;
   if (typeof SCHMUGGLERNEST_SCENES !== 'undefined' && SCHMUGGLERNEST_SCENES[sceneId]) return SCHMUGGLERNEST_SCENES[sceneId].label;
+  if (typeof ARTEFAKTHANDEL_SCENES !== 'undefined' && ARTEFAKTHANDEL_SCENES[sceneId]) return ARTEFAKTHANDEL_SCENES[sceneId].label;
   return sceneId;
 }
 
@@ -157,6 +161,7 @@ function getMarkersForScene(sceneId) {
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].markers;
   if (typeof SPANISCHER_HAFEN_SCENES !== 'undefined' && SPANISCHER_HAFEN_SCENES[sceneId]) return SPANISCHER_HAFEN_SCENES[sceneId].markers;
   if (typeof SCHMUGGLERNEST_SCENES !== 'undefined' && SCHMUGGLERNEST_SCENES[sceneId]) return SCHMUGGLERNEST_SCENES[sceneId].markers;
+  if (typeof ARTEFAKTHANDEL_SCENES !== 'undefined' && ARTEFAKTHANDEL_SCENES[sceneId]) return ARTEFAKTHANDEL_SCENES[sceneId].markers;
   return [];
 }
 
