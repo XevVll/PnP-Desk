@@ -30,6 +30,16 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
   - *Basis/Override* (`golden_lion_scenes.js`): Marker-Position/Titel/Bild nur EINMAL in
     `..._MARKERS_BASE`, Szenen überschreiben nur `imgOverrides`/`descOverrides`/`hiddenMarkers`.
     Nötig, sobald eine Örtlichkeit mehrere Szenen-Zustände bekommt.
+- **DER STANDARD-FALL für eine neue Szene mit mehreren Orten ist FLACH, kein Sub-Orte-Container:**
+  Die Szene selbst ist der Hintergrund (`background`), jeder Ort ein eigener Haupt-Marker direkt
+  darauf — genau wie Grimsgate (`heuer`/`taverne`/`markt`/... direkt auf `grimsgate_map.webp`,
+  KEIN Marker, der „Grimsgate" selbst nochmal repräsentiert). `parentId`-Sub-Orte (siehe unten)
+  sind die Ausnahme, gerechtfertigt nur wenn EIN EINZELNER dieser Orte selbst mehrere klar
+  unterscheidbare Klickstellen innerhalb seines eigenen Nahaufnahme-Bilds braucht (Thahal-Dorf,
+  Schmugglernest-Höhlenstadt) — nicht als Standard-Wrapper für eine ganze neue Szene. Fehler
+  passiert im August 2026 bei `7.1`/`8.1`: ein künstlicher „Container"-Marker für die ganze
+  Szene wurde angelegt, obwohl die Szene selbst schon der Hintergrund ist — auf Hendriks
+  Korrektur ersatzlos entfernt, siehe Changelog.
 - **Szenen-ID-Konvention:** führende Ziffer = Örtlichkeit (1.x Grimsgate, 2.x/3.x Golden Lion,
   4.x Schatzinsel), zweite Ziffer = Zustand dieser Örtlichkeit. Eine NEUE Örtlichkeit bekommt
   eine NEUE führende Ziffer, statt einfach weiterzuzählen — Fehler ist am 29.07. passiert

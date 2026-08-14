@@ -67,6 +67,23 @@ freie führende Ziffer nehmen, nicht `5.x`.
 Bei einer neuen Örtlichkeit mit heute nur einem geplanten Zustand: flach anfangen. Kommt später
 ein zweiter Zustand dazu, auf Basis/Override umbauen (wie es bei Golden Lion passiert ist).
 
+**Mehrere Orte innerhalb einer neuen Szene → trotzdem FLACH, kein Container-Marker.** Hat die
+neue Örtlichkeit mehrere Gebäude/Plätze (z. B. ein Hafen mit Arztpraxis, Kneipe, Markt), bekommt
+JEDER dieser Orte einen eigenen Haupt-Marker direkt auf dem Szenen-Hintergrund — genau wie bei
+Grimsgate (`heuer`/`taverne`/`markt`/... liegen direkt auf `grimsgate_map.webp`). **Kein**
+zusätzlicher Marker, der nur die ganze Szene/Örtlichkeit als solche repräsentiert (z. B. eine
+„Anlegestelle", die bloß das Kartenbild nochmal zeigt) — die Szene selbst ist über `background`
+schon der Hintergrund für alle ihre Orte.
+
+`parentId`-Sub-Orte (Bibel 13.2) sind die Ausnahme davon, nicht der Standardfall: Sie lohnen sich
+nur, wenn EIN EINZELNER bereits bestehender Ort selbst so detailreich ist, dass er mehrere klar
+unterscheidbare Klickstellen innerhalb seines EIGENEN Nahaufnahme-Bilds braucht (Beispiel: das
+Thahal-Dorf auf der Schatzinsel mit vier Hotspots im Dorfbild). Nicht als erster Ansatz beim
+Anlegen einer komplett neuen Szene mit mehreren Orten verwenden — genau dieser Fehler passierte
+im August 2026 bei zwei neuen Szenen (`7.1`/`8.1`), wurde nach Korrektur wieder auf das flache
+Muster zurückgebaut. Im Zweifel: erst flach anlegen, nur bei echtem Bedarf (ein Ort wird selbst zu
+groß für einen einzigen Marker) auf Sub-Orte umbauen.
+
 ## Schritt 4: Marker-Felder ausfüllen
 
 Siehe `reference.md` für ein vollständiges Beispiel. Kern-Felder pro Marker: `id`, `top`/`left`
@@ -124,6 +141,8 @@ gewünscht:
 
 - [ ] Marker-Objekt vollständig (`id`/`top`/`left`/`title`/`desc`/`img`), `desc` nach Design-Regel
       2.8 geprüft
+- [ ] Bei mehreren Orten in einer neuen Szene: FLACH, kein künstlicher Container-Marker fürs
+      Ganze (siehe Schritt 3) — jeder Ort ein eigener Haupt-Marker direkt auf dem Hintergrund
 - [ ] Bei neuer Örtlichkeit: `js/<name>_scenes.js` erstellt, Registry-Einträge in `karte.html`
       (`MAP_REGISTRY`) UND `js/regie_vault.js` (`getAllSceneEntries`/`getSceneLabel`/
       `getMarkersForScene`) ergänzt, Script-Include in beiden HTML-Dateien

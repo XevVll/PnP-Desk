@@ -1142,6 +1142,18 @@ schicken (Details und die Firebase-Falle siehe Docstring im Skript).
   flach über Marker-IDs iterieren. Erstes Beispiel: die vier Dorf-Sub-Orte auf der Schatzinsel
   (`dorf_platz`/`dorf_markt`/`dorf_heilerin`/`dorf_tempel`, `parentId: "stammesdorf"`)
 
+  > **Ausnahme, nicht Standard:** Sub-Orte lohnen sich nur, wenn EIN EINZELNER Ort selbst so
+  > detailreich ist, dass er mehrere klar unterscheidbare Klickstellen innerhalb seines eigenen
+  > Nahaufnahme-Bilds braucht (Thahal-Dorf; später auch die Schmugglernest-Höhlenstadt mit dem
+  > Artefakthändler darin). Der Normalfall für eine neue Szene mit mehreren Orten bleibt FLACH,
+  > wie bei Grimsgate: die Szene selbst ist der Hintergrund, jeder Ort ein eigener Haupt-Marker
+  > direkt darauf — KEIN zusätzlicher Marker, der nur die ganze Szene/Örtlichkeit als solche
+  > repräsentiert. Genau dieser Fehler passierte im August 2026 beim Anlegen von `7.1`/`8.1`
+  > (ein künstlicher „Anlegestelle"/"Fischerdorf-als-Container"-Marker fürs Ganze), wurde nach
+  > Hendriks Korrektur wieder auf das flache Muster zurückgebaut. Sub-Orte einzig anlegen, wenn
+  > eine einzelne, bereits bestehende Location zu groß für einen einzigen Marker wird — nicht als
+  > Standard-Ansatz beim erstmaligen Anlegen einer neuen Szene mit mehreren Orten.
+
 ### 13.3 Firebase-Pfade
 
 | Pfad | Inhalt |

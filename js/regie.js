@@ -1282,17 +1282,19 @@ const ORTE = {
   },
 
   // Spanischer Hafen (Bibel 7.2, Verzweigung 1): ausgearbeitet nach Hendriks
-  // Vorgaben (Dialog, nicht von Claude erfunden) - vier Orte. Arzt/Kneipe/
-  // Markt sind eigene Haupt-Marker, direkt auf der Karte (kein Sub-Orte-
-  // Overlay mehr, siehe js/spanischer_hafen_scenes.js). "hafen_anlegestelle"
-  // bleibt nur als Marker BESTEHEN, damit seine zwei Interaktionen im
-  // Admin-Panel erreichbar sind - soll aber selbst KEIN Punkt auf der Karte
-  // sein (SL: über hiddenMarkersLive dauerhaft ausblenden).
-  // Reihenfolge: Anlegestelle (Francesco fragen + Straßen-Passage) -> Arzt
-  // -> Kneipe/Markt (parallel, keine feste Reihenfolge).
-  "hafen_anlegestelle": {
-    personen: "Ezra Coombe (im Sterben liegend) · Francesco Almeida (falls mitgenommen)",
-    kurz: "Kein eigener Kartenpunkt (SL: über hiddenMarkersLive dauerhaft ausgeblendet) — trägt nur die Interaktionen fürs Admin-Panel. Francesco kann vorher gebeten werden mitzukommen (übersetzt später beim Arzt), dann trägt die Gruppe Ezra durch die vollen Gassen zum Arzt — Proben unterwegs, aber kein Fehlschlag-Ende.",
+  // Vorgaben (Dialog, nicht von Claude erfunden) - drei Orte, FLACH direkt
+  // auf der Kartenszene (kein Container-Marker fürs "Ganze", genau wie
+  // Grimsgate/js/scenes.js: die Szene selbst ist der Hintergrund, Arzt/
+  // Kneipe/Markt liegen als eigenständige Haupt-Marker direkt darauf, siehe
+  // js/spanischer_hafen_scenes.js). "hafen_anlegestelle" existierte
+  // zwischenzeitlich als eigener (unsichtbarer) Marker nur für Francesco-
+  // Frage + Straßen-Passage - auf Hendriks Korrektur ersatzlos entfernt,
+  // beide Interaktionen hängen jetzt an "hafen_arzt" (ihr eigentliches Ziel).
+  // Reihenfolge dort: Francesco fragen -> Straßen-Passage -> Ablehnung/
+  // Umschwung beim Arzt.
+  "hafen_arzt": {
+    personen: "Der Wundarzt (unbenannt) · Ezra Coombe (im Sterben liegend) · Francesco Almeida (falls mitgenommen)",
+    kurz: "Vorher: Francesco kann gebeten werden mitzukommen (übersetzt hier), dann trägt die Gruppe Ezra durch die vollen Gassen hierher (Proben unterwegs, kein Fehlschlag-Ende). Der Wundarzt selbst: alt, kauzig, anfänglich deutliche Abneigung gegen Engländer — sieht er den Ernst von Ezras Zustand, lenkt er ein und behandelt mit vollem Einsatz. Ohne Francesco Verständigungsprobleme. Die Rettung selbst ist medizinisch sicher.",
     interaktionen: {
       "francesco_mitnehmen": {
         title: "Francesco vorher fragen",
@@ -1307,7 +1309,7 @@ const ORTE = {
       "weg_durch_die_strassen": {
         title: "Der Weg durch die Straßen",
         kurz: "Die Gruppe trägt Ezra auf den Schultern durch die vollen Gassen zum Arzt. Körper-/Geschick-Proben, um ihn nicht fallen zu lassen; Wahrnehmung/Instinkt warnt vor Hindernissen. Kein Fehlschlag-Ende — sie kommen so oder so an.",
-        details: "Vier tragen, so gut es eben geht — Ezra auf improvisierter Trage aus Segeltuch und Rudern, mitten durch enge, überfüllte Gassen. Passanten weichen nur widerwillig aus, Karren und Stände versperren immer wieder den direkten Weg.\n\nKörper- und Geschick-Proben der Tragenden halten Ezra ruhig und sicher oben, ohne ihn bei einem Stoß oder Ausweichmanöver fallen zu lassen. Wer gute Wahrnehmung oder Instinkt mitbringt, erkennt Hindernisse (ein Karren, eine enge Ecke, eine Menschentraube) rechtzeitig genug, um die Gruppe vorbei zu lotsen.\n\nMisslingt eine Probe, ist das keine Katastrophe — kurzes Stolpern, ein schmerzerfüllter Aufschrei von Ezra, ein paar Sekunden Verzögerung, vielleicht ein böser Blick von einem Passanten, dem sie zu nah gekommen sind. Die Gruppe kommt in jedem Fall an der Arztpraxis an (siehe ORTE.hafen_arzt) — hier entscheidet sich nur, wie glatt oder holprig der Weg dorthin war.",
+        details: "Vier tragen, so gut es eben geht — Ezra auf improvisierter Trage aus Segeltuch und Rudern, mitten durch enge, überfüllte Gassen. Passanten weichen nur widerwillig aus, Karren und Stände versperren immer wieder den direkten Weg.\n\nKörper- und Geschick-Proben der Tragenden halten Ezra ruhig und sicher oben, ohne ihn bei einem Stoß oder Ausweichmanöver fallen zu lassen. Wer gute Wahrnehmung oder Instinkt mitbringt, erkennt Hindernisse (ein Karren, eine enge Ecke, eine Menschentraube) rechtzeitig genug, um die Gruppe vorbei zu lotsen.\n\nMisslingt eine Probe, ist das keine Katastrophe — kurzes Stolpern, ein schmerzerfüllter Aufschrei von Ezra, ein paar Sekunden Verzögerung, vielleicht ein böser Blick von einem Passanten, dem sie zu nah gekommen sind. Die Gruppe kommt in jedem Fall an der Arztpraxis an — hier entscheidet sich nur, wie glatt oder holprig der Weg dorthin war.",
         trigger: [
           { id: "aufbruch", label: "Die Gruppe bricht mit Ezra auf den Schultern auf", info: "Vier tragen, so gut es eben geht — Ezra auf improvisierter Trage aus Segeltuch und Rudern, mitten durch enge, überfüllte Gassen.", grantsQuest: {
             warum: "Ohne Amputation und entgiftende Arznei übersteht Ezra die Fahrt nicht (siehe Golden Lion 5.1) — jetzt, im Hafen angekommen, zählt jede Minute.",
@@ -1318,14 +1320,7 @@ const ORTE = {
           { id: "komplikation", label: "Bei Misserfolg: kurze Komplikation, kein Abbruch", info: "Kurzes Stolpern, ein schmerzerfüllter Aufschrei von Ezra, ein paar Sekunden Verzögerung — keine Katastrophe, die Gruppe kommt so oder so an." },
           { id: "ankunft_arzt", label: "Ankunft an der Arztpraxis", info: "Die Gruppe erreicht die Arztpraxis — wie glatt oder holprig der Weg war, entscheidet sich hier, nicht ob sie ankommen." }
         ]
-      }
-    }
-  },
-
-  "hafen_arzt": {
-    personen: "Der Wundarzt (unbenannt)",
-    kurz: "Alter, kauziger Wundarzt mit anfänglich deutlicher Abneigung gegen Engländer — sieht er den Ernst von Ezras Zustand, lenkt er ein und behandelt mit vollem Einsatz. Ohne Francesco Verständigungsprobleme. Die Rettung selbst ist medizinisch sicher.",
-    interaktionen: {
+      },
       "ablehnung_und_umschwung": {
         title: "Der Wundarzt — erste Ablehnung, dann voller Einsatz",
         kurz: "Reserviert-schroffer Empfang wegen der Engländer-Abneigung des Arztes, Verständigung ohne Francesco nur mühsam. Sobald er Ezras Wunde sieht, kippt seine Haltung vollständig.",
@@ -1348,7 +1343,7 @@ const ORTE = {
       "francesco_in_der_kneipe": {
         title: "Francesco in der Kneipe",
         kurz: "Falls niemand ihn vorher gefragt hat, sitzt Francesco bereits hier — kann sich noch anschließen, kommt aber zu spät für die Übersetzung beim Arzt.",
-        details: "Wurde Francesco an der Anlegestelle nicht gefragt (siehe ORTE.hafen_anlegestelle), findet die Gruppe ihn hier wieder — an einem ruhigeren Tisch, gut gelaunt, mitten im Gespräch mit Einheimischen. Er schließt sich gern an, wenn die Gruppe ihn jetzt noch braucht, aber die Übersetzung beim Arzt ist zu diesem Zeitpunkt bereits gelaufen (siehe ORTE.hafen_arzt).",
+        details: "Wurde Francesco nicht vorher gefragt (siehe ORTE.hafen_arzt, Interaktion \"francesco_mitnehmen\"), findet die Gruppe ihn hier wieder — an einem ruhigeren Tisch, gut gelaunt, mitten im Gespräch mit Einheimischen. Er schließt sich gern an, wenn die Gruppe ihn jetzt noch braucht, aber die Übersetzung beim Arzt ist zu diesem Zeitpunkt bereits gelaufen (siehe ORTE.hafen_arzt).",
         trigger: [
           { id: "francesco_gefunden", label: "Francesco in der Kneipe gefunden (falls vorher nicht gefragt)", info: "Er sitzt an einem ruhigeren Tisch, gut gelaunt, mitten im Gespräch mit Einheimischen." }
         ]
@@ -1697,12 +1692,16 @@ const SZENEN_REGIE = {
     ]
   },
 
-  // Spanischer Hafen (Bibel 7.2). Bewusst ohne stimmung/ghosts in dieser
-  // Runde - die vier Marker (Anlegestelle/Arzt/Kneipe/Markt) tragen den
-  // eigentlichen Inhalt, siehe ORTE weiter oben. uebergeordnetesZiel hält
-  // fest, wofür die ganze Station eigentlich da ist (Hendriks Vorgabe).
+  // Spanischer Hafen (Bibel 7.2). Bewusst ohne ghosts in dieser Runde - die
+  // drei Marker (Arzt/Kneipe/Markt) tragen den eigentlichen Inhalt, siehe
+  // ORTE weiter oben. stimmung trägt die allgemeine Hafen-Atmosphäre (früher
+  // im jetzt entfernten "hafen_anlegestelle"-Marker, siehe CLAUDE.md-
+  // Changelog) - genau wie bei Grimsgate liegt sie hier auf Szenen-Ebene,
+  // nicht an einem einzelnen Marker. uebergeordnetesZiel hält fest, wofür
+  // die ganze Station eigentlich da ist (Hendriks Vorgabe).
   "7.1": {
-    uebergeordnetesZiel: "Der Konflikt mit den Spaniern — Ezra rechtzeitig zum Arzt bringen, während Provokationen im Hafen echt genug sind, um eine Eskalation nachvollziehbar zu machen." // Bibel 2.9
+    uebergeordnetesZiel: "Der Konflikt mit den Spaniern — Ezra rechtzeitig zum Arzt bringen, während Provokationen im Hafen echt genug sind, um eine Eskalation nachvollziehbar zu machen.", // Bibel 2.9
+    stimmung: "Ein spanischer Hafen — Handelsschiffe liegen dicht an dicht am Kai, gestapelte Fässer und Ballen versperren stellenweise den Weg. Möwen kreischen über den Ständen der Fischer, fremde Zungen mischen sich ins allgemeine Stimmengewirr. Enge, verwinkelte Gassen ziehen sich vom Kai landeinwärts, dicht gedrängt mit niedrigen Häusern."
   },
 
   // Schmugglernest (Bibel 7.2, 12.1). Bewusst ohne stimmung/ghosts in dieser
