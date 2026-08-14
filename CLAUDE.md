@@ -130,10 +130,21 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   ist die Höhlenstadt jetzt ein eigener Haupt-Marker statt Sub-Ort des Fischerdorfs, der
   Artefakthändler hängt als Sub-Ort an der Höhlenstadt statt am Fischerdorf. In `7.1` sind
   Arzt/Kneipe/Markt jetzt eigene Haupt-Marker direkt auf der Karte statt Sub-Orte der
-  Anlegestelle; die Anlegestelle bleibt als Marker bestehen (trägt weiter ihre zwei
-  Interaktionen fürs Admin-Panel), soll aber selbst kein Kartenpunkt sein — dafür muss die SL
-  sie einmalig über `hiddenMarkersLive` im Admin-Panel ausblenden (kann nicht aus dem Code
-  vorbelegt werden, ist Firebase-Live-Zustand).
+  Anlegestelle. Zwischenstand (Anlegestelle bleibt als unsichtbarer Marker bestehen) wurde
+  noch am selben Tag verworfen, siehe nächster Punkt.
+- **„Anlegestelle"-Marker in `7.1` komplett entfernt, Ursache dokumentiert:** Statt eines
+  unsichtbaren Marker-Rests für Francesco-Frage + Straßen-Passage wies Hendrik auf den
+  eigentlichen Fehler hin — ein künstlicher Marker, der nur die ganze Szene nochmal
+  repräsentiert, widerspricht dem Grimsgate-Standard (Szene = Hintergrund, jeder Ort ein
+  eigener Haupt-Marker direkt darauf, kein Container). Beide Interaktionen hängen jetzt an
+  `hafen_arzt` (ihrem eigentlichen Ziel), die allgemeine Hafen-Atmosphäre liegt jetzt in
+  `SZENEN_REGIE["7.1"].stimmung` statt in einem Marker-`desc`. **Sub-Orte (`parentId`) sind
+  die Ausnahme, nicht der Standard** — nur gerechtfertigt, wenn ein einzelner, bereits
+  bestehender Ort selbst mehrere Klickstellen im eigenen Nahaufnahme-Bild braucht
+  (Thahal-Dorf, Schmugglernest-Höhlenstadt), nicht als Wrapper für eine neue Szene mit
+  mehreren Orten. Diese Klarstellung jetzt auch in Bibel 13.2 und Skill `pnp-scene`
+  (Schritt 3 + Definition of Done) verankert, plus eine Memory-Notiz, damit der Fehler nicht
+  wiederkehrt.
 
 ### 2026-08-13
 - **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
