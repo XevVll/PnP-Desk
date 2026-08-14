@@ -11,33 +11,39 @@
 // Szenen-ID "8.1": nächste freie führende Ziffer, siehe Kommentar in
 // spanischer_hafen_scenes.js und golden_lion_scenes.js.
 //
-// WICHTIG (Hendriks Vorgabe): der Eltern-Marker "schmuggler_lager" zeigt sich
-// den Spielern zunächst NUR als unauffälliges Fischerdorf - title/desc
-// verraten bewusst nichts vom Schmugglernest darunter (Design-Regel 2.8,
-// Marker-desc = Ort/Stimmung, kein Plot). Die auffälligen Wohlstands-Details
-// an den drei Dorfbewohnern sind rein sensorisch beschrieben, ihre Bedeutung
-// erschließt sich den Spielern selbst.
+// WICHTIG (Hendriks Vorgabe): "schmuggler_lager" zeigt sich den Spielern
+// zunächst NUR als unauffälliges Fischerdorf - title/desc verraten bewusst
+// nichts vom Schmugglernest darunter (Design-Regel 2.8, Marker-desc = Ort/
+// Stimmung, kein Plot). Die auffälligen Wohlstands-Details an den drei
+// Dorfbewohnern sind rein sensorisch beschrieben, ihre Bedeutung erschließt
+// sich den Spielern selbst.
 //
 // Der Eisschrank (Kohle-Rätsel, Treppe, Stahltür, Waffenkontrolle) bekommt
-// bewusst KEINEN eigenen Marker (Hendriks Korrektur) - läuft als zweite
-// Interaktion am Marker "schmuggler_lager" (js/regie.js), analog zum "Weg
-// durch die Straßen" in 7.1. Der Artefakthändler dagegen bekommt einen
-// eigenen Punkt, weil er als Zielort der Diebstahl/Verfolgungsjagd-Szene
-// (ORTE.schmuggler_hoehlenstadt) eigenständig anwählbar sein soll.
+// bewusst KEINEN eigenen Marker - läuft als zweite Interaktion am Marker
+// "schmuggler_lager" (js/regie.js), analog zum "Weg durch die Straßen" in
+// 7.1.
 //
-// Technischer Hinweis: Sub-Orte können nur EINE Ebene tief verschachtelt
-// werden (karte.html rendert Kind-Marker nur für den gerade geöffneten
-// Eltern-Marker, kein rekursives Öffnen). Deshalb hängt "schmuggler_
-// artefakthaendler" trotz inhaltlicher Nähe zur Höhlenstadt technisch direkt
-// an "schmuggler_lager", nicht an "schmuggler_hoehlenstadt".
+// Struktur (August 2026, Hendriks Korrektur): "schmuggler_hoehlenstadt" ist
+// ein EIGENER Haupt-Marker (kein Sub-Ort von "schmuggler_lager" mehr), und
+// "schmuggler_artefakthaendler" hängt jetzt als Sub-Ort AN DER HÖHLENSTADT
+// (auf einem beliebigen Haus im Höhlenstadt-Bild), nicht mehr am Fischerdorf.
+// Das war vorher technisch nicht möglich (Sub-Orte lassen sich nur eine
+// Ebene tief verschachteln, siehe Bibel 13.2/karte.html renderSubMarkers) -
+// durch die Beförderung der Höhlenstadt zum Haupt-Marker hat sie jetzt
+// selbst eine Ebene für den Artefakthändler.
+//
+// WICHTIG für die Spielleitung: Die Höhlenstadt sollte bis zum Lösen des
+// Kohle-Rätsels (siehe ORTE.schmuggler_lager, Interaktion "der_eisschrank")
+// über den Live-Sichtbarkeits-Schalter (hiddenMarkersLive, regie.html)
+// ausgeblendet bleiben, sonst verrät der Hauptkarten-Pin das Geheimnis
+// vorzeitig.
 //
 // Bilder (August 2026): "schmugglernest_map.webp" ist das Szenen-
 // Hintergrundbild (Kartenstil, siehe tools/optimize_images.py MAP_NAMES).
-// "schmuggler_lager" (der Eltern-Marker) zeigt beim Anklicken bewusst ein
-// EIGENES Nahaufnahme-Bild (interior_schmuggler_dorf.webp - die Fischerdorf-
-// Szene mit den drei auffälligen Dorfbewohnern aus der Marker-Beschreibung),
-// nicht das Kartenbild. Die zwei Sub-Orte haben je ihr eigenes
-// Nahaufnahme-Bild.
+// "schmuggler_lager" zeigt beim Anklicken ein eigenes Nahaufnahme-Bild
+// (interior_schmuggler_dorf.webp - die Fischerdorf-Szene mit den drei
+// auffälligen Dorfbewohnern aus der Marker-Beschreibung). Die Höhlenstadt
+// und der Artefakthändler haben ebenfalls je ihr eigenes Nahaufnahme-Bild.
 const SCHMUGGLERNEST_SCENES = {
   "8.1": {
     label: "Schmugglernest",
@@ -52,16 +58,15 @@ const SCHMUGGLERNEST_SCENES = {
       },
       {
         id: "schmuggler_hoehlenstadt",
-        parentId: "schmuggler_lager",
-        top: 42, left: 68,
+        top: 58, left: 60,
         title: "Die Höhlenstadt",
         desc: "Eine gewaltige Höhle öffnet sich im Innern des Felsens, ein großer See erstreckt sich über einen Großteil der Fläche, über eine schmale Zufahrt mit dem offenen Meer verbunden. Auf Holzgerüsten, halb an die Felswand gebaut, halb über dem Wasser, drängen sich Buden und Häuser dicht an dicht, erhellt von unzähligen Fackeln und Lampen. Mehrere Schiffe liegen vertäut, eines mitten auf dem See beschießt in regelmäßigen Abständen entfernte Ziele auf hohen Pfählen — das dumpfe Donnern und leichte Beben von oben. Stimmengewirr, Musik und geschäftiges Feilschen erfüllen die Luft, ein ausladender Markt zieht sich durch die Gassen.",
         img: "images/interior_schmuggler_hoehlenstadt.webp"
       },
       {
         id: "schmuggler_artefakthaendler",
-        parentId: "schmuggler_lager",
-        top: 60, left: 78,
+        parentId: "schmuggler_hoehlenstadt",
+        top: 38, left: 14,
         title: "Der Artefakthändler",
         desc: "Ein kleiner Laden, eingeklemmt zwischen zwei größeren Buden am Rand der Holzstadt, die Fensterläden nur angelehnt. Drinnen stapeln sich Kisten und Regale voller ungewöhnlicher Fundstücke, das Licht einer einzelnen Lampe wirft lange Schatten zwischen den Objekten.",
         img: "images/interior_schmuggler_artefakthaendler.webp"

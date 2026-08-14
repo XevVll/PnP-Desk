@@ -1282,13 +1282,17 @@ const ORTE = {
   },
 
   // Spanischer Hafen (Bibel 7.2, Verzweigung 1): ausgearbeitet nach Hendriks
-  // Vorgaben (Dialog, nicht von Claude erfunden) - vier Orte, Sub-Orte-Muster
-  // wie beim Thahal-Dorf (parentId in js/spanischer_hafen_scenes.js).
+  // Vorgaben (Dialog, nicht von Claude erfunden) - vier Orte. Arzt/Kneipe/
+  // Markt sind eigene Haupt-Marker, direkt auf der Karte (kein Sub-Orte-
+  // Overlay mehr, siehe js/spanischer_hafen_scenes.js). "hafen_anlegestelle"
+  // bleibt nur als Marker BESTEHEN, damit seine zwei Interaktionen im
+  // Admin-Panel erreichbar sind - soll aber selbst KEIN Punkt auf der Karte
+  // sein (SL: über hiddenMarkersLive dauerhaft ausblenden).
   // Reihenfolge: Anlegestelle (Francesco fragen + Straßen-Passage) -> Arzt
   // -> Kneipe/Markt (parallel, keine feste Reihenfolge).
   "hafen_anlegestelle": {
     personen: "Ezra Coombe (im Sterben liegend) · Francesco Almeida (falls mitgenommen)",
-    kurz: "Ausgangspunkt: Francesco kann vorher gebeten werden mitzukommen (übersetzt später beim Arzt), dann trägt die Gruppe Ezra durch die vollen Gassen zum Arzt — Proben unterwegs, aber kein Fehlschlag-Ende.",
+    kurz: "Kein eigener Kartenpunkt (SL: über hiddenMarkersLive dauerhaft ausgeblendet) — trägt nur die Interaktionen fürs Admin-Panel. Francesco kann vorher gebeten werden mitzukommen (übersetzt später beim Arzt), dann trägt die Gruppe Ezra durch die vollen Gassen zum Arzt — Proben unterwegs, aber kein Fehlschlag-Ende.",
     interaktionen: {
       "francesco_mitnehmen": {
         title: "Francesco vorher fragen",
@@ -1383,8 +1387,9 @@ const ORTE = {
   },
 
   // Schmugglernest (Bibel 7.2, Verzweigung 1): ausgearbeitet nach Hendriks
-  // Vorgaben (Dialog, nicht von Claude erfunden) - drei Orte, Sub-Orte-Muster
-  // wie beim Thahal-Dorf (parentId in js/schmugglernest_scenes.js).
+  // Vorgaben (Dialog, nicht von Claude erfunden) - drei Orte. Fischerdorf und
+  // Höhlenstadt sind beide eigene Haupt-Marker, der Artefakthändler hängt als
+  // Sub-Ort an der Höhlenstadt (parentId in js/schmugglernest_scenes.js).
   // Reihenfolge: Fischerdorf (Beobachtung + Kohle-Zugang) -> Höhlenstadt
   // (Artefakt-Kenner suchen, Diebstahl, Verfolgungsjagd) -> Artefakthändler
   // (Belohnung/Konsequenz). Der Eisschrank-Zugang bekommt bewusst KEINEN
