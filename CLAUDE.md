@@ -110,6 +110,12 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   ermöglicht, der Tochter gegeben, ein kurzes Gelingen des Rituals als Abschied (sie spricht
   ihren Vater von der Schuld frei, kein zweites Leben). Bibel 12.1 entsprechend aktualisiert,
   `[OFFEN]`-Vermerk entfernt.
+- **Referenzbilder für `7.1`/`8.1` eingebaut**, Platzhalter ersetzt: neun Bilder (PNG→WebP)
+  auf die passenden Marker verteilt (Kartenbilder für den jeweiligen Szenen-Hintergrund,
+  Nahaufnahmen je Sub-Ort). Umbenannt auf die `interior_`/Kartenbild-Namenskonvention, damit
+  `tools/optimize_images.py` die richtige Größen-Kappung anwendet (`MAP_NAMES` erweitert). Ein
+  bereits konvertiertes Bild (`scene_artefakthandel.webp`) liegt noch ungenutzt bereit für die
+  künftige Artefakthandel-Szene.
 
 ### 2026-08-13
 - **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
