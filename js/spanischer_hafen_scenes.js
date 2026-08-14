@@ -18,20 +18,22 @@
 // am Eltern-Marker "hafen_anlegestelle" (js/regie.js), auf Hendriks
 // ausdrücklichen Wunsch nicht als eigene Station.
 //
-// Bilder aller vier Marker weiterhin Platzhalter (bestehendes Grimsgate-
-// Hafenmeisterei-Bild) bis eigene Referenzbilder existieren - siehe
-// CLAUDE.md, "Bild-Overlay-Fallback".
+// Bilder (August 2026): "spanischer_hafen_map.webp" ist sowohl das
+// Szenen-Hintergrundbild als auch das img von "hafen_anlegestelle" selbst
+// (kein separates Nahaufnahme-Bild für die Anlegestelle vorhanden - reiner
+// Kartenstil, siehe tools/optimize_images.py MAP_NAMES). Die drei Sub-Orte
+// haben je ein eigenes Nahaufnahme-Bild ("interior_"-Präfix, 1600px-Kappung).
 const SPANISCHER_HAFEN_SCENES = {
   "7.1": {
     label: "Spanischer Hafen",
-    background: "images/interior_hafenmeisterei.webp", // Platzhalter, siehe Kommentar oben
+    background: "images/spanischer_hafen_map.webp",
     markers: [
       {
         id: "hafen_anlegestelle",
         top: 50, left: 50,
         title: "Anlegestelle",
         desc: "Ein spanischer Hafen — Handelsschiffe liegen dicht an dicht am Kai, gestapelte Fässer und Ballen versperren stellenweise den Weg. Möwen kreischen über den Ständen der Fischer, fremde Zungen mischen sich ins allgemeine Stimmengewirr. Enge, verwinkelte Gassen ziehen sich vom Kai landeinwärts, dicht gedrängt mit niedrigen Häusern.",
-        img: "images/interior_hafenmeisterei.webp" // Platzhalter, siehe Kommentar oben
+        img: "images/spanischer_hafen_map.webp"
       },
       {
         id: "hafen_arzt",
@@ -39,7 +41,7 @@ const SPANISCHER_HAFEN_SCENES = {
         top: 28, left: 24,
         title: "Die Arztpraxis",
         desc: "Ein schmales Haus abseits der belebten Gassen, ein verblasstes Schild mit einem Aderlass-Symbol über der niedrigen Tür. Drinnen riecht es streng nach Alkohol und getrockneten Kräutern, chirurgische Instrumente liegen fein säuberlich auf einem Leinentuch ausgerichtet.",
-        img: "images/interior_hafenmeisterei.webp" // Platzhalter, siehe Kommentar oben
+        img: "images/interior_hafen_arzt.webp"
       },
       {
         id: "hafen_kneipe",
@@ -47,7 +49,7 @@ const SPANISCHER_HAFEN_SCENES = {
         top: 62, left: 72,
         title: "Die Kneipe",
         desc: "Eine verrauchte, überfüllte Schänke unweit des Kais — Fässer als Tische, klebriger Boden, lautes Stimmengewirr in mehreren Sprachen. An einem der vorderen Tische sitzt eine Gruppe uniformierter Soldaten, Krüge griffbereit, Blicke, die jeden Fremden abschätzend mustern.",
-        img: "images/interior_hafenmeisterei.webp" // Platzhalter, siehe Kommentar oben
+        img: "images/interior_hafen_kneipe.webp"
       },
       {
         id: "hafen_markt",
@@ -55,7 +57,7 @@ const SPANISCHER_HAFEN_SCENES = {
         top: 66, left: 30,
         title: "Der Markt",
         desc: "Ein enger Marktplatz zwischen den Gassen, dicht gedrängte Stände mit Obst, Stoffen und frischem Fisch, feilschende Stimmen von allen Seiten. Uniformierte Wachen patrouillieren in kleinen Gruppen zwischen den Ständen, ihre Blicke bleiben an jedem fremden Gesicht länger hängen als nötig.",
-        img: "images/interior_hafenmeisterei.webp" // Platzhalter, siehe Kommentar oben
+        img: "images/interior_hafen_markt.webp"
       }
     ]
   }
