@@ -1477,14 +1477,17 @@ const ORTE = {
     }
   },
 
-  // Artefakthandel (Bibel 7.3, fest): Ankunfts-Beat nach Hendriks Vorgabe
-  // ausformuliert (Dialog, nicht von Claude erfunden). Die eigentliche
-  // Verhandlung/das NPC-Drama und die Eskalations-/Massaker-Frage (löst sie
-  // den Angriff der anderen Crew aus, oder ist das Massaker so oder so ein
-  // fester Beat?) bleiben bewusst offen für eine eigene Runde.
+  // Artefakthandel (Bibel 7.3, fest): Ankunfts-Beat UND Kernszene (der
+  // Verrat) nach Hendriks Vorgabe ausformuliert (Dialog, nicht von Claude
+  // erfunden) - die Enthüllung, die Bibel 7.3/12.1 seit langem ankündigt
+  // ("Das Massaker zeigt Harwick als gefährlich"). Tom ist bewusst NICHT
+  // Teil dieser Szene (Hendrik: "passt nicht in so eine gewaltvolle
+  // Szene"). Die Kinder-Rettung (Interaktion "kinder_retten") hat einen
+  // echten Fehlschlag-Ausgang mit dauerhafter Konsequenz für Harwicks
+  // weiteren Handlungsbogen (Bibel 12) - SL-Ermessen, siehe dort.
   "handelstreffen": {
-    personen: "James Harwick",
-    kurz: "Windstille, Nebel zieht auf, spürbare Anspannung. Fast lautlos erscheint ein fremdartiges Schiff aus dem Nebel — ungewöhnliche Form/Segel, Crew in merkwürdigen Rüstungen an Bord — und hält direkt auf die Golden Lion zu. Harwick geht mit Cormac/Wat/Tom in die fremde Kajüte, der Rest hat ein paar Minuten Vorbereitungszeit, ohne zu wissen, was kommt.",
+    personen: "James Harwick · Cormac Daly · Walter „Wat“ Crozier",
+    kurz: "Windstille, Nebel zieht auf, spürbare Anspannung. Fast lautlos erscheint ein fremdartiges Schiff aus dem Nebel und hält direkt auf die Golden Lion zu. Harwick, Cormac und Wat werden in der fremden Kajüte gefangen genommen — die Gruppe muss sich freikämpfen, entdeckt dabei versklavte Kinder an Bord, und erlebt Harwicks Absturz in manischen Blutrausch wegen seiner toten Tochter.",
     interaktionen: {
       "das_fremde_schiff": {
         title: "Das fremde Schiff erscheint",
@@ -1497,6 +1500,68 @@ const ORTE = {
           { id: "fremde_form", label: "Ungewöhnliche Formen und Segel, unbekannte Bauart", info: "Nichts, was der Crew der Golden Lion vertraut vorkommt." },
           { id: "ruestungen_gesichtet", label: "Männer in merkwürdigen Rüstungen an Bord erkennbar", info: "An Bord sind Männer in merkwürdigen Rüstungen zu erkennen." },
           { id: "kurs_golden_lion", label: "Das fremde Schiff hält direkt auf die Golden Lion zu", info: "Das Schiff hält direkt auf die Golden Lion zu." }
+        ]
+      },
+      "verrat_gefangen": {
+        title: "Verrat — Harwick, Cormac und Wat gefangen",
+        kurz: "Kampflärm vom fremden Schiff verrät: Harwick, Cormac und Wat werden in der fremden Kajüte festgehalten — angeblich hat der Handel nicht genug gebracht, um die Kosten zu decken. Die Gruppe muss sich den Weg dorthin freikämpfen.",
+        details: "Die Minuten der Vorbereitung ziehen sich, dann reißt plötzlich Lärm die Stille auf — dumpfe Schläge, gedämpfte Stimmen, ein Schuss. Vom fremden Schiff herüber wird schnell klar: Etwas ist furchtbar schiefgelaufen. Harwick, Cormac und Wat sind in der Kajüte des anderen Kapitäns gefangen — der Vorwand: Der Handel habe angeblich nicht genug gebracht, um die Kosten zu decken.\n\nEs gibt keine Zeit für Verhandlungen. Wer noch an Bord der Golden Lion oder in der Nähe ist, muss sich jetzt entscheiden, an Bord des fremden Schiffs zu gehen und sich den Weg zur Kajüte freizukämpfen.",
+        trigger: [
+          { id: "laerm_verraet_verrat", label: "Kampflärm vom fremden Schiff verrät, dass etwas schiefgelaufen ist", info: "Dumpfe Schläge, gedämpfte Stimmen, ein Schuss reißen die Stille auf." },
+          { id: "gefangene_bekannt", label: "Harwick, Cormac und Wat werden in der fremden Kajüte festgehalten", info: "Der Vorwand: Der Handel habe angeblich nicht genug gebracht, um die Kosten zu decken." },
+          { id: "entscheidung_eingreifen", label: "Die Gruppe entscheidet, an Bord zu gehen und sich freizukämpfen", info: "Keine Zeit für Verhandlungen — wer noch in der Nähe ist, muss jetzt handeln." }
+        ]
+      },
+      "erster_kampf": {
+        title: "Der erste echte Kampf",
+        kurz: "Das erste Mal in der Kampagne geht es wirklich zur Sache — Pistolen werden geladen, es wird ernsthaft gekämpft, um sich den Weg durchs Schiff zur Kajüte freizukämpfen.",
+        details: "Was bisher an Kämpfen vorkam, war Vorgeplänkel dagegen. Hier, zum ersten Mal, geht es wirklich zur Sache: Pistolen werden geladen, Klingen gezogen, es wird ernsthaft und blutig gekämpft, während sich die Gruppe Schritt für Schritt durchs fremde Schiff in Richtung Kajüte vorkämpft.",
+        trigger: [
+          { id: "erster_ernster_kampf", label: "Der erste wirklich ernste, blutige Kampf der Kampagne", info: "Pistolen werden geladen, Klingen gezogen — ernsthaft und blutig, kein Vorgeplänkel mehr." },
+          { id: "weg_freikaempfen", label: "Die Gruppe kämpft sich durchs Schiff Richtung Kajüte", info: "Schritt für Schritt geht es durchs fremde Schiff in Richtung Kajüte." }
+        ]
+      },
+      "kinder_entdeckt": {
+        title: "Die Kinder an Bord",
+        kurz: "Mitten im Kampf entdecken die Spieler Kinder an Bord — sie sollen als Sklaven verkauft werden.",
+        details: "Zwischen Kampflärm, Rauch und umkämpften Gängen stoßen die Spieler auf etwas, das den Kampf für einen Moment stillstehen lässt: Kinder, eingesperrt, verängstigt. Schnell wird klar, wofür sie an Bord sind — sie sollen verkauft werden, als Sklaven.",
+        trigger: [
+          { id: "kinder_entdeckt", label: "Kinder an Bord entdeckt, sollen als Sklaven verkauft werden", info: "Eingesperrt, verängstigt — sie sollen als Sklaven verkauft werden." }
+        ]
+      },
+      "harwicks_wahn": {
+        title: "Harwicks Wahn",
+        kurz: "Harwick glaubt zunächst, das Artefakt sei gar nicht an Bord, und will das Schiff niederbrennen. Erfährt er von den Kindern, denkt er an seine für immer verlorene Tochter und gerät außer sich — will alle an Bord töten. Wat gehorcht ohne Murren, Cormac hält nur bei den Kindern inne.",
+        details: "In der Kajüte befreit, ist Harwicks erster Gedanke nicht Erleichterung, sondern blanke Wut: Er geht davon aus, dass das Artefakt gar nicht an Bord dieses Schiffs ist — der ganze Handel war eine Falle, nichts weiter. Am liebsten würde er das Schiff auf der Stelle niederbrennen.\n\nDann erreicht ihn die Nachricht von den Kindern. Etwas in ihm kippt. Er denkt an seine eigene Tochter, die er nie wiedersehen wird — und gerät außer sich vor Wut und Verzweiflung. Er will jeden an Bord töten, ausnahmslos.\n\nWat macht sich bereit, diesen Befehl ohne Murren auszuführen. Cormac hat kein Problem damit, sich an den erwachsenen Gegnern zu vergreifen — aber als die Information über die Kinder fällt, hält er inne, sichtlich zerrissen.\n\nHarwick selbst ist davon unbeeindruckt. Wie im Wahn schlachtet er sich durch die Wächter, die sich ihm in den Weg stellen.",
+        trigger: [
+          { id: "artefakt_bezweifelt", label: "Harwick glaubt zunächst, das Artefakt sei nicht an Bord, will niederbrennen", info: "Er geht davon aus, dass der ganze Handel eine Falle war, nichts weiter — am liebsten würde er das Schiff niederbrennen." },
+          { id: "nachricht_von_kindern", label: "Harwick erfährt von den versklavten Kindern", info: "Die Nachricht erreicht ihn, etwas in ihm kippt." },
+          { id: "harwicks_wahn", label: "Denkt an seine für immer verlorene Tochter, gerät außer sich, will alle töten", info: "Er denkt an seine eigene Tochter, die er nie wiedersehen wird — und will jeden an Bord töten, ausnahmslos." },
+          { id: "wat_gehorcht", label: "Wat ist bereit, den Befehl ohne Murren auszuführen", info: "Macht sich bereit, den Befehl ohne Murren auszuführen." },
+          { id: "cormac_haelt_inne", label: "Cormac hat kein Problem mit den Erwachsenen, hält aber bei den Kindern inne", info: "Sichtlich zerrissen, sobald die Information über die Kinder fällt." },
+          { id: "harwick_schlachtet_wachen", label: "Harwick kämpft sich wie im Wahn durch die Wächter", info: "Von alldem unbeeindruckt schlachtet er sich durch jeden Wächter, der sich ihm in den Weg stellt." }
+        ]
+      },
+      "kinder_retten": {
+        title: "Die Kinder retten",
+        kurz: "Drastisches Rollenspiel, starkes Einschreiten notwendig, um die Kinder vor Harwick zu retten. SL-Ermessen: Scheitert das Einschreiten, sterben die Kinder — Harwick bleibt dann dauerhaft manisch, nicht mehr zu retten.",
+        details: "Zwischen einem wahnsinnigen Kapitän, der gerade dabei ist, ein ganzes Schiff auszulöschen, und den Kindern, die er mit einschließen will, bleibt den Spielern nur eines: drastisches, entschlossenes Einschreiten. Reden allein wird hier nicht reichen — Harwick ist in diesem Moment nicht mehr ansprechbar wie sonst.\n\nSL-Ermessen entscheidet über den Ausgang, abhängig davon, wie entschlossen und klug die Spieler eingreifen: Gelingt es ihnen, sich zwischen Harwick und die Kinder zu stellen, ihn aufzuhalten oder abzulenken, werden die Kinder gerettet. Greifen sie nicht stark genug oder gar nicht ein, sterben die Kinder mit den übrigen an Bord — und Harwick ist von diesem Moment an nicht mehr zu retten. Er bleibt bis zum Ende der Kampagne manisch.",
+        trigger: [
+          { id: "starkes_einschreiten_noetig", label: "Nur drastisches, entschlossenes Einschreiten kann die Kinder retten", info: "Reden allein reicht nicht — Harwick ist in diesem Moment nicht mehr ansprechbar wie sonst." },
+          { id: "kinder_gerettet", label: "Erfolg (SL-Ermessen) — die Kinder werden gerettet", info: "Gelingt es, sich zwischen Harwick und die Kinder zu stellen, ihn aufzuhalten oder abzulenken, werden die Kinder gerettet." },
+          { id: "kinder_sterben_harwick_verloren", label: "Misserfolg (SL-Ermessen) — Kinder sterben, Harwick bleibt dauerhaft manisch", info: "Greifen die Spieler nicht stark genug ein, sterben die Kinder mit den übrigen an Bord — Harwick ist von diesem Moment an nicht mehr zu retten, bleibt bis zum Ende der Kampagne manisch." }
+        ]
+      },
+      "artefakt_und_uebergabe": {
+        title: "Das Artefakt und die Übergabe des Schiffs",
+        kurz: "Das Artefakt ist tatsächlich an Bord und kann geborgen werden. Wurden die Kinder gerettet, verlangen sie die Übergabe des Schiffs — Harwick und Crew lenken ein. Optional: Spieler setzen sich für einen Schatz-Anteil der Kinder ein (starker Ruf-Gewinn bei Cormac). Fest: alle Erwachsenen an Bord werden getötet.",
+        details: "Entgegen Harwicks anfänglicher Überzeugung stellt sich heraus: Das Artefakt ist tatsächlich an Bord und kann geborgen werden.\n\nWurden die Kinder gerettet, verlangen sie selbst die Übergabe des Schiffs — kein Almosen, eine Forderung. Harwick und seine Crew lenken ein und überlassen es ihnen.\n\nSpieler, die sich zusätzlich dafür einsetzen, dass die Kinder auch einen Teil des geborgenen Schatzes bekommen, können damit extrem im Ruf bei Cormac steigen.\n\nEines steht unabhängig vom Verhalten der Spieler fest: Alle Erwachsenen an Bord des fremden Schiffs werden getötet. Darüber lässt Harwick nicht mit sich reden.",
+        trigger: [
+          { id: "artefakt_gefunden", label: "Das Artefakt ist tatsächlich an Bord, kann geborgen werden", info: "Entgegen Harwicks anfänglicher Überzeugung." },
+          { id: "kinder_verlangen_schiff", label: "Gerettete Kinder verlangen die Übergabe des Schiffs", info: "Kein Almosen, eine Forderung." },
+          { id: "harwick_lenkt_ein", label: "Harwick und Crew lenken ein, überlassen den Kindern das Schiff", info: "Harwick und seine Crew lenken ein und überlassen es ihnen." },
+          { id: "schatz_fuer_kinder", label: "Optional: Spieler setzen sich für einen Schatz-Anteil der Kinder ein → extremer Ruf-Gewinn bei Cormac", info: "Wer sich zusätzlich dafür einsetzt, dass die Kinder auch einen Teil des geborgenen Schatzes bekommen, kann damit extrem im Ruf bei Cormac steigen." },
+          { id: "alle_erwachsenen_getoetet", label: "Fest: alle Erwachsenen an Bord werden getötet", info: "Unabhängig vom Verhalten der Spieler — darüber lässt Harwick nicht mit sich reden." }
         ]
       }
     }
