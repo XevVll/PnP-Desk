@@ -25,21 +25,21 @@ const SPANISCHER_HAFEN_SCENES = {
     markers: [
       {
         id: "hafen_arzt",
-        top: 35, left: 55,
+        top: 30, left: 62,
         title: "Die Arztpraxis",
         desc: "Ein schmales Haus abseits der belebten Gassen, ein verblasstes Schild mit einem Aderlass-Symbol über der niedrigen Tür. Drinnen riecht es streng nach Alkohol und getrockneten Kräutern, chirurgische Instrumente liegen fein säuberlich auf einem Leinentuch ausgerichtet.",
         img: "images/interior_hafen_arzt.webp"
       },
       {
         id: "hafen_kneipe",
-        top: 60, left: 75,
+        top: 72, left: 65,
         title: "Die Kneipe",
         desc: "Eine verrauchte, überfüllte Schänke unweit des Kais — Fässer als Tische, klebriger Boden, lautes Stimmengewirr in mehreren Sprachen. An einem der vorderen Tische sitzt eine Gruppe uniformierter Soldaten, Krüge griffbereit, Blicke, die jeden Fremden abschätzend mustern.",
         img: "images/interior_hafen_kneipe.webp"
       },
       {
         id: "hafen_markt",
-        top: 65, left: 40,
+        top: 62, left: 42,
         title: "Der Markt",
         desc: "Ein enger Marktplatz zwischen den Gassen, dicht gedrängte Stände mit Obst, Stoffen und frischem Fisch, feilschende Stimmen von allen Seiten. Uniformierte Wachen patrouillieren in kleinen Gruppen zwischen den Ständen, ihre Blicke bleiben an jedem fremden Gesicht länger hängen als nötig.",
         img: "images/interior_hafen_markt.webp"
