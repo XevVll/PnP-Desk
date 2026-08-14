@@ -368,6 +368,13 @@ function vToggleNode(key) { vOpenNodes.has(key) ? vOpenNodes.delete(key) : vOpen
 function vOpenOrtFolder(key, sceneId, ortId) {
   vOpenNodes.has(key) ? vOpenNodes.delete(key) : vOpenNodes.add(key);
   paneA = { type: 'ort', sceneId: sceneId, ortId: ortId };
+  // viewState.szene folgt der im Baum angeklickten Szene (nicht nur der
+  // live-geschalteten) - sonst bleiben Werkzeugleiste (Sound/Charaktere)
+  // und die Live-Listener (hiddenMarkersLive/openMarkers/regie) auf der
+  // Szene hängen, die beim Laden der Seite gerade live war (Hendriks
+  // Bug-Report: "Werkzeuge lassen sich bei einzelnen Szenen nicht mehr
+  // anpassen").
+  viewState.szene = sceneId;
   renderAll();
 }
 // Gleiches Prinzip wie vOpenOrtFolder, eine Ebene höher: Klick auf die
@@ -377,6 +384,7 @@ function vOpenOrtFolder(key, sceneId, ortId) {
 function vOpenSceneFolder(key, sceneId) {
   vOpenNodes.has(key) ? vOpenNodes.delete(key) : vOpenNodes.add(key);
   paneA = { type: 'scene', sceneId: sceneId };
+  viewState.szene = sceneId; // siehe Kommentar in vOpenOrtFolder
   renderAll();
 }
 function paneMatches(paneRef, ref) {
