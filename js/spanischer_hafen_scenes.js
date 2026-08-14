@@ -32,7 +32,7 @@ const SPANISCHER_HAFEN_SCENES = {
       },
       {
         id: "hafen_kneipe",
-        top: 79, left: 65,
+        top: 60, left: 47,
         title: "Die Kneipe",
         desc: "Eine verrauchte, überfüllte Schänke unweit des Kais — Fässer als Tische, klebriger Boden, lautes Stimmengewirr in mehreren Sprachen. An einem der vorderen Tische sitzt eine Gruppe uniformierter Soldaten, Krüge griffbereit, Blicke, die jeden Fremden abschätzend mustern.",
         img: "images/interior_hafen_kneipe.webp"
