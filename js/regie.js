@@ -255,11 +255,11 @@ const ORTE = {
         title: "Harwick — Wein und die Karten auf dem Schreibtisch",
         kurz: "Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit einer Einladung zu Wein und beantwortet ab jetzt ehrlich fast jede Frage. Wer die ausliegenden Karten beachtet, stößt auf die Artefakte; Handels-/Untergrundwissen liefert dabei den Schmugglernest-Tipp. Echtes Argument (kein Wurf) kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen.",
         nurSzenen: ["5.1"],
-        details: "Harwick sucht das Gespräch mit der Gruppe — vor allem, aber nicht nur, mit denen, die mit ihm im Dorf der Thahal unterwegs waren. Sie haben sich dort als loyal, diszipliniert und vertrauenswürdig erwiesen, und das honoriert er sichtbar: eine Einladung in seine Kajüte, guter Wein wird eingeschenkt, der Ton ist offen wie selten. Ab jetzt beantwortet er nahezu jede Frage ehrlich — kein Ausweichen, keine Floskeln.\n\nAuf seinem Schreibtisch liegen Karten und Notizen, unaufgeräumt, so wie er sie zuletzt liegen ließ. Er präsentiert nichts davon aktiv — wer aber gute Wahrnehmung oder Instinkt mitbringt, oder einfach von sich aus echtes Interesse an den Karten zeigt, erkennt schnell: Es geht um bestimmte Artefakte.\n\nWird das Gespräch vertieft, kann ein Spieler mit Handels- oder Untergrundwissen daraus einen konkreten Tipp mitnehmen: Es gibt ein Schmugglernest in der Nähe — in genau entgegengesetzter Richtung zum spanischen Hafen, der zwei bis drei Tagesreisen entfernt liegt.\n\nWichtig: Harwicks eigener Kurs führt derzeit weder zum einen noch zum anderen Ziel. Beide Ziele — spanischer Hafen wie Schmugglernest — sind Abweichungen von seiner Route und brauchen echte Überzeugung. Kein Würfelwurf entscheidet das, sondern gutes Rollenspiel: ein Spieler, der glaubwürdig argumentiert (sei es mit Ezras Zustand, sei es mit dem, was er über die Artefakte erfahren hat), kann Harwick umstimmen.\n\nSL-Ermessen für den Ausgang: Überzeugen Spieler ihn glaubwürdig zum Schmugglernest, ändert sich der Kurs dorthin — was bedeutet, den spanischen Hafen und damit Ezras beste Überlebenschance aufzugeben (moralisches Gewicht siehe Bibel 12, \"moralische Umkehrung\"). Überzeugen sie ihn stattdessen zum spanischen Hafen, hält er darauf Kurs. Bleibt beides aus — niemand argumentiert glaubwürdig für die eine oder andere Seite —, behält Harwick seinen eigenen Kurs bei, und das Schiff treibt in die Flaute (Szene 6.1).",
+        details: "Harwick sucht das Gespräch mit der Gruppe — vor allem, aber nicht nur, mit denen, die mit ihm im Dorf der Thahal unterwegs waren. Sie haben sich dort als loyal, diszipliniert und vertrauenswürdig erwiesen, und das honoriert er sichtbar: eine Einladung in seine Kajüte, guter Wein wird eingeschenkt, der Ton ist offen wie selten. Ab jetzt beantwortet er nahezu jede Frage ehrlich — kein Ausweichen, keine Floskeln.\n\nAuf seinem Schreibtisch liegen Karten und Notizen, unaufgeräumt, so wie er sie zuletzt liegen ließ. Er präsentiert nichts davon aktiv — wer aber gute Wahrnehmung oder Instinkt mitbringt, oder einfach von sich aus echtes Interesse an den Karten zeigt, erkennt schnell: Es geht um bestimmte Artefakte.\n\nWird das Gespräch vertieft, bekommt ein Spieler mit Handels- oder Untergrundwissen abseits der anderen einen Hinweis zugeflüstert — geheim, nur an diesen einen Spieler, der es dann selbst der Gruppe vorschlagen muss:\n\n„Man weiß, wo die Küste sich duckt und verbirgt — nur sind es wenige Kiele, die diese Gewässer je durchpflügen, und was kaum einer mit eigenen Augen sah, bleibt Gerücht, und sei es noch so oft erzählt. Ein altes Schmugglerlied kennt trotzdem den Weg: Achtzehn Grad gen Norden, einundzwanzig obendrauf, vierundsechzig Grad nach Westen, fünfunddreißig dazu — folgt der Küste, wo der tote Fels die Flut bricht. Und fütter das Eis mit Feuer, dann öffnet sich der Fisch.“\n\nDer Sinn der letzten Zeile erschließt sich erst vor Ort (siehe Szene 8.1) — bewusst kryptisch gehalten.\n\nWichtig: Harwicks eigener Kurs führt derzeit weder zum einen noch zum anderen Ziel. Beide Ziele — spanischer Hafen wie Schmugglernest — sind Abweichungen von seiner Route und brauchen echte Überzeugung. Kein Würfelwurf entscheidet das, sondern gutes Rollenspiel: ein Spieler, der glaubwürdig argumentiert (sei es mit Ezras Zustand, sei es mit dem, was er über die Artefakte erfahren hat), kann Harwick umstimmen.\n\nSL-Ermessen für den Ausgang: Überzeugen Spieler ihn glaubwürdig zum Schmugglernest, ändert sich der Kurs dorthin — was bedeutet, den spanischen Hafen und damit Ezras beste Überlebenschance aufzugeben (moralisches Gewicht siehe Bibel 12, \"moralische Umkehrung\"). Überzeugen sie ihn stattdessen zum spanischen Hafen, hält er darauf Kurs. Bleibt beides aus — niemand argumentiert glaubwürdig für die eine oder andere Seite —, behält Harwick seinen eigenen Kurs bei, und das Schiff treibt in die Flaute (Szene 6.1).",
         trigger: [
           { id: "einladung_wein", label: "Harwick lädt zu Wein, honoriert die Loyalität aus dem Thahal-Dorf", info: "Er sucht das Gespräch, vor allem mit den Insel-Begleitern — Wein wird eingeschenkt, der Ton offen wie selten. Ab jetzt beantwortet er nahezu jede Frage ehrlich." },
           { id: "artefakte_bemerkt", label: "Wahrnehmung/Instinkt/Interesse: Artefakte auf den ausliegenden Karten bemerkt", info: "Er präsentiert nichts aktiv — wer gute Wahrnehmung oder Instinkt hat, oder einfach echtes Interesse an den Karten zeigt, erkennt: Es geht um bestimmte Artefakte." },
-          { id: "schmugglernest_tipp", label: "Handels-/Untergrundwissen: Tipp auf ein nahes Schmugglernest", info: "Vertieftes Gespräch liefert einem Spieler mit Handels- oder Untergrundwissen den konkreten Tipp: Schmugglernest in der Nähe, entgegengesetzt zum spanischen Hafen (2-3 Tage entfernt)." },
+          { id: "schmugglernest_tipp", label: "Handels-/Untergrundwissen: geheimer Hinweis auf das Schmugglernest (Schmugglerlied)", info: "Geheim, nur an einen Spieler mit Handels-/Untergrundwissen zugeflüstert: „Man weiß, wo die Küste sich duckt und verbirgt — nur sind es wenige Kiele, die diese Gewässer je durchpflügen, und was kaum einer mit eigenen Augen sah, bleibt Gerücht, und sei es noch so oft erzählt. Ein altes Schmugglerlied kennt trotzdem den Weg: Achtzehn Grad gen Norden, einundzwanzig obendrauf, vierundsechzig Grad nach Westen, fünfunddreißig dazu — folgt der Küste, wo der tote Fels die Flut bricht. Und fütter das Eis mit Feuer, dann öffnet sich der Fisch.“ Dieser Spieler muss den Vorschlag selbst in die Gruppe tragen." },
           { id: "ueberzeugung_versucht", label: "Spieler versuchen, Harwick mit einem echten Argument umzustimmen (kein Wurf)", info: "Gutes Rollenspiel entscheidet, kein Würfelwurf — ein glaubwürdiges Argument (Ezras Zustand oder Artefakt-Wissen) hat eine echte Chance." },
           { id: "kurs_schmugglernest", label: "Erfolgreich zum Schmugglernest überzeugt (kostet Ezra die beste Überlebenschance)", info: "Kurs ändert sich aufs Schmugglernest — bedeutet, den spanischen Hafen aufzugeben. Moralisches Gewicht siehe Bibel 12 (\"moralische Umkehrung\")." },
           { id: "kurs_spanischer_hafen", label: "Erfolgreich zum spanischen Hafen überzeugt", info: "Kurs ändert sich Richtung spanischem Hafen — genauso das Ergebnis aktiver Überzeugung wie beim Schmugglernest, kein Default." },
@@ -1380,6 +1380,87 @@ const ORTE = {
         ]
       }
     }
+  },
+
+  // Schmugglernest (Bibel 7.2, Verzweigung 1): ausgearbeitet nach Hendriks
+  // Vorgaben (Dialog, nicht von Claude erfunden) - drei Orte, Sub-Orte-Muster
+  // wie beim Thahal-Dorf (parentId in js/schmugglernest_scenes.js).
+  // Reihenfolge: Fischerdorf (Beobachtung + Kohle-Zugang) -> Höhlenstadt
+  // (Artefakt-Kenner suchen, Diebstahl, Verfolgungsjagd) -> Artefakthändler
+  // (Belohnung/Konsequenz). Der Eisschrank-Zugang bekommt bewusst KEINEN
+  // eigenen Marker (Hendriks Korrektur) - läuft als zweite Interaktion am
+  // Fischerdorf-Marker, analog zum "Weg durch die Straßen" in 7.1.
+  "schmuggler_lager": {
+    personen: "Drei auffällige Dorfbewohner (unbenannt): die Frau am Ufer, der Bäcker, der alte Mann",
+    kurz: "Von außen ein unauffälliges Fischerdorf — wer genau hinsieht, bemerkt Wohlstands-Details, die nicht zu einfachen Fischern passen. Alle sind freundlich, aber einsilbig. Der Zugang zur Höhlenstadt liegt in einem alten Eisschrank, der nur auf ein Stück Kohle reagiert.",
+    interaktionen: {
+      "das_dorf": {
+        title: "Das Dorf genauer betrachten",
+        kurz: "Wahrnehmung deckt auffällige Wohlstands-Details an den drei Dorfbewohnern auf; direkte Fragen laufen ins Leere. Ungewiss, ob der Hinweis überhaupt stimmt.",
+        details: "Von der See aus wirkt es wie jedes andere kleine Fischerdorf. Erst wer auf der Suche nach dem gehörten Hinweis wirklich genau hinsieht, bemerkt: die Halskette der Frau am Ufer ist zu prunkvoll für ihre Arbeit, die Brille des Bäckers zu wertvoll gefasst, der Gehstock-Knauf des alten Mannes schimmert wie seltenes Metall. Kleine Details, die nicht zusammenpassen — aber nichts Beweisendes.\n\nWer die Dorfbewohner direkt anspricht, bekommt freundliche, aber einsilbige Antworten. Niemand ist unhöflich, niemand hilft weiter. Fragen nach Fremden, nach Handel, nach irgendetwas Ungewöhnlichem verlaufen im Sand.\n\nIn unregelmäßigen Abständen ist ein dumpfes Donnern zu hören, der Boden bebt kurz — niemand im Dorf reagiert darauf, als wäre es völlig normal.\n\nEs bleibt bewusst ungewiss, ob der Hinweis aus Harwicks Kajüte überhaupt stimmt, oder ob der Spieler, der ihn weitergegeben hat, sich geirrt oder etwas erfunden hat — erst der gefundene Zugang (siehe Interaktion \"Der Eisschrank\") gibt Gewissheit.",
+        trigger: [
+          { id: "wohlstand_bemerkt", label: "Wahrnehmung: auffällige Wohlstands-Details an den drei Dorfbewohnern", info: "Die Halskette der Frau am Ufer ist zu prunkvoll, die Brille des Bäckers zu wertvoll gefasst, der Gehstock-Knauf des alten Mannes schimmert wie seltenes Metall." },
+          { id: "einsilbig", label: "Direkte Fragen laufen ins Leere", info: "Freundliche, aber einsilbige Antworten — niemand hilft weiter, Fragen nach Fremden oder Handel verlaufen im Sand." },
+          { id: "donnern_bemerkt", label: "Das periodische Donnern/Beben fällt auf", info: "Niemand im Dorf reagiert darauf, als wäre es völlig normal." },
+          { id: "ungewissheit", label: "Ungewiss, ob der Hinweis überhaupt stimmt", info: "Erst der gefundene Zugang gibt Gewissheit, ob der Tipp aus Harwicks Kajüte echt war." }
+        ]
+      },
+      "der_eisschrank": {
+        title: "Der Eisschrank — Zugang zur Höhlenstadt",
+        kurz: "Nähern sich Spieler, öffnet sich eine kleine Luke — sonst passiert nichts. Erst ein hineingelegtes Stück Kohle öffnet die eigentliche Tür zu einer Treppe, die zu einer massiven Stahltür führt. Vor dem Einlass: vollständige Durchsuchung, Waffen müssen abgegeben werden.",
+        details: "Der Eisschrank wirkt beim genauen Hinsehen zu massiv, zu stabil beschlagen für seinen vorgeblichen Zweck. Nähert sich die Gruppe, öffnet sich lautlos eine kleine Luke seitlich am Container — dahinter nur Dunkelheit, kein Wort, keine weitere Reaktion. Bleibt es dabei, geschieht nichts weiter.\n\nErst wer sich an den Hinweis aus Harwicks Kajüte erinnert („fütter das Eis mit Feuer\") und ein Stück Kohle durch die Luke reicht, bekommt eine Reaktion: irgendwo im Innern rastet etwas ein, eine verborgene Tür in der Rückwand des Containers schwingt auf. Dahinter führt eine schmale Treppe ins Erdreich, bis sie vor einer massiven Stahltür endet.\n\nAn der Stahltür werden alle vollständig durchsucht — Waffen müssen abgegeben werden, niemand kommt bewaffnet weiter. Erst danach öffnet sich der Weg in die Höhlenstadt (siehe ORTE.schmuggler_hoehlenstadt).",
+        trigger: [
+          { id: "luke_oeffnet", label: "Luke öffnet sich beim Nähern — sonst passiert nichts", info: "Eine kleine Luke öffnet sich lautlos, dahinter nur Dunkelheit. Ohne die Kohle bleibt es dabei." },
+          { id: "kohle_eingelegt", label: "Ein Stück Kohle wird durch die Luke gereicht", info: "Etwas rastet im Innern ein, eine verborgene Tür in der Rückwand schwingt auf." },
+          { id: "treppe_stahltuer", label: "Schmale Treppe führt zu einer massiven Stahltür", info: "Die Treppe endet vor einer massiven Stahltür." },
+          { id: "durchsuchung", label: "Vollständige Durchsuchung, Waffen müssen abgegeben werden", info: "Niemand kommt bewaffnet weiter — erst danach öffnet sich der Weg in die Höhlenstadt." }
+        ]
+      }
+    }
+  },
+
+  "schmuggler_hoehlenstadt": {
+    personen: "Ein Straßenkind (Dieb, unbenannt)",
+    kurz: "Die eigentliche Aufgabe: jemanden finden, der sich mit Artefakten auskennt. Beim Zeigen von Harwicks Unterlagen stiehlt ein Straßenkind die Karte — Verfolgungsjagd, kaum zu gewinnen (SL-Ermessen lässt den Fang oft zu).",
+    interaktionen: {
+      "artefaktkenner_gesucht": {
+        title: "Auf der Suche nach einem Artefakt-Kenner",
+        kurz: "Die Gruppe fragt sich mit Harwicks Unterlagen durch den Markt durch, auf der Suche nach jemandem, der sich mit Artefakten auskennt.",
+        details: "Der Markt der Höhlenstadt bietet buchstäblich alles — und mit ein wenig Nachfragen auch Zugang zu Leuten, die sich mit den ungewöhnlicheren Dingen auskennen. Zeigt die Gruppe Harwicks Unterlagen herum und fragt gezielt nach jemandem, der sich mit Artefakten auskennt, wird sie schnell fündig — zumindest fast.",
+        trigger: [
+          { id: "nachgefragt", label: "Die Gruppe fragt mit Harwicks Unterlagen nach einem Artefakt-Kenner", info: "Zeigt die Unterlagen herum, fragt gezielt nach jemandem, der sich mit Artefakten auskennt." }
+        ]
+      },
+      "der_diebstahl": {
+        title: "Das Straßenkind — Diebstahl und Verfolgungsjagd",
+        kurz: "Ein Straßenkind schnappt sich die Unterlagen und rennt los. Verfolgungsjagd durch die fremde Stadt, kaum zu gewinnen — nur ein sehr geschickter Spieler hat eine echte Chance (SL-Ermessen lässt den Fang oft trotzdem zu).",
+        details: "Mitten im Gedränge ist es ein Straßenkind, das zuschlägt — eines von unzähligen hier, die täglich um die nächste Mahlzeit kämpfen. Ein schneller Griff, und Harwicks Unterlagen sind weg, verschwunden zwischen den Ständen.\n\nEs folgt eine Verfolgungsjagd durch enge Gassen, über Stege und Warenstapel einer Stadt, die das Kind in- und auswendig kennt, die Gruppe aber zum ersten Mal sieht. Die Jagd ist bewusst kaum zu gewinnen — nur ein Spieler mit außergewöhnlichem Geschick hat eine echte Chance, tatsächlich aufzuschließen.\n\nSL-Hinweis: Auch wenn die Jagd mechanisch fast unmöglich angelegt ist, spricht viel dafür, den Fang in der tatsächlichen Runde oft zuzulassen — der eigentliche Wert der Szene liegt im Nervenkitzel der Verfolgung, nicht in einer harten Fehlschlagsquote.\n\nGefangen oder nicht, es geht danach an derselben Stelle weiter: dem Artefakthändler (siehe ORTE.schmuggler_artefakthaendler).",
+        trigger: [
+          { id: "diebstahl", label: "Das Kind schnappt sich die Unterlagen und rennt los", info: "Ein schneller Griff mitten im Gedränge, die Unterlagen sind weg." },
+          { id: "verfolgungsjagd", label: "Verfolgungsjagd durch die fremde Stadt, kaum zu gewinnen", info: "Nur ein Spieler mit außergewöhnlichem Geschick hat eine echte Chance. SL-Hinweis: den Fang in der Praxis oft zulassen — der Nervenkitzel trägt die Szene, nicht die Fehlschlagsquote." },
+          { id: "gefangen", label: "Kind gefangen — untersucht die Unterlagen, kann etwas dazu sagen", info: "Aus Angst, dass ihm etwas passiert, lässt sich das Kind die Unterlagen genauer ansehen — und kann tatsächlich etwas dazu sagen." },
+          { id: "nicht_gefangen", label: "Nicht gefangen — Kind entkommt direkt zu den älteren Männern", info: "Das Kind rennt geradewegs zu den 3-4 älteren Männern, die es später ohnehin auf die Gruppe hetzen würde — siehe ORTE.schmuggler_artefakthaendler." }
+        ]
+      }
+    }
+  },
+
+  "schmuggler_artefakthaendler": {
+    personen: "Ein Straßenkind (Dieb, unbenannt) · 3-4 ältere Männer (unbenannt)",
+    kurz: "Gefangen und beruhigt, führt das Kind die Gruppe hierher — und streckt dann die Hand aus. Wird es belohnt, zieht es zufrieden ab. Wird es nicht belohnt (oder wurde es gar nicht erst gefangen), greifen 3-4 ältere Männer die Gruppe an, vom Kind aufgehetzt.",
+    interaktionen: {
+      "die_belohnung": {
+        title: "Die Belohnung des Straßenkinds",
+        kurz: "Gefangen und beruhigt, führt das Kind die Gruppe zum Laden des Artefakthändlers — und streckt dann die Hand aus. Wird es belohnt, zieht es zufrieden ab. Wird es nicht belohnt, greifen später 3-4 ältere Männer die Gruppe an, vom Kind aufgehetzt.",
+        details: "Hat die Gruppe das Kind gefangen und sich die Unterlagen angesehen, führt es sie — erleichtert, dass ihm nichts passiert ist — genau hierher, zu einem kleinen Laden, an dem tatsächlich jemand sitzt, der sich mit Artefakten auskennt.\n\nAls Dank für die Hilfe streckt das Kind danach die Hand aus, unmissverständlich, eine Belohnung erwartend.\n\nWird es belohnt, verschwindet es zufrieden in der Menge. Wird es abgewiesen oder vergessen, greifen auf dem Rückweg unvermittelt 3-4 ältere Männer die Gruppe an — offensichtlich vom Kind gegen sie aufgehetzt.",
+        trigger: [
+          { id: "laden_gefunden", label: "Kind führt die Gruppe zum Laden des Artefakthändlers", info: "Erleichtert, dass ihm nichts passiert ist, führt es sie genau hierher." },
+          { id: "belohnung_gefordert", label: "Kind streckt die Hand aus, erwartet eine Belohnung", info: "Als Dank für die Hilfe, unmissverständlich." },
+          { id: "belohnt", label: "Belohnt — Kind zieht zufrieden ab", info: "Verschwindet zufrieden in der Menge." },
+          { id: "nicht_belohnt", label: "Nicht belohnt — Überfall durch 3-4 ältere Männer auf dem Rückweg", info: "Auf dem Rückweg greifen unvermittelt 3-4 ältere Männer an — offensichtlich vom Kind gegen sie aufgehetzt." }
+        ]
+      }
+    }
   }
 };
 
@@ -1603,5 +1684,12 @@ const SZENEN_REGIE = {
   // fest, wofür die ganze Station eigentlich da ist (Hendriks Vorgabe).
   "7.1": {
     uebergeordnetesZiel: "Der Konflikt mit den Spaniern — Ezra rechtzeitig zum Arzt bringen, während Provokationen im Hafen echt genug sind, um eine Eskalation nachvollziehbar zu machen." // Bibel 2.9
+  },
+
+  // Schmugglernest (Bibel 7.2, 12.1). Bewusst ohne stimmung/ghosts in dieser
+  // Runde - die drei Marker (Fischerdorf/Eisschrank/Höhlenstadt) tragen den
+  // eigentlichen Inhalt, siehe ORTE weiter oben.
+  "8.1": {
+    uebergeordnetesZiel: "Einen Artefakt-Kenner im verborgenen Schmugglernest finden — auf Kosten von Ezra Coombes bester Überlebenschance (Bibel 12, \"moralische Umkehrung\")." // Bibel 2.9
   }
 };
