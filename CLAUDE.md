@@ -101,6 +101,15 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   direkt an `schmuggler_lager`, nicht an `schmuggler_hoehlenstadt`. Offline mit Playwright
   verifiziert (siehe Skill `pnp-safe-test`). Damit sind alle vier Übergangsszenen nach der
   Insel (`5.1`/`6.1`/`7.1`/`8.1`) fertig.
+- **Artefaktkenner-Begegnung beim Artefakthändler nachgereicht** (`ORTE.schmuggler_artefakthaendler`,
+  Interaktion `der_artefaktkenner`): ordnet das Artefakt anhand von Harwicks Unterlagen einer
+  fremden Zivilisation zu, nennt Koordinaten zu einer Schamaneninsel (schaltet sie frei, Bibel
+  7.4) und warnt eindringlich vor der Geisterwelt. Gibt der Gruppe einen einzelnen
+  Schutz-Anhänger mit — **löst damit den bisher offenen Punkt in Bibel 12.1** (ob die Tochter
+  wiederbelebt wird): der Anhänger schützt im Finale entweder einen Kämpfer vor Schaden, oder
+  ermöglicht, der Tochter gegeben, ein kurzes Gelingen des Rituals als Abschied (sie spricht
+  ihren Vater von der Schuld frei, kein zweites Leben). Bibel 12.1 entsprechend aktualisiert,
+  `[OFFEN]`-Vermerk entfernt.
 
 ### 2026-08-13
 - **Szene `7.1` (Spanischer Hafen) ausgearbeitet**, Inhalt im Dialog mit Hendrik entwickelt
