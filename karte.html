@@ -685,9 +685,11 @@
       hiddenMarkersLiveListener = hiddenMarkersLiveRef.on('value', function (snap) {
         currentHiddenMarkerIds = snap.val() || {};
         renderMarkers(currentSceneRawMarkers);
+        if (currentOverlayMarker) { clearSubMarkers(); renderSubMarkers(currentOverlayMarker); }
       }, function () {
         currentHiddenMarkerIds = {};
         renderMarkers(currentSceneRawMarkers);
+        if (currentOverlayMarker) { clearSubMarkers(); renderSubMarkers(currentOverlayMarker); }
       });
     }
 
@@ -727,7 +729,7 @@
       if (!wasOpen) pinEl.classList.add('open');
     }
     function renderSubMarkers(marker) {
-      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id; });
+      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id && !currentHiddenMarkerIds[m.id]; });
       children.forEach(function (child) {
         const el = document.createElement('div');
         // Pins nahe am Rand: Callout würde sonst vom umgebenden Bild
@@ -752,9 +754,11 @@
       });
     }
 
+    let currentOverlayMarker = null;
     function openOverlay(marker) {
       overlayTitle.textContent = marker.title || '';
       overlayEl.classList.add('open');
+      currentOverlayMarker = marker;
       setOpenMarker(currentRenderedScene, marker.id);
 
       resolveActiveVariant(marker, function (variant) {
@@ -785,6 +789,7 @@
 
     function closeOverlay() {
       overlayEl.classList.remove('open');
+      currentOverlayMarker = null;
       clearOpenMarker();
     }
     document.getElementById('overlayClose').onclick = closeOverlay;
