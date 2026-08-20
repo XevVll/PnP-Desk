@@ -249,7 +249,7 @@ const ORTE = {
   // sind scharf auf ihre jeweilige Szene begrenzt (nurSzenen).
   "kapitaenskajuete": {
     personen: "James Harwick",
-    kurz: "5.1: Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit Wein und ehrlichen Antworten — Artefakte fallen dabei über Wahrnehmung/Instinkt/Interesse auf, der Schmugglernest-Tipp über Handels-/Untergrundwissen. Echte Überzeugung kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen.",
+    kurz: "5.1: Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit Wein und ehrlichen Antworten — Artefakte fallen dabei über Wahrnehmung/Instinkt/Interesse auf, der Schmugglernest-Tipp über Handels-/Untergrundwissen. Echte Überzeugung kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen. 10.1 (Die Flucht): dunkel, regungslos, Zustand hängt vom Ausgang des Artefakthandels ab.",
     interaktionen: {
       "harwick_artefakt_dokumente": {
         title: "Harwick — Wein und die Karten auf dem Schreibtisch",
@@ -274,6 +274,16 @@ const ORTE = {
         trigger: [
           { id: "harwick_gruebelt", label: "Harwick verbringt auffällig viel Zeit grübelnd über seinen Unterlagen", info: "Die erzwungene Untätigkeit der Flaute lässt ihm zu viel Zeit zum Nachdenken — er wird dabei unvorsichtiger als sonst." },
           { id: "warnung_entdeckt", label: "Warnung vor einem übernatürlichen Kampf entdeckt (noch vage, keine Details)", info: "Wahrnehmungs-/Wissen-Probe oder direktes Nachfragen legt eine vage Warnung offen: Etwas Übernatürliches steht bevor, Vorbereitung wird nötig sein. Keine Details zu Gegner oder Ritual an dieser Stelle." }
+        ]
+      },
+      "harwick_nach_dem_verrat": {
+        title: "Harwick nach dem Verrat",
+        kurz: "Verzweigt nach dem Ausgang von \"Die Kinder retten\" (Artefakthandel, 9.1). Kinder gerettet: erschüttert, zurückgezogen. Kinder gestorben: dauerhaft manisch, kalte, unnahbare Befehle.",
+        nurSzenen: ["10.1"],
+        details: "Die Kajütentür steht einen Spalt offen, kein Licht drinnen. Wie Harwick jetzt wirkt, hängt direkt davon ab, wie die Kinder-Rettung beim Artefakthandel ausgegangen ist (siehe ORTE.handelstreffen, Interaktion \"kinder_retten\"):\n\n— Wurden die Kinder gerettet: Harwick sitzt regungslos, den Blick auf einen Punkt gerichtet, den nur er sieht. Kein Wutausbruch mehr, keine Befehle im Ton von vorhin — nur eine tiefe, erschöpfte Stille. Wer das Gespräch sucht, bekommt zum ersten Mal einen echten Riss in seiner Fassade zu sehen: kurz, roh, sofort wieder verschlossen.\n\n— Starben die Kinder mit den übrigen an Bord: Harwick ist seit der Szene nicht mehr derselbe. Er gibt Befehle knapp, kalt, ohne die sonstige Wärme — als hätte etwas in ihm endgültig den Halt verloren. Auf Ansprache reagiert er unnahbar, fast abwesend. Diese Verfassung bleibt ab jetzt dauerhaft (Bibel 12, permanente Konsequenz) — kein Gespräch, kein Ereignis macht das rückgängig.\n\nBeide Varianten sind reine Charaktermomente ohne Probe — SL-Ermessen, wie viel Harwick preisgibt, falls überhaupt.",
+        trigger: [
+          { id: "kinder_gerettet_variante", label: "Kinder gerettet → erschüttert, zurückgezogen, kurzer echter Riss in der Fassade", info: "Harwick sitzt regungslos, kein Wutausbruch mehr — nur tiefe, erschöpfte Stille. Wer das Gespräch sucht, bekommt kurz einen echten Riss in seiner Fassade zu sehen." },
+          { id: "kinder_gestorben_variante", label: "Kinder gestorben → dauerhaft manisch, kalte Befehle (permanente Konsequenz)", info: "Harwick gibt Befehle knapp, kalt, ohne die sonstige Wärme. Auf Ansprache reagiert er unnahbar, fast abwesend. Diese Verfassung bleibt ab jetzt dauerhaft — kein Gespräch macht das rückgängig." }
         ]
       }
     }
@@ -326,6 +336,11 @@ const ORTE = {
         // beitragen"). Knoten-Streich/Ruder-Bitte bleiben unverändert aktiv
         // (kein nichtInSzenen für 5.1), dieser Text ergänzt nur den ortHinweis.
         ortHinweis: "Tom hält mühelos Kurs, auffällig gut gelaunt — summt vor sich hin, fast schon einen Ton daneben. Wer fragt, was ihn so freut, bekommt nur ein breites Grinsen und den Satz: „Ruhiges Wasser, volle Truhen, und keiner will gerade mein Ruder. Was soll da nicht gut sein?“ Er wiederholt die Zeile im Laufe der Szene mit stoischer Freude noch mindestens zweimal, für jeden neuen Spieler in Hörweite."
+      },
+      "10.1": {
+        personen: "Tom Fletcher (angespannt am Ruder)",
+        kurz: "Tom hält Kurs auf ein riffgeschütztes Eiland, den Blick abwechselnd auf Kompass und Verfolger — kein Small Talk, volle Konzentration.",
+        ortHinweis: "Von der sonstigen Lässigkeit keine Spur: Tom hält das Ruder mit beiden Händen, den Blick abwechselnd auf den Kompass und zurück über die Reling gerichtet, wo irgendwo im Nebel das fremde Schiff steckt. Kein Raum für Small Talk — Knoten-Streich und Ruder-Bitte sind für diese Szene deshalb ausgesetzt, genau wie im Sturm."
       }
     },
     interaktionen: {
@@ -343,7 +358,7 @@ const ORTE = {
       "knoten_streich": {
         title: "Tom Fletcher — Der Knoten-Streich",
         kurz: "Schickt den Spieler mit dem niedrigsten Seefahrt-Wert los, um \"mehr Knoten\" aus dem Frachtraum zu holen. Reaktion entscheidet über Ruf.",
-        nichtInSzenen: ["3.1"], // setzt voraus, dass Tom entspannt am Ruder steht - im Sturm kämpft er laut Szenentext mit dem Ruder
+        nichtInSzenen: ["3.1", "10.1"], // setzt voraus, dass Tom entspannt am Ruder steht - im Sturm/auf der Flucht kämpft/konzentriert er sich aufs Ruder
         details: "Tom hält Kurs, wirkt dabei kaum bei der Sache. Er liest die Gruppe schnell und wendet sich beiläufig an den Spieler mit dem niedrigsten Seefahrt-Wert (objektiver Vergleich der Charakterbögen, kein Bauchgefühl).\n\n„Wir sind zu langsam. Lauf runter in den Frachtraum, hol mir ein paar Knoten mehr.“\n\nSpielt mit dem echten Fachbegriff (Geschwindigkeit wird per Logleine mit Knoten gemessen) — kein erfundener Unsinn, sondern Fachjargon als Falle. Ein erfahrener Seemann würde sofort erkennen, dass man Geschwindigkeit nicht „nachfüllen“ kann.\n\nReaktion des angesprochenen Spielers entscheidet:\n— Durchschaut den Witz, reagiert locker/witzig → kleiner Ruf-Plus bei Tom\n— Durchschaut, reagiert genervt/vorwurfsvoll → neutral\n— Ignoriert/geht nicht drauf ein → neutral\n— Läuft tatsächlich los, um Knoten zu holen → kleiner Ruf-Minus bei Tom\n\nVerbindung: Läuft der Spieler tatsächlich in den Frachtraum, trifft er dort je nach Timer-Stand entweder auf die versteckten Hände des Jungen oder einen leeren Raum (siehe Frachtraum-Bildvariante).",
         trigger: [
           { id: "streich_ausgeloest", label: "Streich ausgelöst", info: "Tom wendet sich an den Spieler mit dem niedrigsten Seefahrt-Wert: „Wir sind zu langsam. Lauf runter in den Frachtraum, hol mir ein paar Knoten mehr.“ Fachjargon als Falle — Geschwindigkeit lässt sich nicht „nachfüllen“." },
@@ -355,7 +370,7 @@ const ORTE = {
       "ruder_halten": {
         title: "Tom Fletcher — Ruder kurz halten",
         kurz: "Bittet einen zufälligen verbleibenden Spieler, das Ruder zu übernehmen, wenn jemand losläuft. Seefahrt-Probe entscheidet über Ruf.",
-        nichtInSzenen: ["3.1"], // im Sturm hält Tom das Ruder selbst mit beiden Händen fest - er gibt es nicht kurz ab
+        nichtInSzenen: ["3.1", "10.1"], // im Sturm/auf der Flucht hält Tom das Ruder selbst mit beiden Händen fest - er gibt es nicht kurz ab
         details: "Läuft ein Spieler los (z.B. wegen des Knoten-Streichs) und bleiben andere zurück, bittet Tom beiläufig einen zufälligen der Verbliebenen, kurz zu übernehmen — und verschwindet dann selbst.\n\n„Halt mal kurz, ja? Nur geradeaus. Bin gleich wieder da.“\n\n— Greift sofort zu, Seefahrt-Probe gelingt (bei Körper ≤2 zusätzlich Körper-Probe nötig, beide müssen gelingen) → Ruf-Plus bei Tom\n— Greift zu, Probe(n) misslingen, Kontrolle verloren (Ruder schlägt aus o.ä.) → Ruf-Minus bei Tom\n— Lehnt ab / zögert → neutral, kein Risiko",
         trigger: [
           { id: "angefragt", label: "Tom fragt nach Ruder-Übernahme", info: "Tom bittet beiläufig einen zufälligen der Verbliebenen: „Halt mal kurz, ja? Nur geradeaus. Bin gleich wieder da.“ — und verschwindet selbst." },
@@ -375,6 +390,36 @@ const ORTE = {
           { id: "normaler_erfolg", label: "Normaler Erfolg → knapp zu spät, hält aber", info: "Knoten hält, aber knapp zu spät. Tom grinst: „Nicht schlecht — für einen Landbewohner.“" },
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → hält kaum, sieht chaotisch aus", info: "Der Knoten hält gerade so, sieht aber aus wie ein Vogelnest. Tom lacht sich kaputt." },
           { id: "misserfolg", label: "Misserfolg → Tauwerk verheddert sich komplett", info: "Das Tauwerk verheddert sich komplett, Tom muss es selbst entwirren." }
+        ]
+      },
+      "kurs_aufs_riff": {
+        title: "Tom — Kurs aufs Riff",
+        kurz: "Tom erkennt: Die Golden Lion ist objektiv langsamer als der Verfolger, kennt aber ein riffgeschütztes Eiland in Reichweite, an dem das große Schiff nicht anlegen kann, und hält darauf zu. Reiner Erzählmoment, kein Wurf.",
+        nurSzenen: ["10.1"],
+        details: "Tom wirft einen Blick zurück in den Nebel, dann auf seine Karte, rechnet kurz im Kopf. Das Ergebnis gefällt ihm sichtlich nicht: „Die sind schneller. Nicht viel — aber genug.“\n\nEr hat trotzdem einen Plan: Ein kleines, riffgeschütztes Eiland liegt in erreichbarer Nähe — flaches Wasser, ein Riff, an dem ein Schiff mit dem Tiefgang des Verfolgers nicht anlegen kann. Kein Zufluchtsort auf Dauer, aber genug, um dem Kriegsschiff zu entkommen. Er legt das Ruder um und hält darauf zu.\n\nBewusst kein Wurf, keine Spieler-Aufgabe — Toms Entscheidung, die Spieler erleben sie nur mit.",
+        trigger: [
+          { id: "golden_lion_langsamer", label: "Tom erkennt: die Golden Lion ist objektiv langsamer", info: "„Die sind schneller. Nicht viel — aber genug.“ Ein Blick zurück in den Nebel, dann auf die Karte." },
+          { id: "riffinsel_erkannt", label: "Tom kennt ein riffgeschütztes Eiland in Reichweite, hält darauf zu", info: "Flaches Wasser, ein Riff, an dem ein Schiff mit dem Tiefgang des Verfolgers nicht anlegen kann. Kein Zufluchtsort auf Dauer, aber genug, um zu entkommen." }
+        ]
+      },
+      "ezra_am_mast": {
+        title: "Ezra am Mast",
+        kurz: "Optionale Wahrnehmungsprobe (keine Erschwernis, Muster wie \"Vielsagende Blicke\" im Sturm). Durchs Fernrohr wird erkennbar: der Verfolger hat eine Gestalt am Mast aufgeknüpft — Ezra Coombe, als Spott/Warnung ausgehängt.",
+        nurSzenen: ["10.1"],
+        details: "Nur wahrnehmbar, wenn ein Spieler aktiv das Fernrohr nimmt und den Verfolger genauer ansieht — nicht automatisch. Probe: Wahrnehmung, keine Erschwernis.\n\nBei Erfolg zeichnet sich durch den Nebel eine Gestalt am Mast des fremden Schiffs ab, hoch oben aufgeknüpft. Ein zweiter Blick lässt keinen Zweifel: Ezra Coombe, unabgeholt im spanischen Hafen zurückgeblieben (siehe ORTE.hafen_kneipe), jetzt als Spott und Warnung an den eigenen Mast gehängt. Der spanische Offizier lässt keinen Zweifel daran, dass er weiß, wen er da vor sich herjagt.\n\nKein Dialog, keine Erklärung an dieser Stelle — reiner, roher Schockmoment. SL-Ermessen, wie die Gruppe reagiert (Wut, Schuld, Entschlossenheit) und ob/wie das später aufgegriffen wird.",
+        trigger: [
+          { id: "fernrohr_probe", label: "Wahrnehmungsprobe versucht (Fernrohr auf den Verfolger)", info: "Nur wahrnehmbar, wenn ein Spieler aktiv das Fernrohr nimmt und den Verfolger genauer ansieht. Probe: Wahrnehmung, keine Erschwernis." },
+          { id: "ezra_erkannt", label: "Erfolg — Ezra Coombe aufgeknüpft am Mast des Verfolgers erkannt", info: "Eine Gestalt zeichnet sich am Mast ab, hoch oben aufgeknüpft. Ein zweiter Blick: Ezra Coombe, als Spott und Warnung ausgehängt — der Offizier weiß, wen er verfolgt." }
+        ]
+      },
+      "finte_gelingt": {
+        title: "Die Finte gelingt",
+        kurz: "Auflösungs-Beat: Der Verfolger nimmt den Köder der Licht-Finte (siehe Werkstatt), dreht ab. Golden Lion schlüpft dunkel ins Riff — Übergang zu Szene 11.1 (Riffinsel).",
+        nurSzenen: ["10.1"],
+        details: "Setzt voraus, dass die Licht-Finte aus der Werkstatt bereits ausgesetzt wurde (siehe dortige Interaktion). Minuten vergehen in völliger Stille, nur das Knarren des Rumpfs und gedämpfte Kommandos.\n\nDann: Weit hinten im Nebel hält das fremde Schiff plötzlich auf die treibende Laterne zu, statt weiter geradeaus. Die Finte hat funktioniert. An Bord der Golden Lion wagt niemand, laut aufzuatmen — noch nicht.\n\nTom hält Kurs, dunkel und lautlos, während sich vor ihnen langsam die Umrisse eines Riffs aus dem Nebel schälen. Die Golden Lion gleitet hindurch in ruhigeres Wasser dahinter. Übergang zur nächsten Szene (11.1, Riffinsel).",
+        trigger: [
+          { id: "verfolger_dreht_ab", label: "Der Verfolger nimmt den Köder, dreht auf die Laterne zu", info: "Weit hinten im Nebel hält das fremde Schiff plötzlich auf die treibende Laterne zu, statt weiter geradeaus — die Finte hat funktioniert." },
+          { id: "golden_lion_schluepft_durch", label: "Golden Lion schlüpft dunkel durchs Riff — Übergang zu 11.1", info: "Tom hält Kurs, dunkel und lautlos, während sich die Umrisse eines Riffs aus dem Nebel schälen. Die Golden Lion gleitet hindurch in ruhigeres Wasser." }
         ]
       }
     }
@@ -396,6 +441,11 @@ const ORTE = {
       "5.1": {
         // Reiner Flavor-Zusatz, kein Plot-Gewicht.
         ortHinweis: "Francesco lehnt an der Reling und blickt der schwindenden Insel hinterher, als würde er einem Liebsten nachtrauern — übertrieben theatralisch, eine Hand aufs Herz gepresst. „Ein paar Tage Sonne, und schon soll es vorbei sein? Grausames Schicksal.“ Wer ihn direkt anspricht, bekommt eine kleine, komplett improvisierte Trauerrede auf die Insel zu hören, inklusive einer imaginären Rose, die er theatralisch über die Reling ins Kielwasser wirft."
+      },
+      "10.1": {
+        personen: "Cormac Daly",
+        kurz: "Cormac befiehlt volle Segel und sämtliche Lichter aus, sobald der Verfolger gesichtet ist. Kein Raum für Francescos übliche Präsenz.",
+        ortHinweis: "Volle Segel, so viel Tuch wie der Mast hergibt — und trotzdem kein einziges Licht an Bord. Cormac geht selbst von Laterne zu Laterne und löscht, was die Crew nicht schnell genug findet. Befehle werden nur noch geflüstert oder mit Handzeichen gegeben."
       }
     },
     interaktionen: {
@@ -461,7 +511,7 @@ const ORTE = {
       "einschaetzungen": {
         title: "Francesco — Ehrliche Einschätzungen",
         kurz: "Auf direkte Frage nach anderen Personen: ehrliche, nie proaktiv genannte Meinung. Kein Trigger/Ruf-Effekt, reine Charakterinfo.",
-        nichtInSzenen: ["3.1"], // Ruhiges Gespräch - passt nicht zum Sturm, in dem laut Szenentext alle mit den Segeln kämpfen
+        nichtInSzenen: ["3.1", "10.1"], // Ruhiges Gespräch - passt weder zum Sturm noch zur Flucht, in denen laut Szenentext alle beschäftigt sind
         details: "Fragt man Francesco gezielt nach jemandem, gibt er seine ehrliche Einschätzung — nie von sich aus, nur auf Nachfrage.\n\n— Harwick: warm, respektvoll, fast bewundernd\n— Cormac: freundlich-distanziert, \"zu streng\"\n— Wat: reserviert, spürbares Unbehagen, hält nicht viel von ihm\n— Tom: \"Der ehrlichste Betrüger, den er kennt\" — durchschaut ihn, mag ihn trotzdem\n— Josiah: \"Eine gute Seele\" — schlägt vor, ihn in der Kombüse zu besuchen, falls die Spieler ihn noch nicht kennen (organische Weiterleitung)\n— Dirk: \"Fast mit dem Schiff verwachsen\", lieber in Gesellschaft von Kanonen/Werkzeug als Menschen — bester Ansprechpartner bei Reparaturen, beeilt sich dabei nur, um die Spieler wieder loszuwerden",
         trigger: [
           { id: "gefragt_harwick", label: "Nach Harwick gefragt", info: "Harwick: warm, respektvoll, fast bewundernd." },
@@ -483,6 +533,17 @@ const ORTE = {
           { id: "unentschieden", label: "Knappes Ergebnis → Francesco fordert Revanche", info: "Beide lachen, Francesco schlägt sofort eine Revanche vor." },
           { id: "francesco_gewinnt", label: "Francesco gewinnt deutlich → Spieler muss erzählen", info: "Francesco verlangt die versprochene peinliche Geschichte — und hört mit ehrlichem Interesse zu, ganz ohne Spott." }
         ]
+      },
+      "volle_segel_lichter_aus": {
+        title: "Cormac — Volle Segel, Lichter aus",
+        kurz: "Direkt nach der Sichtung: Cormacs Befehl an die gesamte Crew — jedes Segel setzen, jede Laterne löschen, ab jetzt nur noch geflüsterte Befehle.",
+        nurSzenen: ["10.1"],
+        details: "Kaum ist klar, dass das fremde Schiff der Golden Lion folgt, hallt Cormacs Stimme knapp über Deck — das letzte Mal, dass heute Nacht jemand laut ruft: „Alle Segel setzen! Jedes Licht aus, sofort!“\n\nDie Crew reagiert sofort und routiniert. Segel um Segel geht hoch, bis der Mast so viel Tuch trägt, wie er hergibt. Gleichzeitig löschen Männer eine Laterne nach der anderen oder decken sie ab — wer nicht schnell genug ist, bekommt sie von Cormac persönlich aus der Hand genommen.\n\nAb jetzt läuft alles im Dunkeln: Befehle nur noch geflüstert oder per Handzeichen, jeder Handgriff an Tauwerk und Winden praktisch blind. Spieler, die mit anpacken wollen, können das ohne Probe — es gibt hier genug zu tun für jeden.",
+        trigger: [
+          { id: "befehl_volle_segel", label: "Cormacs Befehl: alle Segel setzen, jedes Licht aus", info: "„Alle Segel setzen! Jedes Licht aus, sofort!“ — das letzte Mal, dass heute Nacht jemand laut ruft." },
+          { id: "lichter_geloescht", label: "Jede Laterne wird gelöscht oder abgedeckt", info: "Wer nicht schnell genug ist, bekommt seine Laterne von Cormac persönlich aus der Hand genommen." },
+          { id: "ab_jetzt_dunkel_gefluestert", label: "Ab jetzt: nur noch geflüsterte Befehle, Arbeit im Dunkeln", info: "Befehle nur noch geflüstert oder per Handzeichen, jeder Handgriff praktisch blind. Spieler können ohne Probe mit anpacken." }
+        ]
       }
     }
   },
@@ -499,13 +560,18 @@ const ORTE = {
         personen: "Ned Sharpe (allein)",
         kurz: "Ned lungert ohne Ezra am Bug — und ohne sein übliches Publikum.",
         ortHinweis: "Ned Sharpe lungert allein am Bug — ohne Ezra fehlt ihm offenbar das Publikum. Er fängt bei jedem Vorbeigehenden dieselbe Sturm-Geschichte an, jedes Mal ein bisschen dramatischer als beim letzten Mal (inzwischen hat er angeblich drei Mann im Alleingang aus den Wellen gezogen). Irgendwann brüllt Tom quer übers Deck: „Beim letzten Mal warst du selbst derjenige, der gerettet werden musste!“ — Ned zieht sich kurz beleidigt zurück, fängt bei der nächsten Gelegenheit aber wieder von vorne an."
+      },
+      "10.1": {
+        personen: "Ausguck (namenlos)",
+        kurz: "Kein Platz für Bordell-Geplauder — vorderster, dunkler Ausguck-Posten, kein Licht erlaubt.",
+        ortHinweis: "Vorderster Punkt des Schiffs, Ausguck in beide Richtungen. Kein Licht ist hier erlaubt — jede Laterne würde die eigene Position verraten. Nebelschwaden ziehen dicht über das Wasser, dahinter, kaum auszumachen, dunkle Formen, die Riffe sein könnten. Oder auch nicht."
       }
     },
     interaktionen: {
       "bordell_nachklang": {
         title: "Ned & Ezra — Nachklang aus dem Bordell",
         kurz: "Reaktion variiert je nachdem, wie der Spieler die Raubein-Szene im Bordell gelöst hat (oder ob er überhaupt dort war).",
-        nichtInSzenen: ["5.1"], // Ezra liegt krank im Unterdeck, kann hier nicht mit Ned zusammen auftreten
+        nichtInSzenen: ["5.1", "10.1"], // 5.1: Ezra liegt krank im Unterdeck. 10.1: Ezra ist beim Spanier zurückgeblieben, siehe "ezra_am_mast" (achterdeck)
         details: "Ned und Ezra reden über den Bordellbesuch, konkret über den Vorfall mit dem groben Gast und Constance' Reaktion darauf. Erkennen einen vorbeikommenden Spieler, falls der dort war — mit deutlich unterschiedlichem Ton je nach Ausgang:\n\n— War dort, hat physisch eingegriffen (Raubein-Szene, Bordell): warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen\n— War dort, hat sozial deeskaliert: anerkennend, ruhiger, würdigend, weniger überschwänglich\n— War dort, hat nicht eingegriffen: erkennen den Spieler, aber kühler — knapper, leicht distanzierter Kommentar, kein offener Vorwurf\n— War nicht dort: Ned wird sichtlich unangenehm berührt, wechselt das Thema — reine Verlegenheit, keine Folge",
         trigger: [
           { id: "physisch", label: "Spieler hatte Raubein-Szene physisch gelöst → warm/bewundernd", info: "War dort, hat physisch eingegriffen: warm, fast bewundernd — erzählen die Geschichte nochmal nach, mit kleinen Übertreibungen." },
@@ -525,6 +591,17 @@ const ORTE = {
           { id: "normaler_erfolg", label: "Normaler Erfolg → Ned erklärt sich trotzdem zum Sieger", info: "Ordentliches Ergebnis, Ned erklärt sich trotzdem knapp zum Sieger: „Wind stand ungünstig für dich.“" },
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → kläglicher Versuch", info: "Kläglicher Versuch, kaum über die Reling hinaus. Ned feiert sich lautstark selbst." },
           { id: "misserfolg", label: "Misserfolg → Wind dreht im ungünstigsten Moment", info: "Der Wind dreht im ungünstigsten Moment. Ned lacht Tränen, erzählt es garantiert noch beim Abendessen weiter." }
+        ]
+      },
+      "riff_ausguck": {
+        title: "Riff-Ausguck",
+        kurz: "Wahrnehmungs-/Seefahrtsprobe, das Riff im Nebel rechtzeitig zu erkennen. Misserfolg = kein Abbruch, aber 1 Schadenspunkt (Schramme am Rumpf).",
+        nurSzenen: ["10.1"],
+        details: "Wer am Bug Ausguck hält, ist der oder die Erste, die etwas von der Gefahr voraus sieht — nicht der Verfolger, sondern das eigene Riff, auf das die Golden Lion zuhält. Im Nebel und der Dunkelheit ist das keine leichte Aufgabe.\n\nProbe: Wahrnehmung oder Seefahrt.\n\n— Erfolg: Das Riff wird rechtzeitig erkannt und ausgerufen (leise!) — Tom kann sauber gegensteuern, kein Schaden.\n— Misserfolg: kein Abbruch, die Golden Lion findet den Weg trotzdem, aber streift dabei Fels — 1 Schadenspunkt (Muster wie die losgerissene Kanone im Sturm: Schaden bleibt bestehen, kann sich später auswirken).\n\nMehrere Spieler können nacheinander oder gemeinsam Ausguck halten, falls die erste Probe misslingt.",
+        trigger: [
+          { id: "ausguck_probe", label: "Wahrnehmungs-/Seefahrtsprobe versucht", info: "Wer am Bug Ausguck hält, muss im Nebel und der Dunkelheit das eigene Riff rechtzeitig erkennen." },
+          { id: "riff_erkannt", label: "Erfolg → Riff rechtzeitig erkannt, Tom steuert sauber gegen", info: "Das Riff wird rechtzeitig erkannt und leise ausgerufen — Tom kann sauber gegensteuern, kein Schaden." },
+          { id: "riff_gestreift", label: "Misserfolg → Rumpf streift Fels, 1 Schadenspunkt", info: "Kein Abbruch, die Golden Lion findet den Weg trotzdem, streift dabei aber Fels — 1 Schadenspunkt, kann sich später auswirken." }
         ]
       }
     }
@@ -547,13 +624,18 @@ const ORTE = {
       "5.1": {
         // Reiner Flavor-Zusatz, kein Plot-Gewicht.
         ortHinweis: "Die Trewin-Zwillinge streiten sich lautstark darüber, wer von ihnen auf der Insel eigentlich die größere Krabbe „bezwungen“ hat — mit jeder Wiederholung wächst das Tier um eine Handbreit, mittlerweile sind sie bei „fast so groß wie ein Hund“ angelangt. Dirk poliert daneben stoisch eine Kanone und ignoriert beide komplett, bis einer der Zwillinge ihn als Zeugen aufrufen will — dann hebt er nur kurz den Blick, sagt kein Wort, und poliert weiter."
+      },
+      "10.1": {
+        personen: "Dirk van Hoorn",
+        kurz: "Kanonen geladen und bereit, aber striktes Feuerverbot — ein Schuss würde die Position verraten.",
+        ortHinweis: "Die Kanonen sind geladen, die Lunten bereit — und trotzdem soll keine einzige abgefeuert werden. Jeder Blitz, jeder Knall würde verraten, wo genau sie sind. Dirk geht die Reihe entlang, prüft jede Lunte still, sagt kein Wort mehr als nötig."
       }
     },
     interaktionen: {
       "dirk_vertrauen": {
         title: "Dirk van Hoorn — Vertrauen durch Fachkenntnis",
         kurz: "Arbeitet allein, will nicht gestört werden. Nur echte Mechanik-/Handwerks-Probe oder kaputtes Objekt weckt Interesse — mit Payoff NACH der Sturm-Szene.",
-        nichtInSzenen: ["3.1"],
+        nichtInSzenen: ["3.1", "10.1"],
         details: "Dirk arbeitet für sich an Kanonen und Werkzeug, einsilbig und abweisend bei reinem Small Talk.\n\nAuslöser: eine echte Mechanik-/Handwerks-Probe oder ein konkretes kaputtes Objekt, das der Spieler mitbringt oder anspricht — reines fachlich klingendes Gerede reicht nicht.\n\nBei Erfolg taut er kurz auf, einigermaßen interessiert — und merkt sich den Spieler intern. Kein sofortiger großer Lohn: Erst später, NACH der Sturm-Szene (eigener, noch auszuarbeitender Programmpunkt), kommt Dirk mit einem kniffligen mechanischen Problem auf genau diesen Spieler zu — dort besteht dann die Chance auf einen großen Ruf-Gewinn.\n\n> Korrektur (Juli 2026): Ursprünglich stand hier \"in der Sturm-Szene\" — Dirks Payoff liegt aber NACH dem Sturm, nicht während. Die Kanonen-Szene während des Sturms selbst (siehe Interaktion \"kanone_sturm\" unten) bleibt bewusst anonym, ohne Dirk namentlich zu erwähnen.",
         trigger: [
           { id: "ausloeser_erfolgreich", label: "Mechanik-Probe/kaputtes Objekt erfolgreich → Dirk merkt sich Spieler", info: "Auslöser: eine echte Mechanik-/Handwerks-Probe oder ein konkretes kaputtes Objekt, das der Spieler mitbringt. Bei Erfolg taut Dirk kurz auf, einigermaßen interessiert — und merkt sich den Spieler intern." },
@@ -575,7 +657,7 @@ const ORTE = {
       "trewin_kater": {
         title: "Trewin-Zwillinge — Nachwehen des Trinkwettbewerbs",
         kurz: "Reaktion hängt vom Ausgang des Trinkwettbewerbs in der Taverne ab (gewonnen / verloren / nie angetreten).",
-        nichtInSzenen: ["3.1"], // Kater-Szene passt nicht zum Sturm-Chaos mit der losgerissenen Kanone am selben Ort
+        nichtInSzenen: ["3.1", "10.1"], // Kater-Szene passt weder zum Sturm-Chaos noch zur angespannten Flucht am selben Ort
         details: "Die Trewin-Zwillinge sind hier anzutreffen, ihr Zustand hängt vom Ausgang des Trinkspiels in der Taverne ab:\n\n— Gewonnen (Spieler hat sie unter den Tisch gesoffen): über Kreuz übereinander in einer Hängematte verkeilt, stöhnen vor Übelkeit, zanken sich gegenseitig an, dass der andere Platz machen soll — können sich kaum bewegen\n— Verloren: triumphierend, spöttisch gegenüber dem Spieler\n— Nie angetreten: neutral, ignorieren den Spieler weitgehend",
         trigger: [
           { id: "gewonnen", label: "Spieler hat Zwillinge besiegt → Kater-Szene", info: "Gewonnen (Spieler hat sie unter den Tisch gesoffen): über Kreuz übereinander in einer Hängematte verkeilt, stöhnen vor Übelkeit, zanken sich, dass der andere Platz machen soll." },
@@ -595,6 +677,17 @@ const ORTE = {
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → beide fühlen sich bestätigt, Streit geht weiter", info: "Unsichere, vage Antwort — beide Zwillinge erklären sich gegenseitig für bestätigt und streiten munter weiter." },
           { id: "misserfolg", label: "Misserfolg → hörbar frei erfunden, Streit geht unbeeindruckt weiter", info: "Hörbar frei erfunden. Beide Zwillinge starren nur, dann streiten sie weiter, als wäre nichts gewesen." }
         ]
+      },
+      "kanonen_bereithalten_kein_schuss": {
+        title: "Kanonen bereit, striktes Feuerverbot",
+        kurz: "Dirk lässt die Kanonen laden und die Lunten bereitmachen — Cormacs Befehl ist trotzdem eindeutig: nicht abfeuern. Ein Schuss würde die Position verraten.",
+        nurSzenen: ["10.1"],
+        details: "Für den Fall, dass die Finte nicht reicht, lässt Dirk die Kanonen laden und die Lunten bereitmachen — reine Vorsichtsmaßnahme, wortlos und routiniert. Cormacs Befehl dazu ist unmissverständlich: Es wird nicht geschossen, ganz gleich wie nah der Verfolger kommt. Jeder Blitz, jeder Knall würde in der Dunkelheit sofort verraten, wo genau die Golden Lion steckt — und damit die ganze Finte zunichtemachen.\n\nFür einen kampflustigen Spieler eine echte Zerreißprobe: die Kanonen sind griffbereit, der Gegner ist near — und trotzdem gilt eiserne Disziplin. Feuert jemand trotzdem (SL-Ermessen, ob ein Spieler das überhaupt versucht), hat das einen echten Preis: Die Position ist verraten, die Finte ist wertlos, der Verfolger hält direkt auf die Golden Lion zu.",
+        trigger: [
+          { id: "kanonen_geladen", label: "Kanonen geladen, Lunten bereit — reine Vorsichtsmaßnahme", info: "Dirk lässt die Kanonen laden und die Lunten bereitmachen, wortlos und routiniert." },
+          { id: "feuerverbot", label: "Cormacs striktes Feuerverbot — ein Schuss würde die Position verraten", info: "Es wird nicht geschossen, ganz gleich wie nah der Verfolger kommt — jeder Blitz, jeder Knall würde die Position verraten und die Finte zunichtemachen." },
+          { id: "verstoss_konsequenz", label: "Falls doch geschossen wird: Position verraten, Finte wertlos (SL-Ermessen)", info: "Feuert jemand trotzdem, hat das einen echten Preis: Die Position ist verraten, die Finte ist wertlos, der Verfolger hält direkt auf die Golden Lion zu." }
+        ]
       }
     }
   },
@@ -607,12 +700,18 @@ const ORTE = {
     szenenUeberschreibungen: {
       "5.1": {
         ortHinweis: "Die Handwerker sind hörbar zufrieden mit sich — wer hier hereinkommt, bekommt ungefragt erzählt, wessen Idee der entscheidende Hebel beim Freirollen von der Sandbank war. Jeder erzählt eine andere Version, jede macht ihn selbst zum eigentlichen Kopf der Aktion. Der Streit ist gutmütig, wird aber mit wachsender Lautstärke geführt, je länger man zuhört."
+      },
+      "10.1": {
+        personen: "Sam Oakley · weitere Handwerker (namenlos)",
+        kurz: "Kein normales Tageswerk — mit gedämpfter Stimme wird an einer Licht-Finte gebaut: ein behelfsmäßiger Mast mit Laterne fürs Beiboot.",
+        ortHinweis: "Kein normales Tageswerk heute — mit gedämpfter Stimme und Behelfswerkzeug wird hier etwas zusammengebaut, das auf den ersten Blick keinen Sinn ergibt: ein Bündel Latten, grob zu einer Mastform gebunden, dazu eine einzige Laterne. Sam Oakley, der Zimmermannsgehilfe, hat die Arbeit übernommen — konzentriert, schnell, ohne unnötige Worte."
       }
     },
     interaktionen: {
       "eingespannt": {
         title: "Erster Spieler im Raum — direkt eingespannt",
         kurz: "Nur der erste Spieler, der den Raum betritt. Mechanik-Probe: Guter Erfolg = Ruf-Plus, Misserfolg = Ruf-Malus, beide mittleren Bänder neutral.",
+        nichtInSzenen: ["10.1"], // in 10.1 arbeitet die Werkstatt konzentriert an der Licht-Finte, kein Raum fuer normale Alltagsauftraege
         details: "Der erste Spieler, der die Werkstatt betritt, wird ohne Umschweife eingespannt:\n\n„Schnapp dir den Fuchsschwanz und gib mir das auf 30 Zoll raus.“\n\n(Fuchsschwanz = Handsäge, benannt nach der spitz zulaufenden Blattform.) Der Mann am Tisch reicht ein Kanthol, schaut kaum auf, bleibt bei seiner eigenen Arbeit.\n\nMechanik-Probe:\n— Guter Erfolg: Schnitt exakt auf Maß, kurzes Nicken → Ruf-Gewinn\n— Normaler Erfolg: brauchbar, kein Kommentar → neutral\n— Schlechter Erfolg: sichtbar daneben, wortlos beiseitegelegt → neutral\n— Misserfolg: Kanthol splittert oder grob falsches Maß — einziger Moment, in dem er wirklich aufsieht → Ruf-Malus\n\nNachkommende Spieler bekommen keine eigene Aufgabe. Auf Nachfrage: „Wir kommen zurecht, geh zu Cormac, wenn du Arbeit suchst.“",
         trigger: [
           { id: "erster_eingespannt", label: "Erster Spieler eingespannt", info: "Der erste Spieler, der die Werkstatt betritt, wird ohne Umschweife eingespannt: „Schnapp dir den Fuchsschwanz und gib mir das auf 30 Zoll raus.“ Der Mann am Tisch reicht ein Kanthol, schaut kaum auf." },
@@ -633,6 +732,17 @@ const ORTE = {
           { id: "normaler_erfolg", label: "Normaler Erfolg → erkennbare, solide Form", info: "Erkennbare Form, nicht perfekt, aber solide. Anerkennendes Nicken." },
           { id: "schlechter_erfolg", label: "Schlechter Erfolg → unförmiger Klumpen", info: "Unförmiger Klumpen, kaum als irgendetwas erkennbar. Herzhaftes, wohlwollendes Lachen." },
           { id: "misserfolg", label: "Misserfolg → Holz splittert komplett", info: "Das Holz splittert komplett, vielleicht sogar ein kleiner Schnitt in den Finger." }
+        ]
+      },
+      "die_lichter_finte": {
+        title: "Die Licht-Finte",
+        kurz: "Sam Oakley und die Handwerker bauen einen behelfsmäßigen Mast mit Laterne, montiert aufs Beiboot — als Köder ausgesetzt, während die Golden Lion selbst dunkel bleibt (Master-and-Commander-Trick).",
+        nurSzenen: ["10.1"],
+        details: "Sam Oakley hat die Idee, kaum dass Cormacs Befehl zu den Lichtern die Runde macht: Wenn die Golden Lion dunkel bleiben muss, soll wenigstens irgendwo ein Licht zu sehen sein — nur eben nicht an Bord.\n\nMit ein paar Latten, grobem Tauwerk und einer einzigen Laterne baut er zusammen mit den übrigen Handwerkern einen behelfsmäßigen Mast — grob, aber aus der Ferne im Nebel durchaus passabel. Interessierte Spieler können mithelfen (optionale Mechanik-Probe, kein Zwang, kein Fehlschlag-Ende — auch ohne Probe wird die Finte rechtzeitig fertig, ein guter Erfolg macht sie nur überzeugender).\n\nDer fertige Aufbau wird aufs Beiboot montiert, die Laterne entzündet, das Boot dann still zu Wasser gelassen und in eine andere Richtung als die geplante Fluchtroute treiben gelassen. Ob die Finte tatsächlich zieht, zeigt sich erst später (siehe Achterdeck, Interaktion \"Die Finte gelingt\").",
+        trigger: [
+          { id: "idee_lichter_finte", label: "Sam Oakleys Idee: ein Köder-Licht, aber nicht an Bord", info: "Kaum macht Cormacs Befehl zu den Lichtern die Runde, hat Sam die Idee: Wenn die Golden Lion dunkel bleiben muss, soll wenigstens irgendwo ein Licht zu sehen sein — nur nicht an Bord." },
+          { id: "bau_der_finte", label: "Behelfsmäßiger Mast mit Laterne gebaut (optionale Mechanik-Probe, kein Fehlschlag-Ende)", info: "Aus Latten, grobem Tauwerk und einer Laterne entsteht ein behelfsmäßiger Mast — grob, aber im Nebel aus der Ferne passabel. Mithilfe optional, auch ohne Probe rechtzeitig fertig." },
+          { id: "beiboot_ausgesetzt", label: "Aufbau aufs Beiboot montiert, Laterne entzündet, still zu Wasser gelassen", info: "Der fertige Aufbau wird aufs Beiboot montiert, die Laterne entzündet, das Boot still zu Wasser gelassen und in eine andere Richtung treiben gelassen als die geplante Fluchtroute." }
         ]
       }
     }
@@ -1565,6 +1675,114 @@ const ORTE = {
         ]
       }
     }
+  },
+
+  // Riffinsel (Bibel 7.4, Szene "11.1", riffinsel_scenes.js). "riffstrand"
+  // ist von Anfang an sichtbar, die vier übrigen Marker starten ausgeblendet
+  // (hiddenMarkersLive, siehe "die_erkundung" unten) und werden vom SL live
+  // eingeblendet, sobald die passende Probe gelingt - siehe Skill pnp-scene/
+  // CLAUDE.md Architektur-Muster.
+  "riffstrand": {
+    personen: "James Harwick · Cormac Daly",
+    kurz: "Ankunft in der geschützten Lagune, kurze Erleichterung, dann Cormacs offene Erkundungsaufgabe (Wasser/Material/Sicherheit). Referenz für die vier Skill-gated Fundstellen in \"Die Erkundung\".",
+    interaktionen: {
+      "ankunft_und_auftrag": {
+        title: "Ankunft — Cormacs Auftrag",
+        kurz: "Ankunft in der geschützten Lagune bei Tagesanbruch, kurze Erleichterung, dann Cormacs offene Erkundungsaufgabe: Wasser, Ausbesserungsmaterial, Sicherheit. Kein fester Weg, Gruppen können sich frei aufteilen.",
+        details: "Die Golden Lion gleitet durchs Riff in ruhigeres Wasser dahinter und wirft Anker in einer kleinen, geschützten Lagune. Der Himmel im Osten hellt sich auf. Für einen Moment sagt niemand etwas — die Erleichterung ist förmlich zu greifen, aber niemand traut sich, sie laut auszusprechen, solange der Verfolger noch irgendwo dort draußen sein könnte.\n\nCormac ist der Erste, der die Stille bricht. Praktisch wie immer, verteilt er die Aufgaben: Süßwasser wird knapp, die Flucht hat dem Schiff sichtbar zugesetzt, und niemand weiß, ob die Insel wirklich so verlassen ist, wie sie aussieht. Sein Auftrag an die Gruppe ist bewusst offen gehalten: „Sucht die Insel ab. Wasser, brauchbares Material, und haltet die Augen offen. Teilt euch auf, wenn ihr wollt — nur nicht allein.“\n\nWeder Route noch Reihenfolge sind vorgegeben — die Spieler entscheiden selbst, wohin sie zuerst aufbrechen (siehe Interaktion \"Die Erkundung\" für die einzelnen Fundstellen).",
+        trigger: [
+          { id: "ankunft_lagune", label: "Golden Lion gleitet durchs Riff, wirft Anker in der Lagune", info: "Die Golden Lion gleitet durchs Riff in ruhigeres Wasser dahinter und wirft Anker in einer kleinen, geschützten Lagune. Der Himmel im Osten hellt sich auf." },
+          { id: "kurze_erleichterung", label: "Ein Moment der Stille — Erleichterung, die niemand laut ausspricht", info: "Die Erleichterung ist förmlich zu greifen, aber niemand traut sich, sie laut auszusprechen, solange der Verfolger noch irgendwo dort draußen sein könnte." },
+          { id: "cormacs_auftrag", label: "Cormac erteilt die offene Erkundungsaufgabe: Wasser, Material, Sicherheit", info: "„Sucht die Insel ab. Wasser, brauchbares Material, und haltet die Augen offen. Teilt euch auf, wenn ihr wollt — nur nicht allein.“" },
+          { id: "keine_feste_route", label: "Weder Route noch Reihenfolge vorgegeben, Gruppe kann sich aufteilen", info: "Die Spieler entscheiden selbst, wohin sie zuerst aufbrechen." }
+        ]
+      },
+      "die_erkundung": {
+        title: "Die Erkundung — vier Fundstellen (SL-Referenz)",
+        kurz: "SL-Referenz: die vier möglichen Ziele der Erkundung, jeweils mit eigener Probe. Erfolg blendet den passenden Marker live ein (hiddenMarkersLive), Misserfolg kostet meist nur Zeit und ggf. 1 Schaden — nie einen Abbruch.",
+        details: "Diese Insel hat mehr zu bieten als den Landepunkt — aber die weiteren Orte finden sich nicht von selbst. SL-Hinweis: Alle vier folgenden Marker sollten zu Szenenbeginn über den Sichtbarkeits-Schalter (hiddenMarkersLive, Adminpanel) ausgeblendet werden und erst einzeln sichtbar geschaltet werden, sobald eine Gruppe die passende Probe schafft. Reihenfolge frei, mehrere Proben können parallel von verschiedenen Spielern versucht werden.\n\n— Süßwasserquelle: Instinkt/Survival. Erfolg blendet den Marker ein. Misserfolg: Zeit verloren, dazu ein kleiner Schaden (übles, brackiges Wasser probiert) — ein zweiter Versuch ist jederzeit möglich.\n\n— Wrackteile am Riff: Klettern/Körper (über scharfes, nasses Riffgestein). Erfolg blendet den Marker ein. Misserfolg: Zeit verloren, ein kleiner Schaden (Schnittwunde am Riffgestein) — zweiter Versuch möglich.\n\n— Aussichtsklippe: Klettern. Erfolg blendet den Marker ein. Misserfolg: Zeit verloren, ein kleiner Schaden (abgerutscht) — zweiter Versuch möglich.\n\n— Versteckte Grotte: Wahrnehmung. Erfolg blendet den Marker ein. Misserfolg: bewusst folgenlos — man übersieht den Eingang einfach, kein Sturz möglich, jederzeit ein zweiter Versuch.",
+        trigger: [
+          { id: "quelle_probe", label: "Süßwasserquelle: Instinkt-/Survival-Probe versucht", info: "Ein Gespür dafür, wo im dichten Gelände Wasser zu finden ist." },
+          { id: "quelle_erfolg", label: "Quelle gefunden → Marker live einblenden", info: "Erfolg blendet den Marker \"Süßwasserquelle\" ein (hiddenMarkersLive)." },
+          { id: "quelle_misserfolg", label: "Misserfolg → Zeit verloren, 1 Schaden (übles Wasser probiert)", info: "Zeit verloren, dazu ein kleiner Schaden — übles, brackiges Wasser probiert. Ein zweiter Versuch ist jederzeit möglich." },
+          { id: "wrackteile_probe", label: "Wrackteile: Klettern-/Körper-Probe versucht", info: "Über scharfes, nasses Riffgestein zu den Wrackteilen." },
+          { id: "wrackteile_erfolg", label: "Wrackteile gefunden → Marker live einblenden", info: "Erfolg blendet den Marker \"Wrackteile am Riff\" ein." },
+          { id: "wrackteile_misserfolg", label: "Misserfolg → Zeit verloren, 1 Schaden (Schnittwunde)", info: "Zeit verloren, dazu ein kleiner Schaden — Schnittwunde am Riffgestein. Zweiter Versuch möglich." },
+          { id: "klippe_probe", label: "Aussichtsklippe: Klettern-Probe versucht", info: "Die Klippe hochkommen." },
+          { id: "klippe_erfolg", label: "Klippe erklommen → Marker live einblenden", info: "Erfolg blendet den Marker \"Aussichtsklippe\" ein." },
+          { id: "klippe_misserfolg", label: "Misserfolg → Zeit verloren, 1 Schaden (abgerutscht)", info: "Zeit verloren, dazu ein kleiner Schaden — abgerutscht. Zweiter Versuch möglich." },
+          { id: "grotte_probe", label: "Versteckte Grotte: Wahrnehmungsprobe versucht", info: "Der gut versteckte Spalt im Fels ist leicht zu übersehen." },
+          { id: "grotte_erfolg", label: "Grotte gefunden → Marker live einblenden", info: "Erfolg blendet den Marker \"Versteckte Grotte\" ein." },
+          { id: "grotte_misserfolg", label: "Misserfolg → folgenlos, jederzeit erneut versuchbar", info: "Man übersieht den Eingang einfach — kein Sturz möglich, kein Schaden. Jederzeit ein zweiter Versuch." }
+        ]
+      }
+    }
+  },
+
+  "suesswasserquelle": {
+    personen: "Josiah Pryce",
+    kurz: "Nur sichtbar nach erfolgreicher Instinkt-/Survival-Probe (siehe Riffstrand, \"Die Erkundung\"). Ein ruhiger Charaktermoment mit Josiah Pryce abseits der Kombüse.",
+    interaktionen: {
+      "josiah_am_wasser": {
+        title: "Josiah — Ein ruhiger Moment am Wasser",
+        kurz: "Josiah füllt in Ruhe Wasserfässer, ein seltener ruhiger Moment mit ihm abseits der Kombüse. Auf Nachfrage erzählt er kurz von Wales. Kein Wurf, kein Ruf-Effekt.",
+        details: "Wer die Quelle findet, trifft dort nicht auf einen leeren Ort: Josiah Pryce ist schon da, kniet am Beckenrand und füllt in aller Ruhe ein Fass nach dem anderen, summt dabei leise vor sich hin — dieselbe Melodie, die er sonst in der Kombüse pfeift.\n\nEr ist erkennbar erleichtert, mal nicht in der engen Kombüse zu stehen. Auf Ansprache bleibt er derselbe warme, sanfte Mann wie immer — hilft gerne beim Fassfüllen, hat für jeden ein freundliches Wort. Fragt jemand direkt nach ihm selbst, seiner Heimat, wird er nachdenklich, erzählt kurz und unaufgeregt von Wales, von einer Küche, die er dort zurückgelassen hat — ohne Selbstmitleid, eher wie eine ferne, freundliche Erinnerung.\n\nKein Wurf, kein Ruf-Effekt — reiner Charaktermoment, eine seltene Gelegenheit, Josiah außerhalb seiner Rolle als Koch kennenzulernen.",
+        trigger: [
+          { id: "josiah_am_becken", label: "Josiah kniet am Beckenrand, füllt Fässer, summt leise vor sich hin", info: "Dieselbe Melodie, die er sonst in der Kombüse pfeift." },
+          { id: "hilfsbereit", label: "Hilft gerne beim Fassfüllen, freundliches Wort für jeden", info: "Erkennbar erleichtert, mal nicht in der engen Kombüse zu stehen." },
+          { id: "ueber_wales", label: "Auf Nachfrage: erzählt kurz und unaufgeregt von Wales", info: "Von einer Küche, die er dort zurückgelassen hat — ohne Selbstmitleid, eher wie eine ferne, freundliche Erinnerung." }
+        ]
+      }
+    }
+  },
+
+  "wrackteile": {
+    personen: "Dirk van Hoorn · Sam Oakley",
+    kurz: "Nur sichtbar nach erfolgreicher Klettern-/Körper-Probe. Dirk und Sam bergen brauchbares Ausbesserungsmaterial aus einem alten Wrack am Riff.",
+    interaktionen: {
+      "material_bergen": {
+        title: "Material aus dem alten Wrack",
+        kurz: "Dirk und Sam sind schon vor Ort, bergen trockenes Holz und brauchbare Beschläge — genug für Ausbesserungen. Mithilfe ohne Probe möglich, freiwillige Mechanik-Probe kann einen besonders guten Fund liefern.",
+        details: "Wer sich zu den Wrackteilen durchkämpft, findet Dirk van Hoorn und Sam Oakley bereits dort vor — beide sind offenbar auf eigene Faust losgezogen, kaum dass Cormacs Auftrag die Runde machte. Sie untersuchen die verwitterten Planken mit dem geübten Blick von Leuten, die genau wissen, was sich noch verwenden lässt und was nicht.\n\nDas Wrack ist alt, vielleicht Jahrzehnte, längst vom Riff zermahlen — aber ein Teil des Holzes ist trocken und noch tragfähig, dazu ein paar brauchbare Beschläge und Nägel. Genug, um die Schäden der Flucht auszubessern (siehe \"Riff-Ausguck\", Bug, Szene 10.1, falls die Golden Lion dort Schaden genommen hat).\n\nDirk arbeitet wortkarg wie immer, knappe Anweisungen an Sam, ab und zu ein zufriedenes Grunzen bei einem guten Fund. Spieler, die mithelfen wollen, können das ohne Probe — hier ist genug zu tun. Eine echte, freiwillige Mechanik-/Handwerksprobe eines Spielers kann einen besonders guten Fund liefern (SL-Ermessen, z. B. ein Stück Metall, das sich später als nützlich erweist).",
+        trigger: [
+          { id: "dirk_und_sam_vor_ort", label: "Dirk und Sam sind schon da, untersuchen die Wrackteile fachmännisch", info: "Beide sind offenbar auf eigene Faust losgezogen, kaum dass Cormacs Auftrag die Runde machte." },
+          { id: "material_gefunden", label: "Trockenes Holz und brauchbare Beschläge gefunden — genug für Ausbesserungen", info: "Ein Teil des Holzes ist trocken und noch tragfähig, dazu ein paar brauchbare Beschläge und Nägel." },
+          { id: "mithilfe_moeglich", label: "Mithilfe ohne Probe möglich, freiwillige Mechanik-Probe kann besonders guten Fund liefern", info: "Wer mithelfen will, kann das ohne Probe. Eine freiwillige Mechanik-/Handwerksprobe kann einen besonders guten Fund liefern (SL-Ermessen)." }
+        ]
+      }
+    }
+  },
+
+  "aussichtsklippe": {
+    personen: "Amos Hale",
+    kurz: "Nur sichtbar nach erfolgreicher Klettern-Probe. Amos hält Wache und bestätigt am Ende: der Verfolger ist nur abgelenkt, nicht weg — Haken für Session 3.",
+    interaktionen: {
+      "wache_und_horizont": {
+        title: "Amos Hale — Wache auf der Klippe",
+        kurz: "Amos hält bereits Wache, sichtbar wachsamer als sonst. Am Horizont ist der Verfolger noch als dunkler Fleck zu sehen — abgelenkt, aber nicht weg. Session-Schluss-Beat.",
+        details: "Oben auf der Klippe steht bereits Amos Hale, den Blick übers offene Meer gerichtet, als wäre er nie woanders gewesen. Kein Erstaunen, kein Kommentar dazu, dass jemand den Aufstieg geschafft hat — nur ein knappes Nicken.\n\nEr lässt sich auf ein Gespräch ein, wenn man ihn anspricht — trocken, ungerührt wie immer, aber diesmal mit einer sichtbaren Wachsamkeit, die sonst nicht zu ihm passt. Nach einer Weile, ohne dass jemand fragen muss, spricht er aus, wonach er eigentlich Ausschau hält: irgendwo am Horizont, kaum mehr als ein dunkler Fleck zwischen Wasser und Himmel, ist der Verfolger noch zu sehen. Nicht näherkommend — aber auch nicht wirklich weg.\n\n„Die Finte hat uns Zeit gekauft. Nicht mehr.“ Damit ist der Moment der Erleichterung spürbar gedämpft — der Verfolger sucht immer noch, hat nur woanders angesetzt.",
+        trigger: [
+          { id: "amos_auf_wache", label: "Amos hält bereits Wache, den Blick übers offene Meer gerichtet", info: "Kein Erstaunen, kein Kommentar dazu, dass jemand den Aufstieg geschafft hat — nur ein knappes Nicken." },
+          { id: "amos_gespraechsbereit", label: "Lässt sich auf ein Gespräch ein, sichtbar wachsamer als sonst", info: "Trocken, ungerührt wie immer, aber diesmal mit einer sichtbaren Wachsamkeit, die sonst nicht zu ihm passt." },
+          { id: "verfolger_am_horizont", label: "Der Verfolger ist als dunkler Fleck am Horizont noch sichtbar — abgelenkt, aber nicht weg", info: "„Die Finte hat uns Zeit gekauft. Nicht mehr.“ Der Verfolger sucht immer noch, hat nur woanders angesetzt." }
+        ]
+      }
+    }
+  },
+
+  "versteckte_grotte": {
+    kurz: "Nur sichtbar nach erfolgreicher Wahrnehmungsprobe. Der geheimnisvolle Fund mit späterem Zahltag (Bibel 7.4: \"ein Vorteil, den die Spieler haben, ohne ihn zu kennen\") — bewusst nicht überdeutlich erklärt.",
+    interaktionen: {
+      "der_fund_in_der_grotte": {
+        title: "Der Fund in der Grotte",
+        kurz: "Eine alte, versiegelte Kiste mit einem unbekannten Symbol — Bedeutung bleibt bewusst offen, Zahltag folgt in einer späteren Szene.",
+        details: "Wer den Spalt im Fels findet und sich hindurchzwängt, steht in einer kleinen, trockenen Grotte — kühl, still, das Licht von draußen reicht nur wenige Schritte hinein. Auf den ersten Blick wirkt sie leer.\n\nErst beim genaueren Hinsehen zeigt sich: Ganz hinten, halb im Schatten, liegt etwas, das hier nicht hingehört — eine alte, mit Wachs versiegelte Kiste, gebrandmarkt mit einem Symbol, das niemand hier kennt. Zu schwer, um sie allein zu tragen.\n\nWas genau darin ist und wofür es später gut sein wird, verrät sich den Spielern in diesem Moment nicht — nur, dass sie dort ist, unversehrt, offenbar schon lange (Bibel 7.4: \"ein Vorteil, den die Spieler haben, ohne ihn zu kennen\"). Bewusst kein Aha-Moment, keine Erklärung an dieser Stelle — die Bedeutung zeigt sich erst in einer späteren Szene.",
+        trigger: [
+          { id: "grotte_betreten", label: "Der Spalt im Fels wird gefunden, die Grotte betreten", info: "Kühl, still, das Licht von draußen reicht nur wenige Schritte hinein. Auf den ersten Blick wirkt sie leer." },
+          { id: "kiste_entdeckt", label: "Eine versiegelte Kiste mit unbekanntem Symbol entdeckt — Bedeutung bleibt offen", info: "Halb im Schatten, zu schwer für eine Person allein. Was darin ist, verrät sich jetzt noch nicht." }
+        ]
+      }
+    }
   }
 };
 
@@ -1944,6 +2162,88 @@ const SZENEN_REGIE = {
         name: "Edmund Grey",
         rolle: "Heimwehkranker Familienvater",
         verfassung: "Denkt sichtbar an seine Familie, während er gebannt zum fremden Schiff hinüberblickt.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
+      }
+    ]
+  },
+
+  // Die Flucht (Bibel 7.4). Ghosts: gleicher Golden-Lion-Crew-Pool wie
+  // 2.1/3.1/5.1/6.1/9.1, Verfassung an die Verfolgung bei Nacht angepasst
+  // (Claude-Aufschlag, von Hendrik freizugeben).
+  "10.1": {
+    uebergeordnetesZiel: "Der spanischen Verfolgung entkommen, unentdeckt die Riffinsel erreichen.", // Bibel 2.9
+    stimmung: "Kein Licht mehr an Bord, kein lauter Befehl mehr. Die Golden Lion läuft mit vollen Segeln durch Nebel und Dunkelheit, während irgendwo hinter ihr, kaum zu unterscheiden vom Nebel selbst, der Verfolger bleibt. Jedes Knarren des Rumpfs klingt lauter als sonst. Niemand spricht mehr als nötig — und wenn, dann geflüstert.",
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Selbst er ist für einmal ganz still, arbeitet lautlos und routiniert an den Segeln — kein Spruch, kein Kommentar.",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Toby Rennick",
+        rolle: "Grüner Rekrut, erste Fahrt",
+        verfassung: "Zitternde Hände an den Leinen, presst die Lippen zusammen, um nicht laut zu werden — die Angst ist ihm deutlich anzusehen.",
+        beduerfnis: "Nicht als Landratte auffallen — und wenigstens einmal für etwas gelobt werden."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Murmelt lautlos, nur die Lippen bewegen sich — für ihn ist die Verfolgung längst mehr als nur ein Kriegsschiff.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Die Karten bleiben stecken, wo sie sind — arbeitet stattdessen verbissen und überraschend zuverlässig mit.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Presst sein Andenken so fest in der Hand, dass die Fingerknöchel weiß werden, arbeitet aber lautlos weiter mit.",
+        beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
+      }
+    ]
+  },
+
+  // Riffinsel (Bibel 7.4, Folgeszene zu 10.1). Ghosts: gleicher Pool,
+  // Verfassung jetzt auf Erschöpfung/Erleichterung nach der Flucht
+  // umgestellt (Claude-Aufschlag, von Hendrik freizugeben).
+  "11.1": {
+    uebergeordnetesZiel: "Die Insel absuchen — Wasser, Ausbesserungsmaterial und Sicherheit finden —, bevor es weitergeht.", // Bibel 2.9
+    stimmung: "Erschöpfung, so weit man hinsieht — aber auch echte Erleichterung. Die Golden Lion liegt vor Anker in einer kleinen, vom Riff geschützten Lagune, der Himmel hellt sich auf. Niemand redet über die vergangene Nacht, noch nicht. Stattdessen macht sich die Crew an die Arbeit: Fässer werden an Land gebracht, kleine Gruppen brechen auf, um die Insel abzusuchen.",
+    ghosts: [
+      {
+        name: "Amos Hale",
+        rolle: "Altgedienter Toppmann, seit 20 Jahren auf See",
+        verfassung: "Wieder ganz der Alte, kommentiert die durchwachte Nacht trocken: „Hab Schlimmeres gesehen. Meistens.“",
+        beduerfnis: "Seine Pfeife, seine Ruhe, und dass niemand ihn nach seiner Meinung zu Dingen fragt, die ihn nichts angehen."
+      },
+      {
+        name: "Toby Rennick",
+        rolle: "Grüner Rekrut, erste Fahrt",
+        verfassung: "Sichtlich erleichtert, fast euphorisch — seine erste echte Verfolgungsjagd überstanden, erzählt jedem in Hörweite davon.",
+        beduerfnis: "Nicht als Landratte auffallen — und wenigstens einmal für etwas gelobt werden."
+      },
+      {
+        name: "Corwin Ashby",
+        rolle: "Abergläubischer Zimmermannsgehilfe",
+        verfassung: "Sieht in der sicher erreichten Insel ein gutes Omen für einmal — deutlich entspannter, murmelt trotzdem sicherheitshalber weiter.",
+        beduerfnis: "Dass seine Warnungen ernst genommen werden — oder wenigstens niemand ihn dafür auslacht."
+      },
+      {
+        name: "Jonas Teague",
+        rolle: "Verschuldeter Kartenspieler",
+        verfassung: "Schon wieder mit den Karten in der Hand, sucht Mitspieler für die Wartezeit am Strand.",
+        beduerfnis: "Irgendwo schnell an Münzen kommen, bevor die Sache eskaliert.",
+        koerperlich: true
+      },
+      {
+        name: "Edmund Grey",
+        rolle: "Heimwehkranker Familienvater",
+        verfassung: "Erleichtert, aber sichtlich mitgenommen — sitzt eine Weile einfach nur da, das Andenken in der Hand, bevor er sich wieder an die Arbeit macht.",
         beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
       }
     ]

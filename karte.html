@@ -437,6 +437,7 @@
   <script src="js/spanischer_hafen_scenes.js"></script>
   <script src="js/schmugglernest_scenes.js"></script>
   <script src="js/artefakthandel_scenes.js"></script>
+  <script src="js/riffinsel_scenes.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/dice.js"></script>
 
@@ -513,6 +514,14 @@
         },
         getMarkers: function (sceneId) {
           return (typeof ARTEFAKTHANDEL_SCENES !== 'undefined' && ARTEFAKTHANDEL_SCENES[sceneId]) ? ARTEFAKTHANDEL_SCENES[sceneId].markers : null;
+        }
+      },
+      {
+        getScene: function (sceneId) {
+          return (typeof RIFFINSEL_SCENES !== 'undefined') ? RIFFINSEL_SCENES[sceneId] : undefined;
+        },
+        getMarkers: function (sceneId) {
+          return (typeof RIFFINSEL_SCENES !== 'undefined' && RIFFINSEL_SCENES[sceneId]) ? RIFFINSEL_SCENES[sceneId].markers : null;
         }
       }
     ];

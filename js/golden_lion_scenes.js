@@ -170,12 +170,37 @@ const GOLDEN_LION_SCENES = {
     label: "Golden Lion in der Flaute",
     background: "images/golden_lion_cutaway.webp",
     imgOverrides: {} // ebenfalls wie Basis-Szene - kein Wetterumschwung, der eigenes Bildmaterial rechtfertigt (nur Windstille)
+  },
+
+  // Bibel 7.4 ("Spanischer Angriff -> Riffinsel"): nach dem Verrat/Massaker
+  // beim Artefakthandel (9.1) holt das spanische Kriegsschiff die Golden
+  // Lion ein - derselbe Offizier aus 7.1 (Bibel 8.1, "Antagonist... nicht
+  // ueberlistbar, nur besaenftigt, ueberwaeltigt oder umgangen"). Offiziers-
+  // quartier/Unterdeck/Kombuese/Frachtraum spielen hier keine Rolle - die
+  // Handlung konzentriert sich auf Deck, Ruder, Kanonen und die Werkstatt
+  // (Licht-Finte). Optisch bewusst identisch zur Basis (kein neues
+  // Kartenbild) - Dunkelheit/Nebel traegt allein der Text. Folgeszene:
+  // "11.1" (Riffinsel, riffinsel_scenes.js).
+  "10.1": {
+    label: "Golden Lion — Die Flucht",
+    background: "images/golden_lion_cutaway.webp",
+    hiddenMarkers: ["offiziersquartier", "unterdeck", "kombuese", "frachtraum"],
+    imgOverrides: {},
+    descOverrides: {
+      bug: "Vorderster Punkt des Schiffs, Ausguck in beide Richtungen. Kein Licht ist hier erlaubt — jede Laterne würde die eigene Position verraten. Nebelschwaden ziehen dicht über das Wasser, dahinter, kaum auszumachen, dunkle Formen, die Riffe sein könnten. Oder auch nicht.",
+      oberdeck: "Volle Segel, so viel Tuch wie der Mast hergibt — und trotzdem kein einziges Licht an Bord. Jede Laterne wurde gelöscht oder abgeschirmt, Befehle werden nur noch geflüstert oder mit Handzeichen gegeben. Die Crew arbeitet im Dunkeln, an den eigenen Knoten und Winden praktisch blind.",
+      achterdeck: "Tom hält das Ruder mit beiden Händen, den Blick abwechselnd auf den Kompass und zurück über die Reling gerichtet. Irgendwo hinter ihnen, verschluckt vom Nebel, ist das fremde Schiff — näher, als es noch vor einer Stunde war.",
+      kapitaenskajuete: "Kein warmes Lampenlicht mehr hinter den Fenstern — die Kajüte liegt dunkel wie der Rest des Schiffs. Die Tür steht einen Spalt offen. Drinnen, kaum als Schatten zu erkennen, sitzt Harwick regungslos.",
+      batteriedeck: "Die Kanonen sind geladen, die Lunten bereit — und trotzdem soll keine einzige abgefeuert werden. Jeder Blitz, jeder Knall würde verraten, wo genau sie sind. Angespanntes Warten in völliger Dunkelheit.",
+      werkstatt: "Kein normales Tageswerk heute — mit gedämpfter Stimme und Behelfswerkzeug wird hier etwas zusammengebaut, das auf den ersten Blick keinen Sinn ergibt: ein Bündel Latten, grob zu einer Mastform gebunden, dazu eine einzige Laterne."
+    },
+    soundFile: "storm1.ogg" // vorlaeufig wiederverwendet fuer Spannung/Nachtstimmung, bis ein eigener Ton existiert
   }
 
   // Nächste freie führende Ziffer für eine weitere neue Örtlichkeit/einen
-  // weiteren Golden-Lion-Zustand: "9.1" ("7.1" Spanischer Hafen und "8.1"
-  // Schmugglernest sind seit der Übergangsszene nach der Insel vergeben,
-  // siehe spanischer_hafen_scenes.js/schmugglernest_scenes.js).
+  // weiteren Golden-Lion-Zustand: "12.1" ("7.1" Spanischer Hafen, "8.1"
+  // Schmugglernest, "9.1" Artefakthandel und "11.1" Riffinsel sind vergeben,
+  // siehe die jeweiligen *_scenes.js-Dateien).
 };
 
 // ID der Szene, die angezeigt wird, falls (noch) keine Verbindung zu

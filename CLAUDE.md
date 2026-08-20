@@ -9,7 +9,10 @@ zusätzlich einen laufenden Changelog.
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
 > an diesem Strang gearbeitet wird). Der **Schatzinsel-Szenen-Durchgang** ist seit August 2026
 > abgeschlossen (siehe Changelog unten) — die **Übergangsszenen nach der Insel**
-> (`5.1`/`6.1`/`7.1`/`8.1`) sind damit ebenfalls alle vier fertig. Nächster Schritt offen.
+> (`5.1`/`6.1`/`7.1`/`8.1`) sind damit ebenfalls alle vier fertig. Der **Artefakthandel** (`9.1`)
+> und die anschließende **Flucht + Riffinsel** (`10.1`/`11.1`) sind ebenfalls fertig — damit ist
+> **Session 2 (Bibel 7.4) inhaltlich abgeschlossen**. Nächster Schritt offen (Session 3 /
+> Offizierskonferenz, Bibel 7.5, oder Codex).
 
 ## Projekt in Kürze
 
@@ -90,6 +93,43 @@ Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge 
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
 ## Changelog
+
+### 2026-08-20
+- **Session 2 zu Ende erzählt: Szene `10.1` "Golden Lion — Die Flucht" und neue Szene `11.1`
+  "Riffinsel" ausformuliert** (Bibel 7.4, "Spanischer Angriff → Riffinsel"), Inhalt im Dialog mit
+  Hendrik entwickelt und mehrfach verfeinert. Ausgangslage: Die Spieler haben den Artefakthandel
+  (`9.1`) abgeschlossen (Massaker, Kinder gerettet, Artefakt geborgen) und werden vom spanischen
+  Kriegsschiff verfolgt — derselbe wiederkehrende Offizier aus `7.1`, der seit der dortigen
+  Kneipen-Eskalation Ezra Coombe gefangen hält.
+  - **`10.1`** (neuer Golden-Lion-Zustand, `js/golden_lion_scenes.js`, optisch identisch zur
+    Basis, Text trägt die Nacht-/Nebelstimmung): Cormacs Befehl "volle Segel, Lichter aus"
+    (Oberdeck), Toms Kurs aufs rettende Riff (Achterdeck), ein optionaler Wahrnehmungs-Reveal —
+    Ezra Coombe vom Verfolger als Spott/Warnung an den Mast gehängt (Achterdeck), die Licht-Finte
+    mit falschem Mast und Laterne aufs Beiboot (Werkstatt, Master-and-Commander-Anlehnung), ein
+    Riff-Ausguck mit Schadensrisiko bei Misserfolg (Bug), striktes Feuerverbot trotz geladener
+    Kanonen (Batteriedeck), die gelungene Finte als Übergangs-Beat (Achterdeck) sowie Harwicks
+    Zustand nach dem Verrat, verzweigt nach dem Ausgang von "Kinder retten" (Kapitänskajüte,
+    permanente Konsequenz bei Bibel 12).
+  - **`11.1`** (komplett neue Örtlichkeit, neue Datei `js/riffinsel_scenes.js`, flaches Muster,
+    5 Marker, Platzhalterbild `schatzinsel.webp` bis echtes Artwork existiert): `riffstrand` ist
+    von Anfang an sichtbar (Ankunft, Cormacs offene Erkundungsaufgabe), die vier übrigen Marker
+    sind bewusst als Skill-gated Entdeckung angelegt — der SL blendet sie beim Szenenstart über
+    den bestehenden `hiddenMarkersLive`-Schalter aus und erst bei erfolgreicher Probe wieder ein
+    (keine neue Technik, siehe `ORTE.riffstrand`, Interaktion "Die Erkundung" für die SL-Referenz-
+    Tabelle aller vier Proben). Süßwasserquelle (Instinkt/Survival, Charaktermoment mit Josiah
+    Pryce), Wrackteile (Klettern/Körper, Dirk van Hoorn/Sam Oakley bergen Ausbesserungsmaterial),
+    Aussichtsklippe (Klettern, Amos Hale — Schluss-Beat: Verfolger am Horizont nur abgelenkt, nicht
+    weg, Haken für Session 3), versteckte Grotte (Wahrnehmung, eine versiegelte Kiste als Bibel-
+    7.4-"Vorteil, den die Spieler noch nicht kennen", Bedeutung bewusst offengelassen).
+  - Übliche Registry-Arbeit für die neue Örtlichkeit (`karte.html`/`regie.html`/
+    `js/regie_vault.js`: `getAllSceneEntries`/`getSceneLabel`/`getMarkersForScene`,
+    `SCENE_ORDER`), `SZENEN_REGIE["10.1"]`/`["11.1"]` mit `uebergeordnetesZiel` + wiederverwendetem
+    Crew-Ghost-Pool. Offline mit Playwright verifiziert (Skill `pnp-safe-test`, 0 Fehler in
+    `regie.html` und `karte.html`).
+  - **Bewusst zurückgestellt:** Eine interaktive Karte (bewegliches Gruppen-Icon, Mehrheits-
+    Entscheidung für Bewegungsrichtung, eingebauter Zeit-Mechanismus, On-Map-Rätsel-Widgets) wurde
+    mit Hendrik besprochen, aber explizit als eigenes künftiges Vorhaben abgegrenzt — betrifft alle
+    künftigen Szenen, nicht nur diese, und verdient eine eigene Planungsrunde.
 
 ### 2026-08-14 (Fortsetzung 3)
 - **Szene `9.1` (Artefakthandel) — Ankunfts-Beat und Kernszene ausformuliert**, Inhalt im
