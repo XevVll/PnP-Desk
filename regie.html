@@ -147,6 +147,26 @@
   .sh-quest-src { font-size: 0.74rem; color: var(--vink-dim); margin-top: 2px; }
   .sh-quest-done { flex: none; font-family: inherit; font-size: 0.76rem; background: transparent; border: 1px solid var(--vline-soft); color: var(--vink-dim); border-radius: 3px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
   .sh-quest-done:hover { border-color: var(--vgold); color: var(--vgold); }
+  /* Erkundungs-Graph-Panel (js/exploration_graphs.js) - SL-Sicht: aktueller
+     Knoten, bei Ereignis-Knoten die Probe/den Text zum Vorlesen, bei
+     Entscheidungsknoten die Live-Stimmverteilung + Direktwahl jeder Option. */
+  .sh-graph { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--vline-soft); }
+  .sh-graph-label { font-size: 0.76rem; letter-spacing: .5px; text-transform: uppercase; font-weight: 700; color: var(--vgold); margin-bottom: 4px; }
+  .sh-graph-ereignis-text, .sh-graph-ort-text { font-size: 0.86rem; color: var(--vink-dim); margin-bottom: 6px; }
+  .sh-graph-options { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+  .sh-graph-btn { font-family: inherit; font-size: 0.84rem; background: var(--vpanel2); border: 1px solid var(--vline-soft); color: var(--vink); border-radius: 5px; padding: 6px 10px; cursor: pointer; text-align: left; }
+  .sh-graph-btn:hover { border-color: var(--vgold); }
+  .sh-graph-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sh-graph-hinweis { flex: 1; }
+  .sh-graph-votes { flex: none; font-size: 0.74rem; color: var(--vink-faint); white-space: nowrap; }
+  .sh-graph-leader { border-color: var(--vlive); background: var(--vlive-soft); }
+  .sh-graph-total { font-size: 0.74rem; color: var(--vink-faint); margin-top: 4px; }
+  .sh-graph-ort-probe { background: var(--vwarn-soft); border: 1px solid var(--vwarn); border-radius: 6px; padding: 8px 10px; margin-top: 4px; }
+  .sh-graph-ort-title { font-weight: 700; margin-bottom: 4px; }
+  .sh-graph-probe { font-weight: 400; color: var(--vink-dim); }
+  .sh-graph-ort-buttons { display: flex; gap: 8px; margin-top: 6px; }
+  .sh-graph-btn-erfolg { border-color: var(--vlive); color: var(--vlive); }
+  .sh-graph-btn-misserfolg { border-color: var(--vaccent); color: var(--vaccent); }
   .v-tree { grid-row: 1/2; background: var(--vpanel); border-right: 1px solid var(--vline); overflow-y: auto; padding-bottom: 0.8rem; }
   .v-tree-head { padding: 0.56rem 0.8rem 0.32rem; font-size: 0.76rem; letter-spacing: 1.2px; color: var(--vink-faint); }
   .v-pane { grid-row: 1/2; overflow: hidden; display: flex; flex-direction: column; border-right: 1px solid var(--vline); }
@@ -381,6 +401,7 @@
 <script src="js/schmugglernest_scenes.js"></script>
 <script src="js/artefakthandel_scenes.js"></script>
 <script src="js/riffinsel_scenes.js"></script>
+<script src="js/exploration_graphs.js"></script>
 <script src="js/characters.js"></script>
 <script src="js/npc_roster.js"></script>
 <script src="js/dice.js"></script>

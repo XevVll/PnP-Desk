@@ -33,6 +33,8 @@ let charBarScene = null;
 let openMarkersRef = null, openMarkersListener = null, openMarkersScene = null, openMarkerCounts = {};
 let hiddenMarkersRef = null, hiddenMarkersListener = null, hiddenMarkersScene = null, hiddenMarkerIds = {};
 let sceneRegieRef = null, sceneRegieListener = null, sceneRegieScene = null, sceneRegieSnapshot = {};
+let graphStateRef = null, graphStateListener = null, graphStateScene = null, graphStateSnapshot = {};
+let pendingOrtEdge = null; // { edgeId, fromNode, toNode } - rein lokal, kein Firebase-State (Erkundungs-Graph)
 
 let extraGhosts = {};   // { [fbKey(sceneId)]: { [ghostId]: {name,rolle,verfassung,beduerfnis} } }
 let extraNpcIds = {};   // { [npcId]: true }
@@ -249,6 +251,119 @@ function attachSceneRegieListener(sceneId) {
   sceneRegieRef = db.ref('regie/' + fbKey(sceneId));
   sceneRegieListener = sceneRegieRef.on('value', function (snap) { sceneRegieSnapshot = snap.val() || {}; renderAll(); });
 }
+
+// ---------- Erkundungs-Graph (js/exploration_graphs.js) ----------
+// SL-Sicht auf graphState/{sceneId} (currentNode, votes). Spieler stimmen
+// live über karte.html ab (mySessionId, gleiches Muster wie openMarkers) -
+// die eigentliche Bewegung (currentNode setzen, Marker aufdecken) passiert
+// aber ausschließlich hier, damit ein einzelner Spieler-Client nicht
+// direkt den Szenenfortschritt bestimmen kann. Variablen-Deklaration ganz
+// oben in der Datei (vor dem Firebase-Init-catch-Zweig, TDZ, siehe dortiger
+// Kommentar) - hier nur die Funktionen.
+function attachGraphStateListener(sceneId) {
+  if (sceneId === graphStateScene) return;
+  if (graphStateRef && graphStateListener) graphStateRef.off('value', graphStateListener);
+  graphStateScene = sceneId; graphStateSnapshot = {}; pendingOrtEdge = null;
+  if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) return;
+  graphStateRef = db.ref('graphState/' + fbKey(sceneId));
+  graphStateListener = graphStateRef.on('value', function (snap) { graphStateSnapshot = snap.val() || {}; renderSceneHead(); });
+}
+
+function currentGraphNodeId(sceneId) {
+  const g = getExplorationGraph(sceneId);
+  if (!g) return null;
+  return graphStateSnapshot.currentNode || g.startNode;
+}
+
+function graphAdvance(sceneId, toNodeId) {
+  if (!db) return;
+  pendingOrtEdge = null;
+  db.ref('graphState/' + fbKey(sceneId) + '/currentNode').set(toNodeId);
+  db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
+}
+
+// Klick auf eine Kante im Adminpanel. Führt eine "ort"-Kante zu einem noch
+// nicht aufgedeckten Ort, wird statt direkter Navigation erst die Erfolg/
+// Misserfolg-Auflösung angezeigt (siehe graphResolveOrt) - bereits
+// aufgedeckte "ort"-Knoten verhalten sich wie eine normale Gabelung.
+function graphSelectEdge(sceneId, edgeId) {
+  const g = getExplorationGraph(sceneId);
+  if (!g) return;
+  const edge = g.edges[edgeId];
+  if (!edge) return;
+  const targetNode = g.nodes[edge.to];
+  if (targetNode && targetNode.type === 'ort' && targetNode.ortId && hiddenMarkerIds[targetNode.ortId]) {
+    pendingOrtEdge = { edgeId: edgeId, fromNode: edge.from, toNode: edge.to };
+    renderSceneHead();
+    return;
+  }
+  graphAdvance(sceneId, edge.to);
+}
+
+function graphResolveOrt(sceneId, success) {
+  if (!pendingOrtEdge || !db) return;
+  const toNode = pendingOrtEdge.toNode;
+  if (success) {
+    const node = getGraphNode(sceneId, toNode);
+    if (node && node.ortId) db.ref('hiddenMarkersLive/' + fbKey(sceneId) + '/' + node.ortId).remove();
+    graphAdvance(sceneId, toNode);
+  } else {
+    pendingOrtEdge = null;
+    db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
+    renderSceneHead();
+  }
+}
+
+function renderGraphPanelHTML(sceneId) {
+  const g = (typeof getExplorationGraph === 'function') ? getExplorationGraph(sceneId) : null;
+  if (!g) return '';
+  const currentId = currentGraphNodeId(sceneId);
+  const node = getGraphNode(sceneId, currentId);
+  if (!node) return '';
+
+  const votes = graphStateSnapshot.votes || {};
+  const voteCounts = {};
+  Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
+  const totalVotes = Object.keys(votes).length;
+  const maxVotes = Math.max.apply(null, Object.keys(voteCounts).map(function (k) { return voteCounts[k]; }).concat([0]));
+
+  let html = '<div class="sh-graph"><div class="sh-graph-label">🧭 Erkundung — ' + node.label + '</div>';
+
+  if (pendingOrtEdge) {
+    const targetNode = getGraphNode(sceneId, pendingOrtEdge.toNode);
+    html += '<div class="sh-graph-ort-probe">' +
+      '<div class="sh-graph-ort-title">Versuch: ' + targetNode.label + ' <span class="sh-graph-probe">(Probe: ' + targetNode.probe + ')</span></div>' +
+      '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + targetNode.erfolgText + '</div>' +
+      '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + targetNode.misserfolgText + '</div>' +
+      '<div class="sh-graph-ort-buttons">' +
+      '<button class="sh-graph-btn sh-graph-btn-erfolg" onclick="graphResolveOrt(\'' + sceneId + '\', true)">✓ Erfolg — aufdecken</button>' +
+      '<button class="sh-graph-btn sh-graph-btn-misserfolg" onclick="graphResolveOrt(\'' + sceneId + '\', false)">✗ Misserfolg</button>' +
+      '</div></div>';
+  } else if (node.type === 'ereignis') {
+    html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
+    const edges = getOutgoingEdges(sceneId, currentId);
+    if (edges[0]) html += '<button class="sh-graph-btn" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + edges[0].id + '\')">Weiter</button>';
+  } else {
+    const edges = getOutgoingEdges(sceneId, currentId);
+    if (!edges.length) {
+      html += '<div class="sh-graph-ereignis-text">Kein weiterer Weg von hier bekannt.</div>';
+    } else {
+      html += '<div class="sh-graph-options">';
+      edges.forEach(function (e) {
+        const count = voteCounts[e.id] || 0;
+        const isLeader = count > 0 && count === maxVotes;
+        html += '<button class="sh-graph-btn sh-graph-option' + (isLeader ? ' sh-graph-leader' : '') + '" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + e.id + '\')">' +
+          '<span class="sh-graph-hinweis">' + e.hinweis + '</span>' +
+          '<span class="sh-graph-votes">' + count + ' Stimme' + (count === 1 ? '' : 'n') + '</span></button>';
+      });
+      html += '</div>';
+      if (totalVotes) html += '<div class="sh-graph-total">' + totalVotes + ' Stimme(n) insgesamt — jede Option ist direkt anklickbar, unabhängig von der Mehrheit.</div>';
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
 function toggleQuestDone(sceneId, triggerId) {
   if (!db) return;
   const ref = db.ref('questDone/' + fbKey(sceneId) + '/' + triggerId);
@@ -414,6 +529,7 @@ function renderTree() {
   attachOpenMarkersListener(viewState.szene);
   attachHiddenMarkersListener(viewState.szene);
   attachSceneRegieListener(viewState.szene);
+  attachGraphStateListener(viewState.szene);
   const el = document.getElementById('v-tree');
   let html = '<div class="v-tree-head">VAULT</div>';
   getAllSceneEntries().forEach(function (entry) {
@@ -854,6 +970,7 @@ function renderSceneHead() {
           '<button class="sh-quest-done" onclick="toggleQuestDone(\'' + q.sceneId + '\',\'' + q.triggerId + '\')">✓ erledigt</button></div>';
       }).join('') + '</div>';
   }
+  html += renderGraphPanelHTML(viewState.szene);
   el.classList.toggle('has-content', !!html);
   el.innerHTML = html;
 }

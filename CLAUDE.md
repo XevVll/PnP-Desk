@@ -94,6 +94,35 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-20 (Fortsetzung)
+- **Neues generisches Feature: Erkundungs-Graph** (`js/exploration_graphs.js`) — eine für Spieler
+  verdeckte Knoten-/Kanten-Struktur (Start/Gabelung/Ereignis/Ort) für Szenen mit freier Erkundung,
+  erstmals genutzt für die Riffinsel (`11.1`). An Entscheidungspunkten sehen Spieler nur einen
+  kurzen Sinneshinweis pro Weg (Design-Regel 2.8), keine Karte/keinen Graphen. Erste Nutzung
+  eines echten Spieler-Schreibzugriffs auf Firebase (`graphState/{szene}/votes/{sessionId}`,
+  dieselbe `mySessionId` wie beim bestehenden `openMarkers`-Präsenz-Feature, Bibel 13.9,
+  `onDisconnect().remove()`-Muster übernommen) — die eigentliche Bewegung (`currentNode` setzen,
+  Marker per `hiddenMarkersLive` aufdecken) bleibt bewusst SL-exklusiv (`regie.html`), damit kein
+  einzelner Spieler-Client den Szenenfortschritt direkt bestimmen kann. Ort-Knoten tragen eine
+  Probe (Erfolg = aufdecken + weiterziehen, Misserfolg = am Ausgangsknoten bleiben, Konsequenztext,
+  jederzeit erneut versuchbar) und werden nach Entdeckung selbst zu Entscheidungspunkten (weitere
+  `edges`); Ereignis-Knoten sind reine Ein-Weg-Zwischenstopps mit Text (+optionaler Probe), kein
+  neues Rätsel-Widget (bewusst als eigenes, späteres Vorhaben abgegrenzt, siehe unten). Riffinsel-
+  Graph: 12 Knoten/16 Kanten, alle vier bestehenden Fundstellen über mehrere Routen erreichbar,
+  vier neue reine Flavor-Ereignisse (Mückenschwarm, Fußspuren, Wind, Krabben). Admin-Panel
+  (`regie.html`/`js/regie_vault.js`): neuer 🧭-Bereich im Szenenkopf (`renderSceneHead()`) mit
+  Live-Stimmverteilung je Weg (jede Option direkt anklickbar, unabhängig von der Mehrheit), Probe-
+  Auflösung (Erfolg/Misserfolg-Buttons) bei noch nicht entdeckten Ort-Knoten. Die alte, rein
+  textuelle SL-Referenz (`ORTE.riffstrand`, Interaktion "die_erkundung") bleibt als Fallback
+  erhalten (z.B. bei Firebase-Ausfall), Titel/Text entsprechend angepasst. Offline mit Playwright
+  verifiziert (direkte Funktionsaufrufe für Knoten-Render/Probe-Fluss, siehe Skill
+  `pnp-safe-test`), inklusive einer TDZ-Falle beim ersten Anlauf (neue `let`-State-Variablen
+  mussten vor den bereits bestehenden Firebase-Init-catch-Zweig, der `renderAll()` synchron
+  aufruft — exakt der schon dokumentierte Fall am Kopf von `js/regie_vault.js`).
+- **Bewusst weiterhin zurückgestellt:** echte Mini-Rätsel-Widgets direkt auf der Karte (Ereignis-
+  Knoten bleiben Text+Probe) sowie eine visuelle Graph-Darstellung/ein GM-Editor für den Graphen
+  selbst (aktuell reines JS-Datenmodell wie bei Markern) — beides eigene, spätere Vorhaben.
+
 ### 2026-08-20
 - **Session 2 zu Ende erzählt: Szene `10.1` "Golden Lion — Die Flucht" und neue Szene `11.1`
   "Riffinsel" ausformuliert** (Bibel 7.4, "Spanischer Angriff → Riffinsel"), Inhalt im Dialog mit

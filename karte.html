@@ -249,6 +249,34 @@
     padding: 8px 14px 8px 10px;
     backdrop-filter: blur(2px);
   }
+  /* Erkundungs-Graph-Panel (js/exploration_graphs.js): zeigt Situationstext
+     und, an Entscheidungspunkten, Kanten als Wahl-Buttons mit Sinneshinweis.
+     Nur sichtbar, wenn die aktuelle Szene einen Graphen hat UND ein Knoten
+     geladen ist (siehe renderErkundungPanel()). */
+  #erkundungPanel {
+    display: none;
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 80; max-width: min(560px, calc(100vw - 32px));
+    background: rgba(15,12,8,0.88);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 18px;
+    backdrop-filter: blur(2px);
+  }
+  #erkundungPanel.visible { display: block; }
+  .erk-label { font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .erk-text { font-size: 14px; line-height: 1.5; color: var(--ink); margin-bottom: 10px; }
+  .erk-options { display: flex; flex-direction: column; gap: 6px; }
+  .erk-option {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(230,221,199,0.06); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; color: var(--ink); font-family: inherit; font-size: 13.5px;
+    text-align: left; cursor: pointer;
+  }
+  .erk-option:hover { border-color: var(--gold); }
+  .erk-option.mine { border-color: var(--gold); background: rgba(201,162,75,0.12); }
+  .erk-option-votes { flex: none; font-size: 11.5px; color: var(--ink-dim); white-space: nowrap; }
+  .erk-hint { font-size: 12px; color: var(--ink-dim); margin-top: 8px; }
   #muteBtn {
     background: none; border: none; cursor: pointer;
     font-size: 18px; line-height: 1; color: var(--ink);
@@ -406,6 +434,8 @@
     <button id="muteBtn" title="Ton an/aus">🔇</button>
     <input type="range" id="volumeSlider" min="0" max="100" value="50">
   </div>
+
+  <div id="erkundungPanel"></div>
   <div id="charRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
@@ -438,6 +468,7 @@
   <script src="js/schmugglernest_scenes.js"></script>
   <script src="js/artefakthandel_scenes.js"></script>
   <script src="js/riffinsel_scenes.js"></script>
+  <script src="js/exploration_graphs.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/dice.js"></script>
 
@@ -624,6 +655,92 @@
       openMarkerRef.onDisconnect().remove();
     }
 
+    // ---------- Erkundungs-Graph (js/exploration_graphs.js) ----------
+    // Zeigt Situationstext + Wahl-Buttons für Szenen mit einem hinterlegten
+    // EXPLORATION_GRAPHS-Eintrag (aktuell nur "11.1", Riffinsel). Stimmen
+    // werden unter derselben mySessionId geschrieben wie openMarkers, mit
+    // demselben onDisconnect().remove()-Muster - Spieler stimmen live ab,
+    // die eigentliche Bewegung (currentNode) setzt ausschließlich die SL
+    // im Adminpanel (siehe js/regie_vault.js, graphAdvance/graphResolveOrt).
+    let graphStateRef = null;
+    let graphStateListener = null;
+    let graphStateScene = null;
+    let graphStateSnapshot = {};
+    let myVoteRef = null;
+
+    function clearMyVote() {
+      if (myVoteRef) { myVoteRef.onDisconnect().cancel(); myVoteRef.remove(); myVoteRef = null; }
+    }
+
+    function attachGraphStateListener(sceneId) {
+      if (sceneId === graphStateScene) return;
+      if (graphStateRef && graphStateListener) graphStateRef.off('value', graphStateListener);
+      graphStateScene = sceneId; graphStateSnapshot = {};
+      clearMyVote();
+      if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) {
+        renderErkundungPanel();
+        return;
+      }
+      graphStateRef = db.ref('graphState/' + fbKey(sceneId));
+      graphStateListener = graphStateRef.on('value', function (snap) {
+        graphStateSnapshot = snap.val() || {};
+        renderErkundungPanel();
+      });
+    }
+
+    function castVote(edgeId) {
+      if (!db || !graphStateScene) return;
+      clearMyVote();
+      myVoteRef = db.ref('graphState/' + fbKey(graphStateScene) + '/votes/' + mySessionId);
+      myVoteRef.set(edgeId);
+      myVoteRef.onDisconnect().remove();
+    }
+
+    function renderErkundungPanel() {
+      const el = document.getElementById('erkundungPanel');
+      if (!el) return;
+      const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
+      if (!graph) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+
+      const currentNodeId = graphStateSnapshot.currentNode || graph.startNode;
+      const node = (typeof getGraphNode === 'function') ? getGraphNode(graphStateScene, currentNodeId) : null;
+      if (!node) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+
+      const votes = graphStateSnapshot.votes || {};
+      const myVote = votes[mySessionId];
+      const voteCounts = {};
+      Object.keys(votes).forEach(function (sid) {
+        const eid = votes[sid];
+        voteCounts[eid] = (voteCounts[eid] || 0) + 1;
+      });
+
+      let html = '<div class="erk-label">🧭 Erkundung</div>';
+
+      if (node.type === 'ereignis') {
+        html += '<div class="erk-text">' + node.text + '</div>';
+        html += '<div class="erk-hint">Die Spielleitung entscheidet den weiteren Weg.</div>';
+      } else {
+        const edges = (typeof getOutgoingEdges === 'function') ? getOutgoingEdges(graphStateScene, currentNodeId) : [];
+        if (!edges.length) {
+          html += '<div class="erk-text">Von hier führt kein bekannter Weg weiter.</div>';
+        } else {
+          html += '<div class="erk-text">Wohin geht ihr?</div>';
+          html += '<div class="erk-options">';
+          edges.forEach(function (e) {
+            const count = voteCounts[e.id] || 0;
+            html += '<button class="erk-option' + (myVote === e.id ? ' mine' : '') + '" onclick="castVote(\'' + e.id + '\')">' +
+              '<span>' + e.hinweis + '</span>' +
+              '<span class="erk-option-votes">' + count + '</span>' +
+              '</button>';
+          });
+          html += '</div>';
+        }
+      }
+
+      el.innerHTML = html;
+      el.classList.add('visible');
+    }
+
     function renderScene(sceneId) {
       if (sceneId === currentRenderedScene) return; // nichts geändert, kein Neu-Rendern nötig
       currentRenderedScene = sceneId;
@@ -631,6 +748,7 @@
       // einen Ort in der ALTEN Szene, dessen Präsenz-Eintrag sonst dort
       // hängen bliebe, bis die Verbindung getrennt wird.
       clearOpenMarker();
+      attachGraphStateListener(sceneId);
 
       const background = getBackgroundForScene(sceneId);
       const markers = getMarkersForScene(sceneId);
