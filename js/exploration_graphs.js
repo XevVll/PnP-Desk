@@ -34,28 +34,32 @@ const EXPLORATION_GRAPHS = {
   "11.1": {
     startNode: "start",
     nodes: {
-      start: { type: "start", label: "Aufbruch vom Riffstrand" },
-      weg_nord: { type: "gabelung", label: "Der nördliche Pfad" },
-      weg_sued: { type: "gabelung", label: "Der südliche Weg" },
-      lichtung: { type: "gabelung", label: "Eine Lichtung im Inselinneren" },
+      // top/left (%) sind vorläufige Platzierungen im selben Koordinatenraum
+      // wie Marker (RIFFINSEL_SCENES) - passend zum Platzhalterbild, nicht
+      // an echte Geografie gebunden. Bei echtem Artwork ggf. nachjustieren
+      // (gleiche Eigenheit wie Marker-Positionen allgemein, siehe CLAUDE.md).
+      start: { type: "start", label: "Aufbruch vom Riffstrand", top: 50, left: 50 },
+      weg_nord: { type: "gabelung", label: "Der nördliche Pfad", top: 38, left: 42 },
+      weg_sued: { type: "gabelung", label: "Der südliche Weg", top: 62, left: 42 },
+      lichtung: { type: "gabelung", label: "Eine Lichtung im Inselinneren", top: 50, left: 65 },
 
       ereignis_moskitos: {
-        type: "ereignis", label: "Ein Mückenschwarm",
+        type: "ereignis", label: "Ein Mückenschwarm", top: 32, left: 55,
         probe: "Körper (optional)",
         text: "Ein Schwarm Mücken empfängt jeden, der hier durchmuss — lästig, aber harmlos. Wer will, kann eine Körper-Probe versuchen, um halbwegs unzerstochen durchzukommen; zwingend ist das nicht."
       },
       ereignis_fussspuren: {
-        type: "ereignis", label: "Ungewöhnliche Fußspuren",
+        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 35, left: 32,
         probe: "Wahrnehmung (optional)",
         text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht. Wer genau hinsieht (Wahrnehmung, optional), erkennt weitere Details — ohne dass sich daraus sofort eine Erklärung ergibt."
       },
       ereignis_wind: {
-        type: "ereignis", label: "Böiger Wind auf dem Grat",
+        type: "ereignis", label: "Böiger Wind auf dem Grat", top: 40, left: 25,
         probe: "Körper (optional)",
         text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren. Eine Körper-Probe (optional) hält den Tritt sicher — zwingend ist auch das nicht, nur unangenehm ohne."
       },
       ereignis_krabben: {
-        type: "ereignis", label: "Ein Krabbenschwarm",
+        type: "ereignis", label: "Ein Krabbenschwarm", top: 60, left: 75,
         text: "Dutzende kleine Landkrabben stieben in alle Richtungen auseinander, als die Gruppe hier vorbeikommt — ein kurzer, harmloser Moment."
       },
 
@@ -118,6 +122,25 @@ function getExplorationGraph(sceneId) {
 function getGraphNode(sceneId, nodeId) {
   const g = getExplorationGraph(sceneId);
   return (g && g.nodes[nodeId]) ? Object.assign({ id: nodeId }, g.nodes[nodeId]) : null;
+}
+
+// Bildschirm-Position (top/left in %, wie bei Markern) für einen Knoten -
+// entweder direkt am Knoten hinterlegt (start/gabelung/ereignis) oder, bei
+// "ort"-Knoten, vom verknüpften Marker übernommen (kein Duplizieren der
+// Koordinate - wird der Marker später verschoben, zieht die Positions-
+// Markierung automatisch mit). getMarkersFn wird als Parameter übergeben,
+// da karte.html/regie.html je eine eigene getMarkersForScene()-Funktion
+// mitbringen (unterschiedliche Implementierung, gleiche Signatur).
+function getGraphNodePosition(sceneId, nodeId, getMarkersFn) {
+  const node = getGraphNode(sceneId, nodeId);
+  if (!node) return null;
+  if (typeof node.top === 'number' && typeof node.left === 'number') return { top: node.top, left: node.left };
+  if (node.ortId && typeof getMarkersFn === 'function') {
+    const markers = getMarkersFn(sceneId) || [];
+    const marker = markers.find(function (m) { return m.id === node.ortId; });
+    if (marker) return { top: marker.top, left: marker.left };
+  }
+  return null;
 }
 
 // Ausgehende Kanten eines Knotens, als Array von { id, from, to, hinweis }.

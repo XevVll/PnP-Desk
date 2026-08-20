@@ -266,13 +266,46 @@ function attachGraphStateListener(sceneId) {
   graphStateScene = sceneId; graphStateSnapshot = {}; pendingOrtEdge = null;
   if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) return;
   graphStateRef = db.ref('graphState/' + fbKey(sceneId));
-  graphStateListener = graphStateRef.on('value', function (snap) { graphStateSnapshot = snap.val() || {}; renderSceneHead(); });
+  graphStateListener = graphStateRef.on('value', function (snap) {
+    graphStateSnapshot = snap.val() || {};
+    maybeAutoAdvance(sceneId);
+    renderSceneHead();
+  });
 }
 
 function currentGraphNodeId(sceneId) {
   const g = getExplorationGraph(sceneId);
   if (!g) return null;
   return graphStateSnapshot.currentNode || g.startNode;
+}
+
+// TESTEN (Hendriks Anfrage, 2026-08-20): schon ab EINER Stimme automatisch
+// weiterziehen, statt auf eine echte Mehrheit zu warten - es gibt aktuell
+// keine verlässliche Grundlage dafür, wie viele Spieler insgesamt aktiv
+// sind (siehe CLAUDE.md-Notiz zum Erkundungs-Graphen). Später ggf. erhöhen
+// oder an eine echte Präsenz-Zahl koppeln.
+const AUTO_ADVANCE_THRESHOLD = 1;
+
+// Prüft nach jeder Stimmen-Änderung, ob eine Kante die Schwelle erreicht
+// hat, und zieht dann automatisch weiter (bzw. öffnet bei einer "ort"-
+// Kante die Probe-Auflösung) - ruft dafür einfach graphSelectEdge auf,
+// dieselbe Funktion wie ein manueller SL-Klick. Stimmen, die nicht zu
+// einer tatsächlich vom AKTUELLEN Knoten ausgehenden Kante gehören (z.B.
+// kurzzeitig veraltete Stimmen während eines Übergangs), werden ignoriert.
+function maybeAutoAdvance(sceneId) {
+  if (pendingOrtEdge) return; // SL löst gerade eine Probe auf, nicht dazwischenfunken
+  const currentId = currentGraphNodeId(sceneId);
+  const outgoingIds = getOutgoingEdges(sceneId, currentId).map(function (e) { return e.id; });
+  if (!outgoingIds.length) return;
+  const votes = graphStateSnapshot.votes || {};
+  const voteCounts = {};
+  Object.keys(votes).forEach(function (sid) {
+    const eid = votes[sid];
+    if (outgoingIds.indexOf(eid) === -1) return;
+    voteCounts[eid] = (voteCounts[eid] || 0) + 1;
+  });
+  const leadingEdgeId = Object.keys(voteCounts).find(function (eid) { return voteCounts[eid] >= AUTO_ADVANCE_THRESHOLD; });
+  if (leadingEdgeId) graphSelectEdge(sceneId, leadingEdgeId);
 }
 
 function graphAdvance(sceneId, toNodeId) {

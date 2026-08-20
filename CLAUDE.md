@@ -94,6 +94,31 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-20 (Fortsetzung 2)
+- **Erkundungs-Graph, Spieler-Ansicht auf On-Map-Pfeile umgestellt** (Hendriks Vorgabe: Optionen
+  direkt am aktuellen Punkt zeigen statt als Liste). `karte.html` zeigt jetzt eine Positions-
+  Markierung (Ring) direkt auf der Karte an der Koordinate des aktuellen Graph-Knotens, umgeben
+  von Pfeil-Buttons (einer pro Kante, im oberen Bogen gefächert, Sinneshinweis als Hover-Label wie
+  bei normalen Markern) statt der vorherigen Panel-Liste (`#erkundungPanel` entfernt). "Ort"-Knoten
+  übernehmen ihre Position vom verknüpften Marker (`getGraphNodePosition()`, neu in
+  `js/exploration_graphs.js`) statt sie zu duplizieren — die Ring-Markierung sitzt dadurch schon
+  vor der Aufdeckung an derselben Stelle wie der später erscheinende echte Marker. Alle Knoten
+  bekamen dafür vorläufige `top`/`left`-Koordinaten (Platzhalter-Layout, an kein echtes Artwork
+  gebunden, siehe Kommentar in der Datei).
+- **Auto-Advance zum Testen: schon ab 1 Stimme bewegt sich die Gruppe weiter** (Hendriks
+  ausdrücklicher Test-Wunsch), statt auf eine echte Mehrheit zu warten — es gibt aktuell keine
+  verlässliche Grundlage, wie viele Spieler insgesamt aktiv sind (kein Presence-Konzept über die
+  reine Marker-Ansicht hinaus). Neue Konstante `AUTO_ADVANCE_THRESHOLD` (aktuell `1`) in
+  `js/regie_vault.js`, geprüft bei jeder Stimmen-Änderung (`maybeAutoAdvance()`) — ignoriert dabei
+  Stimmen für Kanten, die nicht tatsächlich vom aktuellen Knoten ausgehen (Schutz vor kurzzeitig
+  veralteten Stimmen während eines Übergangs). Bei einer noch nicht aufgedeckten "ort"-Kante öffnet
+  das automatisch die Probe-Auflösung (Erfolg/Misserfolg bleibt SL-Handsache), bei allen anderen
+  Kanten wird direkt weitergezogen. Schwelle bewusst als einzelne Konstante ausgelagert, um sie
+  später leicht zu erhöhen bzw. an ein echtes Mehrheits-Konzept zu koppeln.
+- Offline mit Playwright verifiziert (Positions-/Pfeil-Struktur, Ort-Koordinaten-Übernahme vom
+  Marker, Ereignis-Knoten ohne Pfeile, Auto-Advance inkl. Stale-Stimmen-Schutz) sowie per
+  Screenshot visuell gegengeprüft.
+
 ### 2026-08-20 (Fortsetzung)
 - **Neues generisches Feature: Erkundungs-Graph** (`js/exploration_graphs.js`) — eine für Spieler
   verdeckte Knoten-/Kanten-Struktur (Start/Gabelung/Ereignis/Ort) für Szenen mit freier Erkundung,

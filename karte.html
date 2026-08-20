@@ -249,34 +249,51 @@
     padding: 8px 14px 8px 10px;
     backdrop-filter: blur(2px);
   }
-  /* Erkundungs-Graph-Panel (js/exploration_graphs.js): zeigt Situationstext
-     und, an Entscheidungspunkten, Kanten als Wahl-Buttons mit Sinneshinweis.
-     Nur sichtbar, wenn die aktuelle Szene einen Graphen hat UND ein Knoten
-     geladen ist (siehe renderErkundungPanel()). */
-  #erkundungPanel {
+  /* Erkundungs-Graph, On-Map-Darstellung (js/exploration_graphs.js): statt
+     einer Options-Liste als Panel zeigt eine Ring-Markierung die aktuelle
+     Position der Gruppe direkt auf der Karte, umgeben von Pfeil-Buttons -
+     einer pro Kante - die auf Klick eine Stimme abgeben. Positionierung
+     im selben %-Koordinatenraum wie normale Marker (#mapWrap), siehe
+     renderErkundungOnMap(). */
+  .erk-pos {
+    position: absolute; width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #b8453a, #7a1f18 70%);
+    border: 3px solid #b060a8;
+    box-shadow: 0 0 0 3px rgba(176,96,168,0.35), 0 2px 8px rgba(0,0,0,0.5);
+    z-index: 30; pointer-events: none;
+  }
+  .erk-arrow {
+    position: absolute; width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    cursor: pointer; z-index: 31;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .erk-arrow-shape {
+    width: 0; height: 0;
+    border-left: 9px solid transparent; border-right: 9px solid transparent;
+    border-bottom: 16px solid #3a6ea5;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+    transition: border-bottom-color .15s ease, transform .15s ease;
+  }
+  .erk-arrow:hover .erk-arrow-shape { border-bottom-color: var(--gold); transform: scale(1.12); }
+  .erk-arrow.mine .erk-arrow-shape { border-bottom-color: var(--gold); }
+  .erk-arrow-votes {
+    position: absolute; top: -8px; right: -10px;
+    background: rgba(15,12,8,0.9); border: 1px solid var(--line); color: var(--ink);
+    font-size: 10.5px; line-height: 1; padding: 1px 4px; border-radius: 8px;
     display: none;
-    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-    z-index: 80; max-width: min(560px, calc(100vw - 32px));
-    background: rgba(15,12,8,0.88);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 14px 18px;
-    backdrop-filter: blur(2px);
   }
-  #erkundungPanel.visible { display: block; }
-  .erk-label { font-size: 12px; letter-spacing: .6px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
-  .erk-text { font-size: 14px; line-height: 1.5; color: var(--ink); margin-bottom: 10px; }
-  .erk-options { display: flex; flex-direction: column; gap: 6px; }
-  .erk-option {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    background: rgba(230,221,199,0.06); border: 1px solid var(--line); border-radius: 8px;
-    padding: 8px 12px; color: var(--ink); font-family: inherit; font-size: 13.5px;
-    text-align: left; cursor: pointer;
+  .erk-arrow-votes.has-votes { display: block; }
+  .erk-arrow-label {
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; max-width: 220px; white-space: normal; width: 180px;
+    background: rgba(15,12,8,0.92); border: 1px solid var(--line); color: var(--ink);
+    font-size: 12.5px; line-height: 1.4; padding: 6px 10px; border-radius: 5px;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease; text-align: center;
   }
-  .erk-option:hover { border-color: var(--gold); }
-  .erk-option.mine { border-color: var(--gold); background: rgba(201,162,75,0.12); }
-  .erk-option-votes { flex: none; font-size: 11.5px; color: var(--ink-dim); white-space: nowrap; }
-  .erk-hint { font-size: 12px; color: var(--ink-dim); margin-top: 8px; }
+  .erk-arrow:hover .erk-arrow-label { opacity: 1; }
   #muteBtn {
     background: none; border: none; cursor: pointer;
     font-size: 18px; line-height: 1; color: var(--ink);
@@ -434,8 +451,6 @@
     <button id="muteBtn" title="Ton an/aus">🔇</button>
     <input type="range" id="volumeSlider" min="0" max="100" value="50">
   </div>
-
-  <div id="erkundungPanel"></div>
   <div id="charRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
@@ -678,13 +693,13 @@
       graphStateScene = sceneId; graphStateSnapshot = {};
       clearMyVote();
       if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) {
-        renderErkundungPanel();
+        renderErkundungOnMap();
         return;
       }
       graphStateRef = db.ref('graphState/' + fbKey(sceneId));
       graphStateListener = graphStateRef.on('value', function (snap) {
         graphStateSnapshot = snap.val() || {};
-        renderErkundungPanel();
+        renderErkundungOnMap();
       });
     }
 
@@ -696,49 +711,68 @@
       myVoteRef.onDisconnect().remove();
     }
 
-    function renderErkundungPanel() {
-      const el = document.getElementById('erkundungPanel');
-      if (!el) return;
+    function clearErkundungOverlay() {
+      mapWrapEl.querySelectorAll('.erk-pos, .erk-arrow').forEach(function (el) { el.remove(); });
+    }
+
+    // Zeigt die aktuelle Position der Gruppe direkt auf der Karte (Ring)
+    // statt einer Options-Liste, umgeben von Pfeil-Buttons - einer pro
+    // Kante - die auf Klick eine Stimme abgeben (Hinweistext als Hover-
+    // Label, gleiches Muster wie .marker .label). "ort"-Knoten holen ihre
+    // Position vom verknüpften Marker (getGraphNodePosition), damit die
+    // Ring-Markierung nach der Aufdeckung optisch an derselben Stelle
+    // sitzt wie der dann erscheinende richtige Marker.
+    function renderErkundungOnMap() {
+      clearErkundungOverlay();
       const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
-      if (!graph) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+      if (!graph) return;
 
       const currentNodeId = graphStateSnapshot.currentNode || graph.startNode;
       const node = (typeof getGraphNode === 'function') ? getGraphNode(graphStateScene, currentNodeId) : null;
-      if (!node) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+      const pos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, currentNodeId, getMarkersForScene) : null;
+      if (!node || !pos) return;
+
+      const posEl = document.createElement('div');
+      posEl.className = 'erk-pos';
+      posEl.style.top = pos.top + '%';
+      posEl.style.left = pos.left + '%';
+      mapWrapEl.appendChild(posEl);
+
+      if (node.type === 'ereignis') return; // kein Spieler-Entscheid an einem Ereignis-Knoten
+
+      const edges = (typeof getOutgoingEdges === 'function') ? getOutgoingEdges(graphStateScene, currentNodeId) : [];
+      if (!edges.length) return;
 
       const votes = graphStateSnapshot.votes || {};
       const myVote = votes[mySessionId];
       const voteCounts = {};
-      Object.keys(votes).forEach(function (sid) {
-        const eid = votes[sid];
-        voteCounts[eid] = (voteCounts[eid] || 0) + 1;
+      Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
+
+      const RADIUS = 56; // px, Abstand der Pfeile von der Positions-Markierung
+      // Fächer über den oberen Bogen (-165° bis -15°, "nach oben/außen")
+      // statt Vollkreis - vermeidet einen Pfeil, der optisch "zurück in den
+      // Ring" zeigt. Kanten haben keine eigene "echte" Richtung relativ zum
+      // (noch als Platzhalter dienenden) Kartenbild, siehe exploration_graphs.js.
+      const SPREAD_START = -165, SPREAD_END = -15;
+      edges.forEach(function (e, i) {
+        const angleDeg = edges.length === 1 ? -90 : SPREAD_START + (SPREAD_END - SPREAD_START) * (i / (edges.length - 1));
+        const angleRad = angleDeg * Math.PI / 180;
+        const dx = Math.cos(angleRad) * RADIUS;
+        const dy = Math.sin(angleRad) * RADIUS;
+        const count = voteCounts[e.id] || 0;
+
+        const arrowEl = document.createElement('div');
+        arrowEl.className = 'erk-arrow' + (myVote === e.id ? ' mine' : '');
+        arrowEl.style.top = pos.top + '%';
+        arrowEl.style.left = pos.left + '%';
+        arrowEl.style.transform = 'translate(-50%, -50%) translate(' + dx + 'px, ' + dy + 'px) rotate(' + (angleDeg + 90) + 'deg)';
+        arrowEl.onclick = function () { castVote(e.id); };
+        arrowEl.innerHTML =
+          '<div class="erk-arrow-shape"></div>' +
+          '<div class="erk-arrow-votes' + (count ? ' has-votes' : '') + '" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)">' + count + '</div>' +
+          '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + e.hinweis + '</div>';
+        mapWrapEl.appendChild(arrowEl);
       });
-
-      let html = '<div class="erk-label">🧭 Erkundung</div>';
-
-      if (node.type === 'ereignis') {
-        html += '<div class="erk-text">' + node.text + '</div>';
-        html += '<div class="erk-hint">Die Spielleitung entscheidet den weiteren Weg.</div>';
-      } else {
-        const edges = (typeof getOutgoingEdges === 'function') ? getOutgoingEdges(graphStateScene, currentNodeId) : [];
-        if (!edges.length) {
-          html += '<div class="erk-text">Von hier führt kein bekannter Weg weiter.</div>';
-        } else {
-          html += '<div class="erk-text">Wohin geht ihr?</div>';
-          html += '<div class="erk-options">';
-          edges.forEach(function (e) {
-            const count = voteCounts[e.id] || 0;
-            html += '<button class="erk-option' + (myVote === e.id ? ' mine' : '') + '" onclick="castVote(\'' + e.id + '\')">' +
-              '<span>' + e.hinweis + '</span>' +
-              '<span class="erk-option-votes">' + count + '</span>' +
-              '</button>';
-          });
-          html += '</div>';
-        }
-      }
-
-      el.innerHTML = html;
-      el.classList.add('visible');
     }
 
     function renderScene(sceneId) {
