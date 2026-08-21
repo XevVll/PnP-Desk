@@ -94,6 +94,20 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 5)
+- **Neues Werkzeug: `graph_editor.html`** (Hendriks Wunsch, nachdem das Ablesen einer
+  handgezeichneten Routen-Skizze fehleranfällig war). Eigenständiges, lokales Tool ohne Firebase
+  zum visuellen Anlegen/Bearbeiten eines `EXPLORATION_GRAPHS`-Eintrags direkt auf dem echten
+  Kartenbild: Knoten per Klick setzen (Typ Start/Ereignis/Ort, alle Textfelder inkl. Probe/Erfolg/
+  Misserfolg), per Ziehen neu positionieren, Kanten per Klick-Klick mit Sinneshinweis verbinden,
+  bestehenden Graph-Code einfügen zum Weiterbearbeiten, fertigen JS-Code exportieren (Textfeld,
+  Datei-Download, Zwischenablage). "Ort"-Knoten bekommen beim Export bewusst KEIN top/left (im
+  echten Betrieb kommt ihre Position vom verknüpften Marker, `getGraphNodePosition()`) - beim
+  Import bestehender Graphen ohne top/left landen sie als Platzhalter bei 50/50 und müssen einmal
+  von Hand an die richtige Stelle gezogen werden. Offline mit Playwright verifiziert (Knoten/
+  Kanten anlegen, Felder bearbeiten, Export-Struktur, Import des echten Riffinsel-Graphen mit
+  14 Knoten/18 Kanten) sowie per Screenshot gegengeprüft.
+
 ### 2026-08-21 (Fortsetzung 4)
 - **Ereignis-Flavortext jetzt auch für Spieler sichtbar** (Hendriks Wunsch). Neues, dauerhaft
   sichtbares Label unter der Positions-Markierung in `karte.html` (`.erk-pos-label`) zeigt

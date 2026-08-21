@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Erkundungs-Graph-Editor</title>
+<style>
+  :root {
+    --bg: #0f0c08; --ink: #e6ddc7; --ink-dim: #a89d81; --gold: #c9a24b; --line: #3a3226;
+    --start: #b060a8; --ereignis: #4a9a4a; --ort: #3a6ea5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+  #app { display: grid; grid-template-columns: 1fr 380px; grid-template-rows: auto 1fr; height: 100vh; }
+  header { grid-column: 1 / 3; padding: 8px 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: #16120c; }
+  header h1 { font-size: 15px; margin: 0; color: var(--gold); font-weight: 400; letter-spacing: .5px; }
+  header label { font-size: 12px; color: var(--ink-dim); display: flex; align-items: center; gap: 5px; }
+  header select, header input[type=text] { font-family: inherit; background: var(--bg); border: 1px solid var(--line); color: var(--ink); padding: 4px 7px; border-radius: 3px; font-size: 12.5px; }
+  header input[type=text] { width: 140px; }
+  #canvasWrap { position: relative; overflow: auto; background: #050403; display: flex; align-items: flex-start; justify-content: center; }
+  #canvasInner { position: relative; display: inline-block; }
+  #mapImg { display: block; max-width: none; }
+  #svgLayer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .node-dot {
+    position: absolute; width: 22px; height: 22px; border-radius: 50%;
+    transform: translate(-50%, -50%); border: 2px solid rgba(15,12,8,0.8);
+    cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  }
+  .node-dot.start { background: var(--start); width: 28px; height: 28px; }
+  .node-dot.ereignis { background: var(--ereignis); }
+  .node-dot.ort { background: var(--ort); width: 26px; height: 26px; }
+  .node-dot.selected { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .node-dot.edge-source { outline: 3px solid #fff; outline-offset: 2px; }
+  .node-label {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 11px; background: rgba(15,12,8,0.85); color: var(--ink);
+    padding: 1px 5px; border-radius: 3px; margin-top: 2px; pointer-events: none;
+  }
+  #sidebar { border-left: 1px solid var(--line); overflow-y: auto; padding: 12px; background: #14100b; }
+  #sidebar h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin: 18px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  #sidebar h2:first-child { margin-top: 0; }
+  .btn { font-family: inherit; background: var(--bg); border: 1px solid var(--line); color: var(--ink); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12.5px; }
+  .btn:hover { border-color: var(--gold); color: var(--gold); }
+  .btn.active { border-color: var(--gold); background: rgba(201,162,75,0.15); color: var(--gold); }
+  .btn.danger:hover { border-color: #b8453a; color: #e08070; }
+  .btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .hint { font-size: 11.5px; color: var(--ink-dim); line-height: 1.4; margin-bottom: 8px; }
+  .field { margin-bottom: 8px; }
+  .field label { display: block; font-size: 11px; color: var(--ink-dim); margin-bottom: 2px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-family: inherit; background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+    padding: 5px 7px; border-radius: 3px; font-size: 12.5px; resize: vertical;
+  }
+  .field textarea { min-height: 46px; }
+  .list-item {
+    display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 3px; cursor: pointer;
+    font-size: 12px; border: 1px solid transparent;
+  }
+  .list-item:hover { background: rgba(230,221,199,0.06); }
+  .list-item.selected { border-color: var(--gold); background: rgba(201,162,75,0.1); }
+  .list-item .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .list-item .dot.start { background: var(--start); }
+  .list-item .dot.ereignis { background: var(--ereignis); }
+  .list-item .dot.ort { background: var(--ort); }
+  .list-item span.label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-item button { font-family: inherit; background: none; border: none; color: var(--ink-dim); cursor: pointer; font-size: 12px; padding: 2px 5px; }
+  .list-item button:hover { color: #e08070; }
+  #exportBox { width: 100%; height: 260px; font-family: 'Consolas', monospace; font-size: 11px; background: #050403; color: #a8f0a8; border: 1px solid var(--line); border-radius: 4px; padding: 8px; white-space: pre; }
+  .status { font-size: 11px; color: var(--gold); min-height: 14px; }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: var(--ink-dim); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🧭 Erkundungs-Graph-Editor</h1>
+    <label>Bild:
+      <select id="imgSelect"></select>
+    </label>
+    <label>Szenen-ID: <input type="text" id="sceneIdInput" value="11.1"></label>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--start)"></span>Start</span>
+      <span><span class="dot" style="background:var(--ereignis)"></span>Ereignis (Aufgabe)</span>
+      <span><span class="dot" style="background:var(--ort)"></span>Ort (echte Fundstelle)</span>
+    </div>
+  </header>
+  <div id="canvasWrap">
+    <div id="canvasInner">
+      <img id="mapImg" alt="Karte">
+      <svg id="svgLayer"></svg>
+    </div>
+  </div>
+  <div id="sidebar">
+    <h2>Modus</h2>
+    <div class="btn-row">
+      <button class="btn active" id="modeSelect" onclick="setMode('select')">Auswählen / Verschieben</button>
+      <button class="btn" id="modeNode" onclick="setMode('node')">+ Knoten setzen</button>
+    </div>
+    <div class="hint">Klick auf die Karte setzt im Modus "+ Knoten" einen neuen Punkt. Im Modus "Auswählen" kannst du bestehende Punkte anklicken (Bearbeiten) oder ziehen (Verschieben).</div>
+    <div class="status" id="statusLine"></div>
+
+    <h2>Ausgewählter Knoten</h2>
+    <div id="nodeEditor"><div class="hint">Kein Knoten ausgewählt.</div></div>
+
+    <h2>Knoten (<span id="nodeCount">0</span>)</h2>
+    <div id="nodeList"></div>
+
+    <h2>Kanten (<span id="edgeCount">0</span>)</h2>
+    <div id="edgeList"></div>
+
+    <h2>Export</h2>
+    <div class="btn-row">
+      <button class="btn" onclick="exportGraph()">JS generieren</button>
+      <button class="btn" onclick="downloadExport()">Als Datei speichern</button>
+      <button class="btn" onclick="copyExport()">In Zwischenablage</button>
+    </div>
+    <textarea id="exportBox" readonly placeholder="Klick 'JS generieren' ..."></textarea>
+
+    <h2>Bestehenden Graph laden</h2>
+    <div class="hint">Kompletten "&lt;sceneId&gt;: { startNode: ..., nodes: {...}, edges: {...} }"-Block aus exploration_graphs.js hier einfügen (ohne die äußere EXPLORATION_GRAPHS-Klammer).</div>
+    <textarea id="importBox" style="min-height:100px"></textarea>
+    <div class="btn-row" style="margin-top:6px">
+      <button class="btn" onclick="importGraph()">Laden</button>
+      <button class="btn danger" onclick="clearGraph()">Alles löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Erkundungs-Graph-Editor: eigenständiges, lokales Werkzeug (kein
+// Firebase, kein Build-Schritt) zum visuellen Anlegen/Bearbeiten eines
+// EXPLORATION_GRAPHS-Eintrags (siehe js/exploration_graphs.js). Exportiert
+// fertigen JS-Code zum Reinkopieren. Entstanden, weil das manuelle
+// Ablesen einer handgezeichneten Routen-Skizze fehleranfällig ist (siehe
+// CLAUDE.md-Changelog 2026-08-21) - hier kann die Route direkt auf dem
+// echten Kartenbild platziert werden, keine Koordinaten-Schätzerei mehr.
+// ============================================================
+
+const KNOWN_IMAGES = [
+  'riffinsel.webp', 'schatzinsel.webp', 'grimsgate_map.webp', 'golden_lion.webp',
+  'golden_lion_cutaway.webp', 'golden_lion_cutaway_sturm.webp',
+  'spanischer_hafen_map.webp', 'schmugglernest_map.webp', 'scene_artefakthandel.webp'
+];
+
+let graph = { startNode: null, nodes: {}, edges: {} };
+let mode = 'select';
+let selectedNodeId = null;
+let edgeSourceId = null;
+let dragNodeId = null;
+let dragMoved = false;
+
+const mapImg = document.getElementById('mapImg');
+const canvasInner = document.getElementById('canvasInner');
+const svgLayer = document.getElementById('svgLayer');
+const imgSelect = document.getElementById('imgSelect');
+const sceneIdInput = document.getElementById('sceneIdInput');
+const statusLine = document.getElementById('statusLine');
+
+KNOWN_IMAGES.forEach(function (f) {
+  const opt = document.createElement('option');
+  opt.value = 'images/' + f;
+  opt.textContent = f;
+  imgSelect.appendChild(opt);
+});
+const customOpt = document.createElement('option');
+customOpt.value = '__custom__';
+customOpt.textContent = '(eigener Pfad)';
+imgSelect.appendChild(customOpt);
+imgSelect.value = 'images/riffinsel.webp';
+mapImg.src = imgSelect.value;
+
+imgSelect.addEventListener('change', function () {
+  if (imgSelect.value === '__custom__') {
+    const p = prompt('Bildpfad (relativ zu diesem Ordner, z.B. images/mein_bild.webp):', 'images/');
+    if (p) mapImg.src = p;
+    return;
+  }
+  mapImg.src = imgSelect.value;
+});
+
+function setStatus(msg) { statusLine.textContent = msg || ''; }
+
+function setMode(m) {
+  mode = m;
+  edgeSourceId = null;
+  document.getElementById('modeSelect').classList.toggle('active', m === 'select');
+  document.getElementById('modeNode').classList.toggle('active', m === 'node');
+  setStatus(m === 'node' ? 'Klick auf die Karte, um einen Knoten zu setzen.' : '');
+  renderAll();
+}
+
+function slugify(s) {
+  return (String(s || '').toLowerCase()
+    .replace(/[äöüß]/g, function (c) { return { 'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'ß': 'ss' }[c]; })
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')) || 'knoten';
+}
+function uniqueId(base, existing) {
+  let id = base, i = 2;
+  while (existing[id]) { id = base + '_' + i; i++; }
+  return id;
+}
+
+function pctFromClick(evt) {
+  const rect = canvasInner.getBoundingClientRect();
+  const x = (evt.clientX - rect.left) / rect.width * 100;
+  const y = (evt.clientY - rect.top) / rect.height * 100;
+  return { left: Math.round(x * 10) / 10, top: Math.round(y * 10) / 10 };
+}
+
+canvasInner.addEventListener('click', function (evt) {
+  if (evt.target.closest('.node-dot')) return; // von Knoten-Handler behandelt
+  if (mode !== 'node') return;
+  const pos = pctFromClick(evt);
+  const label = prompt('Label für den neuen Knoten (z.B. "Ein Mückenschwarm"):', '');
+  if (label === null) return;
+  const type = (prompt('Typ: start / ereignis / ort', graph.startNode ? 'ereignis' : 'start') || 'ereignis').trim();
+  const id = uniqueId(slugify(label || type), graph.nodes);
+  graph.nodes[id] = Object.assign({ type: type, label: label || id, top: pos.top, left: pos.left },
+    type === 'ereignis' ? { probe: '', text: '', erfolgText: '', misserfolgText: '' } : {},
+    type === 'ort' ? { probe: '', ortId: '', erfolgText: '', misserfolgText: '' } : {});
+  if (type === 'start') graph.startNode = id;
+  selectedNodeId = id;
+  setMode('select');
+  renderAll();
+});
+
+function onNodeMouseDown(id, evt) {
+  evt.stopPropagation();
+  dragNodeId = id; dragMoved = false;
+}
+document.addEventListener('mousemove', function (evt) {
+  if (!dragNodeId) return;
+  dragMoved = true;
+  const pos = pctFromClick(evt);
+  graph.nodes[dragNodeId].top = Math.max(0, Math.min(100, pos.top));
+  graph.nodes[dragNodeId].left = Math.max(0, Math.min(100, pos.left));
+  renderAll();
+});
+document.addEventListener('mouseup', function () {
+  if (dragNodeId && !dragMoved) onNodeClick(dragNodeId);
+  dragNodeId = null; dragMoved = false;
+});
+
+function onNodeClick(id) {
+  if (mode === 'node') return;
+  if (edgeSourceId) {
+    if (edgeSourceId === id) { edgeSourceId = null; setStatus(''); renderAll(); return; }
+    const hinweis = prompt('Sinneshinweis für diese Richtung (was Spieler sehen, bevor sie wählen):', '');
+    if (hinweis === null) { edgeSourceId = null; setStatus(''); renderAll(); return; }
+    const edgeId = uniqueId('e_' + edgeSourceId + '_' + id, graph.edges);
+    graph.edges[edgeId] = { from: edgeSourceId, to: id, hinweis: hinweis };
+    edgeSourceId = null;
+    setStatus('Kante erstellt.');
+    selectedNodeId = id;
+    renderAll();
+    return;
+  }
+  selectedNodeId = id;
+  renderAll();
+}
+
+function startEdgeFrom(id) {
+  edgeSourceId = id;
+  setStatus('Kante von "' + graph.nodes[id].label + '" — jetzt Zielknoten anklicken.');
+  renderAll();
+}
+
+function deleteNode(id) {
+  if (!confirm('Knoten "' + (graph.nodes[id] && graph.nodes[id].label) + '" wirklich löschen? Verbundene Kanten werden mitgelöscht.')) return;
+  delete graph.nodes[id];
+  Object.keys(graph.edges).forEach(function (eid) {
+    if (graph.edges[eid].from === id || graph.edges[eid].to === id) delete graph.edges[eid];
+  });
+  if (graph.startNode === id) graph.startNode = null;
+  if (selectedNodeId === id) selectedNodeId = null;
+  renderAll();
+}
+function deleteEdge(id) { delete graph.edges[id]; renderAll(); }
+
+function clearGraph() {
+  if (!confirm('Wirklich den kompletten Graphen leeren?')) return;
+  graph = { startNode: null, nodes: {}, edges: {} };
+  selectedNodeId = null; edgeSourceId = null;
+  renderAll();
+}
+
+// ---------- Bearbeiten-Panel für den ausgewählten Knoten ----------
+function fieldRow(labelText, key, value, isTextarea) {
+  const tag = isTextarea ? 'textarea' : 'input';
+  const valAttr = isTextarea ? '' : ' value="' + String(value || '').replace(/"/g, '&quot;') + '"';
+  const content = isTextarea ? (value || '') : '';
+  return '<div class="field"><label>' + labelText + '</label><' + tag + ' data-field="' + key + '"' + valAttr +
+    ' oninput="updateNodeField(\'' + key + '\', this.value)">' + content + '</' + tag + '></div>';
+}
+
+function renderNodeEditor() {
+  const el = document.getElementById('nodeEditor');
+  if (!selectedNodeId || !graph.nodes[selectedNodeId]) { el.innerHTML = '<div class="hint">Kein Knoten ausgewählt.</div>'; return; }
+  const n = graph.nodes[selectedNodeId];
+  let html = '<div class="field"><label>ID (intern, technisch)</label><input value="' + selectedNodeId + '" disabled></div>';
+  html += '<div class="field"><label>Typ</label><select data-field="type" onchange="updateNodeType(this.value)">' +
+    ['start', 'ereignis', 'ort'].map(function (t) { return '<option value="' + t + '"' + (n.type === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') +
+    '</select></div>';
+  html += fieldRow('Label', 'label', n.label);
+  if (n.type === 'ereignis') {
+    html += fieldRow('Probe (z.B. Körper)', 'probe', n.probe);
+    html += fieldRow('Text (Situationsbeschreibung, auch für Spieler)', 'text', n.text, true);
+    html += fieldRow('Erfolg-Text (SL-only)', 'erfolgText', n.erfolgText, true);
+    html += fieldRow('Misserfolg-Text (SL-only)', 'misserfolgText', n.misserfolgText, true);
+  } else if (n.type === 'ort') {
+    html += fieldRow('Probe (z.B. Wahrnehmung)', 'probe', n.probe);
+    html += fieldRow('ortId (Marker-ID der Szene)', 'ortId', n.ortId);
+    html += fieldRow('Erfolg-Text (SL-only)', 'erfolgText', n.erfolgText, true);
+    html += fieldRow('Misserfolg-Text (SL-only)', 'misserfolgText', n.misserfolgText, true);
+  }
+  html += '<div class="btn-row">' +
+    '<button class="btn" onclick="startEdgeFrom(\'' + selectedNodeId + '\')">Kante von hier starten</button>' +
+    '<button class="btn danger" onclick="deleteNode(\'' + selectedNodeId + '\')">Knoten löschen</button>' +
+    '</div>';
+  el.innerHTML = html;
+}
+function updateNodeField(key, value) {
+  if (!selectedNodeId) return;
+  graph.nodes[selectedNodeId][key] = value;
+  if (key === 'label') renderLists(); // Label-Änderung in Listen/Karte live zeigen
+  renderNodesOnMap();
+}
+function updateNodeType(newType) {
+  if (!selectedNodeId) return;
+  const n = graph.nodes[selectedNodeId];
+  if (graph.startNode === selectedNodeId && newType !== 'start') graph.startNode = null;
+  if (newType === 'start') graph.startNode = selectedNodeId;
+  n.type = newType;
+  renderAll();
+}
+
+// ---------- Rendering ----------
+function renderNodesOnMap() {
+  canvasInner.querySelectorAll('.node-dot').forEach(function (el) { el.remove(); });
+  Object.keys(graph.nodes).forEach(function (id) {
+    const n = graph.nodes[id];
+    const dot = document.createElement('div');
+    dot.className = 'node-dot ' + n.type + (id === selectedNodeId ? ' selected' : '') + (id === edgeSourceId ? ' edge-source' : '');
+    dot.style.top = n.top + '%'; dot.style.left = n.left + '%';
+    dot.title = id;
+    dot.addEventListener('mousedown', function (evt) { onNodeMouseDown(id, evt); });
+    const label = document.createElement('div');
+    label.className = 'node-label';
+    label.textContent = n.label || id;
+    dot.appendChild(label);
+    canvasInner.appendChild(dot);
+  });
+}
+function renderEdgesSvg() {
+  svgLayer.setAttribute('viewBox', '0 0 100 100');
+  svgLayer.setAttribute('preserveAspectRatio', 'none');
+  svgLayer.innerHTML = '';
+  Object.keys(graph.edges).forEach(function (eid) {
+    const e = graph.edges[eid];
+    const a = graph.nodes[e.from], b = graph.nodes[e.to];
+    if (!a || !b || typeof a.left !== 'number' || typeof a.top !== 'number' || typeof b.left !== 'number' || typeof b.top !== 'number') return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', a.left); line.setAttribute('y1', a.top);
+    line.setAttribute('x2', b.left); line.setAttribute('y2', b.top);
+    line.setAttribute('stroke', 'rgba(230,80,60,0.6)');
+    line.setAttribute('stroke-width', '0.35');
+    svgLayer.appendChild(line);
+  });
+}
+function renderLists() {
+  const nodeIds = Object.keys(graph.nodes);
+  document.getElementById('nodeCount').textContent = nodeIds.length;
+  document.getElementById('nodeList').innerHTML = nodeIds.map(function (id) {
+    const n = graph.nodes[id];
+    return '<div class="list-item' + (id === selectedNodeId ? ' selected' : '') + '" onclick="selectedNodeId=\'' + id + '\'; renderAll();">' +
+      '<span class="dot ' + n.type + '"></span><span class="label">' + (n.label || id) + '</span>' +
+      '<button onclick="event.stopPropagation(); deleteNode(\'' + id + '\')" title="Löschen">✕</button></div>';
+  }).join('') || '<div class="hint">Noch keine Knoten.</div>';
+
+  const edgeIds = Object.keys(graph.edges);
+  document.getElementById('edgeCount').textContent = edgeIds.length;
+  document.getElementById('edgeList').innerHTML = edgeIds.map(function (eid) {
+    const e = graph.edges[eid];
+    const fromLabel = (graph.nodes[e.from] && graph.nodes[e.from].label) || e.from;
+    const toLabel = (graph.nodes[e.to] && graph.nodes[e.to].label) || e.to;
+    return '<div class="list-item"><span class="label">' + fromLabel + ' → ' + toLabel + '</span>' +
+      '<button onclick="deleteEdge(\'' + eid + '\')" title="Löschen">✕</button></div>';
+  }).join('') || '<div class="hint">Noch keine Kanten.</div>';
+}
+function renderAll() {
+  renderNodesOnMap();
+  renderEdgesSvg();
+  renderLists();
+  renderNodeEditor();
+}
+
+// ---------- Export / Import ----------
+function buildGraphObject() {
+  const nodesOut = {};
+  Object.keys(graph.nodes).forEach(function (id) {
+    const n = graph.nodes[id];
+    const clean = { type: n.type, label: n.label };
+    // "ort"-Knoten bekommen bewusst KEIN top/left im Export - im echten
+    // Betrieb kommt ihre Position vom verknüpften Marker
+    // (getGraphNodePosition(), js/exploration_graphs.js), ein exportiertes
+    // top/left würde das künftig überschreiben/entkoppeln. Position dient
+    // im Editor selbst nur zum Anfassen/Ziehen.
+    if (n.type !== 'ort') { clean.top = n.top; clean.left = n.left; }
+    if (n.type === 'ereignis') { clean.probe = n.probe || ''; clean.text = n.text || ''; clean.erfolgText = n.erfolgText || ''; clean.misserfolgText = n.misserfolgText || ''; }
+    if (n.type === 'ort') { clean.probe = n.probe || ''; clean.ortId = n.ortId || ''; clean.erfolgText = n.erfolgText || ''; clean.misserfolgText = n.misserfolgText || ''; }
+    nodesOut[id] = clean;
+  });
+  return { startNode: graph.startNode, nodes: nodesOut, edges: graph.edges };
+}
+function exportGraph() {
+  const sceneId = sceneIdInput.value.trim() || '11.1';
+  const obj = buildGraphObject();
+  const body = JSON.stringify(obj, null, 2);
+  const text = 'const EXPLORATION_GRAPHS = {\n  "' + sceneId + '": ' + body.replace(/\n/g, '\n  ') + '\n};\n';
+  document.getElementById('exportBox').value = text;
+  setStatus('Export erzeugt — zum Übernehmen in js/exploration_graphs.js einfügen.');
+}
+function downloadExport() {
+  exportGraph();
+  const blob = new Blob([document.getElementById('exportBox').value], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'exploration_graph_export.js';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function copyExport() {
+  exportGraph();
+  const box = document.getElementById('exportBox');
+  box.select();
+  document.execCommand('copy');
+  setStatus('In Zwischenablage kopiert.');
+}
+function importGraph() {
+  const raw = document.getElementById('importBox').value.trim();
+  if (!raw) return;
+  try {
+    // Erwartet z.B.: "11.1": { startNode: "start", nodes: {...}, edges: {...} }
+    // oder nur das reine { startNode:..., nodes:..., edges:... }-Objekt.
+    let src = raw;
+    const colonMatch = src.match(/^"[^"]*"\s*:\s*/);
+    if (colonMatch) src = src.slice(colonMatch[0].length);
+    src = src.replace(/,\s*$/, '');
+    const parsed = new Function('return (' + src + ');')();
+    if (!parsed || !parsed.nodes) throw new Error('Kein gültiges Graph-Objekt gefunden (nodes fehlt).');
+    graph = { startNode: parsed.startNode || null, nodes: parsed.nodes || {}, edges: parsed.edges || {} };
+    // "ort"-Knoten holen ihre Position im echten Betrieb vom verknüpften
+    // Marker (getGraphNodePosition(), js/exploration_graphs.js) und haben
+    // deshalb oft KEIN top/left im Quelltext - hier trotzdem einen
+    // Platzhalter setzen, sonst lässt sich der Knoten nicht anfassen/ziehen.
+    let placeholderCount = 0;
+    Object.keys(graph.nodes).forEach(function (id) {
+      const n = graph.nodes[id];
+      if (typeof n.top !== 'number' || typeof n.left !== 'number') {
+        n.top = 50; n.left = 50; placeholderCount++;
+      }
+    });
+    selectedNodeId = null; edgeSourceId = null;
+    renderAll();
+    setStatus('Graph geladen: ' + Object.keys(graph.nodes).length + ' Knoten, ' + Object.keys(graph.edges).length + ' Kanten.' +
+      (placeholderCount ? ' ' + placeholderCount + ' Knoten ohne top/left (vermutlich "ort"-Typ, Position kommt sonst vom Marker) auf 50/50 gesetzt - bitte an die richtige Stelle ziehen.' : ''));
+  } catch (e) {
+    alert('Konnte nicht geladen werden: ' + e.message);
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>
