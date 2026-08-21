@@ -417,20 +417,21 @@ function renderGraphPanelHTML(sceneId) {
       '<button class="sh-graph-btn sh-graph-btn-erfolg" onclick="graphResolveOrt(\'' + sceneId + '\', true)">✓ Erfolg — aufdecken</button>' +
       '<button class="sh-graph-btn sh-graph-btn-misserfolg" onclick="graphResolveOrt(\'' + sceneId + '\', false)">✗ Misserfolg</button>' +
       '</div></div>';
-  } else if (node.type === 'ereignis') {
-    html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
-    if (node.erfolgText || node.misserfolgText) {
-      html += '<div class="sh-graph-ort-probe">' +
-        (node.erfolgText ? '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + node.erfolgText + '</div>' : '') +
-        (node.misserfolgText ? '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + node.misserfolgText + '</div>' : '') +
-        '</div>';
-    }
-    const forwardEdge = getOutgoingEdges(sceneId, currentId)[0];
-    if (forwardEdge) html += '<button class="sh-graph-btn" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + forwardEdge.id + '\')">Weiter</button>';
-    if ((graphStateSnapshot.history || []).length) {
-      html += ' <button class="sh-graph-btn sh-graph-btn-back" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + BACK_EDGE_ID + '\')">↩ Zurück</button>';
-    }
   } else {
+    // Ereignis-Knoten (grüner Punkt, Hendriks Skizze): Probe-Referenztext
+    // zuerst zum Vorlesen, danach GENAUSO die normale Options-Liste wie bei
+    // Start/Ort - ein Ereignis-Knoten ist seit 2026-08-21 zugleich ein
+    // normaler Entscheidungspunkt, kein Sonderfall mit nur einem "Weiter"-
+    // Knopf mehr.
+    if (node.type === 'ereignis') {
+      html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
+      if (node.erfolgText || node.misserfolgText) {
+        html += '<div class="sh-graph-ort-probe">' +
+          (node.erfolgText ? '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + node.erfolgText + '</div>' : '') +
+          (node.misserfolgText ? '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + node.misserfolgText + '</div>' : '') +
+          '</div>';
+      }
+    }
     const options = getPlayableOptions(sceneId, currentId, graphStateSnapshot.history || []);
     if (!options.length) {
       html += '<div class="sh-graph-ereignis-text">Kein weiterer Weg von hier bekannt.</div>';

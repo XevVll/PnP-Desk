@@ -1684,7 +1684,7 @@ const ORTE = {
   // CLAUDE.md Architektur-Muster.
   "riffstrand": {
     personen: "James Harwick · Cormac Daly",
-    kurz: "Ankunft in der geschützten Lagune, kurze Erleichterung, dann Cormacs offene Erkundungsaufgabe (Wasser/Material/Sicherheit). Referenz für die vier Skill-gated Fundstellen in \"Die Erkundung\".",
+    kurz: "Ankunft in der geschützten Lagune, kurze Erleichterung, dann Cormacs offene Erkundungsaufgabe (Wasser/Material/Sicherheit). Referenz für die vier Skill-gated Fundstellen in \"Die Erkundung\" — die Zeit dafür ist begrenzt, siehe \"Die Eingeborenen greifen an\".",
     interaktionen: {
       "ankunft_und_auftrag": {
         title: "Ankunft — Cormacs Auftrag",
@@ -1714,6 +1714,17 @@ const ORTE = {
           { id: "grotte_probe", label: "Versteckte Grotte: Wahrnehmungsprobe versucht", info: "Der gut versteckte Spalt im Fels ist leicht zu übersehen." },
           { id: "grotte_erfolg", label: "Grotte gefunden → Marker live einblenden", info: "Erfolg blendet den Marker \"Versteckte Grotte\" ein." },
           { id: "grotte_misserfolg", label: "Misserfolg → folgenlos, jederzeit erneut versuchbar", info: "Man übersieht den Eingang einfach — kein Sturz möglich, kein Schaden. Jederzeit ein zweiter Versuch." }
+        ]
+      },
+      "die_eingeborenen": {
+        title: "Die Eingeborenen greifen an",
+        kurz: "SL-Ermessen: Nach 30-60 Minuten realer Erkundungszeit (Stoppuhr im Adminpanel) ist die Insel doch nicht so verlassen, wie sie wirkte — feindliche Ureinwohner greifen an und jagen die Gruppe zurück zum Schiff. Beendet die Erkundung bewusst vorzeitig, bevor alles gefunden werden kann.",
+        details: "Die Insel wirkt nur auf den ersten Blick menschenleer. Nach SL-Ermessen — als grober Richtwert 30 bis 60 Minuten reale Erkundungszeit, mit der Stoppuhr im Adminpanel mitgezählt — wird klar, dass die Gruppe hier nicht allein ist: Aus dem Dickicht tauchen feindliche Ureinwohner auf, bewaffnet und entschlossen, die Eindringlinge zu vertreiben.\n\nEs folgt keine Verhandlung, sondern eine Verfolgungsjagd: Die Gruppe wird zurück in Richtung Strand und Boot gedrängt, ohne Zeit, sich noch großartig zu wehren oder das Vorhaben fortzusetzen. Die SL treibt die Gruppe damit erzwungen zurück zum Ausgangspunkt (praktisch: der bestehende \"↺ Zurücksetzen\"-Knopf im 🧭-Bereich des Adminpanels bildet diesen Rückzug technisch ab).\n\nDamit endet die Erkundung dieser Insel bewusst vorzeitig — nicht jede Fundstelle muss oder soll in diesem Durchgang entdeckt werden. Optionaler Anknüpfungspunkt (SL-Ermessen, keine Pflicht): Die ungewöhnlichen Fußspuren, auf die die Gruppe möglicherweise unterwegs gestoßen ist (siehe Erkundungs-Graph, Ereignis \"Ungewöhnliche Fußspuren\"), könnten im Rückblick als frühe Vorwarnung gelesen werden.",
+        trigger: [
+          { id: "sl_entscheidet_zeitpunkt", label: "SL-Ermessen: nach ca. 30-60 Minuten realer Erkundungszeit", info: "Grober Richtwert, mit der Stoppuhr im Adminpanel mitgezählt — kein fester Trigger an einem bestimmten Fund oder Knoten." },
+          { id: "eingeborene_erscheinen", label: "Feindliche Ureinwohner tauchen aus dem Dickicht auf", info: "Die Insel ist doch nicht menschenleer — bewaffnet und entschlossen, die Eindringlinge zu vertreiben." },
+          { id: "verfolgungsjagd", label: "Keine Verhandlung — eine Verfolgungsjagd Richtung Strand", info: "Die Gruppe wird zurück in Richtung Strand und Boot gedrängt, ohne Zeit für Widerstand oder Fortsetzung der Erkundung." },
+          { id: "rueckzug_erzwungen", label: "Erzwungener Rückzug zum Ausgangspunkt (praktisch: \"Zurücksetzen\"-Knopf)", info: "Die Erkundung endet bewusst vorzeitig — nicht jede Fundstelle muss in diesem Durchgang entdeckt werden." }
         ]
       }
     }
@@ -2212,7 +2223,7 @@ const SZENEN_REGIE = {
   // Verfassung jetzt auf Erschöpfung/Erleichterung nach der Flucht
   // umgestellt (Claude-Aufschlag, von Hendrik freizugeben).
   "11.1": {
-    uebergeordnetesZiel: "Die Insel absuchen — Wasser, Ausbesserungsmaterial und Sicherheit finden —, bevor es weitergeht.", // Bibel 2.9
+    uebergeordnetesZiel: "Die Insel absuchen — Wasser, Ausbesserungsmaterial und Sicherheit finden —, bevor die Zeit ausgeht (SL-Ermessen: nach 30-60 Minuten vertreiben feindliche Ureinwohner die Gruppe, siehe ORTE.riffstrand, \"Die Eingeborenen greifen an\").", // Bibel 2.9
     stimmung: "Erschöpfung, so weit man hinsieht — aber auch echte Erleichterung. Die Golden Lion liegt vor Anker in einer kleinen, vom Riff geschützten Lagune, der Himmel hellt sich auf. Niemand redet über die vergangene Nacht, noch nicht. Stattdessen macht sich die Crew an die Arbeit: Fässer werden an Land gebracht, kleine Gruppen brechen auf, um die Insel abzusuchen.",
     ghosts: [
       {

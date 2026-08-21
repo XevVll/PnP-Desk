@@ -94,6 +94,34 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 4)
+- **Ereignis-Flavortext jetzt auch für Spieler sichtbar** (Hendriks Wunsch). Neues, dauerhaft
+  sichtbares Label unter der Positions-Markierung in `karte.html` (`.erk-pos-label`) zeigt
+  `node.text` eines Ereignis-Knotens (z. B. "Ein dichter Schwarm Mücken empfängt jeden, der hier
+  durchmuss.") - bewusst NUR das, niemals `erfolgText`/`misserfolgText` (bleiben SL-exklusiv in
+  `regie.html`). Per Screenshot verifiziert.
+
+### 2026-08-21 (Fortsetzung 3)
+- **Erkundungs-Graph komplett nach Hendriks Referenz-Skizze neu aufgebaut** (handgezeichnete
+  Route direkt auf dem echten Kartenbild). Knoten-Modell vereinfacht: der bisherige dritte Typ
+  "Gabelung ohne Aufgabe" entfällt, jeder Nicht-Start-/Nicht-Ort-Knoten ist jetzt ein "ereignis"
+  mit echter Probe UND ganz normalen Wegoptionen danach (Hendriks Skizze kennt nur Grün=Aufgabe
+  und Blau=echter Ort). `karte.html`/`js/regie_vault.js` entsprechend angepasst — Ereignis-Knoten
+  zeigen jetzt Pfeile/Optionen wie jeder andere Entscheidungspunkt, nicht mehr nur eine "Weiter"-
+  Sackgasse. Neuer Graph: 14 Knoten (1 Start, 9 Ereignisse, 4 Orte), 18 Kanten, alle vier
+  Ort-Knoten bewusst Sackgassen (keine Weiterführung nach dem Fund, wie in der Skizze). Fünf neue
+  Ereignis-Knoten mit eigener Probe (rutschiger Felsvorsprung/Klettern, Dornengestrüpp/Körper,
+  enger Durchschlupf/Geschick, schlammiger Boden/Geschick, herabhängende Lianen/Geschick) ergänzen
+  die vier bestehenden. **Achtung:** Positionen/Kanten sind Claudes bestmögliche Ableitung aus der
+  Skizze (viele kreuzende Linien, nicht pixelgenau garantiert) — mit dem Debug-Overlay gegen das
+  Original gegengeprüft, aber noch nicht von Hendrik freigegeben.
+- **Neue Bedrohung: Die Eingeborenen** (Hendriks Vorgabe, nicht von Claude erfunden). Neue
+  Interaktion `ORTE.riffstrand.die_eingeborenen`: SL-Ermessen, nach ca. 30-60 Minuten realer
+  Erkundungszeit (Stoppuhr im Adminpanel) tauchen feindliche Ureinwohner auf, jagen die Gruppe
+  zurück zum Schiff — beendet die Erkundung bewusst vorzeitig, bevor alles gefunden werden kann.
+  Praktisch bildet der bestehende "↺ Zurücksetzen"-Knopf (🧭-Bereich) den erzwungenen Rückzug ab,
+  keine neue Technik nötig. `SZENEN_REGIE["11.1"].uebergeordnetesZiel` entsprechend ergänzt.
+
 ### 2026-08-21 (Fortsetzung 2)
 - **Bewegungspfeile deutlicher sichtbar** (Hendriks Feedback: gingen im detailreichen Artwork
   unter). `.erk-arrow` in `karte.html` von 30px auf 48px vergrößert, kräftigeres Blau

@@ -264,6 +264,18 @@
     box-shadow: 0 0 0 3px rgba(176,96,168,0.35), 0 2px 8px rgba(0,0,0,0.5);
     z-index: 30; pointer-events: none;
   }
+  /* Flavor-Text an einem Ereignis-Knoten (z.B. "Ein Mückenschwarm") - anders
+     als der Hinweistext an einem Pfeil (nur der Weg dorthin) beschreibt das
+     die aktuelle Situation selbst, deshalb dauerhaft sichtbar statt nur bei
+     Hover. Zeigt NUR node.text, nie erfolgText/misserfolgText - das bleibt
+     SL-exklusiv (regie.html). */
+  .erk-pos-label {
+    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+    width: 220px; text-align: center;
+    background: rgba(15,12,8,0.9); border: 1px solid var(--gold); color: var(--ink);
+    font-size: 13px; line-height: 1.4; padding: 7px 11px; border-radius: 6px;
+    z-index: 30; pointer-events: none;
+  }
   .erk-arrow {
     position: absolute; width: 48px; height: 48px;
     transform: translate(-50%, -50%);
@@ -805,7 +817,7 @@
     }
 
     function clearErkundungOverlay() {
-      mapWrapEl.querySelectorAll('.erk-pos, .erk-arrow').forEach(function (el) { el.remove(); });
+      mapWrapEl.querySelectorAll('.erk-pos, .erk-pos-label, .erk-arrow').forEach(function (el) { el.remove(); });
     }
 
     // Zeigt die aktuelle Position der Gruppe direkt auf der Karte (Ring)
@@ -831,14 +843,27 @@
       posEl.style.left = pos.left + '%';
       mapWrapEl.appendChild(posEl);
 
+      // Flavor-Text des aktuellen Ereignis-Knotens auch den Spielern zeigen
+      // (Hendriks Wunsch) - nur node.text (Situationsbeschreibung), niemals
+      // erfolgText/misserfolgText (SL-exklusiv, siehe regie.html).
+      if (node.type === 'ereignis' && node.text) {
+        const labelEl = document.createElement('div');
+        labelEl.className = 'erk-pos-label';
+        labelEl.style.top = pos.top + '%';
+        labelEl.style.left = pos.left + '%';
+        labelEl.textContent = node.text;
+        mapWrapEl.appendChild(labelEl);
+      }
+
       // Hendriks Vorgabe: Spieler sollen IMMER auch umkehren können -
       // getPlayableOptions() hängt dafür eine synthetische Zurück-Option an,
       // sobald graphState.history nicht leer ist (siehe exploration_graphs.js).
-      // An einem Ereignis-Knoten ist die Vorwärts-Bewegung nicht Spieler-
-      // gesteuert (SL löst aus) - dort bleibt nur die Zurück-Option wählbar.
+      // Ereignis-Knoten sind seit 2026-08-21 zugleich normale Entscheidungs-
+      // punkte (kein separater "nur Zurück"-Sonderfall mehr) - die Probe
+      // selbst läuft SL-seitig ab (regie.html), die Wahl des Weiters danach
+      // ist wie überall Spieler-Sache.
       const history = graphStateSnapshot.history || [];
-      let options = (typeof getPlayableOptions === 'function') ? getPlayableOptions(graphStateScene, currentNodeId, history) : [];
-      if (node.type === 'ereignis') options = options.filter(function (e) { return e.isBack; });
+      const options = (typeof getPlayableOptions === 'function') ? getPlayableOptions(graphStateScene, currentNodeId, history) : [];
       if (!options.length) return;
 
       const votes = graphStateSnapshot.votes || {};
