@@ -65,6 +65,7 @@
     width: 26px; height: 26px;
     transform: translate(-50%, -50%);
     cursor: pointer;
+    z-index: 10; /* unter #fogCanvas (20) - Marker sollen unter Nebel verschwinden koennen */
   }
   .marker .pin {
     width: 100%; height: 100%; border-radius: 50%;
@@ -322,6 +323,14 @@
      zeigt den kompletten Graphen inkl. Kanten/Ereignis-/Gabelungs-Knoten,
      die im echten Spiel bewusst verdeckt bleiben (Design-Regel: Wege nicht
      sichtbar). Reine Testhilfe, keine Spieler-Funktion. */
+  /* Fog of War (nur in Szenen mit Erkundungs-Graph, siehe ERK_DEBUG/render-
+     FogOfWar()): verdeckt die Karte bis auf den bereits erkundeten Pfad -
+     verhindert, dass Spieler Fundstellen einfach im Kartenbild selbst sehen
+     und gezielt hinlaufen, obwohl der Graph selbst schon verdeckt ist.
+     Unter dem Debug-Overlay (25) und der Positions-Markierung/den Pfeilen
+     (30/31), über normalen Markern (10). */
+  #fogCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; display: none; }
+  #fogCanvas.visible { display: block; }
   #erkDebugSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; display: none; }
   #erkDebugSvg.visible { display: block; }
   .erk-debug-node {
@@ -485,6 +494,7 @@
     <div id="mapWrap">
       <img id="mapImage" alt="Karte">
       <!-- Marker werden hier per JS eingefügt -->
+      <canvas id="fogCanvas"></canvas>
       <svg id="erkDebugSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
     </div>
   </div>
@@ -741,15 +751,15 @@
     }
 
     // Zeigt den kompletten Erkundungs-Graphen (Kanten + alle Knoten, auch
-    // Ereignis-/Gabelungs-Knoten) sichtbar auf der Karte - reine Testhilfe
-    // für Hendrik während der aktuellen Testphase, im späteren echten Spiel
-    // soll der Pfad wie vorgesehen verdeckt bleiben (nur die aktuelle
-    // Position + wählbare Optionen, siehe renderErkundungOnMap). Aktuell
-    // bewusst fest auf true (Hendriks Wunsch: "ich sehe die Pfade immer noch
-    // nicht" - ein Query-Parameter wurde übersehen/vergessen) - vor
-    // Session-Beginn wieder auf einen Opt-in-Parameter umstellen oder ganz
-    // entfernen, siehe CLAUDE.md.
-    const ERK_DEBUG = !new URLSearchParams(location.search).has('erkundungHideDebug');
+    // Ereignis-/Gabelungs-Knoten) sichtbar auf der Karte - reine Testhilfe,
+    // im echten Spiel soll der Pfad wie vorgesehen verdeckt bleiben (nur
+    // die aktuelle Position + wählbare Optionen, siehe renderErkundungOnMap
+    // und renderFogOfWar). War während der Testphase kurzzeitig standard-
+    // mäßig an (Hendrik hatte den Parameter übersehen) - jetzt, wo
+    // zusätzlich Fog of War existiert (verdeckt das Kartenbild selbst),
+    // wieder zurück auf Opt-in per ?erkundungDebug, sonst würde das Debug-
+    // Overlay den Fog-Zweck für echte Spieler sofort aushebeln.
+    const ERK_DEBUG = new URLSearchParams(location.search).has('erkundungDebug');
 
     function clearErkundungDebugOverlay() {
       mapWrapEl.querySelectorAll('.erk-debug-node').forEach(function (el) { el.remove(); });
@@ -820,6 +830,57 @@
       mapWrapEl.querySelectorAll('.erk-pos, .erk-pos-label, .erk-arrow').forEach(function (el) { el.remove(); });
     }
 
+    // Fog of War: verdeckt das Kartenbild bis auf den bereits erkundeten
+    // Pfad (Start + history + aktueller Knoten) - Hendriks Vorgabe, damit
+    // Spieler Fundstellen nicht einfach im Kartenbild selbst sehen und
+    // gezielt hinlaufen können, obwohl der Erkundungs-Graph selbst schon
+    // verdeckt ist. Nur aktiv in Szenen mit einem definierten Graphen -
+    // andere Karten (Grimsgate, Golden Lion, ...) bleiben unverändert
+    // vollständig sichtbar. Weiche Kreis-Löcher per Radial-Gradient +
+    // "destination-out", keine harten Kanten.
+    const FOG_RADIUS_FRACTION = 0.1; // Anteil der Bildbreite pro aufgedecktem Punkt
+    function renderFogOfWar() {
+      const canvas = document.getElementById('fogCanvas');
+      if (!canvas) return;
+      const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
+      if (!graph) { canvas.classList.remove('visible'); return; }
+      const rect = mapWrapEl.getBoundingClientRect();
+      if (!rect.width || !rect.height) { canvas.classList.remove('visible'); return; }
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      canvas.classList.add('visible');
+
+      const ctx = canvas.getContext('2d');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(12, 9, 6, 0.93)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const currentNodeId = graphStateSnapshot.currentNode || graph.startNode;
+      const history = graphStateSnapshot.history || [];
+      const revealedIds = [graph.startNode].concat(history).concat([currentNodeId]);
+      const radiusPx = canvas.width * FOG_RADIUS_FRACTION;
+      const seen = {};
+      ctx.globalCompositeOperation = 'destination-out';
+      revealedIds.forEach(function (nodeId) {
+        if (!nodeId || seen[nodeId]) return;
+        seen[nodeId] = true;
+        const pos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, nodeId, getMarkersForScene) : null;
+        if (!pos) return;
+        const cx = pos.left / 100 * canvas.width;
+        const cy = pos.top / 100 * canvas.height;
+        const grad = ctx.createRadialGradient(cx, cy, radiusPx * 0.35, cx, cy, radiusPx);
+        grad.addColorStop(0, 'rgba(0,0,0,1)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radiusPx, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    window.addEventListener('resize', function () { renderFogOfWar(); });
+
     // Zeigt die aktuelle Position der Gruppe direkt auf der Karte (Ring)
     // statt einer Options-Liste, umgeben von Pfeil-Buttons - einer pro
     // Kante - die auf Klick eine Stimme abgeben (Hinweistext als Hover-
@@ -828,6 +889,7 @@
     // Ring-Markierung nach der Aufdeckung optisch an derselben Stelle
     // sitzt wie der dann erscheinende richtige Marker.
     function renderErkundungOnMap() {
+      renderFogOfWar();
       clearErkundungOverlay();
       const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
       if (!graph) return;
@@ -938,6 +1000,7 @@
         mapImageEl.src = background;
         mapImageEl.classList.add('loaded');
         attachHiddenMarkersListener(sceneId);
+        renderFogOfWar(); // erst jetzt hat #mapWrap seine endgueltige Groesse
       };
       nextImg.onerror = function () {
         showEmptyState('Kartenbild "' + background + '" konnte nicht geladen werden.');

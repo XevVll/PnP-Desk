@@ -94,6 +94,23 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 6)
+- **Fog of War für Erkundungs-Graph-Szenen** (Hendriks Frage: Spieler sahen bisher das komplette
+  Kartenbild inkl. aller Fundstellen auf einen Blick, obwohl der Graph selbst verdeckt war — der
+  Nebel selbst hat den Zweck also unterlaufen). Neues `<canvas id="fogCanvas">` in `#mapWrap`
+  (`karte.html`), `renderFogOfWar()`: dunkle Fläche über der ganzen Karte, weiche Kreis-Löcher
+  (Radial-Gradient + `destination-out`) nur um Start + bereits besuchte Knoten (`history` +
+  aktueller Knoten) - der Rest der Insel bleibt schwarz, bis die Gruppe dort war. Nur aktiv in
+  Szenen mit definiertem `EXPLORATION_GRAPHS`-Eintrag (`getExplorationGraph()`), andere Karten
+  unverändert voll sichtbar. `.marker` bekam ein explizites `z-index`, damit normale Marker
+  zuverlässig UNTER dem Nebel liegen (vorher unklare DOM-Reihenfolge). Neu berechnet bei jedem
+  Zug, Fenster-Resize und sobald das Kartenbild geladen ist (Canvas-Pixelgröße muss zur
+  gerenderten Bildgröße passen). **Nebenbei zurückgesetzt:** `ERK_DEBUG` (komplette Graph-
+  Sichtbarkeit zum Testen) war seit der letzten Runde versehentlich standardmäßig an — mit Fog of
+  War würde das den ganzen Zweck sofort aushebeln, deshalb zurück auf Opt-in per
+  `?erkundungDebug`. Offline mit Playwright verifiziert (Nebel erscheint nur bei Szenen mit Graph,
+  wächst korrekt mit dem erkundeten Pfad) sowie per Screenshot gegengeprüft.
+
 ### 2026-08-21 (Fortsetzung 5)
 - **Neues Werkzeug: `graph_editor.html`** (Hendriks Wunsch, nachdem das Ablesen einer
   handgezeichneten Routen-Skizze fehleranfällig war). Eigenständiges, lokales Tool ohne Firebase
