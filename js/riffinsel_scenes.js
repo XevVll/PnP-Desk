@@ -25,48 +25,53 @@
 // (7.x), Schmugglernest (8.x) und Artefakthandel (9.x) - siehe CLAUDE.md,
 // Szenen-ID-Konvention.
 //
-// Bild: noch kein eigenes Referenzbild vorhanden - images/schatzinsel.webp
-// vorübergehend als Platzhalter (andere Insel, aber ähnliche Stimmung:
-// Strand/Dschungel/Riff), bis echtes Artwork existiert. TODO ersetzen.
+// Bild: echtes Referenzbild seit 2026-08-21 (Gemini, images/riffinsel.webp) -
+// zeigt eine kleine, fast vollständig vom Riff umschlossene Insel mit
+// Lagune, die Golden Lion dort vor Anker, Sandstrand als Landepunkt, im
+// Dschungel dahinter Quell-Becken mit Wasserfall, eine Höhle unter einem
+// Wurzelvorhang, Wrackteile am Riff unten rechts und einen Felsvorsprung
+// oben rechts. Marker-Koordinaten unten sind auf dieses Bild abgestimmt
+// (Augenmaß anhand der Bildkomposition, siehe CLAUDE.md-Changelog
+// 2026-08-21 - bei Bedarf feinjustieren).
 const RIFFINSEL_SCENES = {
   "11.1": {
     label: "Riffinsel",
-    background: "images/schatzinsel.webp",
+    background: "images/riffinsel.webp",
     markers: [
       {
         id: "riffstrand",
-        top: 50, left: 50,
+        top: 46, left: 49,
         title: "Der Riffstrand",
         desc: "Ein schmaler Sandstreifen, von einem vorgelagerten Riff wie von einer Mauer geschützt — dahinter tost noch immer die Brandung, hier drinnen liegt das Wasser fast still. Die Golden Lion liegt vor Anker in der kleinen Lagune, dicht genug am Ufer, dass ein Boot reicht. Der Himmel im Osten hellt sich langsam auf.",
-        img: "images/schatzinsel.webp"
+        img: "images/riffinsel.webp"
       },
       {
         id: "suesswasserquelle",
-        top: 30, left: 62,
+        top: 35, left: 59,
         title: "Die Süßwasserquelle",
         desc: "Zwischen moosbewachsenen Felsen sickert klares Wasser in ein natürliches Becken, gespeist von einer kleinen Quelle weiter oben im Fels. Farne und breitblättrige Pflanzen wuchern rundherum, der Boden ist feucht und weich.",
-        img: "images/schatzinsel.webp"
+        img: "images/riffinsel.webp"
       },
       {
         id: "wrackteile",
-        top: 68, left: 24,
+        top: 62, left: 71,
         title: "Wrackteile am Riff",
         desc: "Am äußeren Rand der Lagune ragen verwitterte Planken und ein halb im Sand vergrabener Rumpfteil aus dem Wasser — die Reste eines weit älteren Schiffs, das hier vor langer Zeit auf demselben Riff zerschellte. Muscheln und Algen haben sich über das meiste gelegt.",
-        img: "images/schatzinsel.webp"
+        img: "images/riffinsel.webp"
       },
       {
         id: "aussichtsklippe",
-        top: 20, left: 18,
+        top: 23, left: 78,
         title: "Die Aussichtsklippe",
         desc: "Ein schroffer Felsvorsprung erhebt sich über den Rest der Insel, steil und mit nassem Gestein — aber von oben reicht der Blick weit übers offene Meer hinaus, bis dorthin, wo sich Wasser und Nebel am Horizont treffen.",
-        img: "images/schatzinsel.webp"
+        img: "images/riffinsel.webp"
       },
       {
         id: "versteckte_grotte",
-        top: 78, left: 58,
+        top: 48, left: 74,
         title: "Die versteckte Grotte",
         desc: "Hinter einem Vorhang aus Luftwurzeln und dichtem Bewuchs, leicht zu übersehen, öffnet sich ein schmaler Spalt im Fels zu einer kleinen, trockenen Grotte. Drinnen ist es kühl und still, das Licht von draußen reicht nur wenige Schritte hinein.",
-        img: "images/schatzinsel.webp"
+        img: "images/riffinsel.webp"
       }
     ]
   }

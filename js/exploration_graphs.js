@@ -34,32 +34,33 @@ const EXPLORATION_GRAPHS = {
   "11.1": {
     startNode: "start",
     nodes: {
-      // top/left (%) sind vorläufige Platzierungen im selben Koordinatenraum
-      // wie Marker (RIFFINSEL_SCENES) - passend zum Platzhalterbild, nicht
-      // an echte Geografie gebunden. Bei echtem Artwork ggf. nachjustieren
-      // (gleiche Eigenheit wie Marker-Positionen allgemein, siehe CLAUDE.md).
-      start: { type: "start", label: "Aufbruch vom Riffstrand", top: 50, left: 50 },
-      weg_nord: { type: "gabelung", label: "Der nördliche Pfad", top: 38, left: 42 },
-      weg_sued: { type: "gabelung", label: "Der südliche Weg", top: 62, left: 42 },
-      lichtung: { type: "gabelung", label: "Eine Lichtung im Inselinneren", top: 50, left: 65 },
+      // top/left (%) auf das echte Referenzbild abgestimmt (images/
+      // riffinsel.webp, seit 2026-08-21) - Landmasse liegt darin ungefähr
+      // zwischen 40-95% (links-rechts) und 15-65% (oben-unten), siehe
+      // Marker-Koordinaten in riffinsel_scenes.js. Augenmaß, bei Bedarf
+      // feinjustieren.
+      start: { type: "start", label: "Aufbruch vom Riffstrand", top: 46, left: 52 },
+      weg_nord: { type: "gabelung", label: "Der nördliche Pfad", top: 38, left: 58 },
+      weg_sued: { type: "gabelung", label: "Der südliche Weg", top: 52, left: 64 },
+      lichtung: { type: "gabelung", label: "Eine Lichtung im Inselinneren", top: 45, left: 68 },
 
       ereignis_moskitos: {
-        type: "ereignis", label: "Ein Mückenschwarm", top: 32, left: 55,
+        type: "ereignis", label: "Ein Mückenschwarm", top: 36, left: 56,
         probe: "Körper (optional)",
         text: "Ein Schwarm Mücken empfängt jeden, der hier durchmuss — lästig, aber harmlos. Wer will, kann eine Körper-Probe versuchen, um halbwegs unzerstochen durchzukommen; zwingend ist das nicht."
       },
       ereignis_fussspuren: {
-        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 35, left: 32,
+        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 42, left: 66,
         probe: "Wahrnehmung (optional)",
         text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht. Wer genau hinsieht (Wahrnehmung, optional), erkennt weitere Details — ohne dass sich daraus sofort eine Erklärung ergibt."
       },
       ereignis_wind: {
-        type: "ereignis", label: "Böiger Wind auf dem Grat", top: 40, left: 25,
+        type: "ereignis", label: "Böiger Wind auf dem Grat", top: 35, left: 73,
         probe: "Körper (optional)",
         text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren. Eine Körper-Probe (optional) hält den Tritt sicher — zwingend ist auch das nicht, nur unangenehm ohne."
       },
       ereignis_krabben: {
-        type: "ereignis", label: "Ein Krabbenschwarm", top: 60, left: 75,
+        type: "ereignis", label: "Ein Krabbenschwarm", top: 53, left: 70,
         text: "Dutzende kleine Landkrabben stieben in alle Richtungen auseinander, als die Gruppe hier vorbeikommt — ein kurzer, harmloser Moment."
       },
 

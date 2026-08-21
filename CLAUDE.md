@@ -94,6 +94,23 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21
+- **Echtes Referenzbild für die Riffinsel eingebunden** (`images/riffinsel.webp`, von Hendrik via
+  Gemini generiert, siehe Prompt-Vorlage aus dem Gespräch). PNG->WebP über
+  `tools/optimize_images.py` (7,7 MB -> 402 KB, 1920×1047) - `riffinsel.png` dafür neu in
+  `MAP_NAMES` aufgenommen (sonst würde die 900px-Portrait-Kappung statt 1920px greifen).
+  `js/riffinsel_scenes.js`: `background` und alle 5 Marker-`img`-Felder von `schatzinsel.webp`
+  (Platzhalter) auf das neue Bild umgestellt, Marker-Koordinaten (`top`/`left`) auf die tatsächliche
+  Bildkomposition abgestimmt (Riffstrand am Ankerplatz neben dem Schiff, Süßwasserquelle am
+  Wasserfall-Becken, Wrackteile an den sichtbaren Rumpfresten unten rechts, Aussichtsklippe am
+  Felsvorsprung oben rechts, versteckte Grotte am Höhleneingang unter dem Wurzelvorhang).
+  `js/exploration_graphs.js`: alle Start-/Gabelungs-/Ereignis-Knoten-Koordinaten ebenfalls auf die
+  echte Insel-Geografie umgestellt (vorher grobe Platzhalter-Verteilung). Per Playwright-Screenshot
+  mit aktivem Debug-Overlay (siehe 2026-08-20 Fortsetzung 4) visuell gegen das Referenzbild
+  geprüft und nachjustiert (Wrackteile-Position einmal korrigiert). Rohes `riffinsel.png` bewusst
+  nicht gelöscht (Konvention: erst nach Sichtprüfung von Hand entfernen, siehe
+  `tools/optimize_images.py`-Docstring).
+
 ### 2026-08-20 (Fortsetzung 5)
 - **Erkundungs-Graph: SL-Reset, Fix für "springt wild rum", Debug-Overlay standardmäßig an**
   (Hendriks Bug-Reports nach dem ersten Testlauf).
