@@ -94,6 +94,30 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-20 (Fortsetzung 5)
+- **Erkundungs-Graph: SL-Reset, Fix für "springt wild rum", Debug-Overlay standardmäßig an**
+  (Hendriks Bug-Reports nach dem ersten Testlauf).
+  - **Ursache des wilden Springens gefunden und behoben:** `graphAdvance()`/`graphGoBack()`
+    schrieben bisher drei einzelne Firebase-Werte nacheinander (`currentNode.set()`,
+    `history.set()`, `votes.remove()`) - der Listener in `attachGraphStateListener()` feuerte
+    dadurch bis zu dreimal pro Zug, jedes Mal mit einem nur teilweise aktualisierten
+    Zwischenstand. Bei aktivem Auto-Advance-Testmodus (`AUTO_ADVANCE_THRESHOLD = 1`) konnte
+    `maybeAutoAdvance()` auf so einem Zwischenstand nochmal auslösen. Fix: ein einziges
+    `db.ref('graphState/...').update({currentNode, history, votes: null})` - atomare
+    Schreiboperation, der Listener feuert nur noch einmal mit bereits konsistentem Endstand.
+  - **Neuer `graphReset()`**: SL-Button "↺ Zurücksetzen" im 🧭-Panel (`regie.html`) löscht
+    `graphState/{szene}` komplett - Gruppe fällt automatisch auf den Startknoten zurück
+    (`currentGraphNodeId()` nutzt bei leerem Snapshot ohnehin `startNode` als Fallback). Deckt
+    bereits gefundene Orte NICHT wieder ab (`hiddenMarkersLive` bleibt unberührt) - betrifft nur
+    die Position im Graphen, nicht bereits erzählte Entdeckungen.
+  - **Debug-Overlay jetzt standardmäßig sichtbar** (`ERK_DEBUG` in `karte.html`) - Hendrik hatte
+    den nötigen `?erkundungDebug`-Parameter übersehen. Umgedreht auf Opt-out
+    (`?erkundungHideDebug`), da für die laufende Testphase ohnehin fast immer sichtbar gewünscht.
+    Vor echtem Session-Beginn wieder umstellen/entfernen (Kommentar im Code).
+  - Offline mit Playwright verifiziert: `graphAdvance()`/`graphReset()` mit Fake-`db` auf genau
+    einen atomaren Schreibzugriff geprüft (statt vormals drei), Reset-Button-Präsenz,
+    Debug-Overlay-Default-Verhalten.
+
 ### 2026-08-20 (Fortsetzung 4)
 - **Erkundungs-Graph: Debug-Overlay zum Testen** (Hendriks Wunsch, "Pfad + Eventpunkte sichtbar
   lassen"). Neuer Query-Parameter `?erkundungDebug` auf `karte.html` zeigt den kompletten

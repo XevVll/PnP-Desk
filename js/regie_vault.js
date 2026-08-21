@@ -314,29 +314,47 @@ function maybeAutoAdvance(sceneId) {
 // graphState/{szene}/history an - Grundlage für graphGoBack(). Wird auch
 // von graphResolveOrt() bei Erfolg genutzt (Ort-Ankunft zählt als normale
 // Bewegung).
+//
+// WICHTIG: ein einziges update() auf den Eltern-Pfad statt drei einzelner
+// set()/remove()-Aufrufe - sonst feuert der Firebase-Listener (attach-
+// GraphStateListener) DREIMAL nacheinander mit jeweils nur teilweise
+// aktualisiertem Zwischenstand (currentNode schon neu, votes/history noch
+// alt), und maybeAutoAdvance() kann auf so einem Zwischenstand nochmal
+// auslösen - sichtbar als "der Punkt springt wild rum" bei aktivem
+// Auto-Advance-Testmodus. Ein update() mit mehreren Pfaden ist eine
+// einzige atomare Schreiboperation, der Listener feuert nur einmal mit
+// bereits konsistentem Endstand.
 function graphAdvance(sceneId, toNodeId) {
   if (!db) return;
   pendingOrtEdge = null;
   const fromNodeId = currentGraphNodeId(sceneId);
   const history = (graphStateSnapshot.history || []).concat([fromNodeId]);
-  db.ref('graphState/' + fbKey(sceneId) + '/currentNode').set(toNodeId);
-  db.ref('graphState/' + fbKey(sceneId) + '/history').set(history);
-  db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
+  db.ref('graphState/' + fbKey(sceneId)).update({ currentNode: toNodeId, history: history, votes: null });
 }
 
 // Hendriks Vorgabe: Spieler sollen IMMER umkehren können. Springt zum
 // letzten Eintrag in history zurück (kein Fund-/Probe-Gate - der Ort war
 // ja schon besucht) und kürzt history um diesen Eintrag, sodass erneutes
-// Zurückgehen weiter rückwärts durch den bisherigen Weg führt.
+// Zurückgehen weiter rückwärts durch den bisherigen Weg führt. Atomares
+// update() aus demselben Grund wie graphAdvance() oben.
 function graphGoBack(sceneId) {
   if (!db) return;
   const history = (graphStateSnapshot.history || []).slice();
   if (!history.length) return;
   const prevNode = history.pop();
   pendingOrtEdge = null;
-  db.ref('graphState/' + fbKey(sceneId) + '/currentNode').set(prevNode);
-  db.ref('graphState/' + fbKey(sceneId) + '/history').set(history);
-  db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
+  db.ref('graphState/' + fbKey(sceneId)).update({ currentNode: prevNode, history: history, votes: null });
+}
+
+// SL-Werkzeug (Hendriks Anfrage): kompletter Reset der Erkundung auf
+// diesen Startknoten - löscht currentNode/history/votes. Deckt bereits
+// gefundene Orte NICHT wieder ab (hiddenMarkersLive bleibt unberührt) -
+// ein Reset betrifft nur die Position der Gruppe im Graphen, nicht bereits
+// erzählte Entdeckungen.
+function graphReset(sceneId) {
+  if (!db) return;
+  pendingOrtEdge = null;
+  db.ref('graphState/' + fbKey(sceneId)).remove();
 }
 
 // Klick auf eine Option im Adminpanel (Kante ODER die synthetische Zurück-
@@ -386,7 +404,8 @@ function renderGraphPanelHTML(sceneId) {
   const totalVotes = Object.keys(votes).length;
   const maxVotes = Math.max.apply(null, Object.keys(voteCounts).map(function (k) { return voteCounts[k]; }).concat([0]));
 
-  let html = '<div class="sh-graph"><div class="sh-graph-label">🧭 Erkundung — ' + node.label + '</div>';
+  let html = '<div class="sh-graph"><div class="sh-graph-label">🧭 Erkundung — ' + node.label +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="graphReset(\'' + sceneId + '\')" title="Zurück zum Startpunkt, Verlauf löschen">↺ Zurücksetzen</button></div>';
 
   if (pendingOrtEdge) {
     const targetNode = getGraphNode(sceneId, pendingOrtEdge.toNode);

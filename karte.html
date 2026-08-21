@@ -710,12 +710,16 @@
       if (myVoteRef) { myVoteRef.onDisconnect().cancel(); myVoteRef.remove(); myVoteRef = null; }
     }
 
-    // ?erkundungDebug in der URL: zeigt den kompletten Erkundungs-Graphen
-    // (Kanten + alle Knoten, auch Ereignis-/Gabelungs-Knoten) sichtbar auf
-    // der Karte - reine Testhilfe für Hendrik, im echten Spiel bleibt der
-    // Pfad wie vorgesehen verdeckt (nur die aktuelle Position + wählbare
-    // Optionen, siehe renderErkundungOnMap).
-    const ERK_DEBUG = new URLSearchParams(location.search).has('erkundungDebug');
+    // Zeigt den kompletten Erkundungs-Graphen (Kanten + alle Knoten, auch
+    // Ereignis-/Gabelungs-Knoten) sichtbar auf der Karte - reine Testhilfe
+    // für Hendrik während der aktuellen Testphase, im späteren echten Spiel
+    // soll der Pfad wie vorgesehen verdeckt bleiben (nur die aktuelle
+    // Position + wählbare Optionen, siehe renderErkundungOnMap). Aktuell
+    // bewusst fest auf true (Hendriks Wunsch: "ich sehe die Pfade immer noch
+    // nicht" - ein Query-Parameter wurde übersehen/vergessen) - vor
+    // Session-Beginn wieder auf einen Opt-in-Parameter umstellen oder ganz
+    // entfernen, siehe CLAUDE.md.
+    const ERK_DEBUG = !new URLSearchParams(location.search).has('erkundungHideDebug');
 
     function clearErkundungDebugOverlay() {
       mapWrapEl.querySelectorAll('.erk-debug-node').forEach(function (el) { el.remove(); });
