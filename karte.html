@@ -279,6 +279,8 @@
   }
   .erk-arrow:hover .erk-arrow-shape { border-bottom-color: var(--gold); transform: scale(1.12); }
   .erk-arrow.mine .erk-arrow-shape { border-bottom-color: var(--gold); }
+  .erk-arrow.back .erk-arrow-shape { border-bottom-color: var(--ink-dim); opacity: .8; }
+  .erk-arrow.back.mine .erk-arrow-shape { border-bottom-color: var(--gold); opacity: 1; }
   .erk-arrow-votes {
     position: absolute; top: -8px; right: -10px;
     background: rgba(15,12,8,0.9); border: 1px solid var(--line); color: var(--ink);
@@ -286,6 +288,26 @@
     display: none;
   }
   .erk-arrow-votes.has-votes { display: block; }
+  /* Debug-Overlay (nur mit ?erkundungDebug in der URL, siehe ERK_DEBUG):
+     zeigt den kompletten Graphen inkl. Kanten/Ereignis-/Gabelungs-Knoten,
+     die im echten Spiel bewusst verdeckt bleiben (Design-Regel: Wege nicht
+     sichtbar). Reine Testhilfe, keine Spieler-Funktion. */
+  #erkDebugSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; display: none; }
+  #erkDebugSvg.visible { display: block; }
+  .erk-debug-node {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    transform: translate(-50%, -50%); z-index: 26; pointer-events: none;
+    border: 2px solid rgba(15,12,8,0.75);
+  }
+  .erk-debug-start { background: #b060a8; }
+  .erk-debug-ort { background: #3a6ea5; }
+  .erk-debug-gabelung { background: #d4b23c; }
+  .erk-debug-ereignis { background: #4a9a4a; }
+  .erk-debug-label {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; font-size: 10px; color: var(--ink);
+    background: rgba(15,12,8,0.75); padding: 1px 4px; border-radius: 3px; margin-top: 2px;
+  }
   .erk-arrow-label {
     position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
     white-space: nowrap; max-width: 220px; white-space: normal; width: 180px;
@@ -433,6 +455,7 @@
     <div id="mapWrap">
       <img id="mapImage" alt="Karte">
       <!-- Marker werden hier per JS eingefügt -->
+      <svg id="erkDebugSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
     </div>
   </div>
 
@@ -687,11 +710,59 @@
       if (myVoteRef) { myVoteRef.onDisconnect().cancel(); myVoteRef.remove(); myVoteRef = null; }
     }
 
+    // ?erkundungDebug in der URL: zeigt den kompletten Erkundungs-Graphen
+    // (Kanten + alle Knoten, auch Ereignis-/Gabelungs-Knoten) sichtbar auf
+    // der Karte - reine Testhilfe für Hendrik, im echten Spiel bleibt der
+    // Pfad wie vorgesehen verdeckt (nur die aktuelle Position + wählbare
+    // Optionen, siehe renderErkundungOnMap).
+    const ERK_DEBUG = new URLSearchParams(location.search).has('erkundungDebug');
+
+    function clearErkundungDebugOverlay() {
+      mapWrapEl.querySelectorAll('.erk-debug-node').forEach(function (el) { el.remove(); });
+      const svg = document.getElementById('erkDebugSvg');
+      if (svg) { svg.innerHTML = ''; svg.classList.remove('visible'); }
+    }
+
+    function renderErkundungDebugOverlay(sceneId) {
+      clearErkundungDebugOverlay();
+      if (!ERK_DEBUG) return;
+      const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(sceneId) : null;
+      const svg = document.getElementById('erkDebugSvg');
+      if (!graph || !svg) return;
+      svg.classList.add('visible');
+
+      Object.keys(graph.edges).forEach(function (edgeId) {
+        const edge = graph.edges[edgeId];
+        const fromPos = getGraphNodePosition(sceneId, edge.from, getMarkersForScene);
+        const toPos = getGraphNodePosition(sceneId, edge.to, getMarkersForScene);
+        if (!fromPos || !toPos) return;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', fromPos.left); line.setAttribute('y1', fromPos.top);
+        line.setAttribute('x2', toPos.left); line.setAttribute('y2', toPos.top);
+        line.setAttribute('stroke', 'rgba(230,80,60,0.55)');
+        line.setAttribute('stroke-width', '0.4');
+        svg.appendChild(line);
+      });
+
+      Object.keys(graph.nodes).forEach(function (nodeId) {
+        const pos = getGraphNodePosition(sceneId, nodeId, getMarkersForScene);
+        if (!pos) return;
+        const node = graph.nodes[nodeId];
+        const dot = document.createElement('div');
+        dot.className = 'erk-debug-node erk-debug-' + node.type;
+        dot.style.top = pos.top + '%';
+        dot.style.left = pos.left + '%';
+        dot.innerHTML = '<span class="erk-debug-label">' + nodeId + '</span>';
+        mapWrapEl.appendChild(dot);
+      });
+    }
+
     function attachGraphStateListener(sceneId) {
       if (sceneId === graphStateScene) return;
       if (graphStateRef && graphStateListener) graphStateRef.off('value', graphStateListener);
       graphStateScene = sceneId; graphStateSnapshot = {};
       clearMyVote();
+      renderErkundungDebugOverlay(sceneId);
       if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) {
         renderErkundungOnMap();
         return;
@@ -738,10 +809,15 @@
       posEl.style.left = pos.left + '%';
       mapWrapEl.appendChild(posEl);
 
-      if (node.type === 'ereignis') return; // kein Spieler-Entscheid an einem Ereignis-Knoten
-
-      const edges = (typeof getOutgoingEdges === 'function') ? getOutgoingEdges(graphStateScene, currentNodeId) : [];
-      if (!edges.length) return;
+      // Hendriks Vorgabe: Spieler sollen IMMER auch umkehren können -
+      // getPlayableOptions() hängt dafür eine synthetische Zurück-Option an,
+      // sobald graphState.history nicht leer ist (siehe exploration_graphs.js).
+      // An einem Ereignis-Knoten ist die Vorwärts-Bewegung nicht Spieler-
+      // gesteuert (SL löst aus) - dort bleibt nur die Zurück-Option wählbar.
+      const history = graphStateSnapshot.history || [];
+      let options = (typeof getPlayableOptions === 'function') ? getPlayableOptions(graphStateScene, currentNodeId, history) : [];
+      if (node.type === 'ereignis') options = options.filter(function (e) { return e.isBack; });
+      if (!options.length) return;
 
       const votes = graphStateSnapshot.votes || {};
       const myVote = votes[mySessionId];
@@ -749,20 +825,39 @@
       Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
 
       const RADIUS = 56; // px, Abstand der Pfeile von der Positions-Markierung
-      // Fächer über den oberen Bogen (-165° bis -15°, "nach oben/außen")
-      // statt Vollkreis - vermeidet einen Pfeil, der optisch "zurück in den
-      // Ring" zeigt. Kanten haben keine eigene "echte" Richtung relativ zum
-      // (noch als Platzhalter dienenden) Kartenbild, siehe exploration_graphs.js.
+      // Vorwärts-Kanten: Fächer über den oberen Bogen (-165° bis -15°) -
+      // Kanten haben keine eigene "echte" Richtung relativ zum (noch als
+      // Platzhalter dienenden) Kartenbild, siehe exploration_graphs.js.
       const SPREAD_START = -165, SPREAD_END = -15;
-      edges.forEach(function (e, i) {
-        const angleDeg = edges.length === 1 ? -90 : SPREAD_START + (SPREAD_END - SPREAD_START) * (i / (edges.length - 1));
+      const forwardOptions = options.filter(function (e) { return !e.isBack; });
+      const backOption = options.find(function (e) { return e.isBack; });
+
+      forwardOptions.forEach(function (e, i) {
+        const angleDeg = forwardOptions.length === 1 ? -90 : SPREAD_START + (SPREAD_END - SPREAD_START) * (i / (forwardOptions.length - 1));
+        renderArrow(e, angleDeg);
+      });
+
+      if (backOption) {
+        // Zurück-Pfeil bekommt, wo möglich, die TATSÄCHLICHE Richtung zum
+        // vorherigen Knoten (statt in den Vorwärts-Fächer eingereiht zu
+        // werden) - liest sich intuitiver und bleibt optisch abgesetzt
+        // (.erk-arrow.back, siehe CSS).
+        const prevPos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, backOption.to, getMarkersForScene) : null;
+        let angleDeg = 90; // Default: nach unten, falls keine Position bekannt
+        if (prevPos && (prevPos.left !== pos.left || prevPos.top !== pos.top)) {
+          angleDeg = Math.atan2(prevPos.top - pos.top, prevPos.left - pos.left) * 180 / Math.PI;
+        }
+        renderArrow(backOption, angleDeg);
+      }
+
+      function renderArrow(e, angleDeg) {
         const angleRad = angleDeg * Math.PI / 180;
         const dx = Math.cos(angleRad) * RADIUS;
         const dy = Math.sin(angleRad) * RADIUS;
         const count = voteCounts[e.id] || 0;
 
         const arrowEl = document.createElement('div');
-        arrowEl.className = 'erk-arrow' + (myVote === e.id ? ' mine' : '');
+        arrowEl.className = 'erk-arrow' + (myVote === e.id ? ' mine' : '') + (e.isBack ? ' back' : '');
         arrowEl.style.top = pos.top + '%';
         arrowEl.style.left = pos.left + '%';
         arrowEl.style.transform = 'translate(-50%, -50%) translate(' + dx + 'px, ' + dy + 'px) rotate(' + (angleDeg + 90) + 'deg)';
@@ -770,9 +865,9 @@
         arrowEl.innerHTML =
           '<div class="erk-arrow-shape"></div>' +
           '<div class="erk-arrow-votes' + (count ? ' has-votes' : '') + '" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)">' + count + '</div>' +
-          '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + e.hinweis + '</div>';
+          '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + (e.isBack ? '↩ ' : '') + e.hinweis + '</div>';
         mapWrapEl.appendChild(arrowEl);
-      });
+      }
     }
 
     function renderScene(sceneId) {

@@ -154,3 +154,20 @@ function getOutgoingEdges(sceneId, nodeId) {
     .filter(function (edgeId) { return g.edges[edgeId].from === nodeId; })
     .map(function (edgeId) { return Object.assign({ id: edgeId }, g.edges[edgeId]); });
 }
+
+// Hendriks Vorgabe: Spieler sollen IMMER auch umkehren können, selbst wenn
+// dafür keine echte Kante im Graphen modelliert wurde. "history" ist die
+// Liste bereits besuchter Knoten-IDs aus graphState/{sceneId}/history
+// (siehe js/regie_vault.js, graphAdvance/graphGoBack) - ist sie nicht leer,
+// wird eine synthetische Zurück-Option angehängt, die zum jeweils letzten
+// Eintrag führt. Kein Fund-/Probe-Gate beim Zurückgehen (man war ja schon
+// dort). Wird sowohl von karte.html (Pfeil) als auch regie.html (Panel)
+// genutzt, damit beide Seiten dieselbe Options-Liste sehen.
+const BACK_EDGE_ID = '__back__';
+function getPlayableOptions(sceneId, nodeId, history) {
+  const edges = getOutgoingEdges(sceneId, nodeId);
+  if (history && history.length) {
+    edges.push({ id: BACK_EDGE_ID, to: history[history.length - 1], hinweis: 'Zurück, den Weg zurückverfolgen.', isBack: true });
+  }
+  return edges;
+}

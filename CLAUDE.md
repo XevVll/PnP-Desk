@@ -94,6 +94,33 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-20 (Fortsetzung 4)
+- **Erkundungs-Graph: Debug-Overlay zum Testen** (Hendriks Wunsch, "Pfad + Eventpunkte sichtbar
+  lassen"). Neuer Query-Parameter `?erkundungDebug` auf `karte.html` zeigt den kompletten
+  verdeckten Graphen sichtbar auf der Karte — alle Knoten als farbige Punkte (Lila=Start,
+  Gelb=Gabelung, Grün=Ereignis, Blau=Ort, gleiche Farbcodierung wie Hendriks Skizze) mit
+  Namens-Label, alle Kanten als rote Linien (neues `<svg id="erkDebugSvg">` in `#mapWrap`, viewBox
+  0–100 im selben %-Koordinatenraum wie Marker/Positions-Ring). Ohne den Parameter bleibt alles
+  wie vorgesehen verdeckt — reine Testhilfe, keine Spieler-Funktion, an keiner Stelle mit
+  Firebase verknüpft. Offline mit Playwright verifiziert (12 Knoten/16 Kanten sichtbar mit
+  Parameter, nichts sichtbar ohne, normale Positions-/Pfeil-Anzeige bleibt unverändert darüber)
+  sowie per Screenshot gegengeprüft.
+
+### 2026-08-20 (Fortsetzung 3)
+- **Erkundungs-Graph: Spieler können jetzt immer umkehren** (Hendriks Vorgabe). Neues
+  `graphState/{szene}/history`-Array (Firebase, gepflegt von `graphAdvance()`/neu
+  `graphGoBack()` in `js/regie_vault.js`) hält den bisherigen Weg fest. Sobald `history` nicht
+  leer ist, hängt die neue Funktion `getPlayableOptions()` (`js/exploration_graphs.js`) eine
+  synthetische Zurück-Option (`BACK_EDGE_ID = "__back__"`) an die normalen Kanten an — führt ohne
+  Probe/Fund-Gate zum jeweils letzten besuchten Knoten zurück (man war ja schon dort), auch an
+  Ereignis-Knoten (dort sonst keine Spieler-Wahl). `karte.html`: der Zurück-Pfeil bekommt, wo
+  möglich, die tatsächliche Richtung zum vorherigen Knoten (statt in den Vorwärts-Fächer
+  eingereiht zu werden) und ist farblich abgesetzt (gedämpftes Grau statt Blau). `regie.html`:
+  gestrichelter "↩ Zurück"-Button im 🧭-Panel. `maybeAutoAdvance()` berücksichtigt die Zurück-
+  Option ebenso wie normale Kanten. Offline mit Playwright verifiziert (kein Zurück-Button am
+  Start, korrekte Options-Liste inkl. Zurück-Ziel, Panel- und On-Map-Rendering, Ereignis-Knoten
+  mit nur der Zurück-Option) sowie per Screenshot gegengeprüft.
+
 ### 2026-08-20 (Fortsetzung 2)
 - **Erkundungs-Graph, Spieler-Ansicht auf On-Map-Pfeile umgestellt** (Hendriks Vorgabe: Optionen
   direkt am aktuellen Punkt zeigen statt als Liste). `karte.html` zeigt jetzt eine Positions-

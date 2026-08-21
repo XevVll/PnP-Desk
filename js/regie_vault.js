@@ -286,40 +286,66 @@ function currentGraphNodeId(sceneId) {
 // oder an eine echte Präsenz-Zahl koppeln.
 const AUTO_ADVANCE_THRESHOLD = 1;
 
-// Prüft nach jeder Stimmen-Änderung, ob eine Kante die Schwelle erreicht
-// hat, und zieht dann automatisch weiter (bzw. öffnet bei einer "ort"-
-// Kante die Probe-Auflösung) - ruft dafür einfach graphSelectEdge auf,
-// dieselbe Funktion wie ein manueller SL-Klick. Stimmen, die nicht zu
-// einer tatsächlich vom AKTUELLEN Knoten ausgehenden Kante gehören (z.B.
-// kurzzeitig veraltete Stimmen während eines Übergangs), werden ignoriert.
+// Prüft nach jeder Stimmen-Änderung, ob eine Option (Kante ODER die
+// synthetische Zurück-Option, siehe getPlayableOptions) die Schwelle
+// erreicht hat, und zieht dann automatisch weiter - ruft dafür einfach
+// graphSelectEdge auf, dieselbe Funktion wie ein manueller SL-Klick.
+// Stimmen, die nicht zu einer tatsächlich vom AKTUELLEN Knoten aus
+// wählbaren Option gehören (z.B. kurzzeitig veraltete Stimmen während
+// eines Übergangs), werden ignoriert.
 function maybeAutoAdvance(sceneId) {
   if (pendingOrtEdge) return; // SL löst gerade eine Probe auf, nicht dazwischenfunken
   const currentId = currentGraphNodeId(sceneId);
-  const outgoingIds = getOutgoingEdges(sceneId, currentId).map(function (e) { return e.id; });
-  if (!outgoingIds.length) return;
+  const history = graphStateSnapshot.history || [];
+  const optionIds = getPlayableOptions(sceneId, currentId, history).map(function (e) { return e.id; });
+  if (!optionIds.length) return;
   const votes = graphStateSnapshot.votes || {};
   const voteCounts = {};
   Object.keys(votes).forEach(function (sid) {
     const eid = votes[sid];
-    if (outgoingIds.indexOf(eid) === -1) return;
+    if (optionIds.indexOf(eid) === -1) return;
     voteCounts[eid] = (voteCounts[eid] || 0) + 1;
   });
   const leadingEdgeId = Object.keys(voteCounts).find(function (eid) { return voteCounts[eid] >= AUTO_ADVANCE_THRESHOLD; });
   if (leadingEdgeId) graphSelectEdge(sceneId, leadingEdgeId);
 }
 
+// Bewegt die Gruppe vorwärts zu toNodeId und hängt den bisherigen Knoten an
+// graphState/{szene}/history an - Grundlage für graphGoBack(). Wird auch
+// von graphResolveOrt() bei Erfolg genutzt (Ort-Ankunft zählt als normale
+// Bewegung).
 function graphAdvance(sceneId, toNodeId) {
   if (!db) return;
   pendingOrtEdge = null;
+  const fromNodeId = currentGraphNodeId(sceneId);
+  const history = (graphStateSnapshot.history || []).concat([fromNodeId]);
   db.ref('graphState/' + fbKey(sceneId) + '/currentNode').set(toNodeId);
+  db.ref('graphState/' + fbKey(sceneId) + '/history').set(history);
   db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
 }
 
-// Klick auf eine Kante im Adminpanel. Führt eine "ort"-Kante zu einem noch
-// nicht aufgedeckten Ort, wird statt direkter Navigation erst die Erfolg/
-// Misserfolg-Auflösung angezeigt (siehe graphResolveOrt) - bereits
-// aufgedeckte "ort"-Knoten verhalten sich wie eine normale Gabelung.
+// Hendriks Vorgabe: Spieler sollen IMMER umkehren können. Springt zum
+// letzten Eintrag in history zurück (kein Fund-/Probe-Gate - der Ort war
+// ja schon besucht) und kürzt history um diesen Eintrag, sodass erneutes
+// Zurückgehen weiter rückwärts durch den bisherigen Weg führt.
+function graphGoBack(sceneId) {
+  if (!db) return;
+  const history = (graphStateSnapshot.history || []).slice();
+  if (!history.length) return;
+  const prevNode = history.pop();
+  pendingOrtEdge = null;
+  db.ref('graphState/' + fbKey(sceneId) + '/currentNode').set(prevNode);
+  db.ref('graphState/' + fbKey(sceneId) + '/history').set(history);
+  db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
+}
+
+// Klick auf eine Option im Adminpanel (Kante ODER die synthetische Zurück-
+// Option). Führt eine "ort"-Kante zu einem noch nicht aufgedeckten Ort,
+// wird statt direkter Navigation erst die Erfolg/Misserfolg-Auflösung
+// angezeigt (siehe graphResolveOrt) - bereits aufgedeckte "ort"-Knoten
+// verhalten sich wie eine normale Gabelung.
 function graphSelectEdge(sceneId, edgeId) {
+  if (edgeId === BACK_EDGE_ID) { graphGoBack(sceneId); return; }
   const g = getExplorationGraph(sceneId);
   if (!g) return;
   const edge = g.edges[edgeId];
@@ -374,19 +400,22 @@ function renderGraphPanelHTML(sceneId) {
       '</div></div>';
   } else if (node.type === 'ereignis') {
     html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
-    const edges = getOutgoingEdges(sceneId, currentId);
-    if (edges[0]) html += '<button class="sh-graph-btn" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + edges[0].id + '\')">Weiter</button>';
+    const forwardEdge = getOutgoingEdges(sceneId, currentId)[0];
+    if (forwardEdge) html += '<button class="sh-graph-btn" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + forwardEdge.id + '\')">Weiter</button>';
+    if ((graphStateSnapshot.history || []).length) {
+      html += ' <button class="sh-graph-btn sh-graph-btn-back" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + BACK_EDGE_ID + '\')">↩ Zurück</button>';
+    }
   } else {
-    const edges = getOutgoingEdges(sceneId, currentId);
-    if (!edges.length) {
+    const options = getPlayableOptions(sceneId, currentId, graphStateSnapshot.history || []);
+    if (!options.length) {
       html += '<div class="sh-graph-ereignis-text">Kein weiterer Weg von hier bekannt.</div>';
     } else {
       html += '<div class="sh-graph-options">';
-      edges.forEach(function (e) {
+      options.forEach(function (e) {
         const count = voteCounts[e.id] || 0;
         const isLeader = count > 0 && count === maxVotes;
-        html += '<button class="sh-graph-btn sh-graph-option' + (isLeader ? ' sh-graph-leader' : '') + '" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + e.id + '\')">' +
-          '<span class="sh-graph-hinweis">' + e.hinweis + '</span>' +
+        html += '<button class="sh-graph-btn sh-graph-option' + (isLeader ? ' sh-graph-leader' : '') + (e.isBack ? ' sh-graph-btn-back' : '') + '" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + e.id + '\')">' +
+          '<span class="sh-graph-hinweis">' + (e.isBack ? '↩ ' : '') + e.hinweis + '</span>' +
           '<span class="sh-graph-votes">' + count + ' Stimme' + (count === 1 ? '' : 'n') + '</span></button>';
       });
       html += '</div>';
