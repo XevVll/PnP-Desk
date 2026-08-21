@@ -94,6 +94,18 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung)
+- **Fix: On-Map-Pfeile zeigten in falsche Richtungen.** Seit dem echten Referenzbild haben alle
+  Graph-Knoten echte, aussagekräftige Koordinaten (siehe voriger Eintrag) - der bisherige
+  Auto-Fächer (`renderErkundungOnMap()`, `karte.html`) verteilte Pfeile aber weiterhin blind über
+  einen festen oberen Bogen statt zur tatsächlichen Zielposition zu zeigen. Sichtbarer Fehler:
+  am Startpunkt zeigte ein Pfeil Richtung offenes Wasser/Schiff statt beide ins Inselinnere.
+  Fix: jeder Pfeil (Vorwärts-Kante UND die Zurück-Option) bekommt jetzt die per `atan2()`
+  berechnete tatsächliche Richtung zu `getGraphNodePosition()` des Zielknotens - der bisherige
+  Fächer-Sonderfall für die Zurück-Option war dadurch überflüssig und wurde entfernt, eine
+  einzige Schleife behandelt jetzt beide Fälle einheitlich. Per Playwright-Screenshot an zwei
+  Knoten gegengeprüft (Start, Lichtung-Gabelung mit 3 Kanten + Zurück).
+
 ### 2026-08-21
 - **Echtes Referenzbild für die Riffinsel eingebunden** (`images/riffinsel.webp`, von Hendrik via
   Gemini generiert, siehe Prompt-Vorlage aus dem Gespräch). PNG->WebP über

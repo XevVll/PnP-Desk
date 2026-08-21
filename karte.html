@@ -829,30 +829,20 @@
       Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
 
       const RADIUS = 56; // px, Abstand der Pfeile von der Positions-Markierung
-      // Vorwärts-Kanten: Fächer über den oberen Bogen (-165° bis -15°) -
-      // Kanten haben keine eigene "echte" Richtung relativ zum (noch als
-      // Platzhalter dienenden) Kartenbild, siehe exploration_graphs.js.
-      const SPREAD_START = -165, SPREAD_END = -15;
-      const forwardOptions = options.filter(function (e) { return !e.isBack; });
-      const backOption = options.find(function (e) { return e.isBack; });
-
-      forwardOptions.forEach(function (e, i) {
-        const angleDeg = forwardOptions.length === 1 ? -90 : SPREAD_START + (SPREAD_END - SPREAD_START) * (i / (forwardOptions.length - 1));
+      // Jeder Pfeil bekommt die TATSÄCHLICHE Richtung zu seinem Zielknoten
+      // (jetzt, wo alle Knoten echte, auf das Referenzbild abgestimmte
+      // Koordinaten haben, siehe exploration_graphs.js seit 2026-08-21) -
+      // kein Fächer/keine geratene Richtung mehr. Fallback -90° (gerade
+      // nach oben) nur, falls für einen Knoten ausnahmsweise keine Position
+      // ermittelbar ist.
+      options.forEach(function (e) {
+        const targetPos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, e.to, getMarkersForScene) : null;
+        let angleDeg = -90;
+        if (targetPos && (targetPos.left !== pos.left || targetPos.top !== pos.top)) {
+          angleDeg = Math.atan2(targetPos.top - pos.top, targetPos.left - pos.left) * 180 / Math.PI;
+        }
         renderArrow(e, angleDeg);
       });
-
-      if (backOption) {
-        // Zurück-Pfeil bekommt, wo möglich, die TATSÄCHLICHE Richtung zum
-        // vorherigen Knoten (statt in den Vorwärts-Fächer eingereiht zu
-        // werden) - liest sich intuitiver und bleibt optisch abgesetzt
-        // (.erk-arrow.back, siehe CSS).
-        const prevPos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, backOption.to, getMarkersForScene) : null;
-        let angleDeg = 90; // Default: nach unten, falls keine Position bekannt
-        if (prevPos && (prevPos.left !== pos.left || prevPos.top !== pos.top)) {
-          angleDeg = Math.atan2(prevPos.top - pos.top, prevPos.left - pos.left) * 180 / Math.PI;
-        }
-        renderArrow(backOption, angleDeg);
-      }
 
       function renderArrow(e, angleDeg) {
         const angleRad = angleDeg * Math.PI / 180;
