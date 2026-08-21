@@ -265,26 +265,44 @@
     z-index: 30; pointer-events: none;
   }
   .erk-arrow {
-    position: absolute; width: 30px; height: 30px;
+    position: absolute; width: 48px; height: 48px;
     transform: translate(-50%, -50%);
     cursor: pointer; z-index: 31;
     display: flex; align-items: center; justify-content: center;
   }
+  /* Kreisiger Untergrund hinter dem Pfeil, damit er sich gegen das
+     detailreiche Karten-Artwork abhebt statt darin unterzugehen - dieselbe
+     Pulsieren-Idee wie bei normalen Markern (.marker .pin). */
+  .erk-arrow-bg {
+    position: absolute; width: 100%; height: 100%; border-radius: 50%;
+    background: rgba(15,12,8,0.55);
+    border: 2px solid rgba(74,144,226,0.9);
+    box-shadow: 0 0 0 3px rgba(74,144,226,0.25), 0 2px 6px rgba(0,0,0,0.6);
+    animation: erkArrowPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes erkArrowPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(74,144,226,0.25), 0 2px 6px rgba(0,0,0,0.6); }
+    50% { box-shadow: 0 0 0 7px rgba(74,144,226,0.12), 0 2px 6px rgba(0,0,0,0.6); }
+  }
   .erk-arrow-shape {
+    position: relative;
     width: 0; height: 0;
-    border-left: 9px solid transparent; border-right: 9px solid transparent;
-    border-bottom: 16px solid #3a6ea5;
-    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+    border-left: 13px solid transparent; border-right: 13px solid transparent;
+    border-bottom: 24px solid #4a90e2;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
     transition: border-bottom-color .15s ease, transform .15s ease;
   }
   .erk-arrow:hover .erk-arrow-shape { border-bottom-color: var(--gold); transform: scale(1.12); }
   .erk-arrow.mine .erk-arrow-shape { border-bottom-color: var(--gold); }
-  .erk-arrow.back .erk-arrow-shape { border-bottom-color: var(--ink-dim); opacity: .8; }
+  .erk-arrow.mine .erk-arrow-bg { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,75,0.3), 0 2px 6px rgba(0,0,0,0.6); }
+  .erk-arrow.back .erk-arrow-shape { border-bottom-color: var(--ink-dim); opacity: .85; }
+  .erk-arrow.back .erk-arrow-bg { border-color: rgba(168,157,129,0.7); animation: none; }
   .erk-arrow.back.mine .erk-arrow-shape { border-bottom-color: var(--gold); opacity: 1; }
+  .erk-arrow.back.mine .erk-arrow-bg { border-color: var(--gold); }
   .erk-arrow-votes {
-    position: absolute; top: -8px; right: -10px;
-    background: rgba(15,12,8,0.9); border: 1px solid var(--line); color: var(--ink);
-    font-size: 10.5px; line-height: 1; padding: 1px 4px; border-radius: 8px;
+    position: absolute; top: -6px; right: -8px;
+    background: rgba(15,12,8,0.95); border: 1px solid var(--gold); color: var(--ink);
+    font-size: 12px; font-weight: 700; line-height: 1; padding: 2px 6px; border-radius: 9px;
     display: none;
   }
   .erk-arrow-votes.has-votes { display: block; }
@@ -828,7 +846,7 @@
       const voteCounts = {};
       Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
 
-      const RADIUS = 56; // px, Abstand der Pfeile von der Positions-Markierung
+      const RADIUS = 68; // px, Abstand der Pfeile von der Positions-Markierung (groesser als die Pfeile selbst)
       // Jeder Pfeil bekommt die TATSÄCHLICHE Richtung zu seinem Zielknoten
       // (jetzt, wo alle Knoten echte, auf das Referenzbild abgestimmte
       // Koordinaten haben, siehe exploration_graphs.js seit 2026-08-21) -
@@ -857,6 +875,7 @@
         arrowEl.style.transform = 'translate(-50%, -50%) translate(' + dx + 'px, ' + dy + 'px) rotate(' + (angleDeg + 90) + 'deg)';
         arrowEl.onclick = function () { castVote(e.id); };
         arrowEl.innerHTML =
+          '<div class="erk-arrow-bg" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)"></div>' +
           '<div class="erk-arrow-shape"></div>' +
           '<div class="erk-arrow-votes' + (count ? ' has-votes' : '') + '" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)">' + count + '</div>' +
           '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + (e.isBack ? '↩ ' : '') + e.hinweis + '</div>';

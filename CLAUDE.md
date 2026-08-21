@@ -94,6 +94,24 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 2)
+- **Bewegungspfeile deutlicher sichtbar** (Hendriks Feedback: gingen im detailreichen Artwork
+  unter). `.erk-arrow` in `karte.html` von 30px auf 48px vergrößert, kräftigeres Blau
+  (`#4a90e2`), plus pulsierender Hintergrundkreis (`.erk-arrow-bg`, gleiches Pulsieren-Prinzip
+  wie `.marker .pin`) für Kontrast gegen das Kartenbild. Abstand zur Positions-Markierung
+  entsprechend von 56px auf 68px erhöht. Stimmen-Badge größer/fetter (`.erk-arrow-votes`).
+- **Ereignis-Knoten bekommen echte Proben statt "optional"** (Hendriks Feedback: kaum
+  Würfelproben zu lösen). Alle vier Riffinsel-Ereignisse (Mückenschwarm/Fußspuren/Wind/Krabben,
+  `js/exploration_graphs.js`) haben jetzt eine verbindliche Probe mit `erfolgText`/
+  `misserfolgText` (SL-Referenz zum Vorlesen, analog zu den vier Ort-Proben) statt der bisherigen
+  unverbindlichen "(optional)"-Markierung ohne echte Konsequenz — Misserfolg bleibt bewusst leicht
+  (meist 1 Schadenspunkt oder rein folgenlos bei der Wahrnehmungs-Probe), nie ein hartes
+  Fehlschlag-Ende, der Weg selbst verzweigt an einem Ereignis-Knoten weiterhin nicht.
+  `renderGraphPanelHTML()` (`js/regie_vault.js`) zeigt beide Texte jetzt zusätzlich zum
+  Ereignis-Text an, bevor die SL auf "Weiter" klickt (gleiche `.sh-graph-ort-probe`-Darstellung
+  wie bei den Ort-Proben). Offline mit Playwright verifiziert (Erfolg-/Misserfolg-Text im Panel,
+  Pfeil-Struktur unverändert funktionsfähig) sowie per Screenshot gegengeprüft.
+
 ### 2026-08-21 (Fortsetzung)
 - **Fix: On-Map-Pfeile zeigten in falsche Richtungen.** Seit dem echten Referenzbild haben alle
   Graph-Knoten echte, aussagekräftige Koordinaten (siehe voriger Eintrag) - der bisherige

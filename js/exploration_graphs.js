@@ -12,10 +12,14 @@
 //   "start"     - Startpunkt, keine Probe. Zeigt seine "edges" sofort als
 //                 wählbare Optionen (SL-Klick navigiert direkt).
 //   "gabelung"  - reiner Entscheidungspunkt, gleiches Verhalten wie "start".
-//   "ereignis"  - kurzer Zwischenstopp (Würfelprobe/Text), GENAU EINE
-//                 ausgehende Kante, kein echter Entscheidungspunkt. Felder:
-//                 probe (String, z.B. "Körper"), text (Stimmungstext/
-//                 leichte Komplikation, kein hartes Fehlschlag-Ende).
+//   "ereignis"  - kurzer Zwischenstopp mit einer ECHTEN Probe, GENAU EINE
+//                 ausgehende Kante (der Weg selbst verzweigt hier nicht,
+//                 nur der Ausgang der Probe unterscheidet sich) - kein
+//                 Entscheidungspunkt für Spieler. Felder: probe (String,
+//                 z.B. "Körper"), text (gemeinsamer Einstiegstext),
+//                 erfolgText/misserfolgText (SL-Referenz zum Vorlesen je
+//                 nach Wurf - Misserfolg bewusst leicht, meist 1 Schaden
+//                 oder rein folgenlos, nie ein hartes Fehlschlag-Ende).
 //   "ort"       - aufdeckbare Fundstelle, verknüpft mit einer Marker-ID
 //                 (ortId). Wird eine Kante GEZIELT auf einen "ort"-Knoten
 //                 im Adminpanel angeklickt, erscheint dort eine Erfolg/
@@ -46,22 +50,31 @@ const EXPLORATION_GRAPHS = {
 
       ereignis_moskitos: {
         type: "ereignis", label: "Ein Mückenschwarm", top: 36, left: 56,
-        probe: "Körper (optional)",
-        text: "Ein Schwarm Mücken empfängt jeden, der hier durchmuss — lästig, aber harmlos. Wer will, kann eine Körper-Probe versuchen, um halbwegs unzerstochen durchzukommen; zwingend ist das nicht."
+        probe: "Körper",
+        text: "Ein dichter Schwarm Mücken empfängt jeden, der hier durchmuss.",
+        erfolgText: "Mit ein paar schnellen, genervten Schlägen kommt man halbwegs unzerstochen durch.",
+        misserfolgText: "Dutzende Stiche später ist die Haut gerötet und juckt fürchterlich — 1 Schadenspunkt."
       },
       ereignis_fussspuren: {
         type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 42, left: 66,
-        probe: "Wahrnehmung (optional)",
-        text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht. Wer genau hinsieht (Wahrnehmung, optional), erkennt weitere Details — ohne dass sich daraus sofort eine Erklärung ergibt."
+        probe: "Wahrnehmung",
+        text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht.",
+        erfolgText: "Wer genau hinsieht, erkennt weitere Details an den Spuren — ohne dass sich daraus sofort eine Erklärung ergibt (SL-Ermessen, z. B. als späterer Anknüpfungspunkt nutzbar).",
+        misserfolgText: "Die Spuren bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
       },
       ereignis_wind: {
         type: "ereignis", label: "Böiger Wind auf dem Grat", top: 35, left: 73,
-        probe: "Körper (optional)",
-        text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren. Eine Körper-Probe (optional) hält den Tritt sicher — zwingend ist auch das nicht, nur unangenehm ohne."
+        probe: "Körper",
+        text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren.",
+        erfolgText: "Sicherer Tritt, der Grat wird ohne Zwischenfall überquert.",
+        misserfolgText: "Eine Böe erwischt einen ungünstig — kurz der Halt verloren, abgerutscht. 1 Schadenspunkt."
       },
       ereignis_krabben: {
         type: "ereignis", label: "Ein Krabbenschwarm", top: 53, left: 70,
-        text: "Dutzende kleine Landkrabben stieben in alle Richtungen auseinander, als die Gruppe hier vorbeikommt — ein kurzer, harmloser Moment."
+        probe: "Geschick",
+        text: "Dutzende kleine Landkrabben stieben in alle Richtungen auseinander, als die Gruppe hier vorbeikommt.",
+        erfolgText: "Ein Ausweichschritt, keine einzige wird getreten.",
+        misserfolgText: "Ein unangenehmer Tritt auf einen Panzer, ein spitzer Zwick zur Antwort — 1 Schadenspunkt, nichts Ernstes."
       },
 
       suesswasserquelle: {

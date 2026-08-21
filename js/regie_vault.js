@@ -419,6 +419,12 @@ function renderGraphPanelHTML(sceneId) {
       '</div></div>';
   } else if (node.type === 'ereignis') {
     html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
+    if (node.erfolgText || node.misserfolgText) {
+      html += '<div class="sh-graph-ort-probe">' +
+        (node.erfolgText ? '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + node.erfolgText + '</div>' : '') +
+        (node.misserfolgText ? '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + node.misserfolgText + '</div>' : '') +
+        '</div>';
+    }
     const forwardEdge = getOutgoingEdges(sceneId, currentId)[0];
     if (forwardEdge) html += '<button class="sh-graph-btn" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + forwardEdge.id + '\')">Weiter</button>';
     if ((graphStateSnapshot.history || []).length) {
