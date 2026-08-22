@@ -22,16 +22,15 @@
 //                 werden die nach der Probe ganz normal als Wahl-Optionen
 //                 gezeigt (kein separater "Gabelung"-Typ mehr nötig).
 //   "ort"       - aufdeckbare Fundstelle, verknüpft mit einer Marker-ID
-//                 (ortId). Wird eine Kante GEZIELT auf einen "ort"-Knoten
-//                 im Adminpanel angeklickt, erscheint dort eine Erfolg/
-//                 Misserfolg-Auflösung (Feld "probe") statt direkter
-//                 Navigation - Erfolg setzt currentNode auf diesen Knoten
-//                 UND blendet den verknüpften Marker via hiddenMarkersLive
-//                 sichtbar; Misserfolg belässt currentNode am Ausgangs-
-//                 knoten (Konsequenztext, kein Abbruch, jederzeit erneut
-//                 versuchbar). Einmal erreicht, verhält sich ein "ort"-
-//                 Knoten wie eine "gabelung" (eigene "edges" für die
-//                 Weiter-Erkundung).
+//                 (ortId). Gibt die SL die Bewegung dorthin frei, wird der
+//                 verknüpfte Marker automatisch über hiddenMarkersLive
+//                 sichtbar geschaltet. Die Felder probe/erfolgText/
+//                 misserfolgText sind seit 2026-08-22 reine SL-Referenz
+//                 zum Vorlesen - sie BLOCKIEREN die Bewegung nicht mehr
+//                 (Hendriks Vorgabe: die SL gibt jede Bewegung ohnehin von
+//                 Hand frei, ein Wurf soll sie nie verhindern). Ansonsten
+//                 verhält sich ein "ort"-Knoten wie jeder andere Knoten
+//                 mit eigenen "edges" für die Weiter-Erkundung.
 //
 // Kanten-Objekt: { from, to, hinweis } - "hinweis" ist der Sinneseindruck,
 // den Spieler an einem Entscheidungsknoten für GENAU DIESE Kante sehen.
@@ -244,11 +243,23 @@ function getOutgoingEdges(sceneId, nodeId) {
 // Eintrag führt. Kein Fund-/Probe-Gate beim Zurückgehen (man war ja schon
 // dort). Wird sowohl von karte.html (Pfeil) als auch regie.html (Panel)
 // genutzt, damit beide Seiten dieselbe Options-Liste sehen.
+//
+// WICHTIG (2026-08-22): die Zurück-Option wird NUR angehängt, wenn es keine
+// echte Kante zum selben Ziel gibt. Seit der Riffinsel-Graph durchgehend
+// beidseitig ist, wäre sie sonst immer ein Duplikat der ganz normalen
+// Rückweg-Kante - auf der Karte ergäbe das zwei Pfeile mit exakt derselben
+// Richtung, die sich gegenseitig überdecken, sodass die darunterliegende
+// Verbindung nicht mehr einzeln anklickbar ist. Sie bleibt als Notausgang
+// erhalten für echte Einbahnstraßen bzw. Knoten ohne modellierten Rückweg.
 const BACK_EDGE_ID = '__back__';
 function getPlayableOptions(sceneId, nodeId, history) {
   const edges = getOutgoingEdges(sceneId, nodeId);
   if (history && history.length) {
-    edges.push({ id: BACK_EDGE_ID, to: history[history.length - 1], hinweis: 'Zurück, den Weg zurückverfolgen.', isBack: true });
+    const prev = history[history.length - 1];
+    const hasRealEdgeBack = edges.some(function (e) { return e.to === prev; });
+    if (!hasRealEdgeBack) {
+      edges.push({ id: BACK_EDGE_ID, to: prev, hinweis: 'Zurück, den Weg zurückverfolgen.', isBack: true });
+    }
   }
   return edges;
 }

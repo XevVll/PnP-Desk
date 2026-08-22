@@ -28,7 +28,9 @@ Die Lösung: ein **verdeckter Knoten-/Kanten-Graph**. Die Spieler sehen nie den 
 nur ihre aktuelle Position (als Ring auf der Karte) und die Wege, die von dort aus offen sind
 (als Pfeile mit kurzem Sinneshinweis, nie mit Vorwegnahme dessen, was am Ende wartet — siehe
 Design-Regel 2.8 der Bibel). Bewegen ist ein Abstimmungsprozess: jeder Spieler kann jede sichtbare
-Option anklicken, die SL sieht die Stimmverteilung und löst am Ende die Bewegung/Probe aus.
+Option anklicken, die SL sieht die Stimmverteilung — und **gibt jede Bewegung selbst von Hand
+frei**. Eine Stimme bewegt die Gruppe nie von allein, und ein Würfelergebnis hält sie nie auf
+(Hendriks Vorgabe, 2026-08-22, siehe Abschnitt 4.2).
 
 Bewusst **kein** neues Kartenfeature mit beweglichem Icon, Mehrheitsentscheidung oder Timer-Code
 im eigentlichen Sinne — das wurde mit Hendrik besprochen und explizit zurückgestellt (siehe
@@ -46,8 +48,11 @@ Referenz-Skizze kennt nur zwei sichtbare Kategorien: grün = Aufgabe, blau = ech
 | Typ | Bedeutung | Felder |
 |---|---|---|
 | `start` | Startpunkt der Erkundung, keine Probe | `type`, `label`, `top`, `left` |
-| `ereignis` | Kurzer Zwischenstopp mit einer echten Probe UND normaler Entscheidungspunkt | `type`, `label`, `top`, `left`, `probe`, `text`, `erfolgText`, `misserfolgText` |
+| `ereignis` | Kurzer Zwischenstopp mit einer Probe (Erzählung) UND normaler Entscheidungspunkt | `type`, `label`, `top`, `left`, `probe`, `text`, `erfolgText`, `misserfolgText` |
 | `ort` | Aufdeckbare Fundstelle, verknüpft mit einem echten Kartenmarker | `type`, `label`, `probe`, `ortId`, `erfolgText`, `misserfolgText` (bewusst KEIN `top`/`left`, siehe 2.2) |
+
+Die Probe-Felder sind bei **beiden** Typen reine SL-Referenz zum Vorlesen — sie entscheiden seit
+2026-08-22 nicht mehr darüber, ob ein Weg begehbar ist (siehe 4.2).
 
 Ein `ereignis`-Knoten ist **kein** Sackgassen-Stopp mit nur einem „Weiter"-Knopf. Seit der
 Vereinfachung am 21.08. ist er gleichzeitig ein normaler Entscheidungspunkt — hat er mehrere
@@ -55,15 +60,16 @@ ausgehende Kanten, werden die nach der Probe ganz normal als Wahloptionen angeze
 echte Verzweigungen mitten in einer Aufgabe, ohne einen eigenen vierten Knotentyp
 („Gabelung ohne Aufgabe") zu brauchen, den es in Hendriks ursprünglichem Entwurf gar nicht gibt.
 
-Ein `ort`-Knoten verhält sich anders bei der **Ankunft**: Wird eine Kante GEZIELT auf einen noch
-nicht entdeckten `ort`-Knoten angeklickt, erscheint im Adminpanel statt direkter Navigation eine
-Erfolg/Misserfolg-Auflösung. Erfolg setzt die Position auf diesen Knoten UND blendet den
-verknüpften Marker per `hiddenMarkersLive` sichtbar. Misserfolg belässt die Position am
-Ausgangsknoten (Konsequenztext, kein Abbruch, beliebig oft erneut versuchbar). **Einmal entdeckt**,
-verhält sich ein `ort`-Knoten wie jeder andere Knoten mit eigenen ausgehenden Kanten — die
-Probe-Gate-Logik prüft dafür live, ob der zugehörige Marker noch in `hiddenMarkerIds` steht
-(`js/regie_vault.js`, `graphSelectEdge()`); ist er bereits sichtbar, wird ganz normal weitergezogen,
-ohne erneute Probe.
+Ein `ort`-Knoten unterscheidet sich nur bei der **Ankunft**: Gibt die SL die Bewegung dorthin
+frei, wird der verknüpfte Marker automatisch über `hiddenMarkersLive` sichtbar geschaltet
+(`revealOrtMarker()` in `js/regie_vault.js`, aufgerufen aus `graphAdvance()`/`graphGoBack()`).
+Ansonsten verhält er sich wie jeder andere Knoten mit eigenen ausgehenden Kanten.
+
+**Seit 2026-08-22 blockieren die Felder `probe`/`erfolgText`/`misserfolgText` die Bewegung
+nicht mehr** — sie sind reine SL-Referenz zum Vorlesen. Das frühere Probe-Gate (`pendingOrtEdge`,
+`graphResolveOrt()`, „✓ Erfolg — aufdecken" / „✗ Misserfolg") ist ersatzlos entfallen. Hendriks
+Begründung: die SL gibt ohnehin jede einzelne Bewegung von Hand frei, ein Wurf soll sie deshalb
+nie verhindern; ein misslungener Wurf färbt nur die Erzählung, nicht die Erreichbarkeit.
 
 ### 2.2 Warum `ort`-Knoten keine eigene Position haben
 
@@ -113,23 +119,16 @@ angelegt werden. Das war die zentrale Fehlerquelle dieses Projekts, siehe Abschn
 
 Unabhängig vom eigentlichen Kantenmodell gibt es eine zweite, synthetische Rückkehr-Option:
 
-```js
-const BACK_EDGE_ID = '__back__';
-function getPlayableOptions(sceneId, nodeId, history) {
-  const edges = getOutgoingEdges(sceneId, nodeId);
-  if (history && history.length) {
-    edges.push({ id: BACK_EDGE_ID, to: history[history.length - 1], hinweis: 'Zurück, den Weg zurückverfolgen.', isBack: true });
-  }
-  return edges;
-}
-```
-
 `history` ist die Liste bereits besuchter Knoten in `graphState/{sceneId}/history` (Firebase).
-Ist sie nicht leer, wird immer zusätzlich eine „Zurück"-Option angehängt, die zum zuletzt
-besuchten Knoten führt — unabhängig davon, ob dafür eine echte Kante im Graphen existiert. Das
-war Hendriks ausdrückliche Vorgabe: Spieler sollen **immer** umkehren können, auch an
-Ereignis-Knoten, die sonst nur eine Richtung nach vorn hätten. Kein Fund-/Probe-Gate beim
-Zurückgehen — man war ja schon dort.
+Ist sie nicht leer, wird eine „Zurück"-Option angehängt, die zum zuletzt besuchten Knoten führt —
+Hendriks ausdrückliche Vorgabe: Spieler sollen **immer** umkehren können, auch an Knoten, die
+sonst nur eine Richtung nach vorn hätten.
+
+**Nur wenn es keine echte Kante zum selben Ziel gibt (seit 2026-08-22).** Seit der Graph
+durchgehend beidseitig ist, wäre die Zurück-Option sonst immer ein exaktes Duplikat der ganz
+normalen Rückweg-Kante — auf der Karte zwei Pfeile mit identischer Richtung, exakt übereinander,
+wodurch die darunterliegende echte Verbindung nicht mehr einzeln anklickbar war. Sie bleibt als
+Notausgang für echte Einbahnstraßen bzw. Knoten ohne modellierten Rückweg erhalten.
 
 Wichtig: Diese „Zurück"-Option ersetzt **nicht** echte bidirektionale Kanten. Sie führt nur zum
 exakt letzten Schritt der eigenen Historie zurück, nicht zu einem beliebigen bereits besuchten
@@ -147,7 +146,7 @@ graphState/{sceneId}/
 ```
 
 Geschrieben wird `currentNode`/`history` ausschließlich von der SL-Seite (`regie_vault.js`,
-`graphAdvance()`/`graphGoBack()`/`graphResolveOrt()`) — bewusst kein direkter Spieler-Schreibzugriff
+`graphAdvance()`/`graphGoBack()`) — bewusst kein direkter Spieler-Schreibzugriff
 auf die eigentliche Bewegung, damit nicht ein einzelner Spieler-Client den Szenenfortschritt allein
 bestimmen kann. Spieler schreiben nur ihre eigene Stimme unter `votes/{mySessionId}`
 (`karte.html`, gleiches `onDisconnect().remove()`-Präsenzmuster wie das bestehende
@@ -157,8 +156,8 @@ bestimmen kann. Spieler schreiben nur ihre eigene Stimme unter `votes/{mySession
 und das Löschen der `votes` in einem einzigen `db.ref(...).update({...})`-Aufruf, nicht als drei
 getrennte `.set()`/`.remove()`-Aufrufe. Grund: mit getrennten Schreibvorgängen feuerte der
 Live-Listener bis zu dreimal pro Zug, jedes Mal mit einem nur teilweise aktualisierten
-Zwischenstand — sichtbar als „der Punkt springt wild rum" beim Testen mit aktiviertem
-Auto-Advance. Ein einziger atomarer Update-Aufruf behebt das strukturell.
+Zwischenstand — sichtbar als „der Punkt springt wild rum". Ein einziger atomarer Update-Aufruf
+behebt das strukturell.
 
 ---
 
@@ -172,6 +171,19 @@ Pfeil-Buttons (`.erk-arrow`, ein Button pro Kante aus `getPlayableOptions()`). J
 per `Math.atan2()` in die **tatsächliche** Richtung des Zielknotens — kein Auto-Fächer über einen
 festen Bogen (das war eine frühere, verworfene Variante, die bei echten Kartenkoordinaten sichtbar
 falsche Richtungen erzeugte, z. B. ein Pfeil Richtung offenes Wasser statt ins Inselinnere).
+
+Zwei Korrekturen dazu (2026-08-22), damit **jede** Verbindung einzeln anklickbar bleibt:
+
+- **Seitenverhältnis-Korrektur:** `top`/`left` sind beide Prozentwerte, das Kartenbild ist aber
+  1920×1047 — eine Richtung direkt aus den Rohprozenten zeigt daher systematisch zu flach. Die
+  Horizontale wird vor dem `atan2()` mit `rect.width / rect.height` skaliert.
+- **Winkel-Relaxation (`spreadAngles()`, `MIN_ARROW_SEP = 42°`):** ein Pfeil ist ~48 px breit auf
+  Radius 68 px, deckt also gut 40° ab. Zwei geografisch fast gleich gerichtete Wege (auf der
+  Riffinsel etwa Süßwasserquelle→Zirpen/Schlammboden, bis herab zu 17° Abstand) legten ihre Pfeile
+  daher übereinander — der hintere war schlicht nicht mehr klickbar. Die Relaxation schiebt zu
+  eng stehende Pfeile so weit auseinander, bis jeder frei liegt, bleibt dabei so nah wie möglich
+  an der echten Richtung und erhält die Reihenfolge im Kreis (kein Pfeil springt auf die falsche
+  Seite). Gemessener Mindestabstand über alle 15 Knoten danach: 49 px.
 
 Ein Pfeil zur `__back__`-Option bekommt eine eigene, gedämpfte Farbe (`.erk-arrow.back`) statt
 der kräftigen Standardfarbe (`#4a90e2`), damit „echter Weg vorwärts" und „reine Rückkehr" auch
@@ -227,21 +239,31 @@ den ganzen Zweck des Nebels sofort aushebeln.
 ### 4.1 Das 🧭-Panel
 
 `renderGraphPanelHTML(sceneId)` rendert im Szenenkopf einen eigenen Bereich mit:
-- dem Ereignistext + Probe-Referenz (bei `ereignis`-Knoten, zum Vorlesen)
-- der Liste aller spielbaren Optionen (`getPlayableOptions()`) mit Live-Stimmverteilung, jede
-  Option direkt anklickbar unabhängig von der Mehrheit (`graphSelectEdge()`)
-- bei einer noch nicht entdeckten `ort`-Kante: einer Erfolg/Misserfolg-Auflösung statt der
-  normalen Optionsliste (`pendingOrtEdge`-Zustand, rein lokal, kein Firebase-State)
+- dem Situationstext + Probe-Referenz des aktuellen Knotens (`ereignis` wie `ort`), ausdrücklich
+  als „Probe (nur Erzählung, kein Weg-Gate)" ausgewiesen
+- der Liste aller spielbaren Optionen (`getPlayableOptions()`) als je einem Freigabe-Knopf mit
+  Sinneshinweis, **Zielname** und Live-Stimmenzahl — jede Option direkt anklickbar, unabhängig
+  von der Mehrheit (`graphSelectEdge()`)
 - einem „↺ Zurücksetzen"-Knopf (`graphReset()`), der `graphState/{sceneId}` komplett löscht
 
-### 4.2 Auto-Advance (Testmodus)
+Der Zielname steht bewusst mit im Knopf: mehrere Wege eines Knotens können ähnlich klingende
+Sinneshinweise haben, und die SL muss eindeutig erkennen können, welche Verbindung sie freigibt.
 
-`AUTO_ADVANCE_THRESHOLD = 1` — sobald eine Kante auch nur eine einzige Stimme erreicht, wird
-automatisch weitergezogen (`maybeAutoAdvance()`), inklusive Schutz gegen veraltete Stimmen für
-Kanten, die nicht mehr vom aktuellen Knoten ausgehen. Bewusst als einzelne Konstante ausgelagert,
-weil es aktuell kein verlässliches Presence-Konzept gibt, um zu wissen, wie viele Spieler
-insgesamt aktiv sind — für den echten Spielbetrieb müsste diese Schwelle an ein echtes
-Mehrheitskonzept gekoppelt werden, aktuell ist sie bewusst auf „jede Stimme zieht sofort" gesetzt.
+### 4.2 Keine automatische Bewegung (seit 2026-08-22)
+
+**Spieler-Stimmen bewegen die Gruppe nie von selbst.** Sie sind reine Willensbekundung: die SL
+sieht nur, wie viele Spieler auf welchen Weg geklickt haben, und gibt jede Bewegung per Klick
+selbst frei. Der frühere `AUTO_ADVANCE_THRESHOLD = 1` samt `maybeAutoAdvance()` („jede Stimme
+zieht sofort weiter", ursprünglich ein Testmodus mangels Presence-Konzept) ist ersatzlos
+entfallen — zusammen mit dem Probe-Gate ist die SL-Freigabe damit der **einzige** Weg, wie sich
+`currentNode` ändert.
+
+Zwei Konsequenzen, die zusammengehören und Hendriks Vorgabe direkt umsetzen:
+- Eine Mehrheit ist nicht mehr nötig und auch nicht mehr definiert — die SL wertet die
+  Stimmverteilung am Tisch aus, wie sie will.
+- Ein Würfelergebnis kann eine Bewegung nicht mehr verhindern. Proben bleiben als Vorlese-Material
+  erhalten (Erfolg/Misserfolg färben die Erzählung, Misserfolg kostet weiterhin z. B. einen
+  Schadenspunkt), aber der Weg selbst steht immer offen.
 
 ### 4.3 `graphReset()`
 
@@ -341,9 +363,11 @@ Aussichtsklippe).
 
 ### 6.3 Die vier Fundstellen (Marker + Ort-Knoten)
 
-Jede der vier `ort`-Marker startet in `hiddenMarkersLive` versteckt und wird von der SL erst bei
-erfolgreicher Probe sichtbar geschaltet (kein neues Feature, bestehender Sichtbarkeits-Schalter,
-Bibel 13.10). Story-Inhalt je Fundstelle, aus `js/regie.js`:
+Jeder der vier `ort`-Marker startet in `hiddenMarkersLive` versteckt und wird sichtbar, sobald die
+SL die Bewegung dorthin freigibt (`revealOrtMarker()`; kein neues Feature, bestehender
+Sichtbarkeits-Schalter, Bibel 13.10, über den sich das jederzeit rückgängig machen lässt). Die
+angegebene Probe ist Erzählmaterial, keine Bedingung fürs Auffinden. Story-Inhalt je Fundstelle,
+aus `js/regie.js`:
 
 - **Süßwasserquelle** (Instinkt/Survival) — Josiah Pryce füllt Wasserfässer, ein ruhiger
   Charaktermoment abseits der Kombüse, erzählt auf Nachfrage kurz von Wales. Kein Wurf, kein
@@ -467,8 +491,8 @@ console.log('Einseitige Paare:', oneWay.length ? oneWay : 'keine');
 Mit Hendrik besprochen, aber **nicht** Teil dieses Systems (eigenes künftiges Vorhaben, betrifft
 alle künftigen Szenen, nicht nur die Riffinsel):
 
-- Ein bewegliches Gruppen-Icon auf der Karte mit echter Mehrheitsentscheidung für die
-  Bewegungsrichtung (aktuell: jede Stimme zieht sofort, `AUTO_ADVANCE_THRESHOLD = 1`, siehe 4.2).
+- Eine automatische Mehrheitsentscheidung für die Bewegungsrichtung (aktuell bewusst gar keine:
+  die SL gibt jede Bewegung von Hand frei, siehe 4.2).
 - Ein eingebauter Zeit-Mechanismus/Timer-Code (aktuell: SL-Ermessen + Stoppuhr im Adminpanel).
 - Echte Mini-Rätsel-Widgets direkt auf der Karte (aktuell: Ereignis-Knoten bleiben Text + Probe,
   das Kisten-Rätsel läuft rein am Tisch, kein UI-Element).

@@ -34,7 +34,6 @@ let openMarkersRef = null, openMarkersListener = null, openMarkersScene = null, 
 let hiddenMarkersRef = null, hiddenMarkersListener = null, hiddenMarkersScene = null, hiddenMarkerIds = {};
 let sceneRegieRef = null, sceneRegieListener = null, sceneRegieScene = null, sceneRegieSnapshot = {};
 let graphStateRef = null, graphStateListener = null, graphStateScene = null, graphStateSnapshot = {};
-let pendingOrtEdge = null; // { edgeId, fromNode, toNode } - rein lokal, kein Firebase-State (Erkundungs-Graph)
 
 let extraGhosts = {};   // { [fbKey(sceneId)]: { [ghostId]: {name,rolle,verfassung,beduerfnis} } }
 let extraNpcIds = {};   // { [npcId]: true }
@@ -263,12 +262,11 @@ function attachSceneRegieListener(sceneId) {
 function attachGraphStateListener(sceneId) {
   if (sceneId === graphStateScene) return;
   if (graphStateRef && graphStateListener) graphStateRef.off('value', graphStateListener);
-  graphStateScene = sceneId; graphStateSnapshot = {}; pendingOrtEdge = null;
+  graphStateScene = sceneId; graphStateSnapshot = {};
   if (!db || !sceneId || typeof getExplorationGraph !== 'function' || !getExplorationGraph(sceneId)) return;
   graphStateRef = db.ref('graphState/' + fbKey(sceneId));
   graphStateListener = graphStateRef.on('value', function (snap) {
     graphStateSnapshot = snap.val() || {};
-    maybeAutoAdvance(sceneId);
     renderSceneHead();
   });
 }
@@ -284,57 +282,43 @@ function currentGraphNodeId(sceneId) {
   return (cur && g.nodes[cur]) ? cur : g.startNode;
 }
 
-// TESTEN (Hendriks Anfrage, 2026-08-20): schon ab EINER Stimme automatisch
-// weiterziehen, statt auf eine echte Mehrheit zu warten - es gibt aktuell
-// keine verlässliche Grundlage dafür, wie viele Spieler insgesamt aktiv
-// sind (siehe CLAUDE.md-Notiz zum Erkundungs-Graphen). Später ggf. erhöhen
-// oder an eine echte Präsenz-Zahl koppeln.
-const AUTO_ADVANCE_THRESHOLD = 1;
-
-// Prüft nach jeder Stimmen-Änderung, ob eine Option (Kante ODER die
-// synthetische Zurück-Option, siehe getPlayableOptions) die Schwelle
-// erreicht hat, und zieht dann automatisch weiter - ruft dafür einfach
-// graphSelectEdge auf, dieselbe Funktion wie ein manueller SL-Klick.
-// Stimmen, die nicht zu einer tatsächlich vom AKTUELLEN Knoten aus
-// wählbaren Option gehören (z.B. kurzzeitig veraltete Stimmen während
-// eines Übergangs), werden ignoriert.
-function maybeAutoAdvance(sceneId) {
-  if (pendingOrtEdge) return; // SL löst gerade eine Probe auf, nicht dazwischenfunken
-  const currentId = currentGraphNodeId(sceneId);
-  const history = graphStateSnapshot.history || [];
-  const optionIds = getPlayableOptions(sceneId, currentId, history).map(function (e) { return e.id; });
-  if (!optionIds.length) return;
-  const votes = graphStateSnapshot.votes || {};
-  const voteCounts = {};
-  Object.keys(votes).forEach(function (sid) {
-    const eid = votes[sid];
-    if (optionIds.indexOf(eid) === -1) return;
-    voteCounts[eid] = (voteCounts[eid] || 0) + 1;
-  });
-  const leadingEdgeId = Object.keys(voteCounts).find(function (eid) { return voteCounts[eid] >= AUTO_ADVANCE_THRESHOLD; });
-  if (leadingEdgeId) graphSelectEdge(sceneId, leadingEdgeId);
-}
+// KEIN Auto-Advance mehr (Hendriks Vorgabe, 2026-08-22): Spieler-Stimmen
+// bewegen die Gruppe NIE von selbst. Sie sind reine Willensbekundung -
+// die SL sieht nur, wie viele Spieler auf welchen Weg geklickt haben, und
+// gibt jede Bewegung selbst per Klick im 🧭-Panel frei. Der frühere
+// AUTO_ADVANCE_THRESHOLD (= 1, "jede Stimme zieht sofort weiter") ist
+// dafür ersatzlos entfallen; die Freigabe ist jetzt ausschließlich
+// graphSelectEdge() über einen echten SL-Klick.
 
 // Bewegt die Gruppe vorwärts zu toNodeId und hängt den bisherigen Knoten an
-// graphState/{szene}/history an - Grundlage für graphGoBack(). Wird auch
-// von graphResolveOrt() bei Erfolg genutzt (Ort-Ankunft zählt als normale
-// Bewegung).
+// graphState/{szene}/history an - Grundlage für graphGoBack().
 //
 // WICHTIG: ein einziges update() auf den Eltern-Pfad statt drei einzelner
 // set()/remove()-Aufrufe - sonst feuert der Firebase-Listener (attach-
 // GraphStateListener) DREIMAL nacheinander mit jeweils nur teilweise
 // aktualisiertem Zwischenstand (currentNode schon neu, votes/history noch
-// alt), und maybeAutoAdvance() kann auf so einem Zwischenstand nochmal
-// auslösen - sichtbar als "der Punkt springt wild rum" bei aktivem
-// Auto-Advance-Testmodus. Ein update() mit mehreren Pfaden ist eine
-// einzige atomare Schreiboperation, der Listener feuert nur einmal mit
-// bereits konsistentem Endstand.
+// alt) - sichtbar als "der Punkt springt wild rum". Ein update() mit
+// mehreren Pfaden ist eine einzige atomare Schreiboperation, der Listener
+// feuert nur einmal mit bereits konsistentem Endstand.
 function graphAdvance(sceneId, toNodeId) {
   if (!db) return;
-  pendingOrtEdge = null;
   const fromNodeId = currentGraphNodeId(sceneId);
   const history = (graphStateSnapshot.history || []).concat([fromNodeId]);
+  revealOrtMarker(sceneId, toNodeId);
   db.ref('graphState/' + fbKey(sceneId)).update({ currentNode: toNodeId, history: history, votes: null });
+}
+
+// Ankunft an einem "ort"-Knoten deckt den verknüpften Marker auf. Früher
+// hing das am Erfolg einer Probe (graphResolveOrt) - seit die SL jede
+// Bewegung ohnehin selbst freigibt, ist das Betreten des Knotens die
+// Entscheidung, und der Fund wird direkt sichtbar. Rückgängig machen geht
+// weiterhin jederzeit über den normalen Sichtbarkeits-Schalter am Marker.
+function revealOrtMarker(sceneId, nodeId) {
+  if (!db) return;
+  const node = (typeof getGraphNode === 'function') ? getGraphNode(sceneId, nodeId) : null;
+  if (node && node.type === 'ort' && node.ortId) {
+    db.ref('hiddenMarkersLive/' + fbKey(sceneId) + '/' + node.ortId).remove();
+  }
 }
 
 // Hendriks Vorgabe: Spieler sollen IMMER umkehren können. Springt zum
@@ -347,7 +331,7 @@ function graphGoBack(sceneId) {
   const history = (graphStateSnapshot.history || []).slice();
   if (!history.length) return;
   const prevNode = history.pop();
-  pendingOrtEdge = null;
+  revealOrtMarker(sceneId, prevNode);
   db.ref('graphState/' + fbKey(sceneId)).update({ currentNode: prevNode, history: history, votes: null });
 }
 
@@ -358,42 +342,23 @@ function graphGoBack(sceneId) {
 // erzählte Entdeckungen.
 function graphReset(sceneId) {
   if (!db) return;
-  pendingOrtEdge = null;
   db.ref('graphState/' + fbKey(sceneId)).remove();
 }
 
-// Klick auf eine Option im Adminpanel (Kante ODER die synthetische Zurück-
-// Option). Führt eine "ort"-Kante zu einem noch nicht aufgedeckten Ort,
-// wird statt direkter Navigation erst die Erfolg/Misserfolg-Auflösung
-// angezeigt (siehe graphResolveOrt) - bereits aufgedeckte "ort"-Knoten
-// verhalten sich wie eine normale Gabelung.
+// Klick auf eine Option im Adminpanel = die SL gibt genau diese Bewegung
+// frei (Kante ODER die synthetische Zurück-Option). Seit 2026-08-22 gibt es
+// hier KEIN Probe-Gate mehr: jede Verbindung führt bei Freigabe direkt zum
+// Zielknoten, unabhängig von Knotentyp und Würfelergebnis (Hendriks
+// Vorgabe - die SL entscheidet ohnehin von Hand, ein Wurf soll die
+// Bewegung nie verhindern). Die Probe-Texte eines Ziel-/Ereignis-Knotens
+// bleiben als reine Vorlese-Referenz im Panel stehen.
 function graphSelectEdge(sceneId, edgeId) {
   if (edgeId === BACK_EDGE_ID) { graphGoBack(sceneId); return; }
   const g = getExplorationGraph(sceneId);
   if (!g) return;
   const edge = g.edges[edgeId];
   if (!edge) return;
-  const targetNode = g.nodes[edge.to];
-  if (targetNode && targetNode.type === 'ort' && targetNode.ortId && hiddenMarkerIds[targetNode.ortId]) {
-    pendingOrtEdge = { edgeId: edgeId, fromNode: edge.from, toNode: edge.to };
-    renderSceneHead();
-    return;
-  }
   graphAdvance(sceneId, edge.to);
-}
-
-function graphResolveOrt(sceneId, success) {
-  if (!pendingOrtEdge || !db) return;
-  const toNode = pendingOrtEdge.toNode;
-  if (success) {
-    const node = getGraphNode(sceneId, toNode);
-    if (node && node.ortId) db.ref('hiddenMarkersLive/' + fbKey(sceneId) + '/' + node.ortId).remove();
-    graphAdvance(sceneId, toNode);
-  } else {
-    pendingOrtEdge = null;
-    db.ref('graphState/' + fbKey(sceneId) + '/votes').remove();
-    renderSceneHead();
-  }
 }
 
 function renderGraphPanelHTML(sceneId) {
@@ -412,46 +377,40 @@ function renderGraphPanelHTML(sceneId) {
   let html = '<div class="sh-graph"><div class="sh-graph-label">🧭 Erkundung — ' + node.label +
     ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="graphReset(\'' + sceneId + '\')" title="Zurück zum Startpunkt, Verlauf löschen">↺ Zurücksetzen</button></div>';
 
-  if (pendingOrtEdge) {
-    const targetNode = getGraphNode(sceneId, pendingOrtEdge.toNode);
-    html += '<div class="sh-graph-ort-probe">' +
-      '<div class="sh-graph-ort-title">Versuch: ' + targetNode.label + ' <span class="sh-graph-probe">(Probe: ' + targetNode.probe + ')</span></div>' +
-      '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + targetNode.erfolgText + '</div>' +
-      '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + targetNode.misserfolgText + '</div>' +
-      '<div class="sh-graph-ort-buttons">' +
-      '<button class="sh-graph-btn sh-graph-btn-erfolg" onclick="graphResolveOrt(\'' + sceneId + '\', true)">✓ Erfolg — aufdecken</button>' +
-      '<button class="sh-graph-btn sh-graph-btn-misserfolg" onclick="graphResolveOrt(\'' + sceneId + '\', false)">✗ Misserfolg</button>' +
-      '</div></div>';
+  // Probe-Referenz des AKTUELLEN Knotens zum Vorlesen (Ereignis wie Ort).
+  // Reine SL-Referenz - der Ausgang eines Wurfs hält die Gruppe nie auf,
+  // die Bewegung selbst gibt die SL unten per Klick frei.
+  if (node.type === 'ereignis' || node.type === 'ort') {
+    if (node.text) html += '<div class="sh-graph-ereignis-text">' + node.text + '</div>';
+    if (node.probe || node.erfolgText || node.misserfolgText) {
+      html += '<div class="sh-graph-ort-probe">' +
+        (node.probe ? '<div class="sh-graph-ort-title">Probe (nur Erzählung, kein Weg-Gate): <span class="sh-graph-probe">' + node.probe + '</span></div>' : '') +
+        (node.erfolgText ? '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + node.erfolgText + '</div>' : '') +
+        (node.misserfolgText ? '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + node.misserfolgText + '</div>' : '') +
+        '</div>';
+    }
+  }
+
+  const options = getPlayableOptions(sceneId, currentId, graphStateSnapshot.history || []);
+  if (!options.length) {
+    html += '<div class="sh-graph-ereignis-text">Kein weiterer Weg von hier bekannt.</div>';
   } else {
-    // Ereignis-Knoten (grüner Punkt, Hendriks Skizze): Probe-Referenztext
-    // zuerst zum Vorlesen, danach GENAUSO die normale Options-Liste wie bei
-    // Start/Ort - ein Ereignis-Knoten ist seit 2026-08-21 zugleich ein
-    // normaler Entscheidungspunkt, kein Sonderfall mit nur einem "Weiter"-
-    // Knopf mehr.
-    if (node.type === 'ereignis') {
-      html += '<div class="sh-graph-ereignis-text">' + node.text + (node.probe ? ' <i>(' + node.probe + ')</i>' : '') + '</div>';
-      if (node.erfolgText || node.misserfolgText) {
-        html += '<div class="sh-graph-ort-probe">' +
-          (node.erfolgText ? '<div class="sh-graph-ort-text"><b>Erfolg:</b> ' + node.erfolgText + '</div>' : '') +
-          (node.misserfolgText ? '<div class="sh-graph-ort-text"><b>Misserfolg:</b> ' + node.misserfolgText + '</div>' : '') +
-          '</div>';
-      }
-    }
-    const options = getPlayableOptions(sceneId, currentId, graphStateSnapshot.history || []);
-    if (!options.length) {
-      html += '<div class="sh-graph-ereignis-text">Kein weiterer Weg von hier bekannt.</div>';
-    } else {
-      html += '<div class="sh-graph-options">';
-      options.forEach(function (e) {
-        const count = voteCounts[e.id] || 0;
-        const isLeader = count > 0 && count === maxVotes;
-        html += '<button class="sh-graph-btn sh-graph-option' + (isLeader ? ' sh-graph-leader' : '') + (e.isBack ? ' sh-graph-btn-back' : '') + '" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + e.id + '\')">' +
-          '<span class="sh-graph-hinweis">' + (e.isBack ? '↩ ' : '') + e.hinweis + '</span>' +
-          '<span class="sh-graph-votes">' + count + ' Stimme' + (count === 1 ? '' : 'n') + '</span></button>';
-      });
-      html += '</div>';
-      if (totalVotes) html += '<div class="sh-graph-total">' + totalVotes + ' Stimme(n) insgesamt — jede Option ist direkt anklickbar, unabhängig von der Mehrheit.</div>';
-    }
+    html += '<div class="sh-graph-options">';
+    options.forEach(function (e) {
+      const count = voteCounts[e.id] || 0;
+      const isLeader = count > 0 && count === maxVotes;
+      const target = getGraphNode(sceneId, e.to);
+      // Ziel benennen, damit jede Verbindung im Panel eindeutig einer
+      // Route zuzuordnen ist (mehrere Wege können ähnlich klingende
+      // Sinneshinweise haben).
+      const ziel = target ? target.label : e.to;
+      html += '<button class="sh-graph-btn sh-graph-option' + (isLeader ? ' sh-graph-leader' : '') + (e.isBack ? ' sh-graph-btn-back' : '') + '" onclick="graphSelectEdge(\'' + sceneId + '\', \'' + e.id + '\')" title="Bewegung hierhin freigeben">' +
+        '<span class="sh-graph-hinweis">' + (e.isBack ? '↩ ' : '▸ ') + e.hinweis +
+        '<span class="sh-graph-ziel"> → ' + ziel + '</span></span>' +
+        '<span class="sh-graph-votes">' + count + ' Stimme' + (count === 1 ? '' : 'n') + '</span></button>';
+    });
+    html += '</div>';
+    html += '<div class="sh-graph-total">' + totalVotes + ' Stimme(n) insgesamt — Stimmen bewegen die Gruppe nicht. Erst ein Klick auf einen Weg gibt die Bewegung frei.</div>';
   }
   html += '</div>';
   return html;

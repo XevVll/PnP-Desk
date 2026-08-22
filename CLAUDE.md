@@ -96,6 +96,41 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 3)
+- **Riffinsel-Erkundung umgestellt: SL gibt jede Bewegung frei, kein Wurf blockiert je einen Weg**
+  (Hendriks Vorgabe). Drei zusammengehörige Änderungen:
+  - **Auto-Advance ersatzlos entfernt** (`AUTO_ADVANCE_THRESHOLD`/`maybeAutoAdvance()` in
+    `js/regie_vault.js`). Spieler-Stimmen sind jetzt reine Willensbekundung — die SL sieht nur die
+    Verteilung und gibt jede Bewegung selbst per Klick frei. Vorher zog schon eine einzige Stimme
+    die Gruppe sofort weiter (ursprünglich ein Testmodus).
+  - **Probe-Gate an `ort`-Knoten entfernt** (`pendingOrtEdge`/`graphResolveOrt()` samt der beiden
+    „✓ Erfolg — aufdecken"/„✗ Misserfolg"-Knöpfe). `graphSelectEdge()` zieht jetzt für **jede**
+    Kante direkt weiter; die Ankunft an einem `ort`-Knoten deckt den Marker automatisch auf (neu:
+    `revealOrtMarker()`, auch beim Zurückgehen). `probe`/`erfolgText`/`misserfolgText` bleiben als
+    Vorlese-Referenz im 🧭-Panel stehen, ausdrücklich als „nur Erzählung, kein Weg-Gate"
+    ausgewiesen. Begründung: die SL entscheidet ohnehin von Hand, ein Wurf soll die Bewegung nie
+    verhindern — Misserfolg färbt nur die Erzählung.
+  - **Jede Verbindung ist jetzt tatsächlich einzeln anklickbar.** Zwei echte Fehler dabei gefunden:
+    (1) Da der Graph seit gestern durchgehend beidseitig ist, dupliziert die synthetische
+    Zurück-Option (`getPlayableOptions()`) **immer** eine echte Rückweg-Kante — auf der Karte zwei
+    Pfeile mit exakt identischer Richtung übereinander, die untere Verbindung war nicht mehr
+    klickbar. Die Zurück-Option wird jetzt nur noch angehängt, wenn keine echte Kante zum selben
+    Ziel existiert (bleibt als Notausgang für echte Einbahnstraßen). (2) Pfeilrichtungen wurden aus
+    den rohen `top`/`left`-Prozentwerten berechnet, obwohl das Bild 1920×1047 ist — systematisch zu
+    flach; jetzt mit Seitenverhältnis korrigiert. Zusätzlich neue Winkel-Relaxation
+    (`spreadAngles()`, `MIN_ARROW_SEP = 42°`) in `karte.html`: geografisch fast gleich gerichtete
+    Wege (bis herab zu 17° Abstand, z. B. an der Süßwasserquelle) werden so weit auseinander
+    geschoben, dass jeder Pfeil frei liegt, bleiben dabei aber so nah wie möglich an ihrer echten
+    Richtung.
+  - Vorab **Vollcheck des Graphen** (Node/vm): 15 Knoten, 42 Kanten, keine ungültigen/doppelten
+    Referenzen, keine unerreichbaren Knoten, keine einseitigen Paare — das Datenmodell selbst war
+    in Ordnung, die Fehler lagen in der Darstellung/Freigabe-Logik. Offline mit Playwright
+    verifiziert (`pnp-safe-test`, 0 Fehler): alle 42 Kanten lösen bei SL-Klick genau ein atomares
+    Update auf den richtigen Zielknoten aus, alle 8 Ort-Kanten decken den Marker auf, an allen 15
+    Knoten stimmt die Pfeilzahl und jeder Pfeil ist per `elementFromPoint` einzeln treffbar
+    (Mindestabstand 49 px), Spieler-Klicks ändern `currentNode` nicht, Stimmen allein lösen 0
+    Schreibzugriffe aus. Zusätzlich per Screenshot mit Debug-Overlay gegengeprüft.
+
 ### 2026-08-22 (Fortsetzung 2)
 - **Fix: „Zwischen Wrack und Grotte" (`zwischenpunkt2`) und „ZP_Jungle" (`zp3`) sollten je vier
   gegenseitige Wege haben**, hatten aber (gleiche Ursache wie beim zp_3/zp_4/zp_5-Fix oben, vor

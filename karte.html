@@ -747,7 +747,9 @@
     // werden unter derselben mySessionId geschrieben wie openMarkers, mit
     // demselben onDisconnect().remove()-Muster - Spieler stimmen live ab,
     // die eigentliche Bewegung (currentNode) setzt ausschließlich die SL
-    // im Adminpanel (siehe js/regie_vault.js, graphAdvance/graphResolveOrt).
+    // im Adminpanel (siehe js/regie_vault.js, graphAdvance). Eine Stimme
+    // bewegt die Gruppe NIE von selbst: sie zeigt der SL nur, wohin dieser
+    // Spieler will - freigegeben wird jede Bewegung dort von Hand.
     let graphStateRef = null;
     let graphStateListener = null;
     let graphStateScene = null;
@@ -956,20 +958,65 @@
       Object.keys(votes).forEach(function (sid) { const eid = votes[sid]; voteCounts[eid] = (voteCounts[eid] || 0) + 1; });
 
       const RADIUS = 68; // px, Abstand der Pfeile von der Positions-Markierung (groesser als die Pfeile selbst)
+      const MIN_ARROW_SEP = 42; // Grad; ein Pfeil ist ~48px breit auf RADIUS 68 -> darunter ueberlappen sich zwei Pfeile
       // Jeder Pfeil bekommt die TATSÄCHLICHE Richtung zu seinem Zielknoten
       // (jetzt, wo alle Knoten echte, auf das Referenzbild abgestimmte
       // Koordinaten haben, siehe exploration_graphs.js seit 2026-08-21) -
       // kein Fächer/keine geratene Richtung mehr. Fallback -90° (gerade
       // nach oben) nur, falls für einen Knoten ausnahmsweise keine Position
       // ermittelbar ist.
-      options.forEach(function (e) {
+      //
+      // WICHTIG: das Kartenbild ist deutlich breiter als hoch (1920x1047),
+      // top/left sind aber beide Prozentwerte - eine Richtung direkt aus den
+      // Rohprozenten zeigt daher sichtbar daneben. Deshalb wird die
+      // Horizontale vorher mit dem Seitenverhältnis skaliert.
+      const rectA = mapWrapEl.getBoundingClientRect();
+      const aspect = (rectA.width && rectA.height) ? (rectA.width / rectA.height) : 1;
+      const wanted = options.map(function (e) {
         const targetPos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, e.to, getMarkersForScene) : null;
         let angleDeg = -90;
         if (targetPos && (targetPos.left !== pos.left || targetPos.top !== pos.top)) {
-          angleDeg = Math.atan2(targetPos.top - pos.top, targetPos.left - pos.left) * 180 / Math.PI;
+          angleDeg = Math.atan2(targetPos.top - pos.top, (targetPos.left - pos.left) * aspect) * 180 / Math.PI;
         }
-        renderArrow(e, angleDeg);
+        return { opt: e, deg: angleDeg };
       });
+      spreadAngles(wanted, MIN_ARROW_SEP).forEach(function (a) { renderArrow(a.opt, a.deg); });
+
+      // Zwei Wege können geografisch fast in dieselbe Richtung führen (auf
+      // der Riffinsel z.B. Süßwasserquelle/Zirpen/Schlammboden) - ohne
+      // Korrektur liegen deren Pfeile übereinander und der hintere ist
+      // nicht mehr einzeln anklickbar. Diese Relaxation schiebt zu nah
+      // beieinander liegende Pfeile so weit auseinander, bis jeder frei
+      // klickbar ist, und hält sie dabei so nah wie möglich an ihrer
+      // echten Richtung (Reihenfolge im Kreis bleibt erhalten, damit kein
+      // Pfeil auf die falsche Seite springt).
+      function spreadAngles(items, minSep) {
+        if (items.length < 2) return items;
+        const norm = function (d) { let x = d % 360; if (x < -180) x += 360; if (x > 180) x -= 360; return x; };
+        const sorted = items.slice().sort(function (a, b) { return a.deg - b.deg; });
+        // Vollkreis reicht nicht für alle? Dann gleichmäßig verteilen.
+        if (sorted.length * minSep >= 360) {
+          const step = 360 / sorted.length;
+          return sorted.map(function (it, i) { return { opt: it.opt, deg: norm(sorted[0].deg + i * step) }; });
+        }
+        const cur = sorted.map(function (it) { return it.deg; });
+        for (let pass = 0; pass < 60; pass++) {
+          let moved = false;
+          for (let i = 0; i < cur.length; i++) {
+            const j = (i + 1) % cur.length;
+            let gap = cur[j] - cur[i];
+            if (j === 0) gap += 360; // Umlauf ueber den Kreis hinweg
+            if (gap < minSep) {
+              const push = (minSep - gap) / 2;
+              cur[i] -= push;
+              cur[j] += push;
+              moved = true;
+            }
+          }
+          if (!moved) break;
+        }
+        return sorted.map(function (it, i) { return { opt: it.opt, deg: norm(cur[i]) }; });
+      }
 
       function renderArrow(e, angleDeg) {
         const angleRad = angleDeg * Math.PI / 180;
