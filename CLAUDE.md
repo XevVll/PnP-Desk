@@ -96,6 +96,18 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 10)
+- **Grotten-Bild eingebunden, Riffinsel-Bildersatz damit komplett.** `Grotte.jpg` →
+  `interior_grotte.webp` (3,2 MB → 138 KB, 1600×893), an `versteckte_grotte` eingetragen. Damit
+  hat jeder der fünf Riffinsel-Marker sein eigenes Ortsbild; keiner zeigt mehr auf das
+  Übersichtsbild `riffinsel.webp`. Das Bild trifft die Vorgabe aus der Grotten-Überarbeitung genau:
+  bearbeitete Steinkammer, Zeichentafel mit den sechs Symbolzeilen, die vier Siegelscheiben
+  (Eule/Katze/Schlange/Maus, alle lesbar) und rechts daneben die steinerne Klappe mit runder
+  Vertiefung — keine Truhe, kein Holz, kein Metall.
+- **Rohe JPG-Quelldateien entfernt** (nach Hendriks Freigabe und Sichtprüfung, ~17 MB): vorher
+  geprüft, dass zu jeder Datei das konvertierte WebP existiert. `images/riffinsel.png` (7,6 MB)
+  bleibt vorerst liegen — war nicht Teil der Freigabe.
+
 ### 2026-08-22 (Fortsetzung 9)
 - **Vier von Hendrik generierte Riffinsel-Ortsbilder eingebunden** (Strand, Wrack, Süßwasserquelle,
   Aussichtsklippe — Grotte fehlt noch, wird nach der Überarbeitung neu generiert). Lagen als

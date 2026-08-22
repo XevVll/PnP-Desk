@@ -71,7 +71,7 @@ const RIFFINSEL_SCENES = {
         top: 49, left: 75,
         title: "Die versteckte Grotte",
         desc: "Hinter einem Vorhang aus Luftwurzeln und dichtem Bewuchs, leicht zu übersehen, öffnet sich ein schmaler Spalt im Fels. Dahinter ist es kühl, staubtrocken und still, das Licht von draußen reicht nur wenige Schritte hinein. Die Wände sind gerader, als Wände in einer Höhle sein müssten, und der Boden ist eben — alles aus demselben dunklen Stein, an den Kanten rund geschliffen.",
-        img: "images/riffinsel.webp"
+        img: "images/interior_grotte.webp"
       }
     ]
   }
