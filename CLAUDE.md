@@ -94,6 +94,19 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 9)
+- **Fix: Keine Bewegungspfeile mehr sichtbar nach dem Graph-Neubau.** Ursache: `graphState/11.1/
+  currentNode` stand in Firebase noch auf einer Knoten-ID aus einer früheren Graph-Version (z. B.
+  `weg_sued`), die es im neu gebauten Graphen gar nicht mehr gibt - `renderErkundungOnMap()`/
+  `renderFogOfWar()` (`karte.html`) und `currentGraphNodeId()` (`js/regie_vault.js`) brachen daran
+  mangels Treffer im `if (!node) return`-Guard komplett ab, weder Ring noch Pfeile noch Fog
+  erschienen. Fix: neue gemeinsame Fallback-Logik (`resolveCurrentNodeId()` in `karte.html`,
+  Inline-Fix in `currentGraphNodeId()`) - eine `currentNode`-ID, die im aktuellen Graphen nicht
+  (mehr) existiert, wird jetzt genauso behandelt wie eine fehlende: Rückfall auf `startNode`, statt
+  komplett zu verschwinden. Betrifft grundsätzlich jeden künftigen Graph-Neubau, nicht nur diesen
+  Fall. Offline mit Playwright verifiziert (künstlich veraltete `currentNode`-ID gesetzt, Ring/
+  Pfeile erscheinen trotzdem korrekt am Startknoten).
+
 ### 2026-08-21 (Fortsetzung 8)
 - **Marker-Feinjustage der vier Riffinsel-Fundstellen** (Hendriks Vorgabe: "müssen deckungsgleich
   sein"). Süßwasserquelle, Wrackteile, Aussichtsklippe und versteckte Grotte in

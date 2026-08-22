@@ -276,7 +276,12 @@ function attachGraphStateListener(sceneId) {
 function currentGraphNodeId(sceneId) {
   const g = getExplorationGraph(sceneId);
   if (!g) return null;
-  return graphStateSnapshot.currentNode || g.startNode;
+  const cur = graphStateSnapshot.currentNode;
+  // Faellt auf startNode zurueck, wenn currentNode fehlt ODER auf eine
+  // Knoten-ID zeigt, die es im (evtl. inzwischen neu gebauten) Graphen gar
+  // nicht mehr gibt - sonst bleibt die Erkundung nach einem Graph-Wechsel
+  // komplett unsichtbar (weder Ring noch Pfeile), weil nichts mehr matcht.
+  return (cur && g.nodes[cur]) ? cur : g.startNode;
 }
 
 // TESTEN (Hendriks Anfrage, 2026-08-20): schon ab EINER Stimme automatisch

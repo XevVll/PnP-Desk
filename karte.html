@@ -838,6 +838,16 @@
     // andere Karten (Grimsgate, Golden Lion, ...) bleiben unverändert
     // vollständig sichtbar. Weiche Kreis-Löcher per Radial-Gradient +
     // "destination-out", keine harten Kanten.
+    // Faellt auf graph.startNode zurueck, wenn currentNode fehlt ODER auf
+    // eine Knoten-ID zeigt, die es im (evtl. inzwischen neu gebauten)
+    // Graphen gar nicht mehr gibt - sonst bleibt nach einem Graph-Wechsel
+    // (z.B. Hendriks Neubau des Riffinsel-Graphen) alles unsichtbar, weil
+    // die alte, in Firebase gespeicherte currentNode-ID nirgends mehr matcht.
+    function resolveCurrentNodeId(graph) {
+      const cur = graphStateSnapshot.currentNode;
+      return (cur && graph.nodes[cur]) ? cur : graph.startNode;
+    }
+
     const FOG_RADIUS_FRACTION = 0.1; // Anteil der Bildbreite pro aufgedecktem Punkt
     function renderFogOfWar() {
       const canvas = document.getElementById('fogCanvas');
@@ -856,7 +866,7 @@
       ctx.fillStyle = 'rgba(12, 9, 6, 0.93)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const currentNodeId = graphStateSnapshot.currentNode || graph.startNode;
+      const currentNodeId = resolveCurrentNodeId(graph);
       const history = graphStateSnapshot.history || [];
       const revealedIds = [graph.startNode].concat(history).concat([currentNodeId]);
       const radiusPx = canvas.width * FOG_RADIUS_FRACTION;
@@ -894,7 +904,7 @@
       const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
       if (!graph) return;
 
-      const currentNodeId = graphStateSnapshot.currentNode || graph.startNode;
+      const currentNodeId = resolveCurrentNodeId(graph);
       const node = (typeof getGraphNode === 'function') ? getGraphNode(graphStateScene, currentNodeId) : null;
       const pos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, currentNodeId, getMarkersForScene) : null;
       if (!node || !pos) return;
