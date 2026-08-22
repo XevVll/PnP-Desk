@@ -102,12 +102,18 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   - `zp_5` hatte keine Kante zur Süßwasserquelle, obwohl die Quelle umgekehrt zu `zp_5` führt
     (`suesswasserquelle -> zp_5` existierte, die Gegenrichtung fehlte) — neue Kante
     `e_zp_5_suesswasserquelle` ergänzt.
-  - Der ganze „Quellbecken"-Cluster (`zp_5`/`zp_4`/`zp_6`/`zp_3` „Ein rutschiger Felsvorsprung"/
-    Süßwasserquelle) war strukturell von der Aussichtsklippen-Seite abgeschnitten: `zp_3` war nur
-    einseitig von `zp` („Böiger Wind auf dem Grat") aus erreichbar, führte aber selbst nirgends
-    zurück dorthin — eine Sackgasse für jeden, der von Westen kommt. Neue Kanten `e_zp_5_zp_3`
-    (Aufstieg vom Becken zum Felsvorsprung) und `e_zp_3_zp` (weiter hoch zum Grat, von dort schon
-    bestehend zur Aussichtsklippe) verbinden die beiden Graphhälften jetzt in beide Richtungen.
+  - `zp_5`/`zp_4`/`zp_3` („Ein rutschiger Felsvorsprung") sollten laut Hendrik ein Dreieck mit
+    gegenseitigen Wegen bilden (jeder der drei erreicht die beiden anderen), zusätzlich hängt
+    `zp_3` weiter oben an `zp` („Böiger Wind auf dem Grat", Zugang zur Aussichtsklippe) und `zp_5`
+    an `zp_6`. Im Graphen, wie er aus `graph_editor.html` exportiert wurde, existierte jede dieser
+    Kanten aber nur in EINER Richtung (z. B. nur `suesswasserquelle -> zp_5`, nie umgekehrt; nur
+    `zp_3 -> zp_4`, nie umgekehrt) — vermutlich, weil der Editor beim Ziehen einer Kante nur die
+    angeklickte Richtung anlegt und die Gegenrichtung separat gezogen werden müsste. Ein erster
+    Fixversuch hatte hier noch eine falsche Kante (`zp_5 -> zp_3`, von Hendrik nicht vorgesehen)
+    ergänzt statt der tatsächlich fehlenden Gegenrichtungen. Nach Hendriks expliziter Aufschlüsselung
+    (jeder Knoten einzeln benannt, wohin er zeigen soll) korrigiert: fünf fehlende Rückrichtungen
+    ergänzt (`zp_3->zp`, `zp_4->suesswasserquelle`, `zp_4->zp_3`, `zp_4->zp_5`,
+    `zp_5->suesswasserquelle`, `zp_5->zp_6`), die eine falsche Kante (`zp_5->zp_3`) wieder entfernt.
   - Der „Riffstrand"-Marker (`js/riffinsel_scenes.js`) saß bei `top:46,left:49` im Wasser statt am
     Strand, während der Startknoten `strand` im Graphen mit `top:56.4,left:54.2` schon korrekt auf
     dem Sand lag (Hendriks eigene, direkt am Referenzbild gebaute Koordinate). Erster Versuch ging

@@ -172,8 +172,11 @@ const EXPLORATION_GRAPHS = {
       e_zp_5_zp_4: { from: "zp_5", to: "zp_4", hinweis: "Der Pfad führt weiter am Hang entlang." },
       e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad führt weiter nach Westen." },
       e_zp_5_suesswasserquelle: { from: "zp_5", to: "suesswasserquelle", hinweis: "Ein feuchter, kühler Luftzug verrät die Nähe von Wasser." },
-      e_zp_5_zp_3: { from: "zp_5", to: "zp_3", hinweis: "Ein steiler Pfad führt von hier aus bergauf, zwischen nassem Fels hindurch." },
-      e_zp_3_zp: { from: "zp_3", to: "zp", hinweis: "Der Pfad steigt weiter an, der Wind wird spürbar stärker." }
+      e_zp_3_zp: { from: "zp_3", to: "zp", hinweis: "Der Pfad steigt weiter an, der Wind wird spürbar stärker." },
+      e_zp_4_suesswasserquelle: { from: "zp_4", to: "suesswasserquelle", hinweis: "Der Weg führt bergab, wo Wasser plätschert." },
+      e_zp_4_zp_3: { from: "zp_4", to: "zp_3", hinweis: "Der Pfad führt zurück über nasses Gestein, den Hang hinauf." },
+      e_zp_4_zp_5: { from: "zp_4", to: "zp_5", hinweis: "Ein Pfad führt zurück den Hang entlang." },
+      e_zp_5_zp_6: { from: "zp_5", to: "zp_6", hinweis: "Ein schmaler Trampelpfad führt zurück nach Osten." }
     }
   }
 };
