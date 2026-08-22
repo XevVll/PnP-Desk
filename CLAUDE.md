@@ -104,7 +104,14 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   Playwright-Regression weiterhin mit 0 Fehlern. **Ein Vollcheck des gesamten Graphen zeigt noch
   10 weitere einseitige Kantenpaare aus derselben Vor-Editor-Fix-Ära** (u. a. `strand<->
   zwischenpunkt1`, `strand<->zp1l`, `zp<->die_aussichtsklippe`) - noch nicht angefasst, siehe
-  Rückfrage an Hendrik im Gespräch, ob diese ebenfalls durchgehend beidseitig sein sollen.
+  Rückfrage an Hendrik im Gespräch, ob diese ebenfalls durchgehend beidseitig sein sollen — auf
+  "ja, alle" ergänzt: fehlende Rückrichtung für alle 10 Paare nachgetragen (u. a.
+  `zwischenpunkt1<->strand`, `wrack<->zwischenpunkt1`, `zp1l<->strand`, `zp<->zp3`,
+  `die_aussichtsklippe<->zp`, `suesswasserquelle<->zp_3`, `suesswasserquelle<->zp_6`,
+  `zp_6<->zp1l`). Voll-Check danach: 0 verbleibende einseitige Paare, 42 Kanten/15 Knoten
+  insgesamt, alle vom Start erreichbar. Der ganze Riffinsel-Graph ist damit jetzt vollständig
+  beidseitig begehbar (jeder Nachbar von jedem Nachbar aus erreichbar, kein Weg mehr nur per
+  Zurück-Historie).
 
 ### 2026-08-22 (Fortsetzung)
 - **`graph_editor.html`: Kante-Ziehen fragt jetzt nach der Gegenrichtung.** Ursache der oben
