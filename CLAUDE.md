@@ -96,6 +96,26 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 5)
+- **Aktueller Riffinsel-Graph als Editor-fertiger Snapshot herausgezogen** (Hendriks Wunsch, um
+  ihn in `graph_editor.html` weiterzubearbeiten). Neues `tools/export_graph_snapshot.js`
+  (`node tools/export_graph_snapshot.js 11.1`) schreibt `riffinsel_graph_snapshot.js` ins
+  Wurzelverzeichnis: 15 Knoten, 42 Kanten, in genau der Form, die der Editor einliest. Ergänzt für
+  die vier `ort`-Knoten die `top`/`left` ihrer Marker aus `js/riffinsel_scenes.js` — sonst landen
+  die im Editor als Platzhalter bei 50/50 und müssten jedes Mal von Hand gezogen werden; beim
+  Export AUS dem Editor fällt das automatisch wieder weg, die echte Datei behält ihr Format. Der
+  Snapshot wird von der Anwendung nicht geladen und ist jederzeit neu erzeugbar.
+- **Fix in `graph_editor.html`: der Editor konnte seinen eigenen Export nicht wieder einlesen.**
+  `importGraph()` akzeptierte nur `"11.1": {…}` bzw. das reine Objekt — die komplette Datei
+  (`const EXPLORATION_GRAPHS = { "11.1": {…} };`), also genau das Format, das „JS generieren" /
+  „Als Datei speichern" ausgibt, scheiterte, weil auf oberster Ebene kein `nodes` steht. Der
+  Fehlschlag war zudem still, solange man nicht auf die Knotenzahl schaute. Jetzt werden alle drei
+  Formen akzeptiert (inkl. führendem Kommentarkopf und Zuweisung); bei mehreren Szenen im
+  Container wird die im Feld „Szenen-ID" eingestellte bevorzugt, sonst die erste. Offline mit
+  Playwright verifiziert (alle drei Formen laden 15/42; Round-Trip Export→Import→Export
+  verlustfrei, geprüft gegen einen zwischenzeitlich geleerten Graphen, damit ein stiller
+  Fehlschlag nicht als Erfolg durchgeht; keine Fehler-Dialoge) sowie per Screenshot gegengeprüft.
+
 ### 2026-08-22 (Fortsetzung 4)
 - **Neue Stilregel für Kanten-Sinneshinweise: reine Wegbeschreibung, keine Einordnung**
   (Hendriks Vorgabe). Formulierungen wie „führt zurück Richtung Küste", „ein zweiter Abzweig"

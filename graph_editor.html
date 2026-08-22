@@ -457,13 +457,36 @@ function importGraph() {
   const raw = document.getElementById('importBox').value.trim();
   if (!raw) return;
   try {
-    // Erwartet z.B.: "11.1": { startNode: "start", nodes: {...}, edges: {...} }
-    // oder nur das reine { startNode:..., nodes:..., edges:... }-Objekt.
-    let src = raw;
+    // Akzeptiert drei Formen, damit man einfach hineinwerfen kann, was man
+    // gerade zur Hand hat:
+    //   1. die komplette Datei bzw. der eigene Export dieses Editors:
+    //      "const EXPLORATION_GRAPHS = { "11.1": {...} };" (auch mit
+    //      Kommentarzeilen davor)
+    //   2. ein einzelner Szenen-Eintrag: ""11.1": { startNode:..., ... }"
+    //   3. das reine Objekt: "{ startNode:..., nodes:..., edges:... }"
+    // Form 1 fehlte bis 2026-08-22 - ausgerechnet der eigene Export ließ
+    // sich dadurch nicht wieder einlesen, und der Fehlschlag war still
+    // (das Objekt hatte kein "nodes" auf oberster Ebene).
+    // Fuehrende Kommentarzeilen abwerfen (der Snapshot-Export traegt einen
+    // erklaerenden Kopf), danach eine evtl. Zuweisung am Anfang.
+    let src = raw.replace(/^(?:\s*\/\/[^\n]*\n)+/, '').trim();
+    src = src.replace(/^(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*/, '');
+    src = src.replace(/;\s*$/, '').trim();
     const colonMatch = src.match(/^"[^"]*"\s*:\s*/);
     if (colonMatch) src = src.slice(colonMatch[0].length);
     src = src.replace(/,\s*$/, '');
-    const parsed = new Function('return (' + src + ');')();
+    let parsed = new Function('return (' + src + ');')();
+    // Form 1 liefert den Container { "11.1": {...}, "12.1": {...} } - den
+    // passenden Szenen-Eintrag herausziehen (bevorzugt der, dessen Schlüssel
+    // zur eingestellten Szenen-ID passt, sonst der erste).
+    if (parsed && !parsed.nodes) {
+      const keys = Object.keys(parsed).filter(function (k) { return parsed[k] && parsed[k].nodes; });
+      if (!keys.length) throw new Error('Kein gültiges Graph-Objekt gefunden (nodes fehlt).');
+      const wanted = sceneIdInput.value.trim();
+      const pick = (keys.indexOf(wanted) !== -1) ? wanted : keys[0];
+      if (keys.indexOf(wanted) === -1) sceneIdInput.value = pick;
+      parsed = parsed[pick];
+    }
     if (!parsed || !parsed.nodes) throw new Error('Kein gültiges Graph-Objekt gefunden (nodes fehlt).');
     graph = { startNode: parsed.startNode || null, nodes: parsed.nodes || {}, edges: parsed.edges || {} };
     // "ort"-Knoten holen ihre Position im echten Betrieb vom verknüpften

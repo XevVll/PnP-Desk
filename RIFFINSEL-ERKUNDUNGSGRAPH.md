@@ -306,7 +306,28 @@ dessen Normalfall ein zweiseitig begehbarer Pfad ist, wiederholt vergessen wurde
 
 `ort`-Knoten bekommen beim Export bewusst **kein** `top`/`left` (Position kommt im echten Betrieb
 vom Marker, siehe Abschnitt 2.2) — beim Import eines bestehenden Graphen ohne `top`/`left` landen
-sie als Platzhalter bei 50/50 und müssen einmal von Hand an die richtige Stelle gezogen werden.
+sie als Platzhalter bei 50/50 und müssten von Hand an die richtige Stelle gezogen werden.
+
+### 5.1 Aktuellen Stand in den Editor holen
+
+```
+node tools/export_graph_snapshot.js 11.1
+```
+
+Schreibt `riffinsel_graph_snapshot.js` ins Repo-Wurzelverzeichnis: den kompletten aktuellen
+Graphen in genau der Form, die der Editor einliest — Inhalt kopieren, unten bei „Bestehenden
+Graph laden" einfügen, „Laden". Der Snapshot ergänzt für die vier `ort`-Knoten die `top`/`left`
+ihrer Marker, sodass sie sofort an der richtigen Stelle liegen statt bei 50/50; beim Export aus
+dem Editor fällt das automatisch wieder weg, die echte Datei behält also ihr Format. Der Snapshot
+wird von der Anwendung nicht geladen und veraltet, sobald `js/exploration_graphs.js` sich ändert —
+dann einfach neu erzeugen.
+
+**Import-Formate (seit 2026-08-22):** Der Editor akzeptiert die komplette Datei
+(`const EXPLORATION_GRAPHS = { "11.1": {…} };`, auch mit Kommentarkopf), einen einzelnen
+Szenen-Eintrag (`"11.1": {…}`) oder das reine Objekt. Vorher ging **nur** die mittlere Form —
+ausgerechnet der eigene Export des Editors ließ sich damit nicht wieder einlesen, und der
+Fehlschlag war still (das Objekt hatte auf oberster Ebene kein `nodes`). Bei mehreren Szenen im
+Container wird die im Feld „Szenen-ID" eingestellte bevorzugt, sonst die erste.
 
 ---
 
