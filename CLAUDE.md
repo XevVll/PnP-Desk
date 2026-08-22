@@ -96,6 +96,39 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 17)
+- **Neue Örtlichkeit `13.1` „Grabesinsel" angelegt** (Bibel 7.1, Station 5: Ritual + Finale) —
+  neue Datei `js/grabesinsel_scenes.js`, Inhalt der Ankunft von Hendrik vorgegeben. Zwei Marker im
+  flachen Muster: `grabesstrand` (schwarzer Stein statt Sand, Kathedralen-Silhouette, die letzte
+  Frage an jeden Einzelnen, Kisten von Bord) und `der_schwarze_weg` (der einzige gangbare Weg, das
+  grünlich-türkise Leuchten in der Ferne).
+  - **Bewusst KEIN Erkundungs-Graph** (anders als die Riffinsel): Es gibt genau einen gangbaren
+    Weg, also nichts zu erkunden und nichts zu wählen — ein Graph mit einem einzigen Pfad wäre
+    Mechanik ohne Entscheidung.
+  - `ORTE.grabesstrand` (Interaktion „Die letzte Frage am Strand", 5 Trigger) und
+    `ORTE.der_schwarze_weg` („Das Glühen in der Ferne", 4 Trigger). Beide halten sich strikt an
+    Beobachtung ohne Deutung: das Leuchten wird nirgends erklärt, und eine Wahrnehmungsprobe
+    liefert bewusst nur Details zum Weg, keine Auflösung. `SZENEN_REGIE["13.1"]` mit
+    `uebergeordnetesZiel` + `stimmung`, **ohne `ghosts`** — an Land geht nur mit, wer sich in
+    `12.1` einzeln dafür entschieden hat; anonyme Statisten würden genau diese Entscheidung
+    entwerten.
+  - Registry an allen sechs Stellen ergänzt: `<script>`-Tag in `karte.html` UND `regie.html`,
+    `MAP_REGISTRY` in `karte.html`, sowie `getAllSceneEntries`/`getSceneLabel`/`getMarkersForScene`
+    und `SCENE_ORDER` in `js/regie_vault.js`.
+  - **Kein Artwork vorhanden** — Hintergrund und beide Marker zeigen vorerst
+    `images/schatzinsel.webp` als Platzhalter (leeres `img` würde „Kein Bild hinterlegt." zeigen).
+    Zwei Prompts dafür neu in `BILD-PROMPTS.md` (Übersichtskarte + Strand-Ortsbild), bewusst kalt
+    und entsättigt gehalten, mit dem Leitgedanken „sieht aus wie ein Bauwerk, ist aber keins —
+    das Unbehagen kommt daher, dass nichts kaputt ist" und einer Nachfass-Zeile gegen die
+    naheliegende Ruinen-Fehlinterpretation. **Hinweis dort vermerkt:** die Übersichtskarte braucht
+    zusätzlich einen `MAP_NAMES`-Eintrag in `tools/optimize_images.py`, sonst greift die
+    900px-Kappung statt 1920px (derselbe Fehler wie seinerzeit bei `riffinsel.png`).
+  - Offline mit Playwright verifiziert (`pnp-safe-test`, 0 Fehler): `13.1` erscheint in der
+    Szenenliste beider Seiten mit korrektem Label, beide Marker werden gerendert, die Interaktion
+    ist am Ort erreichbar.
+  - **[OFFEN]** Was am Ende des Wegs liegt (Ritualort, Finale nach Bibel 12.1), ist noch nicht
+    ausgearbeitet und bekommt eigene Marker, sobald Hendrik es vorgibt.
+
 ### 2026-08-22 (Fortsetzung 16)
 - **Bild für Szene `12.1` eingebunden**: `interior_kapitaenskajuete_einberufung.webp` (2,7 MB JPG →
   147 KB WebP, 1600×893), erzeugt mit dem Kajüten-Außenbild und den sieben NSC-Porträts als

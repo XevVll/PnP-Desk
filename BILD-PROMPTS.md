@@ -415,6 +415,92 @@ out. The deck in the foreground is empty and quiet.
 
 ---
 
+## Grabesinsel (Szene 13.1)
+
+Das Finale. Zwei Bilder: die Übersichtskarte der Insel (Szenen-Hintergrund) und der schwarze
+Strand als Ortsbild. Der schwarze Weg kann sich vorerst das Strandbild teilen.
+
+Dateinamen: `grabesinsel.jpg` (Karte) und `interior_grabesstrand.jpg` (Ort). **Achtung:** die
+Übersichtskarte braucht zusätzlich einen Eintrag in `MAP_NAMES` in `tools/optimize_images.py`,
+sonst wird sie auf 900px gekappt statt auf 1920px — genau wie damals bei `riffinsel.png`.
+
+Bis beide existieren zeigt die Szene `images/schatzinsel.webp` als Platzhalter.
+
+Leitgedanke für beide: **die Insel sieht aus wie ein Bauwerk, ist aber keins.** Nicht Ruine, nicht
+verfallen, nicht bewachsen — sondern zu regelmäßig, zu sauber, zu absichtlich. Das Unbehagen
+kommt daher, dass nichts kaputt ist.
+
+### 1. Übersichtskarte der Insel
+
+```
+Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
+17th-century Dutch masters — but far colder and darker in palette than the other maps in this set:
+desaturated greys, black stone, cold green-grey sea, a heavy overcast sky with no warmth in it.
+
+Wide landscape format, horizontally composed (approx. 16:9). A whole small island seen from a
+raised distance, slightly from above and from seaward, as a painted chart-like view — the same
+kind of overview as the other island maps in this set.
+
+The island is made of black stone. Its silhouette unmistakably suggests a cathedral: a broad
+stepped mass rising toward the centre, flanked by tall narrow spires of rock, with long straight
+ridges running like buttresses down toward the water. Nothing is broken, crumbled or overgrown —
+that is precisely what makes it wrong. The steps are too even, the spires too vertical, the
+proportions too deliberate for anything shaped by weather and sea.
+
+A single dead-straight causeway of the same black stone runs from a small black shore at the
+lower edge of the island inland toward the centre, without a branch or a bend, cutting between
+steep rock walls.
+
+Vegetation is almost absent: a few sparse grey-green patches clinging in cracks, nothing green,
+no palms, no jungle. A small ship lies at anchor off the shore, tiny in the frame.
+
+Deep inland, where the causeway disappears between the rocks, an unnatural greenish-turquoise
+glow lies over the stone — cold, steady, not firelight, casting a faint sickly light on the rock
+faces around it. It is the only colour in the painting.
+
+Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
+text or labels anywhere in the image.
+```
+
+### 2. Der schwarze Strand (Ortsbild)
+
+```
+Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
+17th-century Dutch masters — but cold and desaturated in palette: black stone, grey-green water,
+heavy overcast sky.
+
+Wide landscape format, horizontally composed (approx. 16:9). View from ground level, standing on
+the shore itself, looking inland toward the island's interior.
+
+There is no sand. The shore is smooth black stone, worn flat, running straight down into the
+water. A ship's boat has been drawn up onto it, and several wooden crates stand unloaded beside
+it on the bare rock.
+
+Ahead, a dead-straight causeway of the same black stone leads inland between rising rock walls,
+without a branch or a bend. Above and behind it the island rises in even steps and narrow
+vertical spires, close enough now to see that nothing is broken or weathered — the regularity is
+unsettling rather than impressive.
+
+Vegetation is almost absent: a few sparse grey stalks in the cracks, nothing green. No birds, no
+surf breaking, no movement.
+
+Far inland, where the causeway vanishes between the rocks, a faint greenish-turquoise glow lies
+over the stone — cold, steady, the only colour in the scene.
+
+No people in the scene. Tight framing filling roughly 85-90% of the canvas, little empty space.
+No modern elements, no text or labels anywhere in the image.
+```
+
+*Falls Gemini eine verfallene Ruine baut:* `Important: this is not a ruin. Nothing is broken,
+cracked, crumbled or overgrown. The stone is intact, smooth and regular — the unease comes from
+how deliberate and undamaged it looks, not from decay.`
+
+*Falls es zu warm/freundlich wird:* `Important: keep the palette cold and desaturated. No warm
+sunlight, no blue tropical water, no green foliage. The only colour in the image is the
+greenish-turquoise glow in the distance.`
+
+---
+
 ## Vorlage: Stammesdorf (Schatzinsel)
 
 Der Prompt, an dem sich die obigen orientieren — als Referenz für den Stil aufbewahrt.

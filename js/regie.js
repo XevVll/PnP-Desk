@@ -1825,6 +1825,45 @@ const ORTE = {
     }
   },
 
+  // Grabesinsel (Bibel 7.1, Station 5: Ritual + Finale, Szene "13.1",
+  // grabesinsel_scenes.js). Bisher ausgearbeitet ist nur die ANKUNFT nach
+  // Hendriks Vorgabe - was am Ende des Wegs liegt, folgt separat.
+  "grabesstrand": {
+    personen: "James Harwick · Cormac Daly",
+    kurz: "Ankunft auf der Grabesinsel. Schwarzer Stein statt Sand, die Insel dahinter in einer Form, die von See aus an eine Kathedrale erinnert und trotzdem für jeden Anwesenden falsch aussieht. Hier wird ein letztes Mal gefragt, ob wirklich jeder mitkommt. Harwick lässt mehrere Kisten von Bord holen und geht los.",
+    interaktionen: {
+      "die_letzte_frage": {
+        title: "Die letzte Frage am Strand",
+        kurz: "Bevor es losgeht, wird jeder Einzelne noch einmal gefragt, ob er wirklich sicher ist. Die Frage aus der Kajüte (Szene 12.1) wird hier wiederholt — diesmal mit der Insel vor Augen. Umkehren ist immer noch erlaubt.",
+        details: "Das Beiboot liegt auf schwarzem Stein statt auf Sand. Was von See aus wie eine Kathedrale aussah, sieht aus der Nähe nicht besser aus, sondern schlechter: Die Stufen sind zu gleichmäßig, die Türme zu gerade, und nichts daran erklärt sich durch Wetter oder Wellen. Pflanzen gibt es kaum, und die wenigen sind grau. Es ist still.\n\nBevor jemand losgeht, wird die Frage aus der Kajüte noch einmal gestellt — diesmal einzeln, mit der Insel vor Augen: Ist wirklich jeder sicher, dass er mitkommen will? Wer jetzt umkehrt, kehrt ohne Vorwurf um und wartet am Boot oder an Bord.\n\nSL-Hinweis: Die Frage ernst meinen und ernst stellen. Sie ist keine rhetorische Geste, um Spannung zu erzeugen — in Szene 12.1 hat Harwick zugesichert, dass niemand gezwungen wird, und das gilt hier weiterhin. Jedem Spieler einzeln die Gelegenheit geben zu antworten, statt die Gruppe als Block zu fragen.\n\nDanach lässt Harwick mehrere Kisten von Bord holen und aufs schwarze Gestein tragen. Er erklärt nicht, was darin ist. Dann geht er los, den einzigen gangbaren Weg entlang, ohne sich umzudrehen und ohne zu prüfen, wer ihm folgt.",
+        trigger: [
+          { id: "landung_schwarzer_stein", label: "Landung auf schwarzem Stein statt Sand", info: "Glatt geschliffen, bis ans Wasser reichend." },
+          { id: "form_stimmt_nicht", label: "Aus der Nähe sieht die Kathedralen-Form schlechter aus, nicht besser", info: "Stufen zu gleichmäßig, Türme zu gerade — nichts daran erklärt sich durch Wetter oder Wellen. Kaum Pflanzen, und die wenigen sind grau. Es ist still." },
+          { id: "letzte_frage_einzeln", label: "Jeder wird EINZELN gefragt, ob er wirklich mitkommt", info: "Keine rhetorische Geste — in 12.1 hat Harwick zugesichert, dass niemand gezwungen wird. Wer umkehrt, kehrt ohne Vorwurf um." },
+          { id: "kisten_von_bord", label: "Harwick lässt mehrere Kisten von Bord holen", info: "Er erklärt nicht, was darin ist." },
+          { id: "harwick_geht_los", label: "Harwick geht den einzigen Weg entlang los, ohne sich umzudrehen", info: "Er prüft nicht, wer ihm folgt." }
+        ]
+      }
+    }
+  },
+
+  "der_schwarze_weg": {
+    kurz: "Der einzige gangbare Weg landeinwärts: gerade, gleichmäßig breit, ohne Abzweig. Rechts und links ist der Fels zu steil. Weit vorn liegt ein grünlich-türkises Leuchten über dem Stein.",
+    interaktionen: {
+      "das_gluehen_in_der_ferne": {
+        title: "Das Glühen in der Ferne",
+        kurz: "Ein grünlich-türkises Leuchten über dem Stein weit vorn, das mit keiner Tageszeit und keinem Feuer zu erklären ist. Es wird nicht heller oder dunkler, während man darauf zugeht. Reine Beobachtung — keine Probe, keine Deutung durch die SL.",
+        details: "Der Weg lässt keine Wahl: gerade, gleichmäßig breit, ohne einen einzigen Abzweig, und zu beiden Seiten steht der Fels zu steil, um daneben zu gehen. Der schwarze Stein unter den Füßen ist überall gleich glatt.\n\nWeit vorn, dort wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Gestein. Es flackert nicht wie Feuer und wandert nicht wie Licht durch Wolken. Es wird auch nicht heller, während die Gruppe darauf zugeht — was schwer einzuschätzen macht, wie weit es noch ist.\n\nSL-Hinweis: Nichts davon deuten und nichts erklären lassen. Keine Probe: es gibt hier nichts zu entdecken, was nicht ohnehin jeder sieht. Wer eine Wahrnehmungsprobe verlangt, bekommt Details zur Beschaffenheit des Wegs (die Fugen sind zu eng für Werkzeug dieser Zeit; kein Bewuchs in den Ritzen), aber keine Auflösung zum Leuchten.\n\n[OFFEN] Was am Ende des Wegs liegt, ist noch nicht ausgearbeitet — Ritualort und Finale bekommen eigene Marker, sobald Hendrik sie vorgibt (Bibel 12.1).",
+        trigger: [
+          { id: "keine_wahl_im_weg", label: "Ein Weg ohne Abzweig — der Fels daneben ist zu steil", info: "Gerade, gleichmäßig breit, überall gleich glatter schwarzer Stein." },
+          { id: "gruenliches_gluehen", label: "Grünlich-türkises Leuchten über dem Stein weit vorn", info: "Flackert nicht wie Feuer, wandert nicht wie Licht durch Wolken." },
+          { id: "gluehen_wird_nicht_heller", label: "Es wird nicht heller, während man darauf zugeht", info: "Macht schwer einzuschätzen, wie weit es noch ist." },
+          { id: "wahrnehmung_ohne_aufloesung", label: "Optionale Wahrnehmung: Details zum Weg, aber keine Auflösung zum Leuchten", info: "Die Fugen sind zu eng für Werkzeug dieser Zeit, kein Bewuchs in den Ritzen." }
+        ]
+      }
+    }
+  },
+
   "versteckte_grotte": {
     kurz: "Kein Naturhohlraum, sondern ein urzeitliches Steinbauwerk. Ein echtes Rätsel (in den Fels gehauene Zeichentafel + vier Siegelsteine, Reim von Hendrik) öffnet eine steinerne Klappe — Lösung ist die Katze/der Jaguar, dahinter ein verzierter Säbel mit Jaguar-Gravur (Bibel 7.4: \"ein Vorteil, den die Spieler haben, ohne ihn zu kennen\").",
     interaktionen: {
@@ -2332,5 +2371,14 @@ const SZENEN_REGIE = {
     stimmung: "Enger als sonst. Mehr Lampen als nötig, der Schreibtisch an die Wand geschoben, damit alle stehen können. Harwick wartet, bis wirklich jeder da ist, und macht die Tür selbst zu. Draußen läuft der Schiffsbetrieb weiter, gedämpft durch die Wand — hier drinnen redet niemand dazwischen."
     // Keine "ghosts": wer im Raum steht, steht namentlich in
     // ORTE.kapitaenskajuete.szenenUeberschreibungen["12.1"].personen.
+  },
+
+  // Grabesinsel - Ankunft. Bisher nur der Anfang der Szene (Hendriks
+  // Vorgabe); Ritualort und Finale folgen. KEINE "ghosts": an Land geht nur
+  // mit, wer sich in 12.1 einzeln dafuer entschieden hat - ein Pool anonymer
+  // Statisten wuerde genau die Entscheidung entwerten, um die es geht.
+  "13.1": {
+    uebergeordnetesZiel: "Harwick den einzigen Weg entlang folgen — oder am Boot bleiben. Mehr steht in dieser Szene nicht zur Wahl.", // Bibel 2.9
+    stimmung: "Kein Wind, keine Vögel, keine Brandung, die man von den anderen Inseln kennt. Der schwarze Stein schluckt Schritte, statt sie zu tragen. Alle sprechen leiser, als nötig wäre, ohne dass jemand darum gebeten hätte. Weit vorn, wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Gestein."
   }
 };
