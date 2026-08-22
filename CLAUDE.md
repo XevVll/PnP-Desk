@@ -3,7 +3,9 @@
 Kurzer technischer Leitfaden für dieses Repo. Die eigentliche Story-/Design-Doku steht in
 `KAMPAGNEN-BIBEL.md` — vor inhaltlicher Arbeit lesen, v. a. Abschnitt 13 „Technischer Stack"
 und Abschnitt 17 „Arbeitsweise". Dieses Dokument hier ist rein technisch/prozessual und hält
-zusätzlich einen laufenden Changelog.
+zusätzlich einen laufenden Changelog. Für das Erkundungs-Graph-System (Riffinsel, `11.1`) siehe
+das ausführliche **[RIFFINSEL-ERKUNDUNGSGRAPH.md](RIFFINSEL-ERKUNDUNGSGRAPH.md)** — Datenmodell,
+Design-Begründung und vollständige Fehlergeschichte, vor jeder Erweiterung dieses Systems lesen.
 
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
