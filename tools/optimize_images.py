@@ -7,13 +7,14 @@ ungenutztem Alpha-Kanal daher - einzelne Dateien lagen bei 7-9 MB, obwohl
 sie auf der Karte nie groesser als ein paar hundert Pixel dargestellt
 werden. Das hat spuerbare Ladezeiten/Lags verursacht (siehe Juli 2026).
 
-Nutzung: Neues PNG (von Gemini) in images/ ablegen, dann:
+Nutzung: Neues PNG/JPG (von Gemini) in images/ ablegen, dann:
 
     python3 tools/optimize_images.py
 
-Wandelt jedes *.png in images/ in ein gleichnamiges *.webp um (Alpha wird
+Wandelt jedes *.png/*.jpg/*.jpeg in images/ in ein gleichnamiges *.webp um
+(Gemini liefert je nach Export mal PNG, mal JPG). Alpha wird
 entfernt, falls ohnehin voll deckend; Kantenlaenge wird je nach vermuteter
-Kategorie gedeckelt), loescht danach das PNG NICHT automatisch (bewusst -
+Kategorie gedeckelt), loescht danach die Quelldatei NICHT automatisch (bewusst -
 erst pruefen, ob das Ergebnis gut aussieht), und traegt den neuen
 Dateinamen nicht automatisch in js/*.js ein - das bleibt manuell, da nur
 Hendrik/Claude wissen, zu welchem Marker/Charakter ein neues Bild gehoert.
@@ -42,11 +43,18 @@ MAP_NAMES = {
 
 WEBP_QUALITY = 82  # bei sichtbaren Artefakten hochsetzen, siehe Bibel 14.4
 
+# Gemini exportiert je nach Weg PNG oder JPG - beide akzeptieren, sonst wird
+# ein frisch generiertes Bild beim Sammellauf stillschweigend uebersprungen.
+SOURCE_EXTS = ('.png', '.jpg', '.jpeg')
+
 
 def cap_for(fname):
     if fname.startswith('interior_'):
         return 1600
-    if fname in MAP_NAMES:
+    # MAP_NAMES ist historisch mit .png-Endungen gepflegt - Endung normalisieren,
+    # damit ein als .jpg geliefertes Kartenbild nicht auf 900px gekappt wird.
+    stem = os.path.splitext(fname)[0]
+    if fname in MAP_NAMES or (stem + '.png') in MAP_NAMES:
         return 1920
     return 900  # Annahme: Portrait
 
@@ -80,14 +88,15 @@ def optimize(path):
 
 def main():
     targets = sys.argv[1:] or [
-        os.path.join(IMAGES_DIR, f) for f in os.listdir(IMAGES_DIR) if f.endswith('.png')
+        os.path.join(IMAGES_DIR, f) for f in os.listdir(IMAGES_DIR)
+        if f.lower().endswith(SOURCE_EXTS)
     ]
     if not targets:
-        print("Keine PNGs in images/ gefunden - nichts zu tun.")
+        print("Keine PNG/JPG-Dateien in images/ gefunden - nichts zu tun.")
         return
     for path in targets:
         optimize(path)
-    print("\nFertig. PNGs wurden NICHT geloescht - nach Sichtpruefung von Hand "
+    print("\nFertig. Quelldateien wurden NICHT geloescht - nach Sichtpruefung von Hand "
           "entfernen und den neuen .webp-Dateinamen in js/scenes.js, "
           "js/golden_lion_scenes.js bzw. js/characters.js eintragen.")
 

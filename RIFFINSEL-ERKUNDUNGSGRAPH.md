@@ -349,7 +349,7 @@ Container wird die im Feld „Szenen-ID" eingestellte bevorzugt, sonst die erste
 | `zp_5` | ereignis | Zirpen aus dem Unterholz | Wahrnehmung | Teil des „Quellbecken"-Dreiecks |
 | `zp_6` | ereignis | Ein Mückenschwarm | Körper | |
 | `wrack` | ort → `wrackteile` | Wrackteile am Riff | Klettern/Körper | |
-| `versteckte_grotte` | ort → `versteckte_grotte` | Die versteckte Grotte | Int (Rätsel) | Rätsel + Kiste |
+| `versteckte_grotte` | ort → `versteckte_grotte` | Die versteckte Grotte | Int (Rätsel) | Urzeitliches Steinbauwerk, Rätsel + steinerne Klappe |
 | `die_aussichtsklippe` | ort → `aussichtsklippe` | Die Aussichtsklippe | Klettern | Session-Schluss-Beat |
 | `suesswasserquelle` | ort → `suesswasserquelle` | Die Süßwasserquelle | Instinkt/Survival | Zentraler Knotenpunkt (6 Nachbarn) |
 
@@ -411,17 +411,23 @@ aus `js/regie.js`:
   der Nacht hat funktioniert. Amos Hale hält dort Wache und hat es vor der Gruppe gesehen. Wer nie
   hochsteigt, erfährt es nicht und bricht ohne diese Gewissheit auf. Session-Schluss-Beat. (Bis
   2026-08-22 war der Beat umgekehrt: der Verfolger nur abgelenkt, nicht weg.)
-- **Versteckte Grotte** (Int) — eine versiegelte Kiste mit unbekanntem Symbol, deren Inhalt
-  bewusst offenbleibt (Bibel 7.4: „ein Vorteil, den die Spieler haben, ohne ihn zu kennen").
-  Direkt daneben **Hendriks Rätsel** (Reim und Symbole von ihm, seit 2026-08-22; löst das frühere
-  „Tiger"-Rätsel ab): eine Steinplatte mit sechs Symbolzeilen ergibt bei erfolgreicher
-  Intelligenz-Probe einen Reim, der den **Jaguar** beschreibt — Rosetten auf goldenem Fell
-  („Ringe aus Nacht, die Sonne wohnt"), als einziger seiner Familie nicht wasserscheu, tötet mit
-  dem Schädelbiss, lautlos, Herrscher der Unterwelt bei Nacht. Von vier Tier-Steinen
-  (Eule/Katze/Schlange/Maus) ist die **Katze** der richtige, weil sie als einzige den Jaguar
-  abbildet. Belohnung: ein verzierter Säbel mit eingraviertem Jaguar. Falscher Stein: ein Knall
-  und ein Fauchen wie von einer Großkatze, beliebig oft erneut versuchbar — SL-Ermessen koppelt
-  wiederholten Lärm an ein früheres Eintreffen der Affen (siehe 6.4).
+- **Versteckte Grotte** (Int) — **kein Naturhohlraum und keine Truhe** (Hendriks Korrektur,
+  2026-08-22): die Grotte ist selbst das Bauwerk, aus dem Fels geschlagen, urzeitlich schwer, alles
+  aus einem Stück Stein — kein Holz, kein Metall, kein Mörtel, nichts Europäisches. Zeichentafel
+  und eine fugengenaue **steinerne Klappe** sind Teil der Wand; die vier Siegelsteine in ihren
+  Mulden sind die einzigen beweglichen Teile im Raum. Gewalt ist ausdrücklich kein Weg (massiver
+  Fels, kein Scharnier, kein Schloss).
+  **Hendriks Rätsel** (Reim und Symbole von ihm; löst das frühere „Tiger"-Rätsel ab): die sechs
+  Symbolzeilen der Tafel ergeben bei erfolgreicher Intelligenz-Probe einen Reim, der den **Jaguar**
+  beschreibt — Rosetten auf goldenem Fell („Ringe aus Nacht, die Sonne wohnt"), als einziger seiner
+  Familie nicht wasserscheu, tötet mit dem Schädelbiss, lautlos, Herrscher der Unterwelt bei Nacht.
+  Von vier Siegelsteinen (Eule/Katze/Schlange/Maus) ist die **Katze** der richtige, weil sie als
+  einzige den Jaguar abbildet. In die Vertiefung gedrückt fährt die Klappe auf; dahinter eine
+  flache Nische mit einem verzierten Säbel, in dessen Klinge ein Jaguar eingraviert ist — ohne
+  jede Erklärung dazu (Bibel 7.4: „ein Vorteil, den die Spieler haben, ohne ihn zu kennen").
+  Falscher Stein: ein Knall und ein Fauchen wie von einer Großkatze, aus dem Stein selbst, beliebig
+  oft erneut versuchbar — SL-Ermessen koppelt wiederholten Lärm an ein früheres Eintreffen der
+  Affen (siehe 6.4).
 
 ### 6.4 Der Zeitdruck: „Die Stimmung kippt" → „Die Affen greifen an"
 
@@ -443,7 +449,7 @@ die früheren feindlichen Ureinwohner vollständig — auf der Insel gibt es kei
 Die Erkundung endet damit bewusst vorzeitig, nicht jede Fundstelle muss in einem Durchgang
 entdeckt werden. Zwei optionale Anknüpfungspunkte: die „Ungewöhnlichen Abdrücke" (`zp1l`, seit dem
 Wechsel handförmige Abdrücke statt menschengroßer Fußspuren) als mögliche Vorwarnung im Rückblick,
-und wiederholte laute Fehlversuche am Rätsel der Kiste als plausibler Grund, den Zeitpunkt
+und wiederholte laute Fehlversuche am Rätsel der Grotte als plausibler Grund, den Zeitpunkt
 vorzuziehen.
 
 ---

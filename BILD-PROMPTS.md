@@ -122,8 +122,10 @@ timbers, prying loose a usable plank, absorbed in the work and not looking towar
 
 ### 3. Die versteckte Grotte
 
-Enthält bewusst **Steinplatte, vier Tier-Steine und Kiste** sichtbar im Bild (dein Wunsch). Die
-vier Tiere sind die des Rätsels: Eule, Katze, Schlange, Maus.
+**Kein Naturhohlraum und keine Truhe** (Hendriks Korrektur): Die Grotte ist selbst das Bauwerk —
+alles aus dem Fels geschlagen, urzeitlich schwer, kein Holz und kein Metall. Zeichentafel und
+Klappe sind Teil der Wand, die vier Siegelsteine sind die einzigen beweglichen Teile. Die vier
+Tiere sind die des Rätsels: Eule, Katze, Schlange, Maus.
 
 ```
 Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
@@ -133,32 +135,40 @@ the framing of the other location images.
 The setting is a small tropical island fully enclosed by a coral reef, the same island seen in the
 other images of this location set.
 
-Interior view from ground level, standing just inside a small, dry grotto in the rock, looking
-toward its rear wall. Behind and beside the viewer the entrance is a narrow vertical crevice, half
-curtained by hanging aerial roots and dense creepers; a single shaft of warm daylight falls through
-it and reaches only a few paces into the chamber, leaving the back of the grotto in cool blue-grey
-shadow. Dry sandy floor, dark damp rock walls, low ceiling.
+Interior view from ground level, standing inside a small chamber cut into solid rock, looking
+toward its rear wall. This is not a natural cave: the walls are too straight, the floor too level,
+the corners deliberate. Everything — walls, floor, ceiling — is hewn from the same dark stone,
+edges worn round by enormous age and damp. Heavy, massive, primeval construction, with no
+ornament for its own sake, but an unmistakable precision beneath the roughness. No wood, no metal,
+no mortar, nothing European anywhere in the room.
 
-At the centre of the lit area, half in shadow, stands an old chest — iron-bound, sealed with dark
-wax, branded with a single unfamiliar symbol, and heavy enough that one person clearly could not
-lift it. Set into its front is a small empty round socket in a metal mechanism, waiting for
-something to be pressed into it.
+Behind and beside the viewer, the entrance is a narrow vertical crevice half curtained by hanging
+aerial roots and creepers. A single shaft of warm daylight falls through it and reaches only a few
+paces in, leaving the back of the chamber in cool blue-grey shadow.
 
-Directly beside the chest, lying flat on the sand and clearly visible, is a stone tablet densely
-covered with incised carved signs arranged in six rows. Next to the tablet, laid out in a row on the
-sand, are four small finely carved stone discs, each bearing the relief of a different animal,
-each one clearly readable: an owl, a cat, a snake, and a mouse.
+The rear wall carries three things, all carved directly into the stone and clearly visible:
+a large tablet hewn out of the wall itself, densely covered with deeply struck carved signs
+arranged in six rows; below it, at hand height, four round stone seal-discs resting loose in
+shallow scooped hollows, each bearing the relief of a different animal, each one clearly readable
+— an owl, a cat, a snake, and a mouse; and beside them a rectangular stone hatch set flush into
+the wall with hairline joints, a single empty round recess at its centre, plainly closed and
+plainly not meant to be forced.
 
-Cool, still air. Dust motes hanging in the shaft of light. Deep shadow, strong single light source,
-high contrast between the lit objects and the dark rock behind them. No people in the scene.
+Cool, dust-dry, absolutely still air. Dust motes hanging in the shaft of light. Deep shadow,
+strong single light source, high contrast between the lit carvings and the dark stone behind
+them. A sense of great age and of a place untouched for a very long time. No people in the scene.
 
 Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
 text or labels anywhere in the image.
 ```
 
 *Falls Gemini die vier Steine verschluckt oder falsche Tiere baut:* die Tier-Zeile ans Ende
-wiederholen, z. B. `Important: exactly four carved animal stones are visible on the ground — owl,
-cat, snake, mouse — one animal per stone.`
+wiederholen, z. B. `Important: exactly four round carved seal-stones are visible in their hollows
+— owl, cat, snake, mouse — one animal per stone.`
+
+*Falls Gemini doch eine Truhe oder Holz/Metall hineinbaut:* `Important: there is no chest, no
+wooden object and no metal anywhere. Every object in the room is carved stone and part of the rock
+itself, except the four loose stone seal-discs.`
 
 ---
 

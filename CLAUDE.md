@@ -96,6 +96,49 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 9)
+- **Vier von Hendrik generierte Riffinsel-Ortsbilder eingebunden** (Strand, Wrack, Süßwasserquelle,
+  Aussichtsklippe — Grotte fehlt noch, wird nach der Überarbeitung neu generiert). Lagen als
+  `Riffstrand.jpg` etc. in `images/`, umbenannt auf die `interior_`-Konvention (sonst 900px-
+  Portrait-Kappung statt 1600px) und dabei den Umlaut aus `Süßwasserquelle.jpg` entfernt.
+  Konvertiert: 3,3–3,9 MB JPG → 163–278 KB WebP bei 1600×893. In `js/riffinsel_scenes.js` als
+  `img` der vier Marker eingetragen (vorher zeigten alle fünf auf das Übersichtsbild
+  `riffinsel.webp`); die Grotte bleibt vorerst darauf. Rohe JPGs bewusst nicht committet
+  (Konvention: erst nach Sichtprüfung von Hand entfernen).
+- **`tools/optimize_images.py` nimmt jetzt auch JPG/JPEG** (`SOURCE_EXTS`). Gemini liefert je nach
+  Exportweg PNG oder JPG — beim Sammellauf ohne Argumente wurden JPGs bisher stillschweigend
+  übersprungen, was genau in diesem Durchgang aufgefallen ist. Zusätzlich normalisiert `cap_for()`
+  jetzt die Endung gegen `MAP_NAMES` (das historisch nur `.png`-Namen führt), damit ein als JPG
+  geliefertes Kartenbild nicht fälschlich auf 900px gekappt wird. Ausgabetexte entsprechend von
+  „PNG" auf „Quelldatei" umgestellt.
+
+### 2026-08-22 (Fortsetzung 8)
+- **Grotte überarbeitet: urzeitliches Steinbauwerk statt Truhe** (Hendriks Korrektur — „das Ganze
+  ist nicht einfach eine Truhe, sondern wirklich eine Grotte, alles aus Stein und urzeitlich; das
+  Siegel öffnet eine steinerne Klappe"). Die versiegelte Kiste ist ersatzlos entfallen; die Grotte
+  selbst ist jetzt das Bauwerk:
+  - `ORTE.versteckte_grotte.der_fund_in_der_grotte` neu geschrieben — kein Naturhohlraum, sondern
+    aus dem Fels geschlagen (Wände zu gerade, Boden zu eben), alles aus einem Stück dunklem Stein,
+    an den Kanten von Alter und Feuchtigkeit rund geschliffen, **kein Holz, kein Metall, kein
+    Mörtel, nichts Europäisches**. An der Rückwand drei Dinge, alle Teil des Bauwerks: eine aus
+    der Wand gehauene Zeichentafel, vier steinerne Siegelscheiben in flachen Mulden (die einzigen
+    beweglichen Teile im Raum) und eine fugengenau eingelassene steinerne Klappe mit leerer runder
+    Vertiefung. 6 statt 3 Trigger.
+  - `das_raetsel_der_kiste` → **`das_raetsel_der_grotte`** umbenannt (Interaktions-Keys werden
+    nirgends in Firebase persistiert, nur Trigger-IDs — Umbenennung daher unkritisch). Auflösung
+    jetzt: der richtige Siegelstein in der Vertiefung lässt die Klappe auffahren (schweres Mahlen,
+    im Boden spürbar), dahinter eine flache Nische mit dem Jaguar-Säbel. Neu ergänzt: Gewalt ist
+    ausdrücklich kein Weg (massiver Fels, kein Scharnier, kein Schloss) — Aufbrechversuche machen
+    nur Lärm und zahlen damit aufs Affen-Risiko ein. Falscher Stein: Knall und Fauchen jetzt „aus
+    dem Stein selbst, nicht aus einer benennbaren Richtung".
+  - Marker-`desc` (`js/riffinsel_scenes.js`) entsprechend angepasst — vermittelt den bearbeiteten
+    Stein als reine Beobachtung, ohne das Rätsel vorwegzunehmen (Design-Regel 2.8).
+  - Grotten-Prompt in `BILD-PROMPTS.md` neu geschrieben (Steinkammer statt Kammer mit Truhe, Tafel
+    und Klappe als Teil der Wand), plus zwei Nachfass-Zeilen, falls Gemini doch eine Truhe oder
+    Holz/Metall hineinbaut.
+  - Bibel gegengeprüft: 7.4 fordert nur „zufällige Vorräte/Ressourcen — ein Vorteil, den die
+    Spieler haben, ohne ihn zu kennen"; eine Kiste war nie Vorgabe, der Säbel deckt das ab.
+
 ### 2026-08-22 (Fortsetzung 7)
 - **Neue `BILD-PROMPTS.md`**: Sammelstelle für die Gemini-Prompts der Referenzbilder. Anlass war
   Hendriks Bedarf an Prompts für die fünf Riffinsel-Orte (Strand, Wrack, Grotte, Süßwasserquelle,

@@ -141,7 +141,7 @@ const EXPLORATION_GRAPHS = {
       // auf das Rätsel, nicht mehr aufs Finden des Spalts - die Bewegung
       // hierher ist ohnehin nicht mehr probengebunden (siehe 4.2 im Handbuch).
       // Ausführliche SL-Fassung inkl. Auflösung: ORTE.versteckte_grotte,
-      // Interaktion "das_raetsel_der_kiste" (js/regie.js).
+      // Interaktion "das_raetsel_der_grotte" (js/regie.js).
       versteckte_grotte: {
         type: "ort", label: "Die versteckte Grotte", ortId: "versteckte_grotte",
         probe: "Int",

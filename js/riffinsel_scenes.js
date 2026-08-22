@@ -43,34 +43,34 @@ const RIFFINSEL_SCENES = {
         top: 56.4, left: 54.2,
         title: "Der Riffstrand",
         desc: "Ein schmaler Sandstreifen, von einem vorgelagerten Riff wie von einer Mauer geschützt — dahinter tost noch immer die Brandung, hier drinnen liegt das Wasser fast still. Die Golden Lion liegt vor Anker in der kleinen Lagune, dicht genug am Ufer, dass ein Boot reicht. Der Himmel im Osten hellt sich langsam auf.",
-        img: "images/riffinsel.webp"
+        img: "images/interior_riffstrand.webp"
       },
       {
         id: "suesswasserquelle",
         top: 38, left: 60,
         title: "Die Süßwasserquelle",
         desc: "Zwischen moosbewachsenen Felsen sickert klares Wasser in ein natürliches Becken, gespeist von einer kleinen Quelle weiter oben im Fels. Farne und breitblättrige Pflanzen wuchern rundherum, der Boden ist feucht und weich.",
-        img: "images/riffinsel.webp"
+        img: "images/interior_quelle.webp"
       },
       {
         id: "wrackteile",
         top: 61, left: 70,
         title: "Wrackteile am Riff",
         desc: "Am äußeren Rand der Lagune ragen verwitterte Planken und ein halb im Sand vergrabener Rumpfteil aus dem Wasser — die Reste eines weit älteren Schiffs, das hier vor langer Zeit auf demselben Riff zerschellte. Muscheln und Algen haben sich über das meiste gelegt.",
-        img: "images/riffinsel.webp"
+        img: "images/interior_wrack.webp"
       },
       {
         id: "aussichtsklippe",
         top: 26, left: 73,
         title: "Die Aussichtsklippe",
         desc: "Ein schroffer Felsvorsprung erhebt sich über den Rest der Insel, steil und mit nassem Gestein — aber von oben reicht der Blick weit übers offene Meer hinaus, bis dorthin, wo sich Wasser und Nebel am Horizont treffen.",
-        img: "images/riffinsel.webp"
+        img: "images/interior_aussichtsklippe.webp"
       },
       {
         id: "versteckte_grotte",
         top: 49, left: 75,
         title: "Die versteckte Grotte",
-        desc: "Hinter einem Vorhang aus Luftwurzeln und dichtem Bewuchs, leicht zu übersehen, öffnet sich ein schmaler Spalt im Fels zu einer kleinen, trockenen Grotte. Drinnen ist es kühl und still, das Licht von draußen reicht nur wenige Schritte hinein.",
+        desc: "Hinter einem Vorhang aus Luftwurzeln und dichtem Bewuchs, leicht zu übersehen, öffnet sich ein schmaler Spalt im Fels. Dahinter ist es kühl, staubtrocken und still, das Licht von draußen reicht nur wenige Schritte hinein. Die Wände sind gerader, als Wände in einer Höhle sein müssten, und der Boden ist eben — alles aus demselben dunklen Stein, an den Kanten rund geschliffen.",
         img: "images/riffinsel.webp"
       }
     ]
