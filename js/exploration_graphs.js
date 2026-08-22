@@ -151,11 +151,16 @@ const EXPLORATION_GRAPHS = {
       e_zwischenpunkt2_versteckte_grotte: { from: "zwischenpunkt2", to: "versteckte_grotte", hinweis: "Direkt dahinter öffnet sich ein schmaler Spalt im Fels." },
       e_versteckte_grotte_zp3: { from: "versteckte_grotte", to: "zp3", hinweis: "Ein unauffälliger Trampelpfad führt von der Grotte aus weiter." },
       e_zp3_zwischenpunkt2: { from: "zp3", to: "zwischenpunkt2", hinweis: "Der Pfad führt zurück in Richtung der Lianen." },
+      e_zwischenpunkt2_zwischenpunkt1: { from: "zwischenpunkt2", to: "zwischenpunkt1", hinweis: "Der Pfad führt zurück Richtung Riff." },
+      e_zwischenpunkt2_zp3: { from: "zwischenpunkt2", to: "zp3", hinweis: "Ein Abzweig führt tiefer in den Dschungel." },
+      e_zp3_versteckte_grotte: { from: "zp3", to: "versteckte_grotte", hinweis: "Ein unauffälliger Trampelpfad führt zurück zur Grotte." },
 
       e_strand_zp1l: { from: "strand", to: "zp1l", hinweis: "Ein zweiter Pfad führt tiefer ins Dickicht, weg von der Küste." },
       e_zp1l_zp_2: { from: "zp1l", to: "zp_2", hinweis: "Der Weg führt weiter zwischen dichten Farnen hindurch." },
       e_zp_2_zwischenpunkt2: { from: "zp_2", to: "zwischenpunkt2", hinweis: "Ein Abzweig führt zurück Richtung Küste." },
       e_zp_2_zp3: { from: "zp_2", to: "zp3", hinweis: "Ein zweiter Abzweig führt tiefer in den Dschungel." },
+      e_zwischenpunkt2_zp_2: { from: "zwischenpunkt2", to: "zp_2", hinweis: "Ein Abzweig führt zurück in Richtung der Farne." },
+      e_zp3_zp_2: { from: "zp3", to: "zp_2", hinweis: "Ein zweiter Abzweig führt zurück in Richtung der Farne." },
 
       e_zp3_zp: { from: "zp3", to: "zp", hinweis: "Der Pfad steigt an, Richtung eines offenen Felsvorsprungs." },
       e_zp_die_aussichtsklippe: { from: "zp", to: "die_aussichtsklippe", hinweis: "Der Grat mündet in einen freien Felsvorsprung." },

@@ -94,6 +94,18 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 2)
+- **Fix: „Zwischen Wrack und Grotte" (`zwischenpunkt2`) und „ZP_Jungle" (`zp3`) sollten je vier
+  gegenseitige Wege haben**, hatten aber (gleiche Ursache wie beim zp_3/zp_4/zp_5-Fix oben, vor
+  dem Editor-Fix gezogen) jede Kante nur einseitig. Nach Hendriks Vorgabe fünf fehlende
+  Rückrichtungen ergänzt: `zwischenpunkt2->zwischenpunkt1`, `zwischenpunkt2->zp3`,
+  `zwischenpunkt2->zp_2`, `zp3->versteckte_grotte`, `zp3->zp_2`. Mit Node/vm-Skript auf
+  Kanten-Validität/Erreichbarkeit geprüft, Debug-Overlay-Screenshot gegengeprüft, bestehende
+  Playwright-Regression weiterhin mit 0 Fehlern. **Ein Vollcheck des gesamten Graphen zeigt noch
+  10 weitere einseitige Kantenpaare aus derselben Vor-Editor-Fix-Ära** (u. a. `strand<->
+  zwischenpunkt1`, `strand<->zp1l`, `zp<->die_aussichtsklippe`) - noch nicht angefasst, siehe
+  Rückfrage an Hendrik im Gespräch, ob diese ebenfalls durchgehend beidseitig sein sollen.
+
 ### 2026-08-22 (Fortsetzung)
 - **`graph_editor.html`: Kante-Ziehen fragt jetzt nach der Gegenrichtung.** Ursache der oben
   beschriebenen zp_3/zp_4/zp_5-Fehler: eine gezogene Kante legte bisher immer nur die eine
