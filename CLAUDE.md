@@ -96,6 +96,30 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 15)
+- **Einberufungs-Prompt auf Mehrfach-Bildeingabe umgebaut** (Hendriks Wunsch: Kajütenbild UND
+  Personen anhängen, mit Anweisungen dazu im Prompt). Alle acht Anhänge sind vorhanden und geprüft
+  (`interior_kapitaenskajuete.webp` + die sieben NSC-Porträts). Der Prompt beginnt jetzt mit einem
+  Anhang-Block, der jedes Bild **nummeriert** anspricht und sagt, was daraus übernommen wird:
+  - Bild 1 = Raum. Ausdrücklich: Architektur/Material/Farbigkeit übernehmen, **aber nicht die
+    Kameraposition** — die Vorlage schaut von außen auf die Kajüte, das neue Bild spielt drinnen.
+    Ohne diesen Satz reproduziert Gemini erfahrungsgemäß die Außenansicht.
+  - Bilder 2–8 = Figuren, jede mit Rolle und Platzierung (Harwick spricht, Cormac am Rand mit
+    Blick zu Boden, Wat etwas abseits). Ausdrücklich: **Hintergründe der Porträts ignorieren**,
+    nur die Männer übernehmen — sonst wandert das Deck aus den Porträts in die Kajüte.
+  - **Zwei Sorten Anwesende, klar getrennt:** die sieben NSC bekommen erkennbare Gesichter (ihre
+    Porträts existieren, die Runde soll sie wiedererkennen), die Spielercharaktere bleiben
+    gesichtslos im Vordergrund von hinten — damit sich jeder Spieler selbst hineindenken kann.
+    Das ersetzt die vorherige pauschale Regel „keine erkennbaren Gesichter".
+  - Vier Nachfass-Zeilen für die typischen Fehlschläge (zu heroisch, Kajüte weicht ab, Gesichter
+    treffen die Porträts nicht, Gemini gibt allen Figuren Gesichter) und ein Fallback auf vier
+    Anhänge, falls acht die Ähnlichkeiten vermischen.
+  - Die Variante mit identischer Kameraposition braucht nur Bild 1 — auf die Distanz wären
+    Porträt-Ähnlichkeiten ohnehin nicht lesbar; entsprechend ergänzt.
+- **Neue allgemeine Regel oben in `BILD-PROMPTS.md`:** Sollen benannte Figuren ins Bild, deren
+  Porträts mit anhängen, die Anhänge durchnummeriert ansprechen und je Bild sagen, was übernommen
+  wird — sonst mischt Gemini Porträt-Hintergründe in die Szene oder verteilt Gesichter beliebig.
+
 ### 2026-08-22 (Fortsetzung 14)
 - **Kajüten-Prompt an das bestehende Bild als Vorlage gebunden** (Hendriks Hinweis: „Es gibt ja
   bereits dieses Bild von außen, das sollte irgendwie als Vorlage dienen"). Der erste Entwurf

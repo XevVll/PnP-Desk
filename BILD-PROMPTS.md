@@ -13,6 +13,12 @@ Quelldatei wird nicht automatisch gelöscht und der neue Dateiname nicht automat
 nur im Prompt beschreiben. Ein zweites Bild desselben Orts (andere Perspektive, anderer Zustand)
 wird sonst fast nie wiedererkennbar — siehe die Kajüten-Einberufung unten.
 
+**Wenn benannte Figuren im Bild sein sollen:** deren Porträts aus `images/` ebenfalls anhängen.
+Anhänge im Prompt **durchnummeriert ansprechen** („Image 1 is the room, images 2 to 8 are
+characters…") und je Bild sagen, was daraus übernommen wird — sonst mischt Gemini die
+Hintergründe der Porträts mit in die Szene oder verteilt die Gesichter beliebig. Muster dafür:
+der Einberufungs-Prompt unten.
+
 ---
 
 ## Gemeinsamer Stil-Kopf
@@ -256,9 +262,13 @@ Die Kapitänskajüte mit der versammelten Runde. Dateiname:
 (steht dort als Kommentar schon vorbereitet).
 
 Bewusst **mit** Figuren, anders als die Riffinsel-Orte — die Versammlung ist der Inhalt des
-Bildes. Keine Gesichter der Spielercharaktere zeigen: der Blick steht mit im Raum, die Anwesenden
-sind teils von hinten oder halb abgewandt zu sehen, damit sich jeder Spieler selbst hineindenken
-kann.
+Bildes. Dabei zwei Sorten Anwesende, klar getrennt:
+
+- **Die sieben NSC bekommen erkennbare Gesichter** — ihre Porträts existieren bereits und werden
+  als Bildeingabe mitgegeben, damit die Runde sie am Tisch wiedererkennt.
+- **Die Spielercharaktere bleiben gesichtslos** — drei, vier Gestalten im Vordergrund, von hinten
+  gesehen. So kann sich jeder Spieler selbst hineindenken, statt eine fremde Visage vorgesetzt zu
+  bekommen.
 
 ### Vorlage: das bestehende Außenbild
 
@@ -284,14 +294,56 @@ Was das Bild an Einrichtung festlegt und im neuen Bild wiederkehren muss:
 | Schreibtisch | Harwicks Platz: Papiere, Tintenfass, gerollte Karten |
 | Decke | Niedrig, dunkle Balken |
 
+### Anhänge — in dieser Reihenfolge mitgeben
+
+Der Prompt unten spricht die Bilder **nummeriert** an. Also genau in dieser Reihenfolge anhängen,
+sonst zeigen die Anweisungen auf die falsche Datei:
+
+| # | Datei | Rolle im Bild |
+|---|---|---|
+| 1 | `images/interior_kapitaenskajuete.webp` | Der Raum — Architektur, Material, Farbigkeit |
+| 2 | `images/James_Harwick.webp` | Harwick, spricht, Bildmitte |
+| 3 | `images/Cormac_Daly.webp` | Cormac, am Rand, Blick zu Boden |
+| 4 | `images/Tom_Fletcher.webp` | Tom |
+| 5 | `images/Francesco_Benedetto_Almeida.webp` | Francesco |
+| 6 | `images/Dirk_van_Hoorn.webp` | Dirk |
+| 7 | `images/Josiah_Pryce.webp` | Josiah |
+| 8 | `images/Walter_Wat_Crozier.webp` | Wat, etwas abseits |
+
+**Falls Gemini bei acht Anhängen die Ähnlichkeiten vermischt:** auf Bild 1–4 reduzieren (Raum,
+Harwick, Cormac, Wat) und die übrigen im Prompt nur als „weitere Seeleute" führen. Lieber vier
+klar erkennbare Figuren als acht verwaschene.
+
 ### Der Prompt
 
 ```
+Attached images and how to use them — read this first:
+  Image 1 is the ROOM reference. Reproduce its architecture, materials and palette exactly:
+    reddish-brown mahogany panelling with gilded trim mouldings, deep burgundy curtains with gold
+    patterning, the dark bookcase of leather-bound volumes, the pale globe on its wooden stand,
+    the built-in bunk with cream-gold bedding, the small ornate gold-fitted chest, the hanging
+    brass oil lamp with its glass chimney, and the low dark ceiling beams. Do NOT copy its camera
+    angle — that image looks at the cabin from outside; this new image is inside the same room.
+  Images 2 to 8 are CHARACTER references. Each shows one specific man. Reproduce each man's face,
+    hair, beard, build and clothing faithfully and recognisably, so that a viewer who knows these
+    portraits identifies each of them at a glance. Ignore the backgrounds of those portraits
+    entirely — only the men themselves carry over.
+      Image 2 — the captain: speaking, at the focus of the group, centre of frame.
+      Image 3 — an older, taciturn man: standing at the edge of the group, looking down at the
+        floor rather than at the captain.
+      Image 4, 5, 6, 7 — listening, gathered close, turned inward toward the captain.
+      Image 8 — a heavy, rough-looking man standing slightly apart from the others, near the wall.
+  In addition to these eight named men, include three or four further figures whose faces are NOT
+    visible — seen from behind or fully turned away, in plain seamen's clothing. These stand in
+    the foreground closest to the viewer. Do not invent recognisable faces for them.
+
+The image itself:
+
 Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
 17th-century Dutch masters. Wide landscape format, horizontally composed (approx. 16:9), to match
 the framing of the other location images.
 
-The interior of the same captain's cabin shown in the reference image, now seen from inside.
+The interior of the same captain's cabin shown in image 1, now seen from inside.
 Keep the established furnishings and materials exactly: rich reddish-brown mahogany panelling with
 gilded trim mouldings, deep burgundy curtains with gold patterning gathered at the sides, a dark
 bookcase full of leather-bound volumes, a pale globe on its own wooden stand, a built-in bunk with
@@ -306,17 +358,14 @@ floor space.
 More lamps than usual have been lit, so the cabin is unusually warm and bright, every face
 catching some of the light, deep shadow in the corners and under the beams.
 
-Eight or nine men are gathered close together in the confined space, standing rather than seated:
-weathered sailors and officers in plain, worn 17th-century seafaring clothing, no uniforms, no
-finery. They are turned inward toward one man. Several are seen from behind or in three-quarter
-profile, faces partly hidden — the composition deliberately does not present them as portraits.
+Eleven or twelve men are gathered close together in the confined space, standing rather than
+seated, all in plain, worn 17th-century seafaring clothing — no uniforms, no finery. Everyone is
+turned inward toward the captain.
 
-At the focus stands the captain, in his forties, bearded, in the same dark blue embroidered coat
-he wears in the reference image. He is not raised on anything and stands at the same level as the
-others, speaking. His posture is open and tired rather than commanding: no gesture of authority,
-no raised hand, one arm reaching across to rest on the shoulder of a younger man beside him. The
-listeners' attention is complete and quiet; one older man near the edge of the group looks at the
-floor rather than at the captain.
+The captain stands at the focus, not raised on anything, at the same level as the others,
+speaking. His posture is open and tired rather than commanding: no gesture of authority, no raised
+hand. One arm reaches across to rest on the shoulder of one of the faceless younger men beside
+him. The listeners' attention is complete and quiet.
 
 Close, hushed, intimate atmosphere — a private conversation in a crowded small room, not a speech
 to a crew.
@@ -329,9 +378,17 @@ text or labels anywhere in the image.
 scene. No raised arms, no dramatic poses, no one standing on a table or step. Everyone is tired,
 plainly dressed, and standing at the same level.`
 
-*Falls die Kajüte nicht wie die Vorlage aussieht:* `Important: match the reference image's cabin
-exactly — mahogany panelling with gilded trim, deep burgundy curtains, the bookcase of
-leather-bound books, the globe on its stand, the built-in bunk, and the hanging brass oil lamp.`
+*Falls die Kajüte nicht wie Bild 1 aussieht:* `Important: match image 1's cabin exactly — mahogany
+panelling with gilded trim, deep burgundy curtains, the bookcase of leather-bound books, the globe
+on its stand, the built-in bunk, and the hanging brass oil lamp.`
+
+*Falls die Gesichter nicht den Porträts entsprechen:* `Important: images 2 to 8 are likeness
+references, not style references. Each of those eight men must be individually recognisable as the
+man in his portrait — same face, same hair and beard, same clothing.`
+
+*Falls Gemini allen Figuren Gesichter gibt:* `Important: only the eight men from images 2 to 8 have
+visible faces. The three or four additional figures in the foreground must be seen from behind,
+with their faces completely hidden.`
 
 ### Variante: gleiche Außenansicht, Tür offen
 
@@ -340,12 +397,19 @@ Kameraposition wie im Vorlagenbild** — von Deck aus auf die Kajütenwand — n
 hell erleuchtetem Innenraum und Gestalten, die sich darin drängen. Das erhält die Vorlage
 maximal, zeigt die Versammlung aber nur ausschnitthaft durch Tür und Fenster:
 
+Hier reicht **Bild 1 als einziger Anhang** — bei dieser Distanz wären Porträt-Ähnlichkeiten
+ohnehin nicht mehr zu erkennen.
+
 ```
-Same view, same camera position and same framing as the reference image: the captain's cabin
-seen from the deck, its mahogany wall with gilded trim, leaded windows left and right, and the
-plank door at the centre. Everything identical — except the door now stands wide open, the cabin
-inside is lit far more brightly than usual, and the room is crowded with standing men, their
-figures visible through the open doorway and through the windows on both sides. No one is looking
+Attached image 1 is the reference. Reproduce its camera position, framing, architecture and
+materials exactly.
+
+Same view, same camera position and same framing as image 1: the captain's cabin seen from the
+deck, its mahogany wall with gilded trim, leaded windows left and right, and the plank door at the
+centre. Everything identical — except the door now stands wide open, the cabin inside is lit far
+more brightly than usual, and the room is crowded with standing men, their figures visible through
+the open doorway and through the windows on both sides. At this distance the men are silhouettes
+and half-lit shapes, not portraits — no individual face needs to be readable. No one is looking
 out. The deck in the foreground is empty and quiet.
 ```
 
