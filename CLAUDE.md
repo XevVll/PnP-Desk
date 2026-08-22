@@ -96,6 +96,26 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 14)
+- **Kajüten-Prompt an das bestehende Bild als Vorlage gebunden** (Hendriks Hinweis: „Es gibt ja
+  bereits dieses Bild von außen, das sollte irgendwie als Vorlage dienen"). Der erste Entwurf
+  beschrieb eine generische Kapitänskajüte und hätte einen Raum erzeugt, den niemand als denselben
+  Ort wiedererkennt. `images/interior_kapitaenskajuete.webp` legt die Einrichtung bereits konkret
+  fest — der Prompt listet sie jetzt als verbindliche Tabelle (Mahagoni mit Goldleisten,
+  burgunderrote Vorhänge mit Goldmuster, Bücherregal mit Lederbänden, Globus auf Standfuß,
+  eingebaute Koje mit cremegoldener Bettwäsche, verzierte Truhe, hängende Messing-Öllampe) und
+  verweist im Prompttext ausdrücklich auf das Referenzbild. Harwick trägt denselben dunkelblauen
+  bestickten Rock wie dort.
+- **Neue allgemeine Regel oben in `BILD-PROMPTS.md`:** Hat ein Ort schon ein Bild, das bestehende
+  Bild Gemini als **Bildeingabe** mitgeben statt es nur zu beschreiben — ein zweites Bild desselben
+  Orts wird sonst fast nie wiedererkennbar.
+- **Variante ergänzt:** identische Kameraposition wie die Vorlage (von Deck auf die Kajütenwand),
+  nur mit offener Tür und hell erleuchtetem, vollem Innenraum. Erhält die Wiedererkennbarkeit
+  maximal, zeigt die Versammlung aber nur ausschnitthaft. Passt zum bereits gesetzten
+  `descOverrides`-Text der Szene („Die Tür zur Kapitänskajüte steht offen, zum ersten Mal seit
+  langem"), der den Zustandswechsel gegenüber dem Vorlagenbild (verriegelt, Harwick allein)
+  beschreibt.
+
 ### 2026-08-22 (Fortsetzung 13)
 - **Neue Szene `12.1` „Golden Lion — Die Einberufung"** als Ersatz für die Offizierskonferenz
   (Bibel 7.5) — Inhalt komplett von Hendrik vorgegeben, hier nur ausformuliert. Harwick ruft die

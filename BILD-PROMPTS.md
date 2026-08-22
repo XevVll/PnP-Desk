@@ -3,11 +3,15 @@
 Sammlung der Prompts, mit denen die Referenzbilder dieses Projekts erzeugt wurden — damit sie
 nicht in Gesprächsverläufen verloren gehen und ein Nachgenerieren im gleichen Stil möglich bleibt.
 
-**Nach dem Generieren:** PNG in `images/` ablegen, dann `python tools/optimize_images.py`. Die
-Dateinamen der Ortsbilder **müssen mit `interior_` beginnen** — sonst greift die 900px-Kappung für
-Portraits statt der 1600px für Ortsbilder (`cap_for()` in `tools/optimize_images.py`). Das PNG wird
-nicht automatisch gelöscht und der neue Dateiname nicht automatisch in die `js/`-Dateien
-eingetragen, beides bleibt Handarbeit.
+**Nach dem Generieren:** PNG oder JPG in `images/` ablegen, dann `python tools/optimize_images.py`.
+Die Dateinamen der Ortsbilder **müssen mit `interior_` beginnen** — sonst greift die 900px-Kappung
+für Portraits statt der 1600px für Ortsbilder (`cap_for()` in `tools/optimize_images.py`). Die
+Quelldatei wird nicht automatisch gelöscht und der neue Dateiname nicht automatisch in die
+`js/`-Dateien eingetragen, beides bleibt Handarbeit.
+
+**Wenn ein Ort schon ein Bild hat:** das bestehende Bild Gemini als **Bildeingabe** mitgeben, nicht
+nur im Prompt beschreiben. Ein zweites Bild desselben Orts (andere Perspektive, anderer Zustand)
+wird sonst fast nie wiedererkennbar — siehe die Kajüten-Einberufung unten.
 
 ---
 
@@ -256,35 +260,66 @@ Bildes. Keine Gesichter der Spielercharaktere zeigen: der Blick steht mit im Rau
 sind teils von hinten oder halb abgewandt zu sehen, damit sich jeder Spieler selbst hineindenken
 kann.
 
+### Vorlage: das bestehende Außenbild
+
+**`images/interior_kapitaenskajuete.webp` ist die verbindliche Vorlage** und sollte Gemini nach
+Möglichkeit **als Bildeingabe mitgegeben** werden (Bild + Prompt), nicht nur beschrieben — das ist
+der zuverlässigste Weg, die Kajüte wiederzuerkennen.
+
+Das Außenbild zeigt die Kajüte von Deck aus: verriegelte Tür, links und rechts Sprossenfenster,
+und **durch das rechte Fenster sitzt Harwick allein am Schreibtisch und schreibt**. Genau dieser
+Zustand kippt in `12.1` — dieselbe Kajüte, aber die Tür steht offen und der Raum ist voll.
+
+Was das Bild an Einrichtung festlegt und im neuen Bild wiederkehren muss:
+
+| Element | Wie es aussieht |
+|---|---|
+| Wände/Rahmen | Rotbraunes Mahagoni, kräftig lasiert, mit **goldenen Zierleisten** |
+| Vorhänge | Tief **burgunderrot**, mit goldenem Muster, seitlich gerafft |
+| Bücherregal | Dunkles Holz, dicht mit **ledergebundenen Bänden** |
+| Globus | Auf eigenem hölzernem Standfuß, hell, in Griffweite des Regals |
+| Koje | Eingebaut, mit **blassgoldener/cremefarbener** Bettwäsche |
+| Truhe | Kleine, verzierte Truhe mit Goldbeschlägen auf einem Stuhl/Tischchen |
+| Licht | Eine **hängende Messing-Öllampe** mit Glaszylinder, warmes Licht |
+| Schreibtisch | Harwicks Platz: Papiere, Tintenfass, gerollte Karten |
+| Decke | Niedrig, dunkle Balken |
+
+### Der Prompt
+
 ```
 Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
 17th-century Dutch masters. Wide landscape format, horizontally composed (approx. 16:9), to match
 the framing of the other location images.
 
-Interior of the great cabin of a small 17th-century frigate, seen from just inside the doorway at
-standing height, as if the viewer had entered last and is part of the gathering. Low beamed
-ceiling, dark polished wood, a wall of small leaded stern windows across the back with grey
-daylight and open sea behind them. The heavy writing desk has been pushed aside against one wall
-to make floor space, its charts and papers stacked and weighted down.
+The interior of the same captain's cabin shown in the reference image, now seen from inside.
+Keep the established furnishings and materials exactly: rich reddish-brown mahogany panelling with
+gilded trim mouldings, deep burgundy curtains with gold patterning gathered at the sides, a dark
+bookcase full of leather-bound volumes, a pale globe on its own wooden stand, a built-in bunk with
+cream-gold bedding, a small ornate gold-fitted chest, and a hanging brass oil lamp with a glass
+chimney as the main light source. Low dark ceiling beams throughout.
 
-More oil lamps are lit than the room needs — five or six, hung and standing — so the cabin is
-unusually bright and warm against the cold light from the windows, and every face catches some of
-it.
+The view is from just inside the doorway at standing height, as if the viewer had entered last and
+is part of the gathering. The heavy writing desk — where the captain normally sits alone — has
+been pushed aside against the panelling, its charts and papers stacked and weighted down, to make
+floor space.
+
+More lamps than usual have been lit, so the cabin is unusually warm and bright, every face
+catching some of the light, deep shadow in the corners and under the beams.
 
 Eight or nine men are gathered close together in the confined space, standing rather than seated:
 weathered sailors and officers in plain, worn 17th-century seafaring clothing, no uniforms, no
 finery. They are turned inward toward one man. Several are seen from behind or in three-quarter
 profile, faces partly hidden — the composition deliberately does not present them as portraits.
 
-At the focus stands the captain, in his forties, not raised on anything, at the same level as the
+At the focus stands the captain, in his forties, bearded, in the same dark blue embroidered coat
+he wears in the reference image. He is not raised on anything and stands at the same level as the
 others, speaking. His posture is open and tired rather than commanding: no gesture of authority,
 no raised hand, one arm reaching across to rest on the shoulder of a younger man beside him. The
 listeners' attention is complete and quiet; one older man near the edge of the group looks at the
 floor rather than at the captain.
 
-Close, hushed, intimate atmosphere — the feeling of a private conversation in a crowded small
-room, not a speech to a crew. Strong warm lamplight, deep shadow in the corners and under the
-beams, high contrast.
+Close, hushed, intimate atmosphere — a private conversation in a crowded small room, not a speech
+to a crew.
 
 Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
 text or labels anywhere in the image.
@@ -293,6 +328,26 @@ text or labels anywhere in the image.
 *Falls Gemini es zu feierlich/heroisch macht:* `Important: this is not a heroic or ceremonial
 scene. No raised arms, no dramatic poses, no one standing on a table or step. Everyone is tired,
 plainly dressed, and standing at the same level.`
+
+*Falls die Kajüte nicht wie die Vorlage aussieht:* `Important: match the reference image's cabin
+exactly — mahogany panelling with gilded trim, deep burgundy curtains, the bookcase of
+leather-bound books, the globe on its stand, the built-in bunk, and the hanging brass oil lamp.`
+
+### Variante: gleiche Außenansicht, Tür offen
+
+Falls du die Wiedererkennbarkeit über alles stellen willst, geht auch die **identische
+Kameraposition wie im Vorlagenbild** — von Deck aus auf die Kajütenwand — nur mit offener Tür,
+hell erleuchtetem Innenraum und Gestalten, die sich darin drängen. Das erhält die Vorlage
+maximal, zeigt die Versammlung aber nur ausschnitthaft durch Tür und Fenster:
+
+```
+Same view, same camera position and same framing as the reference image: the captain's cabin
+seen from the deck, its mahogany wall with gilded trim, leaded windows left and right, and the
+plank door at the centre. Everything identical — except the door now stands wide open, the cabin
+inside is lit far more brightly than usual, and the room is crowded with standing men, their
+figures visible through the open doorway and through the windows on both sides. No one is looking
+out. The deck in the foreground is empty and quiet.
+```
 
 ---
 
