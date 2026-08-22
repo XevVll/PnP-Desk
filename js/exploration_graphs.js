@@ -63,12 +63,16 @@ const EXPLORATION_GRAPHS = {
         erfolgText: "Ein Ausweichschritt, keine einzige wird getreten.",
         misserfolgText: "Ein unangenehmer Tritt auf einen Panzer, ein spitzer Zwick zur Antwort — 1 Schadenspunkt, nichts Ernstes."
       },
+      // Vorausdeutung auf den Abbruch der Erkundung (ORTE.riffstrand, "Die
+      // Affen greifen an"). Bis 2026-08-22 waren das menschengroße Fußspuren
+      // als Hinweis auf feindliche Ureinwohner - die sind durch die Affen
+      // ersetzt worden, der Hinweis wurde entsprechend angepasst.
       zp1l: {
-        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 45.5, left: 59.4,
+        type: "ereignis", label: "Ungewöhnliche Abdrücke", top: 45.5, left: 59.4,
         probe: "Wahrnehmung",
-        text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht.",
-        erfolgText: "Wer genau hinsieht, erkennt weitere Details an den Spuren — ohne dass sich daraus sofort eine Erklärung ergibt (SL-Ermessen, z. B. als späterer Anknüpfungspunkt nutzbar).",
-        misserfolgText: "Die Spuren bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
+        text: "Abdrücke im weichen Boden, die aussehen wie kleine Hände, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht — zu viele, um von einem einzelnen Tier zu stammen.",
+        erfolgText: "Wer genau hinsieht, erkennt: die Abdrücke sind frisch, und einige enden nicht am Wegrand, sondern setzen an den Stämmen wieder an (SL-Ermessen, als spätere Vorwarnung nutzbar).",
+        misserfolgText: "Die Abdrücke bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
       },
       zwischenpunkt2: {
         type: "ereignis", label: "Herabhängende Lianen", top: 51.3, left: 69.9,
@@ -133,11 +137,16 @@ const EXPLORATION_GRAPHS = {
         erfolgText: "Über scharfes, nasses Riffgestein hinweg werden die Wrackteile erreicht.",
         misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — Schnittwunde am Riffgestein. Ein zweiter Versuch ist jederzeit möglich."
       },
+      // Hendriks Rätsel (2026-08-22), Text von ihm. "probe: Int" bezieht sich
+      // auf das Rätsel, nicht mehr aufs Finden des Spalts - die Bewegung
+      // hierher ist ohnehin nicht mehr probengebunden (siehe 4.2 im Handbuch).
+      // Ausführliche SL-Fassung inkl. Auflösung: ORTE.versteckte_grotte,
+      // Interaktion "das_raetsel_der_kiste" (js/regie.js).
       versteckte_grotte: {
         type: "ort", label: "Die versteckte Grotte", ortId: "versteckte_grotte",
-        probe: "Wahrnehmung",
-        erfolgText: "Der gut versteckte Spalt im Fels wird bemerkt.",
-        misserfolgText: "Bewusst folgenlos — der Eingang wird einfach übersehen, kein Schaden. Jederzeit ein zweiter Versuch."
+        probe: "Int",
+        erfolgText: "Rätsel:\nEine Steinplatte mit Symbolen. Wenn diese vom Spieler mit einem Inwurf begutachtet wird, erhält dieser Spieler folgenden Text:\nIn Ringen aus Nacht, die Sonne wohnt,\nein anderer als ich, das Wasser meidet.\nKnack ich den Schädel ungeschont,\nkein Laut der durch die Stille schneidet.\nAlleine wachend zum Licht gebracht,\nHerrscher der Welt unter bei Nacht.\n\nSymbole:\nRing Nacht Sonne\nFamilie Wasser X\nKaputter Schädel\nWellen Geräusche X\nSonne Figur(Wächter)\nNacht(Linie darüber Sterne) eine Figur(Herrscher)\n\n\nDie Spieler haben 4 Steine vor sich mit Tier Symbolen.\nEule\nKatze\nSchlange\nMaus\n\n\nWenn die Spieler es schaffen, bekommen sie einen verzierten Säbel, in dem ein Jaguar eingraviert ist.",
+        misserfolgText: "Ein Knall ertönt und ein fauchen, wie von einer Großkatze"
       },
       die_aussichtsklippe: {
         type: "ort", label: "Die Aussichtsklippe", ortId: "aussichtsklippe",

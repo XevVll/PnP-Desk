@@ -34,13 +34,13 @@ const EXPLORATION_GRAPHS = {
       },
       "zp1l": {
         "type": "ereignis",
-        "label": "Ungewöhnliche Fußspuren",
+        "label": "Ungewöhnliche Abdrücke",
         "top": 45.5,
         "left": 59.4,
         "probe": "Wahrnehmung",
-        "text": "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht.",
-        "erfolgText": "Wer genau hinsieht, erkennt weitere Details an den Spuren — ohne dass sich daraus sofort eine Erklärung ergibt (SL-Ermessen, z. B. als späterer Anknüpfungspunkt nutzbar).",
-        "misserfolgText": "Die Spuren bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
+        "text": "Abdrücke im weichen Boden, die aussehen wie kleine Hände, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht — zu viele, um von einem einzelnen Tier zu stammen.",
+        "erfolgText": "Wer genau hinsieht, erkennt: die Abdrücke sind frisch, und einige enden nicht am Wegrand, sondern setzen an den Stämmen wieder an (SL-Ermessen, als spätere Vorwarnung nutzbar).",
+        "misserfolgText": "Die Abdrücke bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
       },
       "zwischenpunkt2": {
         "type": "ereignis",
@@ -137,10 +137,10 @@ const EXPLORATION_GRAPHS = {
         "label": "Die versteckte Grotte",
         "top": 49,
         "left": 75,
-        "probe": "Wahrnehmung",
+        "probe": "Int",
         "ortId": "versteckte_grotte",
-        "erfolgText": "Der gut versteckte Spalt im Fels wird bemerkt.",
-        "misserfolgText": "Bewusst folgenlos — der Eingang wird einfach übersehen, kein Schaden. Jederzeit ein zweiter Versuch."
+        "erfolgText": "Rätsel:\nEine Steinplatte mit Symbolen. Wenn diese vom Spieler mit einem Inwurf begutachtet wird, erhält dieser Spieler folgenden Text:\nIn Ringen aus Nacht, die Sonne wohnt,\nein anderer als ich, das Wasser meidet.\nKnack ich den Schädel ungeschont,\nkein Laut der durch die Stille schneidet.\nAlleine wachend zum Licht gebracht,\nHerrscher der Welt unter bei Nacht.\n\nSymbole:\nRing Nacht Sonne\nFamilie Wasser X\nKaputter Schädel\nWellen Geräusche X\nSonne Figur(Wächter)\nNacht(Linie darüber Sterne) eine Figur(Herrscher)\n\n\nDie Spieler haben 4 Steine vor sich mit Tier Symbolen.\nEule\nKatze\nSchlange\nMaus\n\n\nWenn die Spieler es schaffen, bekommen sie einen verzierten Säbel, in dem ein Jaguar eingraviert ist.",
+        "misserfolgText": "Ein Knall ertönt und ein fauchen, wie von einer Großkatze"
       },
       "die_aussichtsklippe": {
         "type": "ort",

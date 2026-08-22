@@ -152,7 +152,10 @@
      Entscheidungsknoten die Live-Stimmverteilung + Direktwahl jeder Option. */
   .sh-graph { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--vline-soft); }
   .sh-graph-label { font-size: 0.76rem; letter-spacing: .5px; text-transform: uppercase; font-weight: 700; color: var(--vgold); margin-bottom: 4px; }
-  .sh-graph-ereignis-text, .sh-graph-ort-text { font-size: 0.86rem; color: var(--vink-dim); margin-bottom: 6px; }
+  /* pre-line: Knoten-Texte duerfen mehrzeilig sein (Hendriks Grotten-Raetsel
+     bringt Reim/Symbolliste/Steinliste als eigene Zeilen mit) - ohne das
+     faellt alles zu einem unlesbaren Block zusammen. */
+  .sh-graph-ereignis-text, .sh-graph-ort-text { font-size: 0.86rem; color: var(--vink-dim); margin-bottom: 6px; white-space: pre-line; }
   .sh-graph-options { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
   .sh-graph-btn { font-family: inherit; font-size: 0.84rem; background: var(--vpanel2); border: 1px solid var(--vline-soft); color: var(--vink); border-radius: 5px; padding: 6px 10px; cursor: pointer; text-align: left; }
   .sh-graph-btn:hover { border-color: var(--vgold); }

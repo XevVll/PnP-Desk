@@ -96,6 +96,40 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 6)
+- **Hendriks überarbeiteter Riffinsel-Graph übernommen** (aus `graph_editor.html` exportiert und
+  eingereicht). Diff gegen den bisherigen Stand geprüft: Struktur unverändert (15 Knoten, 42
+  Kanten, keine Kante/kein Knoten hinzu oder weg), geändert hat sich ausschließlich der
+  Grotten-Knoten — `probe` von „Wahrnehmung" auf „Int" (bezieht sich jetzt aufs Rätsel, nicht
+  mehr aufs Finden des Spalts), `erfolgText` trägt das komplette neue Rätsel, `misserfolgText`
+  den Knall mit Großkatzen-Fauchen.
+- **Neues Grotten-Rätsel ausgearbeitet** (Reim und Symbole von Hendrik, wörtlich übernommen;
+  löst das frühere „Tiger"-Rätsel in `ORTE.versteckte_grotte` vollständig ab). Der Reim beschreibt
+  den **Jaguar**; von den vier Tier-Steinen (Eule/Katze/Schlange/Maus) ist die **Katze** die
+  richtige Lösung — auf Rückfrage von Hendrik bestätigt, statt sie zu raten. Belohnung: ein
+  verzierter Säbel mit eingraviertem Jaguar. SL-Fassung enthält jetzt zusätzlich eine
+  Zeile-für-Zeile-Auflösung zum Nachhelfen (Rosetten auf goldenem Fell, als einziger seiner
+  Familie nicht wasserscheu, Schädelbiss, lautlos, Herrscher der Unterwelt bei Nacht).
+- **Feindliche Ureinwohner durch Affen ersetzt** (Hendriks Vorgabe, auf Rückfrage: ersetzen
+  komplett, auf der Insel gibt es keine Menschen). Der Abbruch der Erkundung läuft jetzt in zwei
+  Stufen: neue Interaktion `die_bedrohliche_stimmung` („Die Stimmung kippt") als Vorlauf — über
+  mehrere Stationen eingestreute Kurzbeobachtungen (Geräusche setzen aus, Bewegung in den Wipfeln,
+  angebissene Frucht), bewusst ohne Probe, ohne Konsequenz und ohne Deutung durch die SL — und
+  `die_affen` („Die Affen greifen an") als eigentlicher Abbruch: unzählbar viele Affen aus dem
+  Blätterdach, ausdrücklich kein gewinnbarer Kampf, sondern Flucht zum Boot. `die_eingeborenen`
+  entfernt. Der Vorausdeutungs-Knoten `zp1l` heißt jetzt „Ungewöhnliche Abdrücke" (handförmige
+  Abdrücke statt menschengroßer Fußspuren) — Text angepasst, da die alte Formulierung
+  („deutlich zu groß für einen Menschen") auf die entfallenen Ureinwohner zeigte.
+- **Aussichtsklippe umgedreht** (Hendriks Vorgabe): der Aufstieg dient jetzt dazu zu sehen, wie
+  das spanische Kriegsschiff in entgegengesetzter Richtung abzieht und am Horizont verschwindet —
+  die Finte hat funktioniert. Vorher war der Beat umgekehrt (Verfolger nur abgelenkt, nicht weg).
+  Wer nicht hochsteigt, erfährt es nicht.
+- **`regie.html`: `white-space: pre-line` für `.sh-graph-ereignis-text`/`.sh-graph-ort-text`** —
+  ohne das fiel Hendriks mehrzeiliges Rätsel (Reim, Symbolliste, Steinliste) im 🧭-Panel zu einem
+  unlesbaren Block zusammen. Per Screenshot gegengeprüft.
+- Regression: bestehende Playwright-Tests (Bewegungsfreigabe, Editor-Import/Round-Trip) sowie der
+  Graph-Vollcheck weiterhin mit 0 Fehlern (15 Knoten, 42 Kanten, alle beidseitig, alle erreichbar).
+
 ### 2026-08-22 (Fortsetzung 5)
 - **Aktueller Riffinsel-Graph als Editor-fertiger Snapshot herausgezogen** (Hendriks Wunsch, um
   ihn in `graph_editor.html` weiterzubearbeiten). Neues `tools/export_graph_snapshot.js`

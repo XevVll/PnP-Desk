@@ -339,7 +339,7 @@ Container wird die im Feld „Szenen-ID" eingestellte bevorzugt, sonst die erste
 |---|---|---|---|---|
 | `strand` | start | Strand | — | Position exakt deckungsgleich mit Marker `riffstrand` (56.4/54.2) |
 | `zwischenpunkt1` | ereignis | Ein Krabbenschwarm | Geschick | |
-| `zp1l` | ereignis | Ungewöhnliche Fußspuren | Wahrnehmung | Vorausdeutung auf „Die Eingeborenen" |
+| `zp1l` | ereignis | Ungewöhnliche Abdrücke | Wahrnehmung | Vorausdeutung auf „Die Affen greifen an" |
 | `zwischenpunkt2` | ereignis | Herabhängende Lianen | Geschick | Knotenpunkt mit 4 Nachbarn |
 | `zp3` | ereignis | Dichtes Dornengestrüpp | Körper | Knotenpunkt mit 4 Nachbarn |
 | `zp` | ereignis | Böiger Wind auf dem Grat | Körper | Zugang zur Aussichtsklippe |
@@ -349,7 +349,7 @@ Container wird die im Feld „Szenen-ID" eingestellte bevorzugt, sonst die erste
 | `zp_5` | ereignis | Zirpen aus dem Unterholz | Wahrnehmung | Teil des „Quellbecken"-Dreiecks |
 | `zp_6` | ereignis | Ein Mückenschwarm | Körper | |
 | `wrack` | ort → `wrackteile` | Wrackteile am Riff | Klettern/Körper | |
-| `versteckte_grotte` | ort → `versteckte_grotte` | Die versteckte Grotte | Wahrnehmung | Rätsel + Kiste |
+| `versteckte_grotte` | ort → `versteckte_grotte` | Die versteckte Grotte | Int (Rätsel) | Rätsel + Kiste |
 | `die_aussichtsklippe` | ort → `aussichtsklippe` | Die Aussichtsklippe | Klettern | Session-Schluss-Beat |
 | `suesswasserquelle` | ort → `suesswasserquelle` | Die Süßwasserquelle | Instinkt/Survival | Zentraler Knotenpunkt (6 Nachbarn) |
 
@@ -361,15 +361,15 @@ Die 21 begehbaren Wegepaare:
 
 ```
 Strand ↔ Ein Krabbenschwarm
-Strand ↔ Ungewöhnliche Fußspuren
+Strand ↔ Ungewöhnliche Abdrücke
 Ein Krabbenschwarm ↔ Wrackteile am Riff
 Ein Krabbenschwarm ↔ Herabhängende Lianen
 Herabhängende Lianen ↔ Die versteckte Grotte
 Herabhängende Lianen ↔ Dichtes Dornengestrüpp
 Herabhängende Lianen ↔ Ein enger Durchschlupf
 Die versteckte Grotte ↔ Dichtes Dornengestrüpp
-Ungewöhnliche Fußspuren ↔ Ein enger Durchschlupf
-Ungewöhnliche Fußspuren ↔ Ein Mückenschwarm
+Ungewöhnliche Abdrücke ↔ Ein enger Durchschlupf
+Ungewöhnliche Abdrücke ↔ Ein Mückenschwarm
 Ein enger Durchschlupf ↔ Dichtes Dornengestrüpp
 Dichtes Dornengestrüpp ↔ Böiger Wind auf dem Grat
 Böiger Wind auf dem Grat ↔ Die Aussichtsklippe
@@ -405,28 +405,46 @@ aus `js/regie.js`:
 - **Wrackteile am Riff** (Klettern/Körper) — Dirk van Hoorn und Sam Oakley bergen brauchbares
   Ausbesserungsmaterial aus einem alten Wrack, Mithilfe ohne Probe möglich, eine freiwillige
   Mechanik-Probe kann einen besonders guten Fund liefern.
-- **Aussichtsklippe** (Klettern) — Amos Hale hält Wache und bestätigt am Ende: der Verfolger vom
-  Ende von Szene 10.1 ist am Horizont nur abgelenkt, nicht wirklich weg. Bewusster
-  Session-Schluss-Beat und Haken für Session 3.
-- **Versteckte Grotte** (Wahrnehmung) — eine versiegelte Kiste mit unbekanntem Symbol, deren
-  Inhalt bewusst offenbleibt (Bibel 7.4: „ein Vorteil, den die Spieler haben, ohne ihn zu
-  kennen"). Direkt daneben ein echtes Rätsel: eine Steinplatte mit Zeichen ergibt bei
-  erfolgreicher Intelligenz-/Wissens-Probe einen Reim, dessen Antwort „Tiger" ist. Von vier losen
-  Tier-Steinen (Fisch/Vogel/Schlange/gestreiftes Raubtier) öffnet nur der gestreifte die Kiste;
-  ein falscher Stein verursacht nur einen lauten Knall (kein Schaden, beliebig oft erneut
-  versuchbar) — SL-Ermessen koppelt wiederholten Lärm an ein früheres Eintreffen der
-  Eingeborenen (siehe 6.4).
+- **Aussichtsklippe** (Klettern) — **der eigentliche Zweck des Aufstiegs** (Hendriks Vorgabe,
+  2026-08-22): von hier oben, und nur von hier oben, ist zu sehen, wie das spanische Kriegsschiff
+  aus Szene 10.1 auf entgegengesetztem Kurs abzieht und am Horizont verschwindet — die Finte aus
+  der Nacht hat funktioniert. Amos Hale hält dort Wache und hat es vor der Gruppe gesehen. Wer nie
+  hochsteigt, erfährt es nicht und bricht ohne diese Gewissheit auf. Session-Schluss-Beat. (Bis
+  2026-08-22 war der Beat umgekehrt: der Verfolger nur abgelenkt, nicht weg.)
+- **Versteckte Grotte** (Int) — eine versiegelte Kiste mit unbekanntem Symbol, deren Inhalt
+  bewusst offenbleibt (Bibel 7.4: „ein Vorteil, den die Spieler haben, ohne ihn zu kennen").
+  Direkt daneben **Hendriks Rätsel** (Reim und Symbole von ihm, seit 2026-08-22; löst das frühere
+  „Tiger"-Rätsel ab): eine Steinplatte mit sechs Symbolzeilen ergibt bei erfolgreicher
+  Intelligenz-Probe einen Reim, der den **Jaguar** beschreibt — Rosetten auf goldenem Fell
+  („Ringe aus Nacht, die Sonne wohnt"), als einziger seiner Familie nicht wasserscheu, tötet mit
+  dem Schädelbiss, lautlos, Herrscher der Unterwelt bei Nacht. Von vier Tier-Steinen
+  (Eule/Katze/Schlange/Maus) ist die **Katze** der richtige, weil sie als einzige den Jaguar
+  abbildet. Belohnung: ein verzierter Säbel mit eingraviertem Jaguar. Falscher Stein: ein Knall
+  und ein Fauchen wie von einer Großkatze, beliebig oft erneut versuchbar — SL-Ermessen koppelt
+  wiederholten Lärm an ein früheres Eintreffen der Affen (siehe 6.4).
 
-### 6.4 Der Zeitdruck: „Die Eingeborenen greifen an"
+### 6.4 Der Zeitdruck: „Die Stimmung kippt" → „Die Affen greifen an"
 
-Kein Timer-Code, sondern SL-Ermessen: nach einem groben Richtwert von 30–60 Minuten realer
-Erkundungszeit (mit der bestehenden Stoppuhr im Adminpanel mitgezählt) tauchen feindliche
-Ureinwohner auf und jagen die Gruppe zurück zum Schiff — die Erkundung endet damit bewusst
-vorzeitig, nicht jede Fundstelle muss in einem Durchgang entdeckt werden. Praktisch bildet der
-bestehende „↺ Zurücksetzen"-Knopf (Abschnitt 4.3) diesen erzwungenen Rückzug technisch ab, ohne
-dass dafür neue Mechanik nötig wäre. Zwei optionale Anknüpfungspunkte: die „Ungewöhnliche
-Fußspuren" (`zp1l`) als mögliche Vorwarnung im Rückblick, und wiederholte laute Fehlversuche am
-Rätsel der Kiste als plausibler Grund, den Zeitpunkt vorzuziehen.
+Kein Timer-Code, sondern SL-Ermessen, seit 2026-08-22 in zwei Stufen (Hendriks Vorgabe; ersetzt
+die früheren feindlichen Ureinwohner vollständig — auf der Insel gibt es keine Menschen):
+
+1. **„Die Stimmung kippt"** — über mehrere Stationen hinweg in kleinen Dosen eingestreut, sobald
+   die Gruppe eine Weile unterwegs ist: Geräusche setzen kurz aus, in den Wipfeln bewegt sich
+   etwas mit, eine angebissene Frucht mit noch feuchtem Fleisch, aufgewühlter Boden an einer schon
+   besuchten Stelle. Jeweils ein, zwei Sätze, keine Probe, keine Konsequenz, **keine Deutung durch
+   die SL** — die Spieler entscheiden selbst, ob sie das ernst nehmen.
+2. **„Die Affen greifen an"** — sobald die SL die Gruppe forttreiben will (grober Richtwert 30–60
+   Minuten reale Erkundungszeit, Stoppuhr im Adminpanel). Aus dem Blätterdach bricht eine
+   unzählbare Menge Affen hervor; ausdrücklich kein gewinnbarer Kampf, sondern eine Flucht zurück
+   Richtung Strand und Boot, Schaden nach SL-Ermessen (Kratzer und Bisse, nichts
+   Lebensbedrohliches). Praktisch bildet der bestehende „↺ Zurücksetzen"-Knopf (Abschnitt 4.3)
+   diesen erzwungenen Rückzug technisch ab.
+
+Die Erkundung endet damit bewusst vorzeitig, nicht jede Fundstelle muss in einem Durchgang
+entdeckt werden. Zwei optionale Anknüpfungspunkte: die „Ungewöhnlichen Abdrücke" (`zp1l`, seit dem
+Wechsel handförmige Abdrücke statt menschengroßer Fußspuren) als mögliche Vorwarnung im Rückblick,
+und wiederholte laute Fehlversuche am Rätsel der Kiste als plausibler Grund, den Zeitpunkt
+vorzuziehen.
 
 ---
 
