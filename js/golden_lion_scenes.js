@@ -218,14 +218,14 @@ const GOLDEN_LION_SCENES = {
       "bug", "oberdeck", "achterdeck", "offiziersquartier", "batteriedeck",
       "unterdeck", "werkstatt", "frachtraum", "kombuese"
     ],
-    // Hendrik baut fuer diese Szene ein eigenes Bild (Kajuete mit der
-    // versammelten Runde). Bis es existiert bleibt bewusst das bestehende
-    // Kajueten-Bild stehen statt eines leeren Felds - ein Marker ohne
-    // gueltiges img zeigt in karte.html sonst "Kein Bild hinterlegt."
-    // (siehe CLAUDE.md, Bild-Overlay-Fallback). Geplanter Dateiname:
-    // images/interior_kapitaenskajuete_einberufung.webp, Prompt siehe
-    // BILD-PROMPTS.md.
-    imgOverrides: {},
+    // Eigenes Bild fuer diese Szene (Hendrik, 2026-08-22): dieselbe Kajuete
+    // wie im Basis-Bild, aber von innen und mit der versammelten Runde -
+    // erzeugt mit dem Kajueten-Bild und den sieben NSC-Portraits als
+    // Bildeingabe, Prompt siehe BILD-PROMPTS.md. Nur hier ueberschrieben,
+    // alle anderen Golden-Lion-Szenen behalten das Aussenbild aus BASE.
+    imgOverrides: {
+      kapitaenskajuete: "images/interior_kapitaenskajuete_einberufung.webp"
+    },
     descOverrides: {
       kapitaenskajuete: "Die Tür zur Kapitänskajüte steht offen, zum ersten Mal seit langem. Drinnen brennen mehr Lampen als sonst, der Schreibtisch ist zur Seite geräumt worden, damit alle Platz finden. Harwick hat rufen lassen — nicht die Offiziere, sondern namentlich ausgewählte Leute."
     }

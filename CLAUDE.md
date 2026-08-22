@@ -96,6 +96,20 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 16)
+- **Bild für Szene `12.1` eingebunden**: `interior_kapitaenskajuete_einberufung.webp` (2,7 MB JPG →
+  147 KB WebP, 1600×893), erzeugt mit dem Kajüten-Außenbild und den sieben NSC-Porträts als
+  Bildeingabe. Trifft die Vorlage: Mahagoni mit Goldleisten, burgunderrote Vorhänge mit Goldmuster,
+  Bücherregal, Globus auf Standfuß, eingebaute Koje, verzierte Goldtruhe, hängende Messinglampen,
+  dazu der zur Seite geräumte Schreibtisch mit Karten — und zwei gesichtslose Gestalten im
+  Vordergrund als Platzhalter für die Spielercharaktere.
+  - Eingetragen als `imgOverrides.kapitaenskajuete` **nur** in `"12.1"` — geprüft, dass `2.1`/
+    `5.1`/`10.1` weiterhin das Außenbild aus `GOLDEN_LION_MARKERS_BASE` zeigen. Damit ist der
+    Zustandswechsel auch visuell da: verriegelte Tür mit Harwick allein → offener Raum voller
+    Leute.
+  - Roh-JPG nach Sichtprüfung entfernt (Konvention wie bei den Riffinsel-Bildern).
+  - Offline-Test der Szene weiterhin mit 0 Fehlern.
+
 ### 2026-08-22 (Fortsetzung 15)
 - **Einberufungs-Prompt auf Mehrfach-Bildeingabe umgebaut** (Hendriks Wunsch: Kajütenbild UND
   Personen anhängen, mit Anweisungen dazu im Prompt). Alle acht Anhänge sind vorhanden und geprüft
