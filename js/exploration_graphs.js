@@ -45,7 +45,7 @@ const EXPLORATION_GRAPHS = {
   "11.1": {
     startNode: "strand",
     nodes: {
-      strand: { type: "start", label: "Strand", top: 56.4, left: 54.2 },
+      strand: { type: "start", label: "Strand", top: 46, left: 49 },
 
       zwischenpunkt1: {
         type: "ereignis", label: "Ein Krabbenschwarm", top: 56.1, left: 65.6,
@@ -170,7 +170,10 @@ const EXPLORATION_GRAPHS = {
       e_suesswasserquelle_zp_4: { from: "suesswasserquelle", to: "zp_4", hinweis: "Von der Quelle aus führt ein Pfad weiter bergauf." },
       e_suesswasserquelle_zp_5: { from: "suesswasserquelle", to: "zp_5", hinweis: "Ein zweiter Pfad zweigt Richtung Westen ab." },
       e_zp_5_zp_4: { from: "zp_5", to: "zp_4", hinweis: "Der Pfad führt weiter am Hang entlang." },
-      e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad führt weiter nach Westen." }
+      e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad führt weiter nach Westen." },
+      e_zp_5_suesswasserquelle: { from: "zp_5", to: "suesswasserquelle", hinweis: "Ein feuchter, kühler Luftzug verrät die Nähe von Wasser." },
+      e_zp_5_zp_3: { from: "zp_5", to: "zp_3", hinweis: "Ein steiler Pfad führt von hier aus bergauf, zwischen nassem Fels hindurch." },
+      e_zp_3_zp: { from: "zp_3", to: "zp", hinweis: "Der Pfad steigt weiter an, der Wind wird spürbar stärker." }
     }
   }
 };

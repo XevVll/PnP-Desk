@@ -94,6 +94,29 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22
+- **Fix: drei Lücken in Hendriks Riffinsel-Graph** (`js/exploration_graphs.js`), anhand von
+  Screenshots aus dem laufenden Test identifiziert und per Debug-Overlay/Koordinaten-Abgleich
+  exakt lokalisiert (Knoten „zp_5", „Zirpen aus dem Unterholz" — einziger Knoten mit genau einer
+  ausgehenden Kante, Position stimmte mit dem gemeldeten Fundort überein):
+  - `zp_5` hatte keine Kante zur Süßwasserquelle, obwohl die Quelle umgekehrt zu `zp_5` führt
+    (`suesswasserquelle -> zp_5` existierte, die Gegenrichtung fehlte) — neue Kante
+    `e_zp_5_suesswasserquelle` ergänzt.
+  - Der ganze „Quellbecken"-Cluster (`zp_5`/`zp_4`/`zp_6`/`zp_3` „Ein rutschiger Felsvorsprung"/
+    Süßwasserquelle) war strukturell von der Aussichtsklippen-Seite abgeschnitten: `zp_3` war nur
+    einseitig von `zp` („Böiger Wind auf dem Grat") aus erreichbar, führte aber selbst nirgends
+    zurück dorthin — eine Sackgasse für jeden, der von Westen kommt. Neue Kanten `e_zp_5_zp_3`
+    (Aufstieg vom Becken zum Felsvorsprung) und `e_zp_3_zp` (weiter hoch zum Grat, von dort schon
+    bestehend zur Aussichtsklippe) verbinden die beiden Graphhälften jetzt in beide Richtungen.
+  - Der Startknoten `strand` hatte eigene, leicht abweichende Koordinaten (`top:56.4,left:54.2`)
+    statt der Position des tatsächlichen „Riffstrand"-Markers (`top:46,left:49`) — Positions-Ring
+    saß dadurch sichtbar neben dem Landepunkt. Koordinaten direkt angeglichen.
+  - Mit einem Node/vm-Skript auf Kanten-Validität (alle `from`/`to` existieren) und Erreichbarkeit
+    aller Knoten vom Startknoten aus geprüft (beides sauber), außerdem mit Playwright den Graphen
+    über `renderScene('11.1')` gerendert und die neuen Kanten sowie die korrigierte Start-Position
+    per Debug-Overlay-Screenshot gegen die Meldung verifiziert. Bestehende Playwright-Regression
+    (`test_riffinsel.js` u. a.) läuft weiterhin mit 0 Fehlern.
+
 ### 2026-08-21 (Fortsetzung 10)
 - **Ereignis-Flavortext an den Bildrand verschoben** (Hendriks Feedback: der bisherige kleine
   Text direkt am Positions-Ring war praktisch unlesbar). Neues, fest am unteren Bildrand
