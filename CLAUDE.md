@@ -96,6 +96,21 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 7)
+- **Neue `BILD-PROMPTS.md`**: Sammelstelle für die Gemini-Prompts der Referenzbilder. Anlass war
+  Hendriks Bedarf an Prompts für die fünf Riffinsel-Orte (Strand, Wrack, Grotte, Süßwasserquelle,
+  Aussichtsklippe) — die Datei behebt zugleich eine schon dokumentierte Lücke: der Prompt fürs
+  Riffinsel-Übersichtsbild war nur „im Gespräch" vorhanden und damit verloren. Aufbau: gemeinsamer
+  Stil-Kopf/-Fuß (Dutch Golden Age, 16:9, „no text or labels"), fünf Orts-Prompts, dazu Hendriks
+  Stammesdorf-Prompt als Stilvorlage. Inhalte folgen strikt den bestehenden Marker-`desc`-Texten
+  aus `js/riffinsel_scenes.js`, damit Bild und Text nicht auseinanderlaufen; Bilder bewusst
+  menschenleer (Design-Regel 2.8), NSC-Figuren je als optionale Zusatzzeile. Der Grotten-Prompt
+  zeigt Steinplatte, die vier Tier-Steine (Eule/Katze/Schlange/Maus) und die Kiste, der
+  Klippen-Prompt hat eine optionale Zeile für das abziehende Kriegsschiff. Enthält außerdem den
+  Hinweis auf die `interior_`-Namenskonvention — ohne dieses Präfix kappt
+  `tools/optimize_images.py` auf 900px (Portrait-Annahme) statt auf 1600px, ein Fehler, der in
+  diesem Projekt schon einmal passiert ist.
+
 ### 2026-08-22 (Fortsetzung 6)
 - **Hendriks überarbeiteter Riffinsel-Graph übernommen** (aus `graph_editor.html` exportiert und
   eingereicht). Diff gegen den bisherigen Stand geprüft: Struktur unverändert (15 Knoten, 42
