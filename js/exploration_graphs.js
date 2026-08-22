@@ -35,140 +35,142 @@
 //
 // Kanten-Objekt: { from, to, hinweis } - "hinweis" ist der Sinneseindruck,
 // den Spieler an einem Entscheidungsknoten für GENAU DIESE Kante sehen.
+// Riffinsel-Graph (11.1) seit 2026-08-21 von Hendrik selbst mit
+// graph_editor.html direkt auf dem echten Kartenbild gebaut (löst Claudes
+// vorherige Best-Effort-Ableitung aus der handgezeichneten Skizze ab, die
+// naturgemäß nicht ganz exakt war). Knoten-IDs/Positionen/Kanten sind
+// Hendriks Original - Texte/Proben/Sinneshinweise wurden danach im Dialog
+// ausformuliert (Claude-Aufschlag, von Hendrik freizugeben), siehe CLAUDE.md.
 const EXPLORATION_GRAPHS = {
   "11.1": {
-    startNode: "start",
+    startNode: "strand",
     nodes: {
-      // top/left (%) auf das echte Referenzbild abgestimmt (images/
-      // riffinsel.webp, seit 2026-08-21) - Landmasse liegt darin ungefähr
-      // zwischen 40-95% (links-rechts) und 15-65% (oben-unten), siehe
-      // Marker-Koordinaten in riffinsel_scenes.js. Augenmaß, bei Bedarf
-      // feinjustieren.
-      // ACHTUNG (2026-08-21): Positionen/Kanten unten sind Claudes bestmögliche
-      // Ableitung aus Hendriks handgezeichneter Referenz-Skizze auf dem echten
-      // Kartenbild (viele kreuzende Linien) - nicht pixelgenau garantiert.
-      // Mit dem Debug-Overlay (karte.html ohne ?erkundungHideDebug) gegen die
-      // Skizze gegenprüfen und bei Abweichungen Koordinaten/Kanten anpassen.
-      start: { type: "start", label: "Aufbruch vom Riffstrand", top: 46, left: 52 },
+      strand: { type: "start", label: "Strand", top: 56.4, left: 54.2 },
 
-      ereignis_moskitos: {
-        type: "ereignis", label: "Ein Mückenschwarm", top: 42, left: 56,
-        probe: "Körper",
-        text: "Ein dichter Schwarm Mücken empfängt jeden, der hier durchmuss.",
-        erfolgText: "Mit ein paar schnellen, genervten Schlägen kommt man halbwegs unzerstochen durch.",
-        misserfolgText: "Dutzende Stiche später ist die Haut gerötet und juckt fürchterlich — 1 Schadenspunkt."
-      },
-      ereignis_schlamm: {
-        type: "ereignis", label: "Schlammiger Boden", top: 48, left: 58,
-        probe: "Geschick",
-        text: "Der Boden wird hier plötzlich weich und schlammig, jeder Schritt ein Risiko wegzurutschen.",
-        erfolgText: "Sicher hindurchbalanciert.",
-        misserfolgText: "Ausgerutscht, bis zu den Knien im Schlamm — nichts Ernstes, nur unangenehm und nass, kein Schaden."
-      },
-      ereignis_fussspuren: {
-        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 30, left: 48,
-        probe: "Wahrnehmung",
-        text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht.",
-        erfolgText: "Wer genau hinsieht, erkennt weitere Details an den Spuren — ohne dass sich daraus sofort eine Erklärung ergibt (SL-Ermessen, z. B. als späterer Anknüpfungspunkt nutzbar).",
-        misserfolgText: "Die Spuren bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
-      },
-      ereignis_ridge: {
-        type: "ereignis", label: "Ein rutschiger Felsvorsprung", top: 26, left: 52,
-        probe: "Klettern",
-        text: "Nasses, moosbewachsenes Gestein versperrt den direkten Weg — nur mit sicherem Tritt kommt man ohne Umweg daran vorbei.",
-        erfolgText: "Sicherer Tritt, kein Problem.",
-        misserfolgText: "Ein Ausrutscher, kurz auf allen Vieren — 1 Schadenspunkt."
-      },
-      ereignis_dornen: {
-        type: "ereignis", label: "Dichtes Dornengestrüpp", top: 27, left: 60,
-        probe: "Körper",
-        text: "Ein Gestrüpp aus dornigen Ranken blockiert den Pfad, dicht genug, dass ein Umweg mühsam wäre.",
-        erfolgText: "Mit kräftigen Schlägen wird ein Weg hindurch freigeschlagen.",
-        misserfolgText: "Ein paar tiefe Kratzer beim Durchkämpfen — 1 Schadenspunkt."
-      },
-      ereignis_wind: {
-        type: "ereignis", label: "Böiger Wind auf dem Grat", top: 26, left: 67,
-        probe: "Körper",
-        text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren.",
-        erfolgText: "Sicherer Tritt, der Grat wird ohne Zwischenfall überquert.",
-        misserfolgText: "Eine Böe erwischt einen ungünstig — kurz der Halt verloren, abgerutscht. 1 Schadenspunkt."
-      },
-      ereignis_hub: {
-        type: "ereignis", label: "Ein enger Durchschlupf", top: 39, left: 62,
-        probe: "Geschick",
-        text: "Zwischen zwei moosüberwachsenen Felsblöcken bleibt nur ein schmaler Spalt, gerade breit genug für eine Person.",
-        erfolgText: "Geschmeidig hindurchgezwängt, kein Problem.",
-        misserfolgText: "Stecken geblieben, mit Mühe und einer schmerzhaften Schramme wieder frei — 1 Schadenspunkt."
-      },
-      ereignis_krabben: {
-        type: "ereignis", label: "Ein Krabbenschwarm", top: 52, left: 65,
+      zwischenpunkt1: {
+        type: "ereignis", label: "Ein Krabbenschwarm", top: 56.1, left: 65.6,
         probe: "Geschick",
         text: "Dutzende kleine Landkrabben stieben in alle Richtungen auseinander, als die Gruppe hier vorbeikommt.",
         erfolgText: "Ein Ausweichschritt, keine einzige wird getreten.",
         misserfolgText: "Ein unangenehmer Tritt auf einen Panzer, ein spitzer Zwick zur Antwort — 1 Schadenspunkt, nichts Ernstes."
       },
-      ereignis_lianen: {
-        type: "ereignis", label: "Herabhängende Lianen", top: 53, left: 69,
+      zp1l: {
+        type: "ereignis", label: "Ungewöhnliche Fußspuren", top: 45.5, left: 59.4,
+        probe: "Wahrnehmung",
+        text: "Ungewöhnliche Fußspuren im weichen Boden, deutlich zu groß für einen Menschen, ziehen sich ein Stück neben dem Pfad her und verschwinden wieder im Dickicht.",
+        erfolgText: "Wer genau hinsieht, erkennt weitere Details an den Spuren — ohne dass sich daraus sofort eine Erklärung ergibt (SL-Ermessen, z. B. als späterer Anknüpfungspunkt nutzbar).",
+        misserfolgText: "Die Spuren bleiben ein flüchtiger Eindruck, mehr nicht — folgenlos, kein Schaden."
+      },
+      zwischenpunkt2: {
+        type: "ereignis", label: "Herabhängende Lianen", top: 51.3, left: 69.9,
         probe: "Geschick",
         text: "Dichte, herabhängende Lianen und Luftwurzeln versperren fast den Blick auf den Weg.",
         erfolgText: "Beiseite geschoben, freie Sicht.",
         misserfolgText: "In den Ranken verheddert, ein kurzer Kampf, um wieder frei zu kommen — 1 Schadenspunkt."
       },
-
-      suesswasserquelle: {
-        type: "ort", label: "Die Süßwasserquelle", ortId: "suesswasserquelle",
-        probe: "Instinkt/Survival",
-        erfolgText: "Ein Gespür dafür, wo im dichten Gelände Wasser zu finden ist, führt direkt zur Quelle.",
-        misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — übles, brackiges Wasser probiert. Ein zweiter Versuch ist jederzeit möglich."
+      zp3: {
+        type: "ereignis", label: "Dichtes Dornengestrüpp", top: 41.8, left: 70.8,
+        probe: "Körper",
+        text: "Ein Gestrüpp aus dornigen Ranken blockiert den Pfad, dicht genug, dass ein Umweg mühsam wäre.",
+        erfolgText: "Mit kräftigen Schlägen wird ein Weg hindurch freigeschlagen.",
+        misserfolgText: "Ein paar tiefe Kratzer beim Durchkämpfen — 1 Schadenspunkt."
       },
-      wrackteile: {
+      zp: {
+        type: "ereignis", label: "Böiger Wind auf dem Grat", top: 30.1, left: 67.9,
+        probe: "Körper",
+        text: "Der Wind auf dem schmalen Grat nimmt merklich zu, reißt an Kleidung und Haaren.",
+        erfolgText: "Sicherer Tritt, der Grat wird ohne Zwischenfall überquert.",
+        misserfolgText: "Eine Böe erwischt einen ungünstig — kurz der Halt verloren, abgerutscht. 1 Schadenspunkt."
+      },
+      zp_2: {
+        type: "ereignis", label: "Ein enger Durchschlupf", top: 46.3, left: 65.5,
+        probe: "Geschick",
+        text: "Zwischen zwei moosüberwachsenen Felsblöcken bleibt nur ein schmaler Spalt, gerade breit genug für eine Person.",
+        erfolgText: "Geschmeidig hindurchgezwängt, kein Problem.",
+        misserfolgText: "Stecken geblieben, mit Mühe und einer schmerzhaften Schramme wieder frei — 1 Schadenspunkt."
+      },
+      zp_3: {
+        type: "ereignis", label: "Ein rutschiger Felsvorsprung", top: 31, left: 61,
+        probe: "Klettern",
+        text: "Nasses, moosbewachsenes Gestein versperrt den direkten Weg — nur mit sicherem Tritt kommt man ohne Umweg daran vorbei.",
+        erfolgText: "Sicherer Tritt, kein Problem.",
+        misserfolgText: "Ein Ausrutscher, kurz auf allen Vieren — 1 Schadenspunkt."
+      },
+      zp_4: {
+        type: "ereignis", label: "Schlammiger Boden", top: 27.6, left: 53.6,
+        probe: "Geschick",
+        text: "Der Boden wird hier plötzlich weich und schlammig, jeder Schritt ein Risiko wegzurutschen.",
+        erfolgText: "Sicher hindurchbalanciert.",
+        misserfolgText: "Ausgerutscht, bis zu den Knien im Schlamm — nichts Ernstes, nur unangenehm und nass, kein Schaden."
+      },
+      zp_5: {
+        type: "ereignis", label: "Zirpen aus dem Unterholz", top: 33.2, left: 44.4,
+        probe: "Wahrnehmung",
+        text: "Ein durchdringendes, rhythmisches Zirpen kommt aus dem dichten Unterholz — laut genug, dass ein einzelnes Insekt es kaum sein kann.",
+        erfolgText: "Ein kurzer, aufmerksamer Blick genügt, um die Quelle als harmlosen Schwarm Zikaden auszumachen — kein Grund zur Sorge.",
+        misserfolgText: "Die Quelle bleibt unklar — ein mulmiges Gefühl bleibt zurück, aber folgenlos, kein Schaden."
+      },
+      zp_6: {
+        type: "ereignis", label: "Ein Mückenschwarm", top: 41.5, left: 53.3,
+        probe: "Körper",
+        text: "Ein dichter Schwarm Mücken empfängt jeden, der hier durchmuss.",
+        erfolgText: "Mit ein paar schnellen, genervten Schlägen kommt man halbwegs unzerstochen durch.",
+        misserfolgText: "Dutzende Stiche später ist die Haut gerötet und juckt fürchterlich — 1 Schadenspunkt."
+      },
+
+      wrack: {
         type: "ort", label: "Wrackteile am Riff", ortId: "wrackteile",
         probe: "Klettern/Körper",
         erfolgText: "Über scharfes, nasses Riffgestein hinweg werden die Wrackteile erreicht.",
         misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — Schnittwunde am Riffgestein. Ein zweiter Versuch ist jederzeit möglich."
-      },
-      aussichtsklippe: {
-        type: "ort", label: "Die Aussichtsklippe", ortId: "aussichtsklippe",
-        probe: "Klettern",
-        erfolgText: "Die Klippe wird erklommen.",
-        misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — abgerutscht. Ein zweiter Versuch ist jederzeit möglich."
       },
       versteckte_grotte: {
         type: "ort", label: "Die versteckte Grotte", ortId: "versteckte_grotte",
         probe: "Wahrnehmung",
         erfolgText: "Der gut versteckte Spalt im Fels wird bemerkt.",
         misserfolgText: "Bewusst folgenlos — der Eingang wird einfach übersehen, kein Schaden. Jederzeit ein zweiter Versuch."
+      },
+      die_aussichtsklippe: {
+        type: "ort", label: "Die Aussichtsklippe", ortId: "aussichtsklippe",
+        probe: "Klettern",
+        erfolgText: "Die Klippe wird erklommen.",
+        misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — abgerutscht. Ein zweiter Versuch ist jederzeit möglich."
+      },
+      suesswasserquelle: {
+        type: "ort", label: "Die Süßwasserquelle", ortId: "suesswasserquelle",
+        probe: "Instinkt/Survival",
+        erfolgText: "Ein Gespür dafür, wo im dichten Gelände Wasser zu finden ist, führt direkt zur Quelle.",
+        misserfolgText: "Zeit verloren, dazu ein kleiner Schaden — übles, brackiges Wasser probiert. Ein zweiter Versuch ist jederzeit möglich."
       }
     },
-    // Alle vier "ort"-Knoten sind in Hendriks Skizze Sackgassen (keine
-    // ausgehende Kante) - einmal gefunden, ist diese Fundstelle für diesen
-    // Erkundungsdurchgang abgeschlossen, die Gruppe muss zurück (Zurück-
-    // Option) oder woanders weitermachen.
     edges: {
-      e_start_moskitos: { from: "start", to: "ereignis_moskitos", hinweis: "Ein Sumpf aus feuchter Erde und Mückensummen liegt geradeaus." },
-      e_start_schlamm: { from: "start", to: "ereignis_schlamm", hinweis: "Ein zweiter Pfad führt tiefer ins Dickicht, der Boden wirkt hier schon aufgeweicht." },
+      e_strand_zwischenpunkt1: { from: "strand", to: "zwischenpunkt1", hinweis: "Ein heller Streifen aus Sand und Geröll zieht sich am Fuß der Felsen entlang." },
+      e_zwischenpunkt1_wrack: { from: "zwischenpunkt1", to: "wrack", hinweis: "Große, scharfkantige Felsbrocken versperren fast den Weg zum Wasser." },
+      e_zwischenpunkt1_zwischenpunkt2: { from: "zwischenpunkt1", to: "zwischenpunkt2", hinweis: "Der Pfad zieht sich weiter am Riff entlang, tiefer ins Grün." },
 
-      e_moskitos_quelle: { from: "ereignis_moskitos", to: "suesswasserquelle", hinweis: "Kurz dahinter plätschert Wasser." },
-      e_moskitos_fussspuren: { from: "ereignis_moskitos", to: "ereignis_fussspuren", hinweis: "Ein kaum sichtbarer Abzweig verschwindet zwischen dichten Farnen." },
-      e_moskitos_hub: { from: "ereignis_moskitos", to: "ereignis_hub", hinweis: "Der Pfad führt weiter zwischen engstehenden Felsblöcken." },
+      e_zwischenpunkt2_versteckte_grotte: { from: "zwischenpunkt2", to: "versteckte_grotte", hinweis: "Direkt dahinter öffnet sich ein schmaler Spalt im Fels." },
+      e_versteckte_grotte_zp3: { from: "versteckte_grotte", to: "zp3", hinweis: "Ein unauffälliger Trampelpfad führt von der Grotte aus weiter." },
+      e_zp3_zwischenpunkt2: { from: "zp3", to: "zwischenpunkt2", hinweis: "Der Pfad führt zurück in Richtung der Lianen." },
 
-      e_fussspuren_ridge: { from: "ereignis_fussspuren", to: "ereignis_ridge", hinweis: "Die Spur führt bergauf, über nasses, moosbewachsenes Gestein." },
-      e_ridge_dornen: { from: "ereignis_ridge", to: "ereignis_dornen", hinweis: "Dahinter wird der Weg von dichtem Gestrüpp gesäumt." },
-      e_dornen_wind: { from: "ereignis_dornen", to: "ereignis_wind", hinweis: "Ein schmaler Grat zieht sich weiter Richtung offener Klippe." },
-      e_dornen_hub: { from: "ereignis_dornen", to: "ereignis_hub", hinweis: "Ein zweiter, tieferer Pfad führt bergab." },
-      e_wind_klippe: { from: "ereignis_wind", to: "aussichtsklippe", hinweis: "Der Grat mündet in einen freien Felsvorsprung." },
+      e_strand_zp1l: { from: "strand", to: "zp1l", hinweis: "Ein zweiter Pfad führt tiefer ins Dickicht, weg von der Küste." },
+      e_zp1l_zp_2: { from: "zp1l", to: "zp_2", hinweis: "Der Weg führt weiter zwischen dichten Farnen hindurch." },
+      e_zp_2_zwischenpunkt2: { from: "zp_2", to: "zwischenpunkt2", hinweis: "Ein Abzweig führt zurück Richtung Küste." },
+      e_zp_2_zp3: { from: "zp_2", to: "zp3", hinweis: "Ein zweiter Abzweig führt tiefer in den Dschungel." },
 
-      e_hub_wind: { from: "ereignis_hub", to: "ereignis_wind", hinweis: "Steil bergauf, dem Wind entgegen." },
-      e_hub_schlamm: { from: "ereignis_hub", to: "ereignis_schlamm", hinweis: "Der Boden wird merklich weicher." },
-      e_hub_krabben: { from: "ereignis_hub", to: "ereignis_krabben", hinweis: "Der Pfad führt weiter Richtung Küste, das Rauschen des Riffs wird lauter." },
+      e_zp3_zp: { from: "zp3", to: "zp", hinweis: "Der Pfad steigt an, Richtung eines offenen Felsvorsprungs." },
+      e_zp_die_aussichtsklippe: { from: "zp", to: "die_aussichtsklippe", hinweis: "Der Grat mündet in einen freien Felsvorsprung." },
+      e_zp_zp_3: { from: "zp", to: "zp_3", hinweis: "Ein zweiter Weg führt seitlich den Hang hinunter." },
 
-      e_schlamm_krabben: { from: "ereignis_schlamm", to: "ereignis_krabben", hinweis: "Festerer Boden kündigt sich in der Ferne an." },
+      e_zp_3_zp_4: { from: "zp_3", to: "zp_4", hinweis: "Der Pfad führt weiter über nasses Gestein." },
+      e_zp_3_suesswasserquelle: { from: "zp_3", to: "suesswasserquelle", hinweis: "Kurz dahinter plätschert Wasser." },
 
-      e_krabben_grotte: { from: "ereignis_krabben", to: "versteckte_grotte", hinweis: "Ein unauffälliger Trampelpfad führt Richtung eines dichten Wurzelvorhangs." },
-      e_krabben_wrackteile: { from: "ereignis_krabben", to: "wrackteile", hinweis: "Große, scharfkantige Felsbrocken versperren fast den Weg zum Wasser." },
-      e_krabben_lianen: { from: "ereignis_krabben", to: "ereignis_lianen", hinweis: "Ein von Lianen überwucherter Seitenpfad zweigt ab." },
+      e_zp1l_zp_6: { from: "zp1l", to: "zp_6", hinweis: "Ein weiterer Abzweig führt tiefer ins feuchte Unterholz." },
+      e_zp_6_suesswasserquelle: { from: "zp_6", to: "suesswasserquelle", hinweis: "Das Plätschern von Wasser wird lauter." },
 
-      e_lianen_grotte: { from: "ereignis_lianen", to: "versteckte_grotte", hinweis: "Direkt dahinter öffnet sich ein schmaler Spalt im Fels." }
+      e_suesswasserquelle_zp_4: { from: "suesswasserquelle", to: "zp_4", hinweis: "Von der Quelle aus führt ein Pfad weiter bergauf." },
+      e_suesswasserquelle_zp_5: { from: "suesswasserquelle", to: "zp_5", hinweis: "Ein zweiter Pfad zweigt Richtung Westen ab." },
+      e_zp_5_zp_4: { from: "zp_5", to: "zp_4", hinweis: "Der Pfad führt weiter am Hang entlang." },
+      e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad führt weiter nach Westen." }
     }
   }
 };

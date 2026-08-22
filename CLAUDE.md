@@ -94,6 +94,25 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 7)
+- **Erkundungs-Graph nach Hendriks Referenz-Skizze neu aufgebaut** — diesmal von Hendrik selbst
+  direkt mit `graph_editor.html` auf dem echten Kartenbild gebaut und als fertiger Code
+  eingereicht, statt (wie zuvor) aus einer handgezeichneten Skizze abgeleitet. 15 Knoten (1 Start,
+  10 Ereignisse, 4 Orte), 21 Kanten, alle vom Start erreichbar. Texte/Proben/Sinneshinweise für
+  alle 10 Ereignis-Knoten und 21 Kanten im Dialog ausformuliert (Claude-Aufschlag, von Hendrik
+  freizugeben) — 8 der 10 Ereignisse sind bekannte Konzepte aus dem vorherigen Durchgang
+  (Krabbenschwarm, Fußspuren, Lianen, Dornengestrüpp, Wind, Durchschlupf, Felsvorsprung,
+  Schlamm, Mückenschwarm), "Zirpen aus dem Unterholz" ist neu.
+- **Echtes Rätsel in der versteckten Grotte** (Hendriks Vorgabe, eigener Reim-Text von Hendrik,
+  nur zur Verwendung ins Deutsche übertragen): neue Interaktion
+  `ORTE.versteckte_grotte.das_raetsel_der_kiste`. Eine Steinplatte mit Zeichen ergibt bei
+  erfolgreicher Intelligenz-/Wissens-Probe einen Reim, dessen Antwort "Tiger" ist; von vier losen
+  Tier-Steinen (Fisch/Vogel/Schlange/gestreiftes Raubtier) öffnet nur der gestreifte (Tiger) die
+  Kiste. Falscher Stein: lauter Knall, Mechanismus bleibt zu, beliebig oft erneut versuchbar.
+  SL-Ermessen-Kopplung an die Eingeborenen-Bedrohung: wiederholter Lärm kann deren Auftauchen
+  vorziehen (`ORTE.riffstrand.die_eingeborenen` entsprechend ergänzt). Reines Text-/Logik-Rätsel
+  für den Tisch, keine neue Software (Mini-Rätsel-Widgets bleiben bewusst zurückgestellt).
+
 ### 2026-08-21 (Fortsetzung 6)
 - **Fog of War für Erkundungs-Graph-Szenen** (Hendriks Frage: Spieler sahen bisher das komplette
   Kartenbild inkl. aller Fundstellen auf einen Blick, obwohl der Graph selbst verdeckt war — der
