@@ -96,6 +96,16 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 11)
+- **`jungle.ogg` konvertiert** (Opus, 64 kbps VBR) aus `jungle.mp3`: 109,9 MB → 25,7 MB (-77 %),
+  Länge unverändert bei 3601,04 s (per `ffprobe` gegen die Quelle geprüft, beide identisch).
+  Quell-MP3 anschließend auf Hendriks Anweisung gelöscht — bei 110 MB hätte sie ohnehin nie
+  committet werden dürfen (GitHub-Hardlimit 100 MB, siehe Faustregel im Eintrag vom 14.08.).
+  **Noch keiner Szene zugeordnet** — wie bei `mystic`/`BBay`/`flamenco` bleibt die Zuordnung
+  Hendriks Entscheidung; naheliegender Kandidat wäre `soundFile` in `RIFFINSEL_SCENES["11.1"]`
+  (die Riffinsel hat bisher gar keinen hinterlegten Ton), alternativ live über die Sound-Leiste
+  im Adminpanel.
+
 ### 2026-08-22 (Fortsetzung 10)
 - **Grotten-Bild eingebunden, Riffinsel-Bildersatz damit komplett.** `Grotte.jpg` →
   `interior_grotte.webp` (3,2 MB → 138 KB, 1600×893), an `versteckte_grotte` eingetragen. Damit
