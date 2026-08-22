@@ -94,6 +94,17 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung)
+- **`graph_editor.html`: Kante-Ziehen fragt jetzt nach der Gegenrichtung.** Ursache der oben
+  beschriebenen zp_3/zp_4/zp_5-Fehler: eine gezogene Kante legte bisher immer nur die eine
+  angeklickte Richtung an, der begehbare Standardfall in diesem Graphen ist aber ein Weg in
+  beide Richtungen — die Gegenrichtung musste bisher separat gezogen werden und wurde dabei
+  wiederholt vergessen. Nach dem Setzen einer Kante fragt der Editor jetzt per `confirm()`, ob
+  auch die Gegenrichtung angelegt werden soll (mit eigenem, separat abgefragtem Sinneshinweis) -
+  "Abbrechen" für den Fall, dass wirklich eine echte Einbahnstraße gewollt ist. Mit Playwright
+  verifiziert (Zustimmen legt beide Kanten mit unterschiedlichem Hinweistext an, Ablehnen nur
+  die eine), bestehender Test `test_graph_editor.js` weiterhin mit 0 Fehlern.
+
 ### 2026-08-22
 - **Fix: drei Lücken in Hendriks Riffinsel-Graph** (`js/exploration_graphs.js`), anhand von
   Screenshots aus dem laufenden Test identifiziert und per Debug-Overlay/Koordinaten-Abgleich

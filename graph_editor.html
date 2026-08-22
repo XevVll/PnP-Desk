@@ -251,8 +251,23 @@ function onNodeClick(id) {
     if (hinweis === null) { edgeSourceId = null; setStatus(''); renderAll(); return; }
     const edgeId = uniqueId('e_' + edgeSourceId + '_' + id, graph.edges);
     graph.edges[edgeId] = { from: edgeSourceId, to: id, hinweis: hinweis };
+    const fromLabel = graph.nodes[edgeSourceId].label || edgeSourceId;
+    const toLabel = graph.nodes[id].label || id;
+    let statusMsg = 'Kante erstellt: ' + fromLabel + ' -> ' + toLabel + '.';
+    // Standardfall in diesem Graphen ist ein begehbarer Weg in beide Richtungen -
+    // eine reine Einbahnstraße ist die Ausnahme. Da leicht vergessen wird, die
+    // Gegenrichtung separat zu ziehen (siehe CLAUDE.md-Changelog, wiederholt
+    // aufgetretener Fehler bei Hendriks Riffinsel-Graph), hier direkt nachfragen.
+    if (confirm('Auch die Gegenrichtung anlegen (' + toLabel + ' -> ' + fromLabel + ')?\nNur "Abbrechen" wählen, wenn dieser Weg wirklich nur in eine Richtung begehbar sein soll.')) {
+      const backHinweis = prompt('Sinneshinweis für die Gegenrichtung (' + toLabel + ' -> ' + fromLabel + '):', hinweis);
+      if (backHinweis !== null) {
+        const backEdgeId = uniqueId('e_' + id + '_' + edgeSourceId, graph.edges);
+        graph.edges[backEdgeId] = { from: id, to: edgeSourceId, hinweis: backHinweis };
+        statusMsg = 'Kante in beide Richtungen erstellt: ' + fromLabel + ' <-> ' + toLabel + '.';
+      }
+    }
     edgeSourceId = null;
-    setStatus('Kante erstellt.');
+    setStatus(statusMsg);
     selectedNodeId = id;
     renderAll();
     return;
