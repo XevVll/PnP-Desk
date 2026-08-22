@@ -371,7 +371,15 @@ die Wahl echtes Gewicht hat und nicht einfach „die offensichtlich sichere" gew
 
 | Route | Vorteil | Preis |
 |---|---|---|
-| **A — Spanisches Gebiet** | Direkter Weg | Begegnung mit den Spaniern wahrscheinlich. **Der Clou:** sicher, falls der Spanier-Kampf schon früher stattfand — gefährlich (mit Kampf), falls nicht. Die Spanier sind eine grundsätzliche Bedrohung, der Kampf kann hier also auch nachgeholt werden |
+| **A — Spanisches Gebiet** | Direkter Weg | Begegnung mit den Spaniern wahrscheinlich. Die Spanier sind eine grundsätzliche Bedrohung, die auf dieser Route wieder auftauchen kann |
+
+> **Kein offener Seekampf gegen die Spanier (Hendrik, August 2026):** Die Golden Lion ist eine
+> kleine Fregatte und einem **königlichen spanischen Kriegsschiff** offen niemals gewachsen. Eine
+> Begegnung mit den Spaniern ist deshalb nie ein gewinnbarer Kampf, sondern immer eine Flucht —
+> Entkommen bei Nacht ist die einzige Möglichkeit (so schon in `10.1` gespielt: Lichter aus,
+> Licht-Finte, kein Feuerbefehl trotz geladener Kanonen). Damit entfällt der frühere Clou dieser
+> Route („sicher, falls der Spanier-Kampf schon früher stattfand — der Kampf kann hier nachgeholt
+> werden"): Ein solcher Kampf findet nirgends statt, weder früher noch hier.
 | **B — Sirenen-Passage** | Schneller | Seeleute meiden sie. Übernatürliche, unkalkulierbare Gefahr; Legenden von Sirenen. Crew erzählt entsprechende Gruselgeschichten |
 | **C — Langer Weg ohne Hafen** | Geografisch sicher | Ohne Anlaufhafen werden die Rationen knapp, die Crew unruhig — **Meuterei-Risiko** |
 
@@ -969,6 +977,16 @@ ausschließend:
 
 Damit ist die vorherige offene Frage entschieden: Die Tochter wird **nicht** dauerhaft
 wiederbelebt — das kurze Gelingen des Rituals ist ein Abschied, kein zweites Leben.
+
+**Der Jaguar-Säbel (nur über den Riffinsel-Weg, August 2026):** In der versteckten Grotte der
+Riffinsel (Szene `11.1`, `ORTE.versteckte_grotte`) öffnet das gelöste Rätsel eine steinerne
+Klappe; dahinter liegt ein verzierter Säbel mit eingraviertem Jaguar. Er ist **keine
+Rätselwaffe und kein Artefakt mit Sonderregel, sondern schlicht eine sehr gute Waffe**, die
+benutzt werden kann — sie **vereinfacht den Endkampf** (Hendriks Festlegung). Das ist die
+konkrete Einlösung dessen, was 7.4 für diesen Weg als „zufällige Vorräte/Ressourcen — ein
+Vorteil, den die Spieler haben, ohne ihn zu kennen" vorsieht: Die Gruppe trägt ihn die ganze
+Zeit mit sich, ohne zu wissen, wozu er später gut ist. Am Tisch bleibt er unerklärt — wie ein
+Säbel in ein so viel älteres Steinbauwerk kommt, wird nie aufgelöst.
 
 **Alternatives Ende:** Bei höchstem Ruf opfert sich Harwick für die Spieler. Andernfalls
 können sie mit ihm zusammen überleben — als gebrochener Mann, der schmerzlich erkennt, dass

@@ -96,6 +96,29 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 12)
+- **Zwei Kanon-Festlegungen von Hendrik in die Bibel übernommen** (auf die Frage, ob zwischen
+  Riffinsel und Grabesinsel noch eine Schiffspassage gespielt werden soll — Antwort: nein, wird
+  erzählerisch gelöst):
+  - **Kein offener Seekampf gegen die Spanier** (Bibel 7.5, Kasten unter der Routen-Tabelle): Die
+    Golden Lion ist als kleine Fregatte einem königlichen spanischen Kriegsschiff nie gewachsen;
+    eine Begegnung ist immer Flucht, Entkommen bei Nacht die einzige Möglichkeit. Damit entfällt
+    der frühere Clou von Route A („sicher, falls der Spanier-Kampf schon früher stattfand — der
+    Kampf kann hier nachgeholt werden") — ein solcher Kampf findet nirgends statt. Tabellenzeile
+    entsprechend gekürzt.
+  - **Der Jaguar-Säbel ist schlicht eine sehr gute Waffe** (Bibel 12.1, neuer Absatz neben dem
+    Schutz-Anhänger): keine Sonderregel, kein Rätsel-Artefakt — er vereinfacht den Endkampf. Damit
+    ist eingelöst, was 7.4 für den Riffinsel-Weg als „zufällige Vorräte/Ressourcen — ein Vorteil,
+    den die Spieler haben, ohne ihn zu kennen" vorsieht. Der Trigger `belohnung_saebel` in
+    `ORTE.versteckte_grotte` entsprechend präzisiert.
+- **Noch nicht festgehalten:** Hendriks Bericht aus der gespielten Session (Kinder eindrucksvoll
+  gerettet, Ohrfeige des körperlich stärksten Spielers an Harwick, Cormacs bewusstes
+  Nicht-Eingreifen, Wats Überraschung, Harwick lenkt ein). Das entscheidet den Verzweigungspunkt
+  aus `9.1`/`10.1` — Harwick bleibt NICHT dauerhaft manisch — betrifft also den Finale-Strang
+  direkt. Bewusst noch nirgends abgelegt: die Bibel hält Verzweigungen offen (Design-Prinzip 2.3,
+  Wiederspielbarkeit), ein eigener Ort für gespielte Session-Historie existiert bisher nicht.
+  Rückfrage an Hendrik läuft.
+
 ### 2026-08-22 (Fortsetzung 11)
 - **`jungle.ogg` konvertiert** (Opus, 64 kbps VBR) aus `jungle.mp3`: 109,9 MB → 25,7 MB (-77 %),
   Länge unverändert bei 3601,04 s (per `ffprobe` gegen die Quelle geprüft, beide identisch).
