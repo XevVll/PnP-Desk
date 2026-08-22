@@ -267,16 +267,22 @@
   }
   /* Flavor-Text an einem Ereignis-Knoten (z.B. "Ein Mückenschwarm") - anders
      als der Hinweistext an einem Pfeil (nur der Weg dorthin) beschreibt das
-     die aktuelle Situation selbst, deshalb dauerhaft sichtbar statt nur bei
-     Hover. Zeigt NUR node.text, nie erfolgText/misserfolgText - das bleibt
-     SL-exklusiv (regie.html). */
-  .erk-pos-label {
-    position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
-    width: 220px; text-align: center;
-    background: rgba(15,12,8,0.9); border: 1px solid var(--gold); color: var(--ink);
-    font-size: 13px; line-height: 1.4; padding: 7px 11px; border-radius: 6px;
-    z-index: 30; pointer-events: none;
+     die aktuelle Situation selbst. Bewusst NICHT klein direkt am Ring
+     (ging im Kartenbild unter, Hendriks Feedback), sondern groß und fest
+     am unteren Bildrand, wo genug Platz ist - unabhängig davon, wo der
+     Ring gerade auf der Karte sitzt. Zeigt NUR node.text, nie
+     erfolgText/misserfolgText - das bleibt SL-exklusiv (regie.html). */
+  #erkFlavorText {
+    display: none;
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    width: min(760px, calc(100vw - 48px));
+    background: rgba(12,9,6,0.92); border: 1px solid var(--gold); color: var(--ink);
+    font-size: 21px; line-height: 1.5; text-align: center;
+    padding: 18px 28px; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.65);
+    z-index: 80; pointer-events: none;
   }
+  #erkFlavorText.visible { display: block; }
   .erk-arrow {
     position: absolute; width: 48px; height: 48px;
     transform: translate(-50%, -50%);
@@ -514,6 +520,8 @@
     <button id="muteBtn" title="Ton an/aus">🔇</button>
     <input type="range" id="volumeSlider" min="0" max="100" value="50">
   </div>
+
+  <div id="erkFlavorText"></div>
   <div id="charRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
@@ -827,7 +835,7 @@
     }
 
     function clearErkundungOverlay() {
-      mapWrapEl.querySelectorAll('.erk-pos, .erk-pos-label, .erk-arrow').forEach(function (el) { el.remove(); });
+      mapWrapEl.querySelectorAll('.erk-pos, .erk-arrow').forEach(function (el) { el.remove(); });
     }
 
     // Fog of War: verdeckt das Kartenbild bis auf den bereits erkundeten
@@ -901,13 +909,14 @@
     function renderErkundungOnMap() {
       renderFogOfWar();
       clearErkundungOverlay();
+      const flavorEl = document.getElementById('erkFlavorText');
       const graph = (typeof getExplorationGraph === 'function') ? getExplorationGraph(graphStateScene) : null;
-      if (!graph) return;
+      if (!graph) { if (flavorEl) flavorEl.classList.remove('visible'); return; }
 
       const currentNodeId = resolveCurrentNodeId(graph);
       const node = (typeof getGraphNode === 'function') ? getGraphNode(graphStateScene, currentNodeId) : null;
       const pos = (typeof getGraphNodePosition === 'function') ? getGraphNodePosition(graphStateScene, currentNodeId, getMarkersForScene) : null;
-      if (!node || !pos) return;
+      if (!node || !pos) { if (flavorEl) flavorEl.classList.remove('visible'); return; }
 
       const posEl = document.createElement('div');
       posEl.className = 'erk-pos';
@@ -917,14 +926,17 @@
 
       // Flavor-Text des aktuellen Ereignis-Knotens auch den Spielern zeigen
       // (Hendriks Wunsch) - nur node.text (Situationsbeschreibung), niemals
-      // erfolgText/misserfolgText (SL-exklusiv, siehe regie.html).
-      if (node.type === 'ereignis' && node.text) {
-        const labelEl = document.createElement('div');
-        labelEl.className = 'erk-pos-label';
-        labelEl.style.top = pos.top + '%';
-        labelEl.style.left = pos.left + '%';
-        labelEl.textContent = node.text;
-        mapWrapEl.appendChild(labelEl);
+      // erfolgText/misserfolgText (SL-exklusiv, siehe regie.html). Fest am
+      // Bildrand statt klein am Ring (ging im Kartenbild unter) - deshalb
+      // ein eigenes, immer gleich positioniertes Element statt eines
+      // Overlay-Kinds von #mapWrap.
+      if (flavorEl) {
+        if (node.type === 'ereignis' && node.text) {
+          flavorEl.textContent = node.text;
+          flavorEl.classList.add('visible');
+        } else {
+          flavorEl.classList.remove('visible');
+        }
       }
 
       // Hendriks Vorgabe: Spieler sollen IMMER auch umkehren können -

@@ -94,6 +94,16 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 10)
+- **Ereignis-Flavortext an den Bildrand verschoben** (Hendriks Feedback: der bisherige kleine
+  Text direkt am Positions-Ring war praktisch unlesbar). Neues, fest am unteren Bildrand
+  verankertes `#erkFlavorText` in `karte.html` statt eines kleinen `.erk-pos-label`-Tooltips direkt
+  am Ring — deutlich größer (21px statt 13px), eigener Kasten mit Goldrand, unabhängig davon, wo
+  der Ring gerade auf der Karte sitzt. Zeigt weiterhin ausschließlich `node.text`, nie
+  `erfolgText`/`misserfolgText`. Wird jetzt in jedem Rückkehr-/Fehlerpfad von
+  `renderErkundungOnMap()` explizit aus-/eingeblendet, damit kein alter Text stehen bleibt, wenn
+  keine Szene/kein Knoten (mehr) aktiv ist. Per Screenshot verifiziert.
+
 ### 2026-08-21 (Fortsetzung 9)
 - **Fix: Keine Bewegungspfeile mehr sichtbar nach dem Graph-Neubau.** Ursache: `graphState/11.1/
   currentNode` stand in Firebase noch auf einer Knoten-ID aus einer früheren Graph-Version (z. B.
