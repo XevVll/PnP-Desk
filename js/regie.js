@@ -249,7 +249,17 @@ const ORTE = {
   // sind scharf auf ihre jeweilige Szene begrenzt (nurSzenen).
   "kapitaenskajuete": {
     personen: "James Harwick",
-    kurz: "5.1: Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit Wein und ehrlichen Antworten — Artefakte fallen dabei über Wahrnehmung/Instinkt/Interesse auf, der Schmugglernest-Tipp über Handels-/Untergrundwissen. Echte Überzeugung kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen. 10.1 (Die Flucht): dunkel, regungslos, Zustand hängt vom Ausgang des Artefakthandels ab.",
+    kurz: "5.1: Harwick honoriert die Loyalität der Gruppe aus dem Thahal-Dorf mit Wein und ehrlichen Antworten — Artefakte fallen dabei über Wahrnehmung/Instinkt/Interesse auf, der Schmugglernest-Tipp über Handels-/Untergrundwissen. Echte Überzeugung kann ihn zum spanischen Hafen ODER zum Schmugglernest bewegen. 6.1 (nur falls 5.1 in die Flaute lief): Warnung vor einem übernatürlichen Kampf in seinen Unterlagen. 10.1 (Die Flucht): dunkel, regungslos, Zustand hängt vom Ausgang des Artefakthandels ab. 12.1 (Die Einberufung): Harwick macht reinen Tisch und stellt die Frage, wer ihm auf die Insel folgt.",
+    szenenUeberschreibungen: {
+      // Wer namentlich im Raum steht, ist Claude-Aufschlag aus der
+      // Kernbesetzung (Bibel 8.1) und von Hendrik freizugeben - "die Spieler
+      // und enge Vertraute" war die Vorgabe, ohne Namensliste.
+      "12.1": {
+        personen: "James Harwick (spricht) · Cormac Daly · Tom Fletcher · Francesco Almeida · Dirk van Hoorn · Josiah Pryce · Walter „Wat“ Crozier",
+        kurz: "Der Ersatz für die Offizierskonferenz (Bibel 7.5): Harwick legt Jessica, seine Schuld und den Ritual-Zweck des Artefakts offen und stellt die freiwillige Frage, wer ihm auf die Insel folgt. Einziger Ort der Szene, kein Wurf, keine Aufgabe.",
+        ortHinweis: "Der einzige begehbare Ort dieser Szene — alle anderen Marker des Schiffs sind bewusst ausgeblendet. Die ganze Szene ist ein Gespräch in einem Raum.\n\nEs gibt hier nichts zu würfeln und nichts zu finden. Die einzige offene Frage ist, wer am Ende mitkommt und wer an Bord bleibt (siehe Interaktion \"Harwick macht reinen Tisch\"). Bleiben ist ausdrücklich erlaubt und bringt keinen Nachteil.\n\nDanach geht es erzählerisch weiter zur Grabesinsel — die Routenwahl/Verzweigung 3 aus Bibel 7.5 wird nicht gespielt."
+      }
+    },
     interaktionen: {
       "harwick_artefakt_dokumente": {
         title: "Harwick — Wein und die Karten auf dem Schreibtisch",
@@ -276,6 +286,27 @@ const ORTE = {
           { id: "warnung_entdeckt", label: "Warnung vor einem übernatürlichen Kampf entdeckt (noch vage, keine Details)", info: "Wahrnehmungs-/Wissen-Probe oder direktes Nachfragen legt eine vage Warnung offen: Etwas Übernatürliches steht bevor, Vorbereitung wird nötig sein. Keine Details zu Gegner oder Ritual an dieser Stelle." }
         ]
       },
+      // Ersatz fuer die Offizierskonferenz (Bibel 7.5) - Inhalt komplett von
+      // Hendrik vorgegeben, hier nur ausformuliert. Loest zugleich den
+      // "intimen Weg" aus Bibel 12 ein, aber fuer die ganze Runde statt nur
+      // fuer eine hochrangige Figur.
+      "die_einberufung": {
+        nurSzenen: ["12.1"],
+        title: "Harwick macht reinen Tisch",
+        kurz: "Harwick beruft die Spieler und seine engen Vertrauten in die Kajüte und legt alles offen: Jessica, seine Schuld, und dass das erhandelte Artefakt der Schlüssel zu einem Ritual ist. Er zwingt niemanden mitzukommen — jeder wird nach dieser Fahrt reichlich entlohnt, an Schätzen ist er nicht mehr interessiert. Die Entscheidung, ob man ihm auf die Insel folgt oder an Bord wartet, liegt bei jedem Einzelnen.",
+        details: "Der große Moment vor dem Finale. Harwick lässt namentlich rufen — die Spieler und seine engen Vertrauten, niemanden sonst. Der Schreibtisch ist zur Seite geräumt, damit alle Platz finden. Er redet lange, ohne Umschweife, und zum ersten Mal ohne etwas zurückzuhalten.\n\nWAS ER OFFENLEGT, der Reihe nach:\n\n1. Jessica. Er erzählt, was mit seiner Tochter geschehen ist — und was das seither mit ihm macht. Der Schmerz und die Schuldgefühle, unverstellt. (Wie viel Vorwissen die Runde schon hat, hängt davon ab, was auf der Schatzinsel und danach aufgedeckt wurde; siehe Bibel 12, Enthüllungsfäden.)\n\n2. Er hat etwas herausgefunden, und er wird sie um jeden Preis zurückholen. Ohne Bedingung, ohne Abwägung — das ist keine Ankündigung, über die noch verhandelt wird.\n\n3. Das Artefakt, das die Gruppe beim Handel geholt hat, ist der Schlüssel zu einem Ritual. Er sagt es geradeheraus und rechnet damit, dass man ihm nicht glaubt — er wirbt nicht darum, er stellt es fest.\n\n4. Niemand wird gezwungen. Aber alle in diesem Raum haben durch Mut, Geschick und Loyalität bewiesen, dass sie nicht nur Crew sind, sondern verlässliche Partner. Dabei legt er dem Spieler, der ihm die Ohrfeige verpasst hat, die Hand auf die Schulter — ohne Kommentar, ohne Groll. (Falls in eurer Runde niemand ihn geschlagen hat: dieselbe Geste für den Spieler, der ihm am deutlichsten widersprochen hat.)\n\n5. Jeder wird nach dieser Fahrt reichlich entlohnt. An Schätzen ist Harwick nicht mehr interessiert. Er will nur noch seine Tochter zurück.\n\nSEIN SCHLUSSSATZ (möglichst wörtlich, Hendriks Formulierung):\n\n„Wenn ich noch ein letztes Mal den Mut und die Verlässlichkeit in dieser Truppe beschwören darf — dann ist das eigentlich schon zu viel verlangt. Also liegt es ganz bei euch, ob ihr mir noch ein Mal folgt, oder auf diesem Schiff wartet.“\n\nDanach: Stille, und die Entscheidung. Sie ist echt — wer an Bord bleiben will, darf das ohne Nachteil (SL-Ermessen, wie die Übrigen darauf reagieren).\n\nSL-HINWEISE:\n— Cormac ist im Raum. Er trägt die Schuld am Tod der Tochter (Bibel 8.1) — was Harwick hier über Jessica sagt, trifft ihn mit. Ob er etwas sagt oder es aushält, ohne den Blick zu heben, ist SL-Ermessen; das geknotete Seil taucht laut Bibel 2.7 höchstens noch einmal auf, also nur hier ODER im Finale, nicht beides.\n— Harwick wirbt nicht und droht nicht. Kein Pathos, keine Rede vor der Mannschaft — er sitzt mit ihnen in einem Raum und sagt, was ist.\n— Bewusst keine Probe. Das ist eine Entscheidung, kein Wurf (Bibel 2.6).",
+        trigger: [
+          { id: "namentlich_gerufen", label: "Harwick lässt namentlich rufen — Spieler und enge Vertraute, sonst niemand", info: "Der Schreibtisch ist zur Seite geräumt, damit alle Platz finden. Die Tür steht offen, zum ersten Mal seit langem." },
+          { id: "jessica_offengelegt", label: "Jessica: was geschehen ist, der Schmerz, die Schuldgefühle — unverstellt", info: "Wie viel die Runde schon weiß, hängt davon ab, was vorher aufgedeckt wurde (Bibel 12)." },
+          { id: "wird_sie_zurueckholen", label: "Er hat etwas herausgefunden und wird sie um jeden Preis zurückholen", info: "Keine Ankündigung, über die noch verhandelt wird." },
+          { id: "artefakt_ist_schluessel", label: "Das erhandelte Artefakt ist der Schlüssel zu einem Ritual", info: "Er sagt es geradeheraus und rechnet damit, dass man ihm nicht glaubt — er wirbt nicht darum." },
+          { id: "hand_auf_die_schulter", label: "Er legt dem Spieler, der ihn geschlagen hat, die Hand auf die Schulter", info: "Ohne Kommentar, ohne Groll. Alle im Raum haben sich als verlässliche Partner erwiesen, nicht nur als Crew." },
+          { id: "entlohnung_ohne_schaetze", label: "Reichliche Entlohnung nach der Fahrt — an Schätzen ist er nicht mehr interessiert", info: "Er will nur noch seine Tochter zurück." },
+          { id: "freiwillige_entscheidung", label: "Niemand wird gezwungen — mitkommen oder an Bord warten", info: "„Also liegt es ganz bei euch, ob ihr mir noch ein Mal folgt, oder auf diesem Schiff wartet.“ Die Entscheidung ist echt, Bleiben bringt keinen Nachteil." },
+          { id: "cormac_im_raum", label: "SL-Ermessen: Cormac hört das alles mit an", info: "Er trägt die Schuld am Tod der Tochter (Bibel 8.1). Ob er etwas sagt oder es nur aushält, bleibt offen — das geknotete Seil höchstens hier ODER im Finale (Bibel 2.7)." }
+        ]
+      },
+
       "harwick_nach_dem_verrat": {
         title: "Harwick nach dem Verrat",
         kurz: "Verzweigt nach dem Ausgang von \"Die Kinder retten\" (Artefakthandel, 9.1). Kinder gerettet: erschüttert, zurückgezogen. Kinder gestorben: dauerhaft manisch, kalte, unnahbare Befehle.",
@@ -2290,5 +2321,16 @@ const SZENEN_REGIE = {
         beduerfnis: "Jemand, der ihm zuhört — oder verspricht, im Zweifel eine Nachricht heimzubringen."
       }
     ]
+  },
+
+  // Ersatz fuer die Offizierskonferenz (Bibel 7.5). Ein einziger Raum, ein
+  // einziger Moment - die Ueberfahrt zur Grabesinsel loest Hendrik
+  // erzaehlerisch. KEINE Ghosts: es sind ausschliesslich namentlich gerufene
+  // Figuren im Raum, ein Pool anonymer Statisten waere hier falsch.
+  "12.1": {
+    uebergeordnetesZiel: "Zuhören und sich entscheiden: mit Harwick auf die Insel, oder an Bord warten. Keine Aufgabe, kein Wurf — die einzige Frage der Szene ist, wer mitkommt.", // Bibel 2.9
+    stimmung: "Enger als sonst. Mehr Lampen als nötig, der Schreibtisch an die Wand geschoben, damit alle stehen können. Harwick wartet, bis wirklich jeder da ist, und macht die Tür selbst zu. Draußen läuft der Schiffsbetrieb weiter, gedämpft durch die Wand — hier drinnen redet niemand dazwischen."
+    // Keine "ghosts": wer im Raum steht, steht namentlich in
+    // ORTE.kapitaenskajuete.szenenUeberschreibungen["12.1"].personen.
   }
 };

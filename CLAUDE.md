@@ -96,6 +96,41 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 13)
+- **Neue Szene `12.1` „Golden Lion — Die Einberufung"** als Ersatz für die Offizierskonferenz
+  (Bibel 7.5) — Inhalt komplett von Hendrik vorgegeben, hier nur ausformuliert. Harwick ruft die
+  Spieler und seine engen Vertrauten in die Kajüte und macht reinen Tisch: Jessica, Schmerz und
+  Schuld, das erhandelte Artefakt als Ritual-Schlüssel, die freiwillige Frage, wer ihm auf die
+  Insel folgt. Er legt dabei dem Spieler die Hand auf die Schulter, der ihm beim Artefakthandel
+  die Ohrfeige verpasst hat. Sein Schlusssatz steht wörtlich in der Interaktion.
+  - **Nur EIN sichtbarer Marker** (Kapitänskajüte), alle übrigen Schiffsorte über `hiddenMarkers`
+    ausgeblendet — die Szene ist ein Gespräch in einem Raum, kein Herumlaufen. Ausnahmsweise
+    deshalb ein langer `hiddenMarkers`-Eintrag statt eines kurzen.
+  - `ORTE.kapitaenskajuete`: neue Interaktion `die_einberufung` (`nurSzenen: ["12.1"]`, 8 Trigger)
+    plus erstmals ein `szenenUeberschreibungen`-Eintrag für diesen Ort (`personen`/`kurz`/
+    `ortHinweis`). Die bestehenden drei Interaktionen tragen alle `nurSzenen` und lecken daher
+    nicht in die neue Szene.
+  - `SZENEN_REGIE["12.1"]` mit `uebergeordnetesZiel` + `stimmung`, **bewusst ohne `ghosts`**: es
+    stehen ausschließlich namentlich gerufene Figuren im Raum, ein Pool anonymer Statisten wäre
+    hier falsch. Die Namensliste steht stattdessen in `personen`.
+  - Registry: `SCENE_ORDER` in `js/regie_vault.js` um `12.1` ergänzt; sonst nichts nötig, da
+    `GOLDEN_LION_SCENES` längst registriert ist.
+  - **Zwischenfehler vermieden:** Erst hatte die Anwesenden-Liste als frei erfundenes Feld
+    `anwesend` in `SZENEN_REGIE` gestanden — das rendert nirgends. Nach Prüfung von
+    `resolveOrtForScene()` in die dafür vorgesehene `szenenUeberschreibungen.personen` verschoben.
+  - Bild: Hendrik baut ein eigenes Kajüten-Bild mit der versammelten Runde. Bis dahin bleibt
+    bewusst das bestehende `interior_kapitaenskajuete.webp` stehen (leeres `img` würde „Kein Bild
+    hinterlegt." zeigen). Prompt dafür neu in `BILD-PROMPTS.md` — anders als die Riffinsel-Orte
+    bewusst MIT Figuren, aber ohne erkennbare Gesichter, damit sich die Spieler hineindenken
+    können.
+  - Bibel 7.5 um einen `[ERSETZT]`-Kasten ergänzt: Verzweigung 3 wird in dieser Kampagne nicht
+    gespielt, die Überfahrt löst die SL erzählerisch. Die Routen-Tabelle bleibt als Entwurf für
+    einen künftigen Durchgang stehen (Design-Prinzip 2.3). Der „intime Weg" aus Bibel 12 ist damit
+    eingelöst — für alle Anwesenden zugleich statt nur für eine hochrangige Figur.
+  - Offline mit Playwright verifiziert (`pnp-safe-test`, 0 Fehler): `regie.html` listet `12.1`,
+    zeigt genau einen Marker, die `szenenUeberschreibungen` greifen und die Interaktion ist da;
+    `karte.html` rendert die Szene mit genau einem Marker auf dem Golden-Lion-Hintergrund.
+
 ### 2026-08-22 (Fortsetzung 12)
 - **Zwei Kanon-Festlegungen von Hendrik in die Bibel übernommen** (auf die Frage, ob zwischen
   Riffinsel und Grabesinsel noch eine Schiffspassage gespielt werden soll — Antwort: nein, wird

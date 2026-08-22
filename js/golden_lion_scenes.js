@@ -195,10 +195,46 @@ const GOLDEN_LION_SCENES = {
       werkstatt: "Kein normales Tageswerk heute — mit gedämpfter Stimme und Behelfswerkzeug wird hier etwas zusammengebaut, das auf den ersten Blick keinen Sinn ergibt: ein Bündel Latten, grob zu einer Mastform gebunden, dazu eine einzige Laterne."
     },
     soundFile: "storm1.ogg" // vorlaeufig wiederverwendet fuer Spannung/Nachtstimmung, bis ein eigener Ton existiert
+  },
+
+  // Ersatz fuer die Offizierskonferenz aus Bibel 7.5 (Hendriks Entscheidung,
+  // August 2026): Die Routenwahl/Verzweigung 3 wird NICHT gespielt, die
+  // Ueberfahrt zur Grabesinsel loest Hendrik erzaehlerisch. Stattdessen
+  // dieser eine Moment an Bord - Harwick beruft die Spieler und seine engen
+  // Vertrauten in die Kajuete und macht reinen Tisch (Jessica, Schuld, das
+  // Artefakt als Ritual-Schluessel, die freiwillige Entscheidung, ob man ihm
+  // auf die Insel folgt). Loest damit zugleich den "intimen Weg" aus Bibel 12
+  // ein ("hoechste Rufstufe beim Kapitaen, Ende Session 2 / Anfang Session 3")
+  // - hier fuer alle Anwesenden zugleich statt nur fuer eine Figur.
+  //
+  // BEWUSST NUR EIN SICHTBARER MARKER: die Kapitaenskajuete. Alle anderen
+  // Orte des Schiffs sind ausgeblendet, weil die Szene nichts anderes
+  // enthaelt - kein Herumlaufen, ein einziger Raum. Deshalb hier ausnahmsweise
+  // ein langer "hiddenMarkers"-Eintrag statt eines kurzen.
+  "12.1": {
+    label: "Golden Lion — Die Einberufung",
+    background: "images/golden_lion_cutaway.webp",
+    hiddenMarkers: [
+      "bug", "oberdeck", "achterdeck", "offiziersquartier", "batteriedeck",
+      "unterdeck", "werkstatt", "frachtraum", "kombuese"
+    ],
+    // Hendrik baut fuer diese Szene ein eigenes Bild (Kajuete mit der
+    // versammelten Runde). Bis es existiert bleibt bewusst das bestehende
+    // Kajueten-Bild stehen statt eines leeren Felds - ein Marker ohne
+    // gueltiges img zeigt in karte.html sonst "Kein Bild hinterlegt."
+    // (siehe CLAUDE.md, Bild-Overlay-Fallback). Geplanter Dateiname:
+    // images/interior_kapitaenskajuete_einberufung.webp, Prompt siehe
+    // BILD-PROMPTS.md.
+    imgOverrides: {},
+    descOverrides: {
+      kapitaenskajuete: "Die Tür zur Kapitänskajüte steht offen, zum ersten Mal seit langem. Drinnen brennen mehr Lampen als sonst, der Schreibtisch ist zur Seite geräumt worden, damit alle Platz finden. Harwick hat rufen lassen — nicht die Offiziere, sondern namentlich ausgewählte Leute."
+    }
+    // soundFile bewusst offen gelassen - Zuordnung ist Hendriks Entscheidung
+    // (jungle.ogg/mystic.ogg liegen unzugeordnet bereit, siehe CLAUDE.md).
   }
 
   // Nächste freie führende Ziffer für eine weitere neue Örtlichkeit/einen
-  // weiteren Golden-Lion-Zustand: "12.1" ("7.1" Spanischer Hafen, "8.1"
+  // weiteren Golden-Lion-Zustand: "13.1" ("7.1" Spanischer Hafen, "8.1"
   // Schmugglernest, "9.1" Artefakthandel und "11.1" Riffinsel sind vergeben,
   // siehe die jeweiligen *_scenes.js-Dateien).
 };

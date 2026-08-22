@@ -244,6 +244,58 @@ at the cliff edge with his back to the viewer, gazing out to sea.`
 
 ---
 
+## Golden Lion — Die Einberufung (Szene 12.1)
+
+Die Kapitänskajüte mit der versammelten Runde. Dateiname:
+`interior_kapitaenskajuete_einberufung.jpg` → wird zu `.webp`; danach in
+`js/golden_lion_scenes.js` unter `"12.1"` als `imgOverrides: { kapitaenskajuete: … }` eintragen
+(steht dort als Kommentar schon vorbereitet).
+
+Bewusst **mit** Figuren, anders als die Riffinsel-Orte — die Versammlung ist der Inhalt des
+Bildes. Keine Gesichter der Spielercharaktere zeigen: der Blick steht mit im Raum, die Anwesenden
+sind teils von hinten oder halb abgewandt zu sehen, damit sich jeder Spieler selbst hineindenken
+kann.
+
+```
+Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
+17th-century Dutch masters. Wide landscape format, horizontally composed (approx. 16:9), to match
+the framing of the other location images.
+
+Interior of the great cabin of a small 17th-century frigate, seen from just inside the doorway at
+standing height, as if the viewer had entered last and is part of the gathering. Low beamed
+ceiling, dark polished wood, a wall of small leaded stern windows across the back with grey
+daylight and open sea behind them. The heavy writing desk has been pushed aside against one wall
+to make floor space, its charts and papers stacked and weighted down.
+
+More oil lamps are lit than the room needs — five or six, hung and standing — so the cabin is
+unusually bright and warm against the cold light from the windows, and every face catches some of
+it.
+
+Eight or nine men are gathered close together in the confined space, standing rather than seated:
+weathered sailors and officers in plain, worn 17th-century seafaring clothing, no uniforms, no
+finery. They are turned inward toward one man. Several are seen from behind or in three-quarter
+profile, faces partly hidden — the composition deliberately does not present them as portraits.
+
+At the focus stands the captain, in his forties, not raised on anything, at the same level as the
+others, speaking. His posture is open and tired rather than commanding: no gesture of authority,
+no raised hand, one arm reaching across to rest on the shoulder of a younger man beside him. The
+listeners' attention is complete and quiet; one older man near the edge of the group looks at the
+floor rather than at the captain.
+
+Close, hushed, intimate atmosphere — the feeling of a private conversation in a crowded small
+room, not a speech to a crew. Strong warm lamplight, deep shadow in the corners and under the
+beams, high contrast.
+
+Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
+text or labels anywhere in the image.
+```
+
+*Falls Gemini es zu feierlich/heroisch macht:* `Important: this is not a heroic or ceremonial
+scene. No raised arms, no dramatic poses, no one standing on a table or step. Everyone is tired,
+plainly dressed, and standing at the same level.`
+
+---
+
 ## Vorlage: Stammesdorf (Schatzinsel)
 
 Der Prompt, an dem sich die obigen orientieren — als Referenz für den Stil aufbewahrt.

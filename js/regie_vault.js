@@ -55,7 +55,7 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // Firebase-Init weiter unten stehen (dessen catch-Zweig ruft renderAll() ->
 // getAllSceneEntries() synchron auf, noch bevor eine spätere const-Deklaration
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
-const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1'];
+const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1'];
 
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {

@@ -385,6 +385,20 @@ die Wahl echtes Gewicht hat und nicht einfach „die offensichtlich sichere" gew
 
 Mehrheit entscheidet, der Kapitän hat ein selten genutztes Vetorecht.
 
+> **[ERSETZT] Ersatzkonferenz statt Routenwahl (Hendrik, August 2026):** In der laufenden
+> Kampagne wird diese Verzweigung **nicht gespielt**. Die Überfahrt zur Grabesinsel löst die SL
+> erzählerisch. An ihre Stelle tritt die Szene **`12.1` „Golden Lion — Die Einberufung"**
+> (`js/golden_lion_scenes.js`, `ORTE.kapitaenskajuete`, Interaktion „Harwick macht reinen Tisch"):
+> ein einziger Ort, die Kapitänskajüte, in der Harwick die Spieler und seine engen Vertrauten
+> zusammenruft und alles offenlegt — Jessica, seine Schuld, und dass das erhandelte Artefakt der
+> Schlüssel zum Ritual ist. Er zwingt niemanden mitzukommen; jeder wird nach der Fahrt reichlich
+> entlohnt, an Schätzen ist er nicht mehr interessiert. Die einzige Frage der Szene ist, wer ihm
+> auf die Insel folgt und wer an Bord wartet.
+>
+> Damit ist zugleich der **„intime Weg"** aus Abschnitt 12 eingelöst — allerdings nicht nur für
+> eine einzelne hochrangige Figur, sondern für alle Anwesenden gleichzeitig. Die Routen-Tabelle
+> oben bleibt als Entwurf für einen künftigen Durchgang erhalten.
+
 **Design-Absicht:** Der aufgestiegene Spieler erlebt unmittelbar, dass sein Aufstieg reale,
 teils unvorhersehbare Folgen hat. Jede Entscheidung für etwas ist zugleich eine gegen etwas
 anderes.
