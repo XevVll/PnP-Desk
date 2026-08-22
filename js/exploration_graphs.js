@@ -45,7 +45,7 @@ const EXPLORATION_GRAPHS = {
   "11.1": {
     startNode: "strand",
     nodes: {
-      strand: { type: "start", label: "Strand", top: 46, left: 49 },
+      strand: { type: "start", label: "Strand", top: 56.4, left: 54.2 },
 
       zwischenpunkt1: {
         type: "ereignis", label: "Ein Krabbenschwarm", top: 56.1, left: 65.6,

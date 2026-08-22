@@ -108,9 +108,13 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
     zurück dorthin — eine Sackgasse für jeden, der von Westen kommt. Neue Kanten `e_zp_5_zp_3`
     (Aufstieg vom Becken zum Felsvorsprung) und `e_zp_3_zp` (weiter hoch zum Grat, von dort schon
     bestehend zur Aussichtsklippe) verbinden die beiden Graphhälften jetzt in beide Richtungen.
-  - Der Startknoten `strand` hatte eigene, leicht abweichende Koordinaten (`top:56.4,left:54.2`)
-    statt der Position des tatsächlichen „Riffstrand"-Markers (`top:46,left:49`) — Positions-Ring
-    saß dadurch sichtbar neben dem Landepunkt. Koordinaten direkt angeglichen.
+  - Der „Riffstrand"-Marker (`js/riffinsel_scenes.js`) saß bei `top:46,left:49` im Wasser statt am
+    Strand, während der Startknoten `strand` im Graphen mit `top:56.4,left:54.2` schon korrekt auf
+    dem Sand lag (Hendriks eigene, direkt am Referenzbild gebaute Koordinate). Erster Versuch ging
+    fälschlich in die andere Richtung (Graph an den falschen Marker angeglichen, von Hendrik sofort
+    korrigiert) — richtig ist umgekehrt: der Marker wurde auf die Graph-Koordinate `56.4/54.2`
+    verschoben. Mit beiden Kandidaten-Positionen als Overlay auf dem echten Bild
+    (`images/riffinsel.webp`) visuell gegengeprüft, bevor korrigiert wurde.
   - Mit einem Node/vm-Skript auf Kanten-Validität (alle `from`/`to` existieren) und Erreichbarkeit
     aller Knoten vom Startknoten aus geprüft (beides sauber), außerdem mit Playwright den Graphen
     über `renderScene('11.1')` gerendert und die neuen Kanten sowie die korrigierte Start-Position

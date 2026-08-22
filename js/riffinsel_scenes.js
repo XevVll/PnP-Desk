@@ -40,7 +40,7 @@ const RIFFINSEL_SCENES = {
     markers: [
       {
         id: "riffstrand",
-        top: 46, left: 49,
+        top: 56.4, left: 54.2,
         title: "Der Riffstrand",
         desc: "Ein schmaler Sandstreifen, von einem vorgelagerten Riff wie von einer Mauer geschützt — dahinter tost noch immer die Brandung, hier drinnen liegt das Wasser fast still. Die Golden Lion liegt vor Anker in der kleinen Lagune, dicht genug am Ufer, dass ein Boot reicht. Der Himmel im Osten hellt sich langsam auf.",
         img: "images/riffinsel.webp"
