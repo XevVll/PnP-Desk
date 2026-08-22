@@ -103,6 +103,15 @@ edges: {
 }
 ```
 
+**Stilregel für `hinweis` (Hendriks Vorgabe, 2026-08-22):** rein beschreiben, wie der Weg
+aussieht bzw. sich anfühlt — **keine Wertung und keine Einordnung relativ zum bisherigen Weg**.
+Also kein „führt zurück", kein „weiter", kein „ein zweiter Abzweig". Grund: der Graph ist
+vollständig beidseitig, jeder Knoten also über mehrere Routen erreichbar. Ein „führt zurück
+Richtung Küste" erschien dadurch auch Spielern, die nie an der Küste waren, und behauptete etwas
+Falsches über deren Weg. Eine reine Ortsbeschreibung stimmt dagegen immer, egal woher die Gruppe
+kommt (verwandt mit Design-Regel 2.8 der Bibel). Aus demselben Grund trägt das Spieler-Label auf
+der Karte auch kein „↩"-Präfix mehr — nur die gedämpfte Farbe der `.back`-Option bleibt.
+
 Jede Kante ist ein simples `{ from, to, hinweis }`-Objekt in einem flachen Kanten-Verzeichnis der
 Szene — **nicht** am Knoten selbst als `edges`-Array gepflegt. Grund: doppelte Buchführung
 (Kante am Start- UND am Zielknoten eintragen) ist eine Fehlerquelle, die diese Szene bereits ohne

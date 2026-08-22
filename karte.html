@@ -1034,7 +1034,11 @@
           '<div class="erk-arrow-bg" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)"></div>' +
           '<div class="erk-arrow-shape"></div>' +
           '<div class="erk-arrow-votes' + (count ? ' has-votes' : '') + '" style="transform: rotate(' + (-(angleDeg + 90)) + 'deg)">' + count + '</div>' +
-          '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + (e.isBack ? '↩ ' : '') + e.hinweis + '</div>';
+          // Kein "↩"-Präfix o.Ä. am Spieler-Label: der Hinweistext soll den
+          // Weg nur beschreiben, nicht einordnen, ob er vorwärts oder
+          // zurück führt (Hendriks Vorgabe, siehe Stilregel in
+          // js/exploration_graphs.js). Die gedämpfte .back-Farbe bleibt.
+          '<div class="erk-arrow-label" style="transform: translateX(-50%) rotate(' + (-(angleDeg + 90)) + 'deg)">' + e.hinweis + '</div>';
         mapWrapEl.appendChild(arrowEl);
       }
     }

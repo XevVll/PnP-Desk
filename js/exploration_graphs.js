@@ -34,6 +34,16 @@
 //
 // Kanten-Objekt: { from, to, hinweis } - "hinweis" ist der Sinneseindruck,
 // den Spieler an einem Entscheidungsknoten für GENAU DIESE Kante sehen.
+//
+// STILREGEL für "hinweis" (Hendriks Vorgabe, 2026-08-22): rein beschreiben,
+// wie der Weg AUSSIEHT/sich anfühlt - keine Wertung und keine Einordnung
+// relativ zum bisherigen Weg. Also kein "führt zurück", kein "weiter",
+// kein "ein zweiter Abzweig". Grund: der Graph ist vollständig beidseitig,
+// jeder Knoten also über mehrere Routen erreichbar - ein "führt zurück
+// Richtung Küste" erscheint dadurch auch Spielern, die nie an der Küste
+// waren, und behauptet etwas Falsches über ihren Weg. Eine reine
+// Ortsbeschreibung stimmt dagegen immer, egal woher die Gruppe kommt
+// (verwandt mit Design-Regel 2.8 der Bibel).
 // Riffinsel-Graph (11.1) seit 2026-08-21 von Hendrik selbst mit
 // graph_editor.html direkt auf dem echten Kartenbild gebaut (löst Claudes
 // vorherige Best-Effort-Ableitung aus der handgezeichneten Skizze ab, die
@@ -143,54 +153,54 @@ const EXPLORATION_GRAPHS = {
       }
     },
     edges: {
-      e_strand_zwischenpunkt1: { from: "strand", to: "zwischenpunkt1", hinweis: "Ein heller Streifen aus Sand und Geröll zieht sich am Fuß der Felsen entlang." },
-      e_zwischenpunkt1_strand: { from: "zwischenpunkt1", to: "strand", hinweis: "Der Streifen aus Sand und Geröll führt zurück zum Landepunkt." },
-      e_zwischenpunkt1_wrack: { from: "zwischenpunkt1", to: "wrack", hinweis: "Große, scharfkantige Felsbrocken versperren fast den Weg zum Wasser." },
-      e_wrack_zwischenpunkt1: { from: "wrack", to: "zwischenpunkt1", hinweis: "Über die Felsbrocken zurück Richtung Riff." },
-      e_zwischenpunkt1_zwischenpunkt2: { from: "zwischenpunkt1", to: "zwischenpunkt2", hinweis: "Der Pfad zieht sich weiter am Riff entlang, tiefer ins Grün." },
+      e_strand_zwischenpunkt1: { from: "strand", to: "zwischenpunkt1", hinweis: "Ein heller Streifen aus Sand und Geröll am Fuß der Felsen." },
+      e_zwischenpunkt1_strand: { from: "zwischenpunkt1", to: "strand", hinweis: "Loser Sand zwischen Felskante und offenem Wasser." },
+      e_zwischenpunkt1_wrack: { from: "zwischenpunkt1", to: "wrack", hinweis: "Große, scharfkantige Felsbrocken bis ans Wasser." },
+      e_wrack_zwischenpunkt1: { from: "wrack", to: "zwischenpunkt1", hinweis: "Ein schmaler Streifen Geröll zwischen den Felsbrocken." },
+      e_zwischenpunkt1_zwischenpunkt2: { from: "zwischenpunkt1", to: "zwischenpunkt2", hinweis: "Ein Pfad am Riff entlang, ins dichtere Grün hinein." },
 
-      e_zwischenpunkt2_versteckte_grotte: { from: "zwischenpunkt2", to: "versteckte_grotte", hinweis: "Direkt dahinter öffnet sich ein schmaler Spalt im Fels." },
-      e_versteckte_grotte_zwischenpunkt2: { from: "versteckte_grotte", to: "zwischenpunkt2", hinweis: "Der schmale Spalt führt zurück zu den Lianen." },
-      e_versteckte_grotte_zp3: { from: "versteckte_grotte", to: "zp3", hinweis: "Ein unauffälliger Trampelpfad führt von der Grotte aus weiter." },
-      e_zp3_zwischenpunkt2: { from: "zp3", to: "zwischenpunkt2", hinweis: "Der Pfad führt zurück in Richtung der Lianen." },
-      e_zwischenpunkt2_zwischenpunkt1: { from: "zwischenpunkt2", to: "zwischenpunkt1", hinweis: "Der Pfad führt zurück Richtung Riff." },
-      e_zwischenpunkt2_zp3: { from: "zwischenpunkt2", to: "zp3", hinweis: "Ein Abzweig führt tiefer in den Dschungel." },
-      e_zp3_versteckte_grotte: { from: "zp3", to: "versteckte_grotte", hinweis: "Ein unauffälliger Trampelpfad führt zurück zur Grotte." },
+      e_zwischenpunkt2_versteckte_grotte: { from: "zwischenpunkt2", to: "versteckte_grotte", hinweis: "Ein schmaler Spalt im Fels, dahinter kühle, feuchte Luft." },
+      e_versteckte_grotte_zwischenpunkt2: { from: "versteckte_grotte", to: "zwischenpunkt2", hinweis: "Ein Spalt im Fels, davor hängende Ranken." },
+      e_versteckte_grotte_zp3: { from: "versteckte_grotte", to: "zp3", hinweis: "Ein Trampelpfad in niedergedrücktem Gras, kaum zu erkennen." },
+      e_zp3_zwischenpunkt2: { from: "zp3", to: "zwischenpunkt2", hinweis: "Ein Pfad senkt sich zwischen Ranken und Luftwurzeln." },
+      e_zwischenpunkt2_zwischenpunkt1: { from: "zwischenpunkt2", to: "zwischenpunkt1", hinweis: "Ein Pfad am Riff entlang, das Rauschen der Brandung wird lauter." },
+      e_zwischenpunkt2_zp3: { from: "zwischenpunkt2", to: "zp3", hinweis: "Ein Abzweig verliert sich im dichten Dschungel." },
+      e_zp3_versteckte_grotte: { from: "zp3", to: "versteckte_grotte", hinweis: "Ein kaum sichtbarer Trampelpfad zwischen Felsen hindurch." },
 
-      e_strand_zp1l: { from: "strand", to: "zp1l", hinweis: "Ein zweiter Pfad führt tiefer ins Dickicht, weg von der Küste." },
-      e_zp1l_strand: { from: "zp1l", to: "strand", hinweis: "Der Pfad führt zurück Richtung Küste." },
-      e_zp1l_zp_2: { from: "zp1l", to: "zp_2", hinweis: "Der Weg führt weiter zwischen dichten Farnen hindurch." },
-      e_zp_2_zp1l: { from: "zp_2", to: "zp1l", hinweis: "Der Weg führt zurück zwischen dichten Farnen hindurch." },
-      e_zp_2_zwischenpunkt2: { from: "zp_2", to: "zwischenpunkt2", hinweis: "Ein Abzweig führt zurück Richtung Küste." },
-      e_zp_2_zp3: { from: "zp_2", to: "zp3", hinweis: "Ein zweiter Abzweig führt tiefer in den Dschungel." },
-      e_zwischenpunkt2_zp_2: { from: "zwischenpunkt2", to: "zp_2", hinweis: "Ein Abzweig führt zurück in Richtung der Farne." },
-      e_zp3_zp_2: { from: "zp3", to: "zp_2", hinweis: "Ein zweiter Abzweig führt zurück in Richtung der Farne." },
+      e_strand_zp1l: { from: "strand", to: "zp1l", hinweis: "Ein Pfad vom Sand ins Dickicht hinein." },
+      e_zp1l_strand: { from: "zp1l", to: "strand", hinweis: "Zwischen den Stämmen blitzt heller Sand auf, Brandung ist zu hören." },
+      e_zp1l_zp_2: { from: "zp1l", to: "zp_2", hinweis: "Ein Weg zwischen mannshohen Farnen hindurch." },
+      e_zp_2_zp1l: { from: "zp_2", to: "zp1l", hinweis: "Ein ausgetretener Weg, von dichten Farnen gesäumt." },
+      e_zp_2_zwischenpunkt2: { from: "zp_2", to: "zwischenpunkt2", hinweis: "Ein Abzweig, auf dem die Luft feuchter und schwerer wird." },
+      e_zp_2_zp3: { from: "zp_2", to: "zp3", hinweis: "Ein Abzweig, auf dem das Unterholz immer dorniger wird." },
+      e_zwischenpunkt2_zp_2: { from: "zwischenpunkt2", to: "zp_2", hinweis: "Ein Abzweig zwischen moosüberwachsene Felsblöcke hinein." },
+      e_zp3_zp_2: { from: "zp3", to: "zp_2", hinweis: "Ein Abzweig auf mannshohe Farne zu." },
 
-      e_zp3_zp: { from: "zp3", to: "zp", hinweis: "Der Pfad steigt an, Richtung eines offenen Felsvorsprungs." },
-      e_zp_zp3: { from: "zp", to: "zp3", hinweis: "Der Pfad führt zurück bergab, Richtung Dschungel." },
+      e_zp3_zp: { from: "zp3", to: "zp", hinweis: "Ein ansteigender Pfad, oben offener Fels über dem Grün." },
+      e_zp_zp3: { from: "zp", to: "zp3", hinweis: "Ein Pfad fällt bergab, ins geschlossene Grün hinein." },
       e_zp_die_aussichtsklippe: { from: "zp", to: "die_aussichtsklippe", hinweis: "Der Grat mündet in einen freien Felsvorsprung." },
-      e_die_aussichtsklippe_zp: { from: "die_aussichtsklippe", to: "zp", hinweis: "Der Felsvorsprung mündet zurück in den Grat." },
-      e_zp_zp_3: { from: "zp", to: "zp_3", hinweis: "Ein zweiter Weg führt seitlich den Hang hinunter." },
+      e_die_aussichtsklippe_zp: { from: "die_aussichtsklippe", to: "zp", hinweis: "Ein schmaler Grat, auf dem der Wind ungebremst zieht." },
+      e_zp_zp_3: { from: "zp", to: "zp_3", hinweis: "Ein Weg seitlich den Hang hinunter, über nasses Gestein." },
 
-      e_zp_3_zp_4: { from: "zp_3", to: "zp_4", hinweis: "Der Pfad führt weiter über nasses Gestein." },
-      e_zp_3_suesswasserquelle: { from: "zp_3", to: "suesswasserquelle", hinweis: "Kurz dahinter plätschert Wasser." },
-      e_suesswasserquelle_zp_3: { from: "suesswasserquelle", to: "zp_3", hinweis: "Ein Pfad führt von der Quelle aus bergauf zu nassem Gestein." },
+      e_zp_3_zp_4: { from: "zp_3", to: "zp_4", hinweis: "Ein Pfad über nasses, dunkles Gestein." },
+      e_zp_3_suesswasserquelle: { from: "zp_3", to: "suesswasserquelle", hinweis: "Von unten her plätschert Wasser." },
+      e_suesswasserquelle_zp_3: { from: "suesswasserquelle", to: "zp_3", hinweis: "Ein Pfad steigt zu moosbewachsenem, nassem Fels hinauf." },
 
-      e_zp1l_zp_6: { from: "zp1l", to: "zp_6", hinweis: "Ein weiterer Abzweig führt tiefer ins feuchte Unterholz." },
-      e_zp_6_zp1l: { from: "zp_6", to: "zp1l", hinweis: "Der Abzweig führt zurück Richtung Fußspuren." },
+      e_zp1l_zp_6: { from: "zp1l", to: "zp_6", hinweis: "Ein Abzweig ins feuchte, stehende Unterholz." },
+      e_zp_6_zp1l: { from: "zp_6", to: "zp1l", hinweis: "Ein Abzweig auf trockeneren, festeren Boden." },
       e_zp_6_suesswasserquelle: { from: "zp_6", to: "suesswasserquelle", hinweis: "Das Plätschern von Wasser wird lauter." },
-      e_suesswasserquelle_zp_6: { from: "suesswasserquelle", to: "zp_6", hinweis: "Ein Pfad führt von der Quelle aus zurück ins feuchte Unterholz." },
+      e_suesswasserquelle_zp_6: { from: "suesswasserquelle", to: "zp_6", hinweis: "Ein Pfad ins schwüle, stehende Unterholz." },
 
-      e_suesswasserquelle_zp_4: { from: "suesswasserquelle", to: "zp_4", hinweis: "Von der Quelle aus führt ein Pfad weiter bergauf." },
-      e_suesswasserquelle_zp_5: { from: "suesswasserquelle", to: "zp_5", hinweis: "Ein zweiter Pfad zweigt Richtung Westen ab." },
-      e_zp_5_zp_4: { from: "zp_5", to: "zp_4", hinweis: "Der Pfad führt weiter am Hang entlang." },
-      e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad führt weiter nach Westen." },
+      e_suesswasserquelle_zp_4: { from: "suesswasserquelle", to: "zp_4", hinweis: "Ein Pfad steigt bergauf, der Boden wird weicher." },
+      e_suesswasserquelle_zp_5: { from: "suesswasserquelle", to: "zp_5", hinweis: "Ein Pfad nach Westen, ins dichte Unterholz." },
+      e_zp_5_zp_4: { from: "zp_5", to: "zp_4", hinweis: "Ein Pfad zieht sich am Hang entlang." },
+      e_zp_6_zp_5: { from: "zp_6", to: "zp_5", hinweis: "Ein schmaler Trampelpfad nach Westen." },
       e_zp_5_suesswasserquelle: { from: "zp_5", to: "suesswasserquelle", hinweis: "Ein feuchter, kühler Luftzug verrät die Nähe von Wasser." },
-      e_zp_3_zp: { from: "zp_3", to: "zp", hinweis: "Der Pfad steigt weiter an, der Wind wird spürbar stärker." },
-      e_zp_4_suesswasserquelle: { from: "zp_4", to: "suesswasserquelle", hinweis: "Der Weg führt bergab, wo Wasser plätschert." },
-      e_zp_4_zp_3: { from: "zp_4", to: "zp_3", hinweis: "Der Pfad führt zurück über nasses Gestein, den Hang hinauf." },
-      e_zp_4_zp_5: { from: "zp_4", to: "zp_5", hinweis: "Ein Pfad führt zurück den Hang entlang." },
-      e_zp_5_zp_6: { from: "zp_5", to: "zp_6", hinweis: "Ein schmaler Trampelpfad führt zurück nach Osten." }
+      e_zp_3_zp: { from: "zp_3", to: "zp", hinweis: "Ein ansteigender Pfad, der Wind wird spürbar stärker." },
+      e_zp_4_suesswasserquelle: { from: "zp_4", to: "suesswasserquelle", hinweis: "Ein Weg fällt bergab, unten plätschert Wasser." },
+      e_zp_4_zp_3: { from: "zp_4", to: "zp_3", hinweis: "Ein Pfad steigt über nasses Gestein den Hang hinauf." },
+      e_zp_4_zp_5: { from: "zp_4", to: "zp_5", hinweis: "Ein Pfad am Hang entlang, das Unterholz wird dichter." },
+      e_zp_5_zp_6: { from: "zp_5", to: "zp_6", hinweis: "Ein schmaler Trampelpfad nach Osten, die Luft wird schwüler." }
     }
   }
 };
@@ -258,7 +268,7 @@ function getPlayableOptions(sceneId, nodeId, history) {
     const prev = history[history.length - 1];
     const hasRealEdgeBack = edges.some(function (e) { return e.to === prev; });
     if (!hasRealEdgeBack) {
-      edges.push({ id: BACK_EDGE_ID, to: prev, hinweis: 'Zurück, den Weg zurückverfolgen.', isBack: true });
+      edges.push({ id: BACK_EDGE_ID, to: prev, hinweis: 'Ein Weg, dessen Bewuchs frisch niedergetreten ist.', isBack: true });
     }
   }
   return edges;

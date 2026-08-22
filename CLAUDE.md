@@ -96,6 +96,22 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 4)
+- **Neue Stilregel für Kanten-Sinneshinweise: reine Wegbeschreibung, keine Einordnung**
+  (Hendriks Vorgabe). Formulierungen wie „führt zurück Richtung Küste", „ein zweiter Abzweig"
+  oder „der Pfad führt weiter" erschienen auch Spielern, die diesen Weg nie gegangen waren —
+  seit der Graph vollständig beidseitig ist, erreicht man jeden Knoten über mehrere Routen, und
+  eine solche Formulierung behauptet dann etwas Falsches über den eigenen Weg. **Alle 42
+  `hinweis`-Texte** in `js/exploration_graphs.js` neu geschrieben: nur noch, wie der Weg aussieht
+  bzw. sich anfühlt (z. B. „Ein Abzweig, auf dem das Unterholz immer dorniger wird." statt „Ein
+  zweiter Abzweig führt tiefer in den Dschungel."), 42 eindeutige Texte, kein „zurück/weiter/
+  zweiter/erneut" mehr. Auch der Text der synthetischen Zurück-Option und das „↩"-Präfix am
+  Spieler-Label in `karte.html` entsprechend neutralisiert (die gedämpfte `.back`-Farbe bleibt,
+  im SL-Panel bleibt das Präfix als Kennzeichnung der Fallback-Option). Stilregel als Kommentar
+  in `js/exploration_graphs.js` und in `RIFFINSEL-ERKUNDUNGSGRAPH.md` (2.3) verankert, damit sie
+  bei künftigen Graphen mitgedacht wird. Per Skript auf verbotene Formulierungen geprüft,
+  bestehende Playwright-Regression weiterhin mit 0 Fehlern.
+
 ### 2026-08-22 (Fortsetzung 3)
 - **Riffinsel-Erkundung umgestellt: SL gibt jede Bewegung frei, kein Wurf blockiert je einen Weg**
   (Hendriks Vorgabe). Drei zusammengehörige Änderungen:
