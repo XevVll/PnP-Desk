@@ -94,6 +94,16 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-21 (Fortsetzung 8)
+- **Marker-Feinjustage der vier Riffinsel-Fundstellen** (Hendriks Vorgabe: "müssen deckungsgleich
+  sein"). Süßwasserquelle, Wrackteile, Aussichtsklippe und versteckte Grotte in
+  `js/riffinsel_scenes.js` per Playwright-Screenshot gegen das echte Bild (`images/riffinsel.webp`,
+  1920×1047) pixelgenau nachjustiert — vorher lagen Quelle und Aussichtsklippe sichtbar daneben
+  (Quelle am oberen Rand des Wasserfalls statt im Becken, Klippe im offenen Himmel rechts neben
+  dem Fels statt auf dem Fels selbst). Da "ort"-Knoten im Erkundungs-Graphen ihre Position bereits
+  vom Marker übernehmen (`getGraphNodePosition()`), wirkt sich das automatisch auch dort aus,
+  keine Änderung an `exploration_graphs.js` nötig.
+
 ### 2026-08-21 (Fortsetzung 7)
 - **Erkundungs-Graph nach Hendriks Referenz-Skizze neu aufgebaut** — diesmal von Hendrik selbst
   direkt mit `graph_editor.html` auf dem echten Kartenbild gebaut und als fertiger Code
