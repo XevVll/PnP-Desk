@@ -80,6 +80,11 @@
   .mark { position: absolute; top: -8px; right: -6px; font-size: 10px; line-height: 1; background: rgba(12,9,6,0.9); border: 1px solid var(--line); border-radius: 8px; padding: 1px 4px; color: var(--ink-dim); }
   .mark.saebel { border-color: var(--gold); color: var(--gold); }
   .mark.leer { border-color: var(--accent); color: #e0a08e; }
+  .name {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; white-space: nowrap; color: var(--ink-dim);
+    text-shadow: 0 1px 4px #000; pointer-events: none;
+  }
 
   aside { width: 300px; flex: none; border-left: 1px solid var(--line); background: var(--panel); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
   aside h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin: 0; }
@@ -188,6 +193,9 @@
     ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'].forEach(function (n, i) {
       setze(SZ.vorlagen.spieler, n, Math.max(1, Math.floor(R.breite / 5)) * (i + 1), R.hoehe - 1);
     });
+    // Harwick startet in der Feldmitte (Hendriks Vorgabe) - er steht beim
+    // Ritual an der Anhoehe, nicht bei der Gruppe am Eingang.
+    setze(SZ.vorlagen.verbuendeter, 'Harwick', Math.floor(R.breite / 2), Math.floor(R.hoehe / 2));
     setze(SZ.vorlagen.seelenloser, 'Der Seelenlose', Math.floor(R.breite / 2), 0);
     const ab = Math.max(2, Math.floor(R.breite / 5));
     for (let i = 0; i < 4; i++) setze(SZ.vorlagen.diener, 'Diener ' + (i + 1), Math.min(R.breite - 1, ab * (i + 1) - 1), 1);
@@ -396,6 +404,15 @@
     el.style.color = t.farbe || '#c9a24b';
     el.textContent = t.symbol || '?';
     el.title = (t.name || id) + ' — ' + t.typ + ', HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?');
+
+    // Helden-Seite (Spieler + Verbuendete) immer beschriften - Gegner sind
+    // austauschbare "Diener", deren Schilder wuerden nur uebereinanderliegen.
+    if (t.name && arenaSeite(t) === 'helden') {
+      const n = document.createElement('span');
+      n.className = 'name';
+      n.textContent = t.name;
+      el.appendChild(n);
+    }
 
     if (!t.tot) {
       const bar = document.createElement('div');

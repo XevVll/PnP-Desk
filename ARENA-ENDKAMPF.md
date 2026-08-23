@@ -130,7 +130,17 @@ Pro Figur und Runde: **eine** Bewegung (`hatGezogen`) und **ein** Angriff (`hatA
 Beide Marker setzt der Rundenwechsel zurück. Das gilt auch für SL-gesteuerte Figuren — die SL
 spielt nach denselben Regeln, kann aber im **Versetzen-Modus** (Schlachtfeld-Kopfleiste) jede
 Figur frei auf ein beliebiges Feld setzen, ohne Bewegungsregel und ohne den Zug zu verbrauchen.
-Das ist zugleich der Ersatz für das fehlende „Rückgängig" und das Werkzeug für die Aufstellung.
+Das ist zugleich der Ersatz für das fehlende „Rückgängig" und das Werkzeug für die Aufstellung —
+auch für frisch nachgesetzte Spieler, die die SL erst einmal frei platzieren will.
+
+**Aufstellung bei „Aufbauen":** vier generische Spieler an der unteren Grundlinie, **Harwick
+(Verbündeter) in der Feldmitte** — er steht beim Ritual an der Anhöhe, nicht bei der Gruppe am
+Eingang (Hendriks Vorgabe) —, der Seelenlose oben mittig, vier Diener davor.
+
+**Namensschilder:** Die Helden-Seite (Spieler + Verbündete) ist in beiden Ansichten **immer**
+beschriftet — man muss sehen, wer wer ist. Gegner sind austauschbare „Diener" und tragen ihren
+Namen nur als Tooltip (in der Spieleransicht zusätzlich ab großer Feldgröße); ihre Schilder
+würden bei 16×16 nur übereinanderliegen.
 
 ### 4.2 Angriffsart
 
@@ -158,6 +168,9 @@ er lebt:**
 - normal getötete Diener stehen nach `wiederauferstehenNach` (2) Runden wieder auf
 - alle `nachschubAlle` (3) Runden erscheinen `nachschubAnzahl` (2) neue Diener auf freien
   Randfeldern
+
+Der Seelenlose ist eine reine Nahkampf-Figur (`fernWert 0`) — auf Distanz kann er nicht
+angreifen, nur heranrücken (siehe Fehlergeschichte Nr. 6).
 
 **Fällt er, hört beides sofort auf** (`arenaBossLebt()`). Damit ist er das eigentliche Ziel des
 Kampfes und nicht bloß der dickste Gegner — ohne dass dafür eine Siegbedingung nötig wäre.
@@ -340,6 +353,12 @@ Drei Fehler beim Bau, alle vom Test gefunden:
    zunächst als „ungeprüft"; das Audit hat es bestätigt. Jetzt setzt der Aufbau vier generische
    „Spieler 1–4", die die SL über „+ Spieler" selbst benennt; mitkämpfende NSC (Harwick, Cormac)
    kommen auf demselben Weg dazu.
+6. **Figuren ohne Fernkampfwert konnten auf Distanz „schießen".** `arenaAngriffsart()` prüfte nur
+   die Entfernung; bei `fernWert 0` ist die Schwelle zwar 0 (nie gut/normal), aber **mit Mastery
+   blieb das Band „schlechter Erfolg" (1–50) offen** — der Seelenlose schoss mit Mindestschaden,
+   obwohl er keine Fernwaffe hat. Im Test an der Logzeile „Der Seelenlose schießt auf Harwick"
+   aufgefallen. Fix: Fernkampf setzt `fernWert > 0` voraus (in `arenaAngriffsart()`, wirkt damit
+   auf alle drei Ansichten gleichzeitig).
 
 ---
 

@@ -506,6 +506,9 @@ function arenaAufbauen(sceneId) {
     setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, abstand * (i + 1)), r.hoehe - 1);
   });
 
+  // Harwick startet in der Feldmitte (Hendriks Vorgabe) - er steht beim
+  // Ritual an der Anhoehe, nicht bei der Gruppe am Eingang.
+  setze(sz.vorlagen.verbuendeter, 'Harwick', Math.floor(r.breite / 2), Math.floor(r.hoehe / 2));
   setze(sz.vorlagen.seelenloser, 'Der Seelenlose', Math.floor(r.breite / 2), 0);
   const dienerAbstand = Math.max(2, Math.floor(r.breite / 5));
   for (let i = 0; i < 4; i++) {

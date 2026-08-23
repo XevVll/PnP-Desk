@@ -70,10 +70,19 @@ function arenaInReichweite(a, b, reichweite) {
 
 // Welche Angriffsart greift? Hendriks Vorgabe: in Nahkampfreichweite ist es
 // Nahkampf, sonst Fernkampf. Es gibt also keine Wahl - die Distanz entscheidet.
+//
+// Fernkampf setzt fernWert > 0 voraus. Ohne diese Pruefung konnte eine reine
+// Nahkampf-Figur (fernWert 0, z.B. der Seelenlose) auf Distanz "schiessen":
+// Schwelle 0 heisst zwar nie gut/normal, aber MIT Mastery blieb das Band
+// "schlechter Erfolg" (1..50) offen - der Boss schoss mit Mindestschaden,
+// obwohl er gar keine Fernwaffe hat. Im Test aufgefallen an der Logzeile
+// "Der Seelenlose schiesst auf Harwick".
 function arenaAngriffsart(angreifer, ziel, regeln) {
   const d = arenaDistanz(angreifer, ziel);
   if (d <= regeln.nahkampfReichweite) return 'nah';
-  if (d <= regeln.fernkampfReichweite) return 'fern';
+  if (d <= regeln.fernkampfReichweite) {
+    return ((angreifer && angreifer.fernWert) || 0) > 0 ? 'fern' : null;
+  }
   return null; // ausser Reichweite
 }
 

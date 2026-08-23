@@ -105,6 +105,22 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung 3) — Namensschilder, Harwick mittig, Engine-Fix
+- **Helden-Seite immer beschriftet** (Hendriks Vorgabe "die Namen sollten dran stehen, zumindest
+  von den freundlichen"): Spieler + Verbuendete tragen ihr Namensschild jetzt in BEIDEN Ansichten
+  dauerhaft; Gegner ("Diener") bleiben Tooltip - ihre Schilder wuerden bei 16x16 nur
+  uebereinanderliegen.
+- **Harwick startet beim "Aufbauen" in der Feldmitte** (beide Aufbau-Funktionen: arena_admin.html
+  und regie_vault.js) - er steht beim Ritual an der Anhoehe, nicht bei der Gruppe am Eingang.
+- Der Wunsch "neue Spieler erst mal frei platzieren" ist durch den vorhandenen Versetzen-Modus
+  abgedeckt (von Hendrik bestaetigt), keine Zusatzmechanik gebaut.
+- **Engine-Fix, vom erweiterten Test aufgedeckt:** Figuren mit fernWert 0 konnten auf Distanz
+  "schiessen" - Schwelle 0 laesst zwar nie gut/normal zu, aber mit Mastery blieb das Band
+  "schlechter Erfolg" (1-50) offen; der Seelenlose schoss mit Mindestschaden, obwohl er keine
+  Fernwaffe hat (Logzeile "Der Seelenlose schiesst auf Harwick"). Fix in arenaAngriffsart():
+  Fernkampf setzt fernWert > 0 voraus - wirkt auf alle drei Ansichten. Fehlergeschichte Nr. 6 in
+  ARENA-ENDKAMPF.md.
+
 ### 2026-08-23 (Fortsetzung 2) — SL-Schlachtfeld und Steuerungshoheit
 - **Neue Seite `arena_admin.html`** (Hendriks Wunsch: eine eigene Battlefield-Adminseite fuer den
   Endkampf). Vollbild-Schlachtfeld fuer die SL: Entitaet anklicken -> ausgewaehlt -> markierte

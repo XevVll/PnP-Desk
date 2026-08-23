@@ -1584,10 +1584,13 @@
       el.style.color = t.farbe || '#c9a24b';
       el.textContent = t.symbol || '?';
 
-      // Bei kleinen Feldern nur die gerade freigegebene Figur beschriften -
-      // wer am Zug ist, muss man sehen koennen, ohne zu raten. Der Rest
-      // bekommt den Namen als Tooltip.
-      if (t.name && (namenZeigen || id === freigegebenId)) {
+      // Beschriftet werden IMMER: die Helden-Seite (Spieler + Verbuendete,
+      // Hendriks Vorgabe - man muss sehen, wer wer ist) und die gerade
+      // freigegebene Figur. Gegner (austauschbare "Diener") nur bei grossen
+      // Feldern, sonst als Tooltip - ihre Schilder wuerden bei 16x16 nur
+      // uebereinanderliegen.
+      const heldenSeite = (typeof arenaSeite === 'function') && arenaSeite(t) === 'helden';
+      if (t.name && (namenZeigen || heldenSeite || id === freigegebenId)) {
         const name = document.createElement('span');
         name.className = 'arena-name';
         name.textContent = t.name;
