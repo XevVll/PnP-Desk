@@ -1847,6 +1847,23 @@ const ORTE = {
     }
   },
 
+  "das_kathedralenherz": {
+    kurz: "Das Ende des Wegs: Der Talboden laeuft ohne Absatz in eine hohe, unregelmaessige Oeffnung im Fels. Aus ihr kommt das gruenlich-tuerkise Licht. [OFFEN] Was drinnen liegt (Ritualort, Finale nach Bibel 12.1), ist noch nicht ausgearbeitet.",
+    interaktionen: {
+      "am_hoehleneingang": {
+        title: "Am Höhleneingang",
+        kurz: "Der Talboden läuft ohne Absatz in die Öffnung hinein — kein Tor, keine Schwelle, kein Bauwerk. Das Licht kommt von weiter unten und wird nicht heller. Reine Beobachtung, keine Probe.",
+        details: "Am Ende des Tals steht die Felswand geschlossen, bis auf eine Öffnung: hoch, unregelmäßig, ohne bearbeitete Kante. Der Talboden läuft ohne Absatz und ohne Schwelle hinein — man merkt den Übergang eher am Geräusch der eigenen Schritte als am Boden.\n\nDas grünlich-türkise Licht kommt aus der Tiefe, nicht von einer sichtbaren Quelle im Eingangsbereich. Es ist gleichmäßig, ohne Flackern, ohne Wärme. Wer hineinsieht, erkennt, dass der Gang nach unten führt und weiter reicht, als das Licht zeigt.\n\nSL-Hinweis: Keine Deutung, keine Erklärung. Wer eine Probe verlangt, bekommt Beobachtungen (die Luft aus der Öffnung ist kälter als draußen und riecht nach nichts; kein Echo, obwohl es eines geben müsste), aber keine Auflösung.\n\n[OFFEN] Was im Inneren liegt — der Ritualort und das Finale nach Bibel 12.1 — ist noch nicht ausgearbeitet und bekommt eigene Marker, sobald Hendrik es vorgibt.",
+        trigger: [
+          { id: "oeffnung_ohne_schwelle", label: "Der Talboden läuft ohne Absatz und ohne Schwelle in die Öffnung", info: "Kein Tor, keine bearbeitete Kante, kein Bauwerk." },
+          { id: "licht_aus_der_tiefe", label: "Das Licht kommt aus der Tiefe, nicht aus dem Eingangsbereich", info: "Gleichmäßig, ohne Flackern, ohne Wärme." },
+          { id: "gang_fuehrt_nach_unten", label: "Der Gang führt nach unten und weiter, als das Licht zeigt", info: "Wie weit, ist von außen nicht zu sehen." },
+          { id: "beobachtung_ohne_aufloesung", label: "Optionale Probe: Beobachtungen, aber keine Auflösung", info: "Die Luft ist kälter als draußen und riecht nach nichts. Kein Echo, obwohl es eines geben müsste." }
+        ]
+      }
+    }
+  },
+
   "der_schwarze_weg": {
     kurz: "Der einzige gangbare Weg landeinwärts: gerade, gleichmäßig breit, ohne Abzweig. Rechts und links ist der Fels zu steil. Weit vorn liegt ein grünlich-türkises Leuchten über dem Stein.",
     interaktionen: {

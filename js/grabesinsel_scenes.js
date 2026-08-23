@@ -60,7 +60,19 @@ const GRABESINSEL_SCENES = {
         id: "der_schwarze_weg",
         top: 62, left: 50,
         title: "Der schwarze Weg",
-        desc: "Der Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, mit unregelmäßigen Kanten und natürlichen Bruchlinien. Rechts und links stehen die Wände zu steil, um daneben zu gehen — es gibt keinen Abzweig. Stellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Weit vorn, wo das Tal sich verengt, liegt ein grünlich-türkises Leuchten über dem Stein, das mit keiner Tageszeit zu tun hat.",
+        desc: "Der Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, mit unregelmäßigen Kanten und natürlichen Bruchlinien. Rechts und links stehen die Wände zu steil, um daneben zu gehen — es gibt keinen Abzweig. Stellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Weit vorn, wo das Tal endet, liegt ein grünlich-türkises Leuchten auf dem Stein, das nicht von oben kommt, sondern von irgendwo weiter unten.",
+        img: "images/schatzinsel.webp" // PLATZHALTER
+      },
+      // Das "Kathedralenherz" (Hendriks Begriff): Das Tal endet nicht im
+      // Freien, sondern muendet in eine Hoehle - dort kommt das Leuchten her.
+      // Was DRINNEN liegt (Ritualort, Finale nach Bibel 12.1), ist noch nicht
+      // vorgegeben; dieser Marker beschreibt vorerst nur, was von aussen zu
+      // sehen ist.
+      {
+        id: "das_kathedralenherz",
+        top: 38, left: 50,
+        title: "Der Höhleneingang",
+        desc: "Am Ende des Tals steht die Felswand geschlossen — bis auf eine Öffnung, hoch und unregelmäßig, in die der Talboden ohne Absatz hineinläuft. Aus ihr kommt das grünlich-türkise Licht, gleichmäßig und ohne zu flackern, und legt sich auf den Stein davor. Weiter hinein reicht der Blick nicht.",
         img: "images/schatzinsel.webp" // PLATZHALTER
       }
     ]

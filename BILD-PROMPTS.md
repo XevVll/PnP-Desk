@@ -434,8 +434,19 @@ Gesteinsbild verschmelzen. Also ausdrücklich **keine Ruine, kein Mauerwerk, kei
 
 Grundriss nach der Skizze: ein langes Langhaus, das unten am Meer beginnt, links und rechts zwei
 Querarme, oben ein abschließender Kopf. **Genau ein Zugang zum Meer**, am Fuß des Langhauses —
-sonst fällt der Fels ringsum steil ins Wasser. Das grünlich-türkise Leuchten sitzt an der
-**Vierung**, dort wo Langhaus und Querarme zusammentreffen.
+sonst fällt der Fels ringsum steil ins Wasser.
+
+**Am inneren Ende mündet das Tal in eine Höhle** — sie ist das Kathedralenherz. Das
+grünlich-türkise Leuchten kommt **aus dieser Höhle heraus** und liegt nicht flächig über dem
+ganzen Talboden.
+
+**Zwei Fehler, die der erste Durchgang produziert hat (22.08.):**
+1. *„Zu plastisch, wie gestanzte Knete"* — das Kreuz sah aus wie eine saubere Form, die in eine
+   weiche Masse gedrückt wurde: gleichmäßige Tiefe, glatte Ränder, umlaufender Wall wie ein
+   Krater. Gegenmittel: **erodiertes Gebirge mit unregelmäßiger Höhe, Zacken, Schutthalden und
+   vorspringenden Felsnasen**, die das Tal stellenweise verdecken. Der Kreuz-Grundriss soll etwas
+   sein, das man **allmählich erkennt**, kein sauberes Symbol.
+2. Das Leuchten lag als Fläche auf dem Talboden statt aus der Höhle zu kommen.
 
 ### 1. Übersichtskarte der Insel (Grundszene)
 
@@ -450,47 +461,67 @@ angle — high enough that the shape of the island's interior reads clearly as a
 tilted enough to show the height and faces of the rock. Open sea all around, the island filling
 most of the frame.
 
-THE SHAPE — this is the point of the image: the island is a ring of sharp, jagged black mountain
-ridges, and those ridges enclose a single connected valley whose plan forms a cross: one long
-straight valley running from the shore inland, two shorter valley arms branching left and right
-partway along it, and a rounded valley head closing it off at the far end. The cross shape is
-formed ENTIRELY by the natural rock walls around it — it is not built, not carved, not paved.
-Anyone looking down on it would think of a cathedral floor plan without being able to say why.
+THE TERRAIN — read this carefully, it is the hardest part: the island is an eroded black
+mountain massif, and the valleys between its ridges happen to form a cross. It must look like real
+weathered geology, NOT like a shape stamped, cut, moulded or embossed into a soft mass.
 
-The surrounding ridges are steep, angular and knife-edged, falling directly into the sea on every
-side but one. There is exactly ONE opening to the water: a narrow inlet at the foot of the long
-valley, with a small shelf of black rock at the waterline — the only place a boat could land.
+Concretely: the ridges vary constantly in height, width and spacing — jagged summits, broken
+crests, deep gullies, fans of scree spilling down their inner faces, fractured slabs, spurs of
+rock jutting out into the valley and partly hiding it from view. Nothing about the enclosure is
+uniform. The valley itself changes width along its length, narrows and widens, and its edges are
+ragged rather than clean. The valley floor is not a flat basin of even depth: it rises and falls,
+with steps of broken rock, boulders and rubble fields.
 
-Inside the valley the ground is bare black stone, worn naturally smooth, forming a broad natural
-floor that leads inland from the inlet. It reads as rock, not as a road: uneven edges, natural
-fracture lines, no paving, no kerbs, no steps.
+The cross plan should be something a viewer gradually recognises after looking for a moment — not
+an obvious symbol laid on the landscape. One long valley running inland from the shore, two
+shorter valleys branching left and right partway along it, and a broader hollow closing it at the
+far end. The shape is formed ENTIRELY by natural rock — not built, not carved, not paved.
+
+The surrounding ridges fall directly into the sea on every side but one, with an irregular, deeply
+indented coastline of stacks and inlets. There is exactly ONE opening into the interior: a narrow
+gap at the foot of the long valley, with a small shelf of black rock at the waterline — the only
+place a boat could land.
+
+At the far inner end of the valley the rock face opens into a large CAVE MOUTH — a natural
+opening in the cliff, irregular in outline, dark inside. This is where the valley leads and where
+it stops.
 
 Only the faintest suggestions of a temple anywhere — a few places where the rock happens to stand
 in tall narrow forms like pillars, or where a ridge face falls in a way that suggests an arch.
 These must look like natural rock formations that merely resemble architecture, never like
-built or carved structures. No walls, no masonry, no ruins, no rubble, no carvings.
+built or carved structures. No walls, no masonry, no ruins, no rubble piles of worked stone, no
+carvings.
 
 Vegetation is almost absent: a few sparse grey stalks in cracks, nothing green, no palms, no
 jungle.
 
-Where the long valley meets the two side arms, an unnatural greenish-turquoise glow lies over the
-stone — cold, steady, not firelight, throwing a faint sickly light onto the rock walls around it.
-It is the only colour in the painting.
+An unnatural greenish-turquoise glow comes OUT OF THE CAVE MOUTH and spills onto the stone
+directly in front of it, lighting the rock faces around the opening — cold, steady, not firelight.
+The glow is concentrated at the cave; it does NOT lie spread across the whole valley floor. It is
+the only colour in the painting.
 
-A small ship lies at anchor outside the inlet, tiny in the frame.
+A small ship lies at anchor outside the sea gap, tiny in the frame.
+
+Painted as a landscape, not as a model: atmospheric haze softening the far side of the island,
+varied rock texture, visible weathering and erosion, broken light under the overcast sky.
 
 Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
 text or labels anywhere in the image.
 ```
 
-*Falls Gemini ein Bauwerk oder eine Ruine baut:* `Important: there is no building and no ruin on
-this island. No walls, no masonry, no columns, no steps, no carvings, no rubble. Everything is
-natural rock. The cathedral shape exists only as the outline of the valley between the mountain
-ridges, seen from above.`
+*Falls es wieder wie gestanzt/wie ein Modell aussieht:* `Important: the island must not look like a
+shape pressed into clay or a 3D model. The cross is not stamped, extruded or embossed. Break up
+every edge: uneven ridge heights, scree slopes, rock spurs jutting into the valley and partly
+hiding it, an irregular valley width, a valley floor with steps and boulders. Real eroded geology,
+painted with atmospheric depth.`
 
-*Falls der Kreuz-Grundriss nicht lesbar ist:* `Important: the valley floor between the ridges must
-clearly form a cross when seen from above — one long arm running to the sea inlet, two short arms
-to the left and right, and a rounded head at the far end.`
+*Falls Gemini ein Bauwerk oder eine Ruine baut:* `Important: there is no building and no ruin on
+this island. No walls, no masonry, no columns, no steps, no carvings. Everything is natural rock.
+The cathedral shape exists only as the outline of the valleys between the mountain ridges.`
+
+*Falls das Leuchten wieder flächig auf dem Talboden liegt:* `Important: the glow comes only from
+inside the cave mouth at the far end of the valley and lights the rock immediately around that
+opening. The rest of the valley floor is unlit black stone.`
 
 *Falls es zu warm/freundlich wird:* `Important: keep the palette cold and desaturated. No warm
 sunlight, no blue tropical water, no green foliage, no sandy beach. The only colour in the image

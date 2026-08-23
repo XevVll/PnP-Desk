@@ -96,6 +96,33 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 19)
+- **Grabesinsel-Karte nachgeschärft nach Hendriks Bildkritik** („zu plastisch, als wäre das Kreuz
+  eingestanzt — sieht nach gestanzter Knete aus"). Der erzeugte Entwurf hatte eine gleichmäßig
+  tiefe, glattrandige Kreuzform mit umlaufendem Wall, also eher Gussform als Geologie. Der
+  Karten-Prompt hat jetzt einen eigenen TERRAIN-Block: Bergrücken mit ständig wechselnder Höhe,
+  Breite und Abstand, Schutthalden, Felsnasen, die ins Tal vorspringen und es teilweise verdecken,
+  wechselnde Talbreite, ausgefranste Ränder, Talboden mit Stufen und Blockfeldern statt flacher
+  Wanne, dazu eine unregelmäßig eingeschnittene Küstenlinie. Leitsatz: der Kreuz-Grundriss soll
+  **allmählich erkennbar** werden, kein aufgelegtes Symbol. Ergänzt um „painted as a landscape,
+  not as a model" (Dunst, Erosion, Verwitterung) und eine eigene Nachfass-Zeile gegen den
+  Modell-/Knete-Eindruck. Die beiden bekannten Fehlschläge stehen jetzt oben im Abschnitt
+  dokumentiert, damit sie beim nächsten Anlauf nicht wiederkehren.
+- **Neuer Ort „Der Höhleneingang" (`das_kathedralenherz`)** — Hendriks Vorgabe: das Tal mündet in
+  eine Höhle, und diese Höhle ist das Kathedralenherz. Damit ist auch das Leuchten neu verortet:
+  es kommt **aus der Höhle heraus** statt flächig auf dem Talboden zu liegen (Prompt und
+  Marker-Texte entsprechend angepasst, inkl. Nachfass-Zeile). Dritter Marker in
+  `js/grabesinsel_scenes.js` (`top:38`), `ORTE.das_kathedralenherz` mit der Interaktion
+  „Am Höhleneingang" (4 Trigger): der Talboden läuft ohne Absatz und ohne Schwelle hinein, kein
+  Tor, keine bearbeitete Kante; das Licht kommt aus der Tiefe, der Gang führt nach unten. Weiter
+  reicht der Blick nicht. **[OFFEN]** bleibt, was drinnen liegt (Ritualort/Finale, Bibel 12.1).
+- **Wiederholter Werkzeug-Fehler festgehalten:** Bash-Heredocs verschlucken in dieser Umgebung
+  Backslashes, auch bei quotiertem Delimiter (`<<'PYEOF'`) — `\n` in einem Python-Skript landete
+  dadurch als echter Zeilenumbruch in den JS-Strings und hat `js/regie.js` zweimal unparsebar
+  gemacht. **Konsequenz für künftige Skript-Ersetzungen in JS-Strings: Backslashes über
+  `chr(92)` bauen oder die Ersetzung mit dem Write-Tool statt per Heredoc schreiben.** Jeweils per
+  `node --check` lokalisiert und repariert, Absatzstruktur danach gegengeprüft.
+
 ### 2026-08-22 (Fortsetzung 18)
 - **Grabesinsel-Form nach Hendriks Skizze korrigiert — natürlicher Fels statt Bauwerk.** Der erste
   Entwurf (Fortsetzung 17) hatte die Kathedralen-Anmutung als *gebaute* Struktur beschrieben
