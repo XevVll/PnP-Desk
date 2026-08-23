@@ -143,9 +143,29 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   beide Ansichten mit Fake-Firebase (Aufbau, Freigabe, Bewegung inkl. Sperre nach dem Zug,
   Angriff mit Log, Rundenwechsel, Aufräumen beim Szenenwechsel — 8 Prüfungen, 0 Fehler), dazu
   Screenshot-Kontrolle.
-- **[OFFEN]** Feinschliff nach dem ersten Testlauf: Werte (HP/Schaden/Reichweiten), ob der
-  Seelenlose eigene Fähigkeiten jenseits des Zuschlagens bekommt, und ob Spielerfiguren aus der
-  Charakterleiste automatisch die richtigen Namen ziehen sollen.
+- **[OFFEN]** Feinschliff nach dem ersten Testlauf: Werte (HP/Schaden), und ob der Seelenlose
+  eigene Fähigkeiten jenseits des Zuschlagens und Beschwörens bekommt.
+
+#### Nachtrag am selben Tag: 16×16 und Figuren nachsetzen
+- **Feld von 8×8 auf 16×16** (Hendriks Vorgabe), Bewegung bleibt bei 2 Feldern. Mitgezogen:
+  - **Fernkampfreichweite 4 → 6.** Das Brett hat die vierfache Fläche, die Bewegung ist gleich
+    geblieben — 4 Felder wären dort sehr kurz. Ist ein Vorschlag, keine Vorgabe, und steht als
+    solcher im Kommentar.
+  - Startaufstellung verteilt sich jetzt über die Grundlinie statt zusammengedrängt am linken
+    Rand zu stehen (bei 16 Feldern Breite wäre eine Viererkette unbrauchbar).
+  - Darstellung: mehr Bildhöhe für das Brett, Mindest-Feldgröße 18px. **Namensschilder erscheinen
+    nur noch ab 44px Feldgröße** — bei 16×16 überlagerten sie sich sonst gegenseitig; der Rest
+    bekommt den Namen als Tooltip. **Ausnahme: die gerade freigegebene Figur ist immer
+    beschriftet** — wer am Zug ist, muss man sehen können, ohne zu raten.
+- **Figuren lassen sich jederzeit nachsetzen** (Hendriks Anforderung „Ich muss Spieler hinzufügen
+  können"): drei Knöpfe im Panel (+ Spieler mit Namensabfrage, + Diener, + Seelenloser).
+  `arenaFigurHinzu()` sucht ein freies Feld auf der passenden Seite — Spieler von der unteren
+  Grundlinie nach innen, Gegner von der oberen — und weicht bei Bedarf aus. Damit ist die Arena
+  auch dann brauchbar, wenn Spieler später dazustoßen oder im Finale Figuren mitten im Kampf
+  hinzutreten.
+- Tests erweitert (Feldzahl 256, Hinzufügen inkl. Prüfung auf doppelt belegte Felder und richtige
+  Spielfeldhälfte). **Testfehler dabei:** die Randfeld-Prüfung war auf 8×8 hartcodiert und schlug
+  nach der Vergrößerung fehl — auf `regeln.breite/hoehe` umgestellt.
 
 ### 2026-08-23
 - **Grabesinsel-Finale (Bibel 12.1) komplett ausformuliert** — Inhalt in einer reinen

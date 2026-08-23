@@ -50,11 +50,14 @@ const ARENA_SCENES = {
     hintergrund: "images/interior_ritualkammer.webp",
     soundFile: "ritual.ogg",
     regeln: {
-      breite: 8,
-      hoehe: 8,
-      bewegung: 2,              // Felder pro Runde
+      breite: 16,
+      hoehe: 16,
+      bewegung: 2,              // Felder pro Runde (Hendriks Vorgabe, bleibt)
       nahkampfReichweite: 1,    // angrenzend (auch diagonal)
-      fernkampfReichweite: 4,
+      // Auf 16x16 waeren die urspruenglichen 4 Felder sehr kurz - das Brett
+      // hat die vierfache Flaeche, die Bewegung ist gleich geblieben. 6 ist
+      // ein Vorschlag, nicht Hendriks Vorgabe.
+      fernkampfReichweite: 6,
       wiederauferstehenNach: 2, // Runden, bis ein normal getoeteter Diener aufsteht
       nachschubAlle: 3,         // alle wie viele Runden beschwoert der Seelenlose
       nachschubAnzahl: 2

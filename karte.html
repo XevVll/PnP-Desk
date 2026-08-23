@@ -1496,8 +1496,12 @@
 
       // Brettgroesse an die Fensterhoehe binden, damit immer alles sichtbar
       // bleibt (die Arena liegt bildschirmfuellend ueber der Karte).
-      const platz = Math.min(window.innerWidth * 0.94, window.innerHeight * 0.66);
-      const feld = Math.floor(platz / Math.max(r.breite, r.hoehe));
+      // Bei 16x16 wird jedes Feld klein - deshalb so viel Hoehe wie moeglich
+      // ausnutzen und Namensschilder erst ab einer lesbaren Feldgroesse
+      // zeigen (sonst ueberlagern sie sich gegenseitig).
+      const platz = Math.min(window.innerWidth * 0.96, window.innerHeight * 0.74);
+      const feld = Math.max(18, Math.floor(platz / Math.max(r.breite, r.hoehe)));
+      const namenZeigen = feld >= 44;
       arenaBrettEl.style.gridTemplateColumns = 'repeat(' + r.breite + ', ' + feld + 'px)';
       arenaBrettEl.style.gridTemplateRows = 'repeat(' + r.hoehe + ', ' + feld + 'px)';
       arenaBrettEl.style.backgroundImage = sz.hintergrund ? 'url("' + sz.hintergrund + '")' : 'none';
@@ -1548,7 +1552,7 @@
             zelle.classList.add('erreichbar');
             zelle.onclick = function () { arenaBewege(freigegebenId, x, y); };
           }
-          if (tokenId) zelle.appendChild(arenaTokenEl(tokenId, tokens[tokenId], freigegebenId, angreifbar));
+          if (tokenId) zelle.appendChild(arenaTokenEl(tokenId, tokens[tokenId], freigegebenId, angreifbar, namenZeigen));
           arenaBrettEl.appendChild(zelle);
         }
       }
@@ -1569,16 +1573,23 @@
       arenaLogEl.innerHTML = zeilen.map(function (z) { return '<div>' + z.text + '</div>'; }).join('');
     }
 
-    function arenaTokenEl(id, t, freigegebenId, angreifbar) {
+    function arenaTokenEl(id, t, freigegebenId, angreifbar, namenZeigen) {
       const el = document.createElement('div');
       el.className = 'arena-token' + (id === freigegebenId ? ' frei' : '') + (t.tot ? ' tot' : '');
       el.style.color = t.farbe || '#c9a24b';
       el.textContent = t.symbol || '?';
 
-      const name = document.createElement('span');
-      name.className = 'arena-name';
-      name.textContent = t.name || '';
-      el.appendChild(name);
+      // Bei kleinen Feldern nur die gerade freigegebene Figur beschriften -
+      // wer am Zug ist, muss man sehen koennen, ohne zu raten. Der Rest
+      // bekommt den Namen als Tooltip.
+      if (t.name && (namenZeigen || id === freigegebenId)) {
+        const name = document.createElement('span');
+        name.className = 'arena-name';
+        name.textContent = t.name;
+        el.appendChild(name);
+      } else if (t.name) {
+        el.title = t.name; // bei kleinen Feldern nur als Tooltip
+      }
 
       if (!t.tot) {
         const bar = document.createElement('div');

@@ -493,16 +493,65 @@ function arenaAufbauen(sceneId) {
   const pcs = (typeof CHARACTERS !== 'undefined' && CHARACTERS)
     ? (Array.isArray(CHARACTERS) ? CHARACTERS : Object.keys(CHARACTERS).map(function (k) { return CHARACTERS[k]; }))
     : [];
+  // Ueber die Grundlinie verteilt statt zusammengedraengt - auf 16 Feldern
+  // Breite waere eine Viererkette am linken Rand unbrauchbar.
   const spielerNamen = pcs.length ? pcs.map(function (c) { return c.name || c.id; }).slice(0, 6) : ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'];
-  spielerNamen.forEach(function (n, i) { setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, 1 + i), r.hoehe - 1); });
+  const abstand = Math.max(1, Math.floor(r.breite / (spielerNamen.length + 1)));
+  spielerNamen.forEach(function (n, i) {
+    setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, abstand * (i + 1)), r.hoehe - 1);
+  });
 
   setze(sz.vorlagen.seelenloser, 'Der Seelenlose', Math.floor(r.breite / 2), 0);
-  for (let i = 0; i < 4; i++) setze(sz.vorlagen.diener, 'Diener ' + (i + 1), 1 + i * 2, 1);
+  const dienerAbstand = Math.max(2, Math.floor(r.breite / 5));
+  for (let i = 0; i < 4; i++) {
+    setze(sz.vorlagen.diener, 'Diener ' + (i + 1), Math.min(r.breite - 1, dienerAbstand * (i + 1) - 1), 1);
+  }
 
   db.ref(arenaBasis(sceneId).slice(0, -1)).set({
     runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
     log: { start: { text: 'Der Kampf beginnt.', zeit: Date.now() } }
   });
+}
+
+// Einzelne Figur nachtraeglich aufs Feld setzen. Wichtig fuer den Betrieb:
+// Spieler kommen erfahrungsgemaess nicht alle gleichzeitig, und im Finale
+// treten Figuren auch mitten im Kampf hinzu (Harwick, Cormac, Nachzuegler).
+// Sucht ein freies Feld in der passenden Haelfte - Spieler unten, Gegner
+// oben - und weicht bei Bedarf auf ein beliebiges freies Feld aus.
+function arenaFigurHinzu(sceneId, vorlageName, name) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const vorlage = sz.vorlagen[vorlageName]; if (!vorlage) return;
+  const r = sz.regeln;
+  const tokens = arenaStateSnap.tokens || {};
+  const belegt = {};
+  Object.keys(tokens).forEach(function (id) {
+    const t = tokens[id];
+    if (t && !t.tot) belegt[t.x + ':' + t.y] = true;
+  });
+
+  const spielerSeite = vorlageName === 'spieler';
+  const platz = (function () {
+    // Von der eigenen Grundlinie nach innen suchen.
+    for (let ring = 0; ring < r.hoehe; ring++) {
+      const y = spielerSeite ? (r.hoehe - 1 - ring) : ring;
+      for (let x = 0; x < r.breite; x++) {
+        if (!belegt[x + ':' + y]) return { x: x, y: y };
+      }
+    }
+    return null;
+  })();
+  if (!platz) return;
+
+  const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+  const anzeigename = (name && String(name).trim()) ? String(name).trim()
+    : (vorlageName === 'seelenloser' ? 'Der Seelenlose'
+      : vorlageName === 'diener' ? 'Diener' : 'Spieler');
+
+  arenaUpdate(sceneId, {
+    ['tokens/' + id]: Object.assign({}, vorlage, {
+      name: anzeigename, x: platz.x, y: platz.y, hp: vorlage.hpMax, geladen: true
+    })
+  }, anzeigename + ' betritt das Feld.');
 }
 
 function arenaFreigeben(sceneId, tokenId) {
@@ -572,11 +621,18 @@ function renderArenaPanelHTML(sceneId) {
 
   let html = '<div class="sh-graph"><div class="sh-graph-label">⚔ Arena — Runde ' + runde +
     ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="arenaRundeWeiter(\'' + sceneId + '\')">Runde weiter ▸</button>' +
-    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="if(confirm(\'Kampf komplett neu aufsetzen?\'))arenaAufbauen(\'' + sceneId + '\')">↺ Aufbauen</button>' +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="if(confirm(\'Kampf komplett neu aufsetzen? Alle Figuren werden ersetzt.\'))arenaAufbauen(\'' + sceneId + '\')">↺ Aufbauen</button>' +
+    '</div>';
+
+  // Figuren jederzeit nachsetzen - auch mitten im Kampf.
+  html += '<div class="sh-graph-options" style="flex-direction:row;flex-wrap:wrap">' +
+    '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'spieler\', prompt(\'Name der Spielerfigur\', \'Spieler\'))">+ Spieler</button>' +
+    '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'diener\', \'\')">+ Diener</button>' +
+    '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'seelenloser\', \'\')">+ Seelenloser</button>' +
     '</div>';
 
   if (!ids.length) {
-    html += '<div class="sh-graph-ereignis-text">Noch keine Figuren auf dem Feld — „Aufbauen" setzt Spieler, den Seelenlosen und vier Diener.</div></div>';
+    html += '<div class="sh-graph-ereignis-text">Noch keine Figuren auf dem Feld. „Aufbauen" setzt eine komplette Startaufstellung, oder du setzt die Figuren einzeln über die Knöpfe darüber.</div></div>';
     return html;
   }
 
