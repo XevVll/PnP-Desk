@@ -96,6 +96,15 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 24)
+- **`ritual.ogg` konvertiert** (Opus, 64 kbps VBR) aus `ritual.mp3`: 28,6 MB → 8,1 MB (-72 %),
+  Länge unverändert bei 936,55 s (per `ffprobe` gegen die Quelle geprüft). Quell-MP3 bewusst
+  **nicht** gelöscht — anders als bei `jungle.mp3` (110 MB, riss GitHubs Hardlimit) besteht hier
+  kein Zwang, und die Konvention sieht vor, dass Hendrik erst hört und dann von Hand entfernt.
+  **Noch keiner Szene zugeordnet** — naheliegender Kandidat ist `soundFile` in
+  `GRABESINSEL_SCENES["13.1"]`, aber die Zuordnung bleibt wie bei `jungle`/`mystic`/`BBay`/
+  `flamenco` Hendriks Entscheidung.
+
 ### 2026-08-22 (Fortsetzung 23)
 - **Grabesinsel auf zwei Orte reduziert** (Hendriks Vorgabe): nur noch `grabesstrand` und
   `die_ritualkammer`. Die Marker `der_schwarze_weg` und `das_kathedralenherz` sind entfallen —
