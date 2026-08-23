@@ -47,11 +47,12 @@ Dramaturgie aus der Hand nehmen.
 
 | Datei | Rolle |
 |---|---|
-| `js/arena.js` | **Regel-Engine.** Kein DOM, kein Firebase. Wird von beiden Seiten benutzt und ist mit Node testbar. |
+| `js/arena.js` | **Regel-Engine.** Kein DOM, kein Firebase. Wird von allen Seiten benutzt und ist mit Node testbar. |
 | `js/arena_scenes.js` | Szenen-Definition `15.1`: Feldgröße, Regelwerte, Figuren-Vorlagen. |
-| `karte.html` | Spieleransicht: Raster, Figuren, Bewegung, Angriff, Kampf-Log. |
-| `js/regie_vault.js` | SL-Panel: Runde, Freigabe, Figuren setzen/entfernen, HP, Säbelträger. |
-| `regie.html` | Nur der `<script>`-Tag. |
+| `karte.html` | Spieleransicht: Raster, Figuren, Bewegung/Angriff **nur für Spieler-Figuren nach Freigabe**, Kampf-Log. |
+| `arena_admin.html` | **SL-Schlachtfeld** (seit 2026-08-23): eigene Vollbild-Seite für den Kampf. Entität anklicken → auswählen → per Klick bewegen/angreifen, Freigabe, HP, Säbel, Nachsetzen, Versetzen-Modus, Runde. Zugriffsschutz wie `regie.html` (nur über die bekannte URL). |
+| `js/regie_vault.js` | Kompakt-Panel im Adminpanel: Überblick, Freigabe (nur Spieler-Figuren), Runde, Nachsetzen — verlinkt aufs Schlachtfeld. |
+| `regie.html` | Nur die `<script>`-Tags. |
 
 Die Trennung der Engine ist Absicht: Die Regeln sind der Teil, der **stimmen muss**, und sie
 lassen sich so ohne Browser gegen die Bibel prüfen (siehe Abschnitt 7).
@@ -104,14 +105,32 @@ Die Bibel kennt **keine Kampfwerte** — nur „Schadenspunkte" als kleine ganze
 
 ## 4. Ablauf und Bedienung
 
-### 4.1 Zugfolge
+### 4.1 Zugfolge und Steuerungshoheit
 
-Die SL gibt im Panel **eine** Figur frei. Solange sie freigegeben ist, darf **jeder** Spieler
-sie bewegen und mit ihr angreifen (Hendriks Vorgabe — es gibt keine Zuordnung Spieler↔Figur).
-Ohne freigegebene Figur ist in der Spieleransicht **nichts** anklickbar.
+**Wer steuert wen (Hendriks Vorgabe, 2026-08-23):**
+
+| Typ | Seite | Steuerung |
+|---|---|---|
+| `spieler` | Helden | Spieler — aber nur nach Freigabe durch die SL |
+| `verbuendeter` | Helden | **nur die SL** (`arena_admin.html`) |
+| `diener`, `seelenloser` | Gegner | **nur die SL** (`arena_admin.html`) |
+
+Die SL gibt **eine** Spieler-Figur frei. Solange sie freigegeben ist, darf **jeder** Spieler sie
+bewegen und mit ihr angreifen (es gibt keine Zuordnung Spieler↔Figur). Ohne freigegebene Figur
+ist in der Spieleransicht **nichts** anklickbar — und `karte.html` prüft zusätzlich den Typ:
+selbst wenn versehentlich ein Nicht-Spieler freigegeben würde, könnten die Spieler ihn nicht
+steuern (Hinweis „… handelt …", Züge der SL kommen nur als Live-Update an).
+
+Der Unterschied zwischen `spieler` und `verbuendeter` ist **nicht die Seite, sondern die
+Steuerung**: Verbündete (Harwick, Cormac, …) kämpfen mit den Spielern und zählen für
+Freund/Feind-Logik und Bedrängnis zur Helden-Seite (`arenaSeite()`), werden aber ausschließlich
+von der SL gezogen.
 
 Pro Figur und Runde: **eine** Bewegung (`hatGezogen`) und **ein** Angriff (`hatAngegriffen`).
-Beide Marker setzt der Rundenwechsel zurück.
+Beide Marker setzt der Rundenwechsel zurück. Das gilt auch für SL-gesteuerte Figuren — die SL
+spielt nach denselben Regeln, kann aber im **Versetzen-Modus** (Schlachtfeld-Kopfleiste) jede
+Figur frei auf ein beliebiges Feld setzen, ohne Bewegungsregel und ohne den Zug zu verbrauchen.
+Das ist zugleich der Ersatz für das fehlende „Rückgängig" und das Werkzeug für die Aufstellung.
 
 ### 4.2 Angriffsart
 
@@ -149,11 +168,14 @@ Nur der Träger tötet Diener **endgültig**: das Token wird gelöscht statt auf
 kann also nicht wieder aufstehen. Bei allen anderen Zielen (auch beim Seelenlosen) hat der Säbel
 keine Sonderwirkung.
 
-**Wer ihn trägt, setzt allein die SL** (`arenaSaebel()`), und es wird den Spielern **nirgends
-angezeigt**:
+**Wer ihn trägt, setzt allein die SL** (im Schlachtfeld per „Säbel geben" — möglich für Spieler
+UND Verbündete, denn laut Finale kann er auch Harwick in die Hand gedrückt werden), und es wird
+den Spielern **nirgends angezeigt**:
 
-- kein Marker am Token
+- kein Marker am Token in der Spieleransicht
 - das Kampf-Log erwähnt den Säbel bewusst nicht — sonst ließe sich der Träger daran ablesen
+- **Ausnahme:** `arena_admin.html` zeigt den Träger offen (⚔-Marke + Kasten) — die Seite ist
+  SL-exklusiv, Spieler sehen sie nie
 
 Beim Weiterbauen daran denken: **jede neue Log-Zeile und jede neue Anzeige muss das einhalten.**
 
@@ -175,15 +197,15 @@ regeln: {
 }
 ```
 
-Figuren-Vorlagen (`vorlagen.spieler` / `.diener` / `.seelenloser`) — aktuelle Werte:
+Figuren-Vorlagen (`vorlagen.spieler` / `.verbuendeter` / `.diener` / `.seelenloser`):
 
-| | Spieler | Diener | Seelenloser |
-|---|---|---|---|
-| Symbol / Farbe | ☘ gold | ☠ grün | ✦ rot |
-| `hpMax` | 6 | 3 | 18 |
-| `nahWert` / `nahSchaden` | 5 / 2 | 4 / 1 | 7 / 3 |
-| `fernWert` / `fernSchaden` | 5 / 3 | 0 / 0 | 0 / 0 |
-| `mastery` | ja | nein | ja |
+| | Spieler | Verbündeter | Diener | Seelenloser |
+|---|---|---|---|---|
+| Symbol / Farbe | ☘ gold | ⚓ blaugrau | ☠ grün | ✦ rot |
+| `hpMax` | 6 | 6 | 3 | 18 |
+| `nahWert` / `nahSchaden` | 5 / 2 | 6 / 2 | 4 / 1 | 7 / 3 |
+| `fernWert` / `fernSchaden` | 5 / 3 | 5 / 3 | 0 / 0 | 0 / 0 |
+| `mastery` | ja | ja | nein | ja |
 
 **Diese Zahlen sind ein Aufschlag, kein Kanon.** Sie sind bewusst zentral einstellbar; einzelne
 Figuren lassen sich im Panel abweichend setzen.
@@ -196,7 +218,7 @@ arenaState/15-1/
   freigegeben    Token-ID oder null
   saebeltraeger  Token-ID oder null   ← nur SL, nie an Spieler
   tokens/{id}/
-    typ            "spieler" | "diener" | "seelenloser"
+    typ            "spieler" | "verbuendeter" | "diener" | "seelenloser"
     name, symbol, farbe
     x, y           Feldkoordinaten
     hp, hpMax

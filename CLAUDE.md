@@ -105,6 +105,38 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung 2) — SL-Schlachtfeld und Steuerungshoheit
+- **Neue Seite `arena_admin.html`** (Hendriks Wunsch: eine eigene Battlefield-Adminseite fuer den
+  Endkampf). Vollbild-Schlachtfeld fuer die SL: Entitaet anklicken -> ausgewaehlt -> markierte
+  Felder anklicken = bewegen, umrandete Gegner anklicken = angreifen. Seitenpanel mit HP (+/-,
+  setzen), Waffe laden/entladen, Freigabe (nur Spieler-Figuren), Saebel geben/wegnehmen,
+  Entfernen. Kopfleiste: Runde weiter, Aufbauen, Nachsetzen aller vier Typen, und ein
+  **Versetzen-Modus** (Figur frei auf ein beliebiges Feld, ohne Bewegungsregel, ohne
+  Zugverbrauch) - zugleich Ersatz fuer das fehlende Rueckgaengig und Werkzeug fuer die
+  Aufstellung. Zugriffsschutz wie regie.html (nur ueber die bekannte URL). Anders als die
+  Spieleransicht zeigt die Seite den Saebeltraeger offen an (SL-exklusiv).
+- **Steuerungshoheit klar getrennt** (Hendriks Vorgabe "Spieler sollen nur Spieler bewegen
+  koennen"): `karte.html` laesst Spieler nur noch Figuren vom Typ `spieler` steuern - selbst
+  wenn versehentlich ein Gegner freigegeben wuerde, sehen Spieler nur "... handelt ..." und
+  koennen nichts anklicken. Alles andere zieht die SL auf dem Schlachtfeld.
+- **Neuer Figurentyp `verbuendeter`** (mitkaempfende NSC wie Harwick/Cormac): kaempft per
+  `arenaSeite()` auf der Helden-Seite (Freund/Feind- und Bedraengnis-Logik), wird aber
+  ausschliesslich von der SL gesteuert. Symbol ⚓, eigene Vorlage in `arena_scenes.js`; Saebel
+  kann auch einem Verbuendeten gegeben werden (laut Finale wird er ggf. Harwick in die Hand
+  gedrueckt). `arenaIstFeind()` haengt jetzt an der Seite statt an `typ === 'spieler'`;
+  `arenaIstSpieler()` bleibt fuer die Steuerungsfrage.
+- Kompakt-Panel in `regie_vault.js` entsprechend: Freigabe-Knoepfe nur noch an Spieler-Figuren
+  (Rest als "SL"-Zeilen ohne Klick), "+ Verbuendeter"-Knopf, Link auf das Schlachtfeld.
+- Neuer Playwright-Test fuer die Adminseite (Aufbau, Verbuendeter landet auf der Helden-Seite,
+  Gegner-Auswahl ohne Freigabe-Knopf, SL-Bewegung und -Angriff per Klick, Versetzen,
+  Log-Verdeckung des Saebels, und in der Spieleransicht: freigegebener Spieler steuerbar,
+  freigegebener Gegner NICHT). Engine-Test um die Seiten-Logik erweitert. Alle 6 Testskripte
+  mit 0 Fehlern. **Testfehler dabei:** der Boss hatte im Test genau den Spieler getoetet, der
+  anschliessend freigegeben wurde - tot ist zurecht nicht steuerbar; Test nimmt jetzt einen
+  lebenden.
+- ARENA-ENDKAMPF.md nachgezogen: Dateien-Tabelle, neue Sektion Steuerungshoheit (4.1),
+  Vorlagen-Tabelle mit Verbuendetem, Saebel-Ausnahme fuer die SL-Seite.
+
 ### 2026-08-23 (Fortsetzung) — Audit von ARENA-ENDKAMPF.md
 - **Handbuch gegen den Code geprueft** (jede pruefbare Behauptung nachgerechnet: Interaktionskette
   des Finales, Engine-Exporte, Regelwerte, Vorlagen-Tabelle, Bibel-Beispiel, Saebel-Regel,

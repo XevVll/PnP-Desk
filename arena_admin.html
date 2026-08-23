@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Korsaren – Schlachtfeld (SL)</title>
+<!--
+  SL-SCHLACHTFELD fuer die Kampf-Arena (Szene 15.1, siehe ARENA-ENDKAMPF.md).
+
+  Zweck: Die Spieleransicht (karte.html) laesst Spieler NUR Figuren vom Typ
+  "spieler" steuern, und auch die nur nach Freigabe. Alles andere -
+  Verbuendete (Harwick, Cormac, ...) und Gegner - steuert die SL HIER:
+  Entitaet anklicken -> ausgewaehlt -> Felder/Ziele anklicken zum Bewegen und
+  Angreifen, dazu Freigabe, HP, Saebel, Nachsetzen, Runde.
+
+  Zugriffsschutz wie regie.html: nicht verlinkt fuer Spieler, nur ueber die
+  bekannte URL (die Root-index.html leitet auf karte.html).
+
+  Anders als karte.html zeigt diese Seite den Saebeltraeger offen an - sie
+  ist SL-exklusiv, Spieler sehen sie nie.
+
+  Rechnet mit derselben Engine (js/arena.js) und schreibt in dieselben
+  Firebase-Pfade (arenaState/{szene}) wie die Spielerseite - alle
+  Schreibvorgaenge als EIN update() von der Wurzel (siehe ARENA-ENDKAMPF.md
+  5.3).
+-->
+<style>
+  :root {
+    --bg: #14100b; --panel: #1a130b; --line: #3a2a18;
+    --ink: #cbb98f; --ink-dim: #8a7a5c; --ink-faint: #6b5d45;
+    --gold: #c9a24b; --accent: #a8391e; --live: #7fa87f;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); font-family: 'Georgia', 'Times New Roman', serif; color: var(--ink); display: flex; flex-direction: column; overflow: hidden; }
+
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 15px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin: 0; }
+  #status { font-size: 12px; color: var(--ink-dim); }
+  #status.connected { color: var(--live); }
+  #status.error { color: #c76a5a; }
+  header .spacer { flex: 1; }
+  header a { color: var(--ink-dim); font-size: 12px; }
+
+  .btn { font-family: inherit; font-size: 12.5px; background: transparent; border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 11px; cursor: pointer; }
+  .btn:hover { border-color: var(--gold); }
+  .btn.primary { border-color: var(--gold); color: var(--gold); }
+  .btn.warn { border-color: var(--accent); color: #e0a08e; }
+  .btn.aktiv { background: rgba(201,162,75,0.18); border-color: var(--gold); }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  #brettWrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-width: 0; }
+  #brett {
+    position: relative; display: grid;
+    border: 1px solid rgba(201,162,75,0.35);
+    background-size: cover; background-position: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  }
+  .feld { position: relative; border: 1px solid rgba(201,162,75,0.10); display: flex; align-items: center; justify-content: center; }
+  .feld.erreichbar { background: rgba(201,162,75,0.16); cursor: pointer; }
+  .feld.erreichbar:hover { background: rgba(201,162,75,0.32); }
+  .feld.versetzbar { background: rgba(127,168,127,0.14); cursor: pointer; }
+  .feld.versetzbar:hover { background: rgba(127,168,127,0.32); }
+  .token {
+    width: 80%; height: 80%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(11px, 2.1vh, 22px);
+    background: rgba(12,9,6,0.82); border: 2px solid currentColor;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    position: relative; cursor: pointer;
+  }
+  .token.ausgewaehlt { box-shadow: 0 0 0 4px rgba(201,162,75,0.55); }
+  .token.frei { animation: puls 1.6s ease-in-out infinite; }
+  @keyframes puls { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }
+  .token.tot { opacity: 0.32; filter: grayscale(1); }
+  .token.angreifbar { outline: 2px dashed var(--accent); outline-offset: 2px; }
+  .hp { position: absolute; left: 6%; right: 6%; bottom: -8px; height: 4px; background: rgba(0,0,0,0.75); border-radius: 3px; overflow: hidden; }
+  .hp i { display: block; height: 100%; background: var(--live); }
+  .hp i.wenig { background: #c76a5a; }
+  .mark { position: absolute; top: -8px; right: -6px; font-size: 10px; line-height: 1; background: rgba(12,9,6,0.9); border: 1px solid var(--line); border-radius: 8px; padding: 1px 4px; color: var(--ink-dim); }
+  .mark.saebel { border-color: var(--gold); color: var(--gold); }
+  .mark.leer { border-color: var(--accent); color: #e0a08e; }
+
+  aside { width: 300px; flex: none; border-left: 1px solid var(--line); background: var(--panel); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  aside h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin: 0; }
+  aside .block { border: 1px solid var(--line); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  aside .zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+  aside .zeile b { color: var(--gold); font-weight: normal; }
+  .hinweis { font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+
+  #log { border-top: 1px solid var(--line); background: var(--panel); padding: 8px 18px; max-height: 15vh; overflow-y: auto; font-size: 12.5px; color: var(--ink-dim); line-height: 1.55; }
+  #log div:first-child { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔ Schlachtfeld</h1>
+  <span id="status">Verbinde …</span>
+  <span style="font-size:13px">Runde <b id="rundeAnzeige" style="color:var(--gold)">–</b></span>
+  <button class="btn primary" onclick="rundeWeiter()">Runde weiter ▸</button>
+  <button class="btn" onclick="versetzenUmschalten()" id="versetzenBtn" title="Ausgewählte Figur frei auf ein beliebiges Feld setzen (ohne Bewegungsregel)">Versetzen: aus</button>
+  <span class="spacer"></span>
+  <button class="btn" onclick="figurHinzu('spieler')">+ Spieler</button>
+  <button class="btn" onclick="figurHinzu('verbuendeter')">+ Verbündeter</button>
+  <button class="btn" onclick="figurHinzu('diener')">+ Diener</button>
+  <button class="btn" onclick="figurHinzu('seelenloser')">+ Seelenloser</button>
+  <button class="btn warn" onclick="if(confirm('Kampf komplett neu aufsetzen? Alle Figuren werden ersetzt.'))aufbauen()">↺ Aufbauen</button>
+  <a href="regie.html">→ Adminpanel</a>
+</header>
+
+<main>
+  <div id="brettWrap"><div id="brett"></div></div>
+  <aside>
+    <h2>Auswahl</h2>
+    <div id="auswahl" class="block"><span class="hinweis">Figur auf dem Feld anklicken, um sie zu steuern. Spieler-Figuren kannst du hier zusätzlich für die Spieler freigeben.</span></div>
+    <h2>Säbelträger</h2>
+    <div class="block">
+      <div id="saebelAnzeige" class="zeile">–</div>
+      <span class="hinweis">Nur hier sichtbar. In der Spieleransicht und im Kampf-Log taucht der Säbel nie auf.</span>
+    </div>
+  </aside>
+</main>
+
+<div id="log"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/arena.js"></script>
+<script src="js/arena_scenes.js"></script>
+<script>
+  const SZENE = (typeof DEFAULT_ARENA_SCENE !== 'undefined') ? DEFAULT_ARENA_SCENE : '15.1';
+  const SZ = ARENA_SCENES[SZENE];
+  const R = SZ.regeln;
+
+  let db = null;
+  let snap = {};
+  let auswahlId = null;
+  let versetzen = false;
+
+  const statusEl = document.getElementById('status');
+  const brettEl = document.getElementById('brett');
+  const logEl = document.getElementById('log');
+
+  function fbKey(str) { return String(str).replace(/[.#$\[\]]/g, '-'); }
+  const BASIS = 'arenaState/' + fbKey(SZENE) + '/';
+
+  // Ein einziges update() von der Wurzel - siehe ARENA-ENDKAMPF.md 5.3.
+  function schreibe(aenderungen, logText) {
+    if (!db) return;
+    const paket = {};
+    Object.keys(aenderungen).forEach(function (p) { paket[BASIS + p] = aenderungen[p]; });
+    if (logText) paket[BASIS + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
+    db.ref().update(paket);
+  }
+
+  // ---------- SL-Aktionen ----------
+  function rundeWeiter() {
+    const erg = arenaRundenwechsel(snap.tokens || {}, R, snap.runde || 1);
+    const aenderungen = Object.assign({}, erg.aenderungen);
+    if (erg.nachschub > 0) {
+      const felder = arenaFreieRandfelder(snap.tokens || {}, R, erg.nachschub);
+      let n = Object.keys(snap.tokens || {}).length;
+      felder.forEach(function (f) {
+        const id = 't' + (++n) + '_' + erg.runde;
+        aenderungen['tokens/' + id] = Object.assign({}, SZ.vorlagen.diener, {
+          name: 'Diener', x: f.x, y: f.y, hp: SZ.vorlagen.diener.hpMax, geladen: true
+        });
+      });
+    }
+    let text = 'Runde ' + erg.runde + '.';
+    if (erg.auferstanden.length) text += ' ' + erg.auferstanden.length + ' Gefallene erheben sich wieder.';
+    if (erg.nachschub > 0) text += ' Der Seelenlose ruft ' + erg.nachschub + ' neue herbei.';
+    if (!erg.bossLebt) text += ' Der Seelenlose ist gefallen — nichts steht mehr auf.';
+    schreibe(aenderungen, text);
+  }
+
+  function aufbauen() {
+    if (!db) return;
+    const tokens = {};
+    let nr = 0;
+    function setze(vorlage, name, x, y) {
+      tokens['t' + (++nr)] = Object.assign({}, vorlage, { name: name, x: x, y: y, hp: vorlage.hpMax, geladen: true });
+    }
+    // Generische Spielernamen - die echten Namen vergibt die SL selbst
+    // (js/characters.js enthaelt die NSC, nicht die Spielercharaktere).
+    ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'].forEach(function (n, i) {
+      setze(SZ.vorlagen.spieler, n, Math.max(1, Math.floor(R.breite / 5)) * (i + 1), R.hoehe - 1);
+    });
+    setze(SZ.vorlagen.seelenloser, 'Der Seelenlose', Math.floor(R.breite / 2), 0);
+    const ab = Math.max(2, Math.floor(R.breite / 5));
+    for (let i = 0; i < 4; i++) setze(SZ.vorlagen.diener, 'Diener ' + (i + 1), Math.min(R.breite - 1, ab * (i + 1) - 1), 1);
+    auswahlId = null;
+    db.ref(BASIS.slice(0, -1)).set({
+      runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
+      log: { start: { text: 'Der Kampf beginnt.', zeit: Date.now() } }
+    });
+  }
+
+  function figurHinzu(vorlageName) {
+    const vorlage = SZ.vorlagen[vorlageName];
+    if (!vorlage || !db) return;
+    const standard = vorlageName === 'seelenloser' ? 'Der Seelenlose'
+      : vorlageName === 'diener' ? 'Diener'
+      : vorlageName === 'verbuendeter' ? 'Verbündeter' : 'Spieler';
+    let name = standard;
+    if (vorlageName === 'spieler' || vorlageName === 'verbuendeter') {
+      name = prompt('Name der Figur', standard);
+      if (name === null) return;
+      name = String(name).trim() || standard;
+    }
+    const tokens = snap.tokens || {};
+    const belegt = {};
+    Object.keys(tokens).forEach(function (id) { const t = tokens[id]; if (t && !t.tot) belegt[t.x + ':' + t.y] = true; });
+    const heldenSeite = arenaSeite(vorlage) === 'helden';
+    let platz = null;
+    for (let ring = 0; ring < R.hoehe && !platz; ring++) {
+      const y = heldenSeite ? (R.hoehe - 1 - ring) : ring;
+      for (let x = 0; x < R.breite; x++) if (!belegt[x + ':' + y]) { platz = { x: x, y: y }; break; }
+    }
+    if (!platz) return;
+    const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+    schreibe({ ['tokens/' + id]: Object.assign({}, vorlage, { name: name, x: platz.x, y: platz.y, hp: vorlage.hpMax, geladen: true }) },
+      name + ' betritt das Feld.');
+  }
+
+  function versetzenUmschalten() {
+    versetzen = !versetzen;
+    const b = document.getElementById('versetzenBtn');
+    b.textContent = 'Versetzen: ' + (versetzen ? 'AN' : 'aus');
+    b.classList.toggle('aktiv', versetzen);
+    render();
+  }
+
+  function bewege(id, x, y) {
+    const t = (snap.tokens || {})[id];
+    if (!t) return;
+    if (versetzen) {
+      // Frei setzen, ohne Bewegungsregel und ohne Zug zu verbrauchen -
+      // fuer Aufstellung und Korrekturen (das fehlende "Rueckgaengig").
+      schreibe({ ['tokens/' + id + '/x']: x, ['tokens/' + id + '/y']: y });
+      return;
+    }
+    const pruef = arenaBewegungErlaubt(Object.assign({ id: id }, t), { x: x, y: y }, R, snap.tokens || {});
+    if (!pruef.ok) return;
+    schreibe({ ['tokens/' + id + '/x']: x, ['tokens/' + id + '/y']: y, ['tokens/' + id + '/hatGezogen']: true },
+      (t.name || id) + ' bewegt sich.');
+  }
+
+  function greifeAn(angreiferId, zielId) {
+    const tokens = snap.tokens || {};
+    const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
+    const z = Object.assign({ id: zielId }, tokens[zielId] || {});
+    if (!a.typ || !z.typ) return;
+    const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null);
+    if (!erg.ok) return;
+    const aenderungen = { ['tokens/' + angreiferId + '/hatAngegriffen']: true };
+    if (erg.entlaedt) {
+      aenderungen['tokens/' + angreiferId + '/geladen'] = false;
+      aenderungen['tokens/' + angreiferId + '/entladenSeitRunde'] = snap.runde || 1;
+    }
+    if (erg.endgueltig) {
+      aenderungen['tokens/' + zielId] = null;
+      if (auswahlId === zielId) auswahlId = null;
+    } else {
+      aenderungen['tokens/' + zielId + '/hp'] = erg.zielHpNeu;
+      if (erg.toetet) {
+        aenderungen['tokens/' + zielId + '/tot'] = true;
+        aenderungen['tokens/' + zielId + '/totSeitRunde'] = snap.runde || 1;
+      }
+    }
+    // Saebel auch hier NICHT im Log erwaehnen - das Log ist fuer alle sichtbar.
+    let text = (a.name || angreiferId) + (erg.art === 'nah' ? ' greift an' : ' schießt') +
+      ' auf ' + (z.name || zielId) + ': ' + erg.wurf + ' → ' + bandName(erg.band);
+    if (erg.bedraengnis > 0) text += ' (bedrängt, −' + erg.bedraengnis + ')';
+    text += erg.schaden > 0 ? ', ' + erg.schaden + ' Schaden' : ', kein Schaden';
+    if (erg.endgueltig) text += ' — zerfällt zu Staub.';
+    else if (erg.toetet) text += ' — geht zu Boden.';
+    schreibe(aenderungen, text);
+  }
+
+  function bandName(b) {
+    return b === 'gut' ? 'guter Erfolg' : b === 'normal' ? 'Erfolg'
+      : b === 'schlecht' ? 'schlechter Erfolg' : 'Misserfolg';
+  }
+
+  function freigeben(id) { schreibe({ freigegeben: id || null }); }
+  function saebelSetzen(id) { schreibe({ saebeltraeger: id || null }); }
+  function entfernen(id) {
+    const t = (snap.tokens || {})[id];
+    if (!confirm((t && t.name || id) + ' vom Feld entfernen?')) return;
+    if (auswahlId === id) auswahlId = null;
+    schreibe({ ['tokens/' + id]: null, freigegeben: (snap.freigegeben === id ? null : snap.freigegeben || null) },
+      (t && t.name || id) + ' verlässt das Feld.');
+  }
+  function hpAendern(id, delta) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    hpSetzen(id, (t.hp || 0) + delta);
+  }
+  function hpSetzen(id, wert) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    const hp = Math.max(0, Math.min(t.hpMax || 1, parseInt(wert, 10) || 0));
+    const aenderungen = { ['tokens/' + id + '/hp']: hp };
+    if (hp === 0 && !t.tot) {
+      aenderungen['tokens/' + id + '/tot'] = true;
+      aenderungen['tokens/' + id + '/totSeitRunde'] = snap.runde || 1;
+    }
+    if (hp > 0 && t.tot) {
+      aenderungen['tokens/' + id + '/tot'] = null;
+      aenderungen['tokens/' + id + '/totSeitRunde'] = null;
+      aenderungen['tokens/' + id + '/endgueltig'] = null;
+    }
+    schreibe(aenderungen);
+  }
+  function ladungUmschalten(id) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    schreibe({ ['tokens/' + id + '/geladen']: !t.geladen, ['tokens/' + id + '/entladenSeitRunde']: t.geladen ? (snap.runde || 1) : null });
+  }
+
+  function auswaehlen(id) {
+    auswahlId = (auswahlId === id) ? null : id;
+    render();
+  }
+
+  // ---------- Rendering ----------
+  function render() {
+    const tokens = snap.tokens || {};
+    document.getElementById('rundeAnzeige').textContent = snap.runde || 1;
+
+    // Brett
+    const platz = Math.min(window.innerWidth - 340, window.innerHeight * 0.72);
+    const feld = Math.max(18, Math.floor(platz / Math.max(R.breite, R.hoehe)));
+    brettEl.style.gridTemplateColumns = 'repeat(' + R.breite + ', ' + feld + 'px)';
+    brettEl.style.gridTemplateRows = 'repeat(' + R.hoehe + ', ' + feld + 'px)';
+    brettEl.style.backgroundImage = SZ.hintergrund ? 'url("' + SZ.hintergrund + '")' : 'none';
+
+    const sel = auswahlId ? tokens[auswahlId] : null;
+    const erreichbar = {};
+    const angreifbar = {};
+    if (sel && !sel.tot) {
+      if (versetzen) {
+        // alles Freie ist Ziel
+      } else if (!sel.hatGezogen) {
+        for (let x = 0; x < R.breite; x++) for (let y = 0; y < R.hoehe; y++) {
+          if (arenaBewegungErlaubt(Object.assign({ id: auswahlId }, sel), { x: x, y: y }, R, tokens).ok) erreichbar[x + ':' + y] = true;
+        }
+      }
+      if (!versetzen && !sel.hatAngegriffen) {
+        Object.keys(tokens).forEach(function (id) {
+          const t = tokens[id];
+          if (!t || t.tot || !arenaIstFeind(sel, t)) return;
+          const art = arenaAngriffsart(sel, t, R);
+          if (!art) return;
+          if (art === 'fern' && !sel.geladen) return;
+          angreifbar[id] = art;
+        });
+      }
+    }
+
+    const belegung = {};
+    Object.keys(tokens).forEach(function (id) { const t = tokens[id]; if (t) belegung[t.x + ':' + t.y] = id; });
+
+    brettEl.innerHTML = '';
+    for (let y = 0; y < R.hoehe; y++) {
+      for (let x = 0; x < R.breite; x++) {
+        const zelle = document.createElement('div');
+        zelle.className = 'feld';
+        const key = x + ':' + y;
+        const tokenId = belegung[key];
+        if (!tokenId && sel && !sel.tot && (versetzen || erreichbar[key])) {
+          zelle.classList.add(versetzen ? 'versetzbar' : 'erreichbar');
+          (function (zx, zy) { zelle.onclick = function () { bewege(auswahlId, zx, zy); }; })(x, y);
+        }
+        if (tokenId) zelle.appendChild(tokenEl(tokenId, tokens[tokenId], angreifbar));
+        brettEl.appendChild(zelle);
+      }
+    }
+
+    renderAuswahl(sel, tokens);
+    renderSaebel(tokens);
+
+    const log = snap.log || {};
+    const zeilen = Object.keys(log).map(function (k) { return log[k]; })
+      .sort(function (a, b) { return (b.zeit || 0) - (a.zeit || 0); }).slice(0, 8);
+    logEl.innerHTML = zeilen.map(function (z) { return '<div>' + z.text + '</div>'; }).join('');
+  }
+
+  function tokenEl(id, t, angreifbar) {
+    const el = document.createElement('div');
+    el.className = 'token'
+      + (id === auswahlId ? ' ausgewaehlt' : '')
+      + (id === (snap.freigegeben || null) ? ' frei' : '')
+      + (t.tot ? ' tot' : '')
+      + (angreifbar[id] ? ' angreifbar' : '');
+    el.style.color = t.farbe || '#c9a24b';
+    el.textContent = t.symbol || '?';
+    el.title = (t.name || id) + ' — ' + t.typ + ', HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?');
+
+    if (!t.tot) {
+      const bar = document.createElement('div');
+      bar.className = 'hp';
+      const i = document.createElement('i');
+      const anteil = Math.max(0, Math.min(1, (t.hp || 0) / (t.hpMax || 1)));
+      i.style.width = (anteil * 100) + '%';
+      if (anteil <= 0.34) i.className = 'wenig';
+      bar.appendChild(i);
+      el.appendChild(bar);
+    }
+    if (id === (snap.saebeltraeger || null)) {
+      const m = document.createElement('span');
+      m.className = 'mark saebel'; m.textContent = '⚔';
+      el.appendChild(m);
+    } else if (!t.geladen && (t.fernWert || 0) > 0 && !t.tot) {
+      const m = document.createElement('span');
+      m.className = 'mark leer'; m.textContent = 'leer';
+      el.appendChild(m);
+    }
+
+    el.onclick = function (ev) {
+      ev.stopPropagation();
+      // Angriff hat Vorrang, wenn eine Auswahl besteht und das Ziel markiert ist.
+      if (auswahlId && angreifbar[id]) { greifeAn(auswahlId, id); return; }
+      auswaehlen(id);
+    };
+    return el;
+  }
+
+  function renderAuswahl(sel, tokens) {
+    const box = document.getElementById('auswahl');
+    if (!sel) {
+      box.innerHTML = '<span class="hinweis">Figur auf dem Feld anklicken, um sie zu steuern. Spieler-Figuren kannst du hier zusätzlich für die Spieler freigeben.</span>';
+      return;
+    }
+    const id = auswahlId;
+    const istFrei = id === (snap.freigegeben || null);
+    const zustand = [];
+    if (sel.tot) zustand.push(sel.endgueltig ? 'endgültig tot' : 'am Boden');
+    if (sel.hatGezogen) zustand.push('gezogen');
+    if (sel.hatAngegriffen) zustand.push('angegriffen');
+    if (!sel.geladen && (sel.fernWert || 0) > 0) zustand.push('Waffe leer');
+
+    let html = '<div class="zeile"><b>' + (sel.symbol || '') + ' ' + (sel.name || id) + '</b> <span style="color:var(--ink-faint)">(' + sel.typ + ')</span></div>';
+    if (zustand.length) html += '<div class="zeile" style="color:var(--ink-faint)">' + zustand.join(' · ') + '</div>';
+    html += '<div class="zeile">HP ' + (sel.hp != null ? sel.hp : '?') + '/' + (sel.hpMax || '?') +
+      ' <button class="btn" onclick="hpAendern(\'' + id + '\', -1)">−1</button>' +
+      ' <button class="btn" onclick="hpAendern(\'' + id + '\', 1)">+1</button>' +
+      ' <button class="btn" onclick="hpSetzen(\'' + id + '\', prompt(\'HP setzen\', \'' + (sel.hp || 0) + '\'))">setzen</button></div>';
+    if ((sel.fernWert || 0) > 0) {
+      html += '<div class="zeile"><button class="btn" onclick="ladungUmschalten(\'' + id + '\')">' + (sel.geladen ? 'Waffe entladen' : 'Waffe laden') + '</button></div>';
+    }
+    if (sel.typ === 'spieler') {
+      html += '<div class="zeile"><button class="btn ' + (istFrei ? 'warn' : 'primary') + '" onclick="freigeben(\'' + (istFrei ? '' : id) + '\')">' +
+        (istFrei ? 'Freigabe entziehen' : 'Für Spieler freigeben') + '</button></div>';
+      html += '<div class="zeile"><button class="btn" onclick="saebelSetzen(\'' + (id === (snap.saebeltraeger || null) ? '' : id) + '\')">' +
+        (id === (snap.saebeltraeger || null) ? 'Säbel wegnehmen' : 'Säbel geben') + '</button></div>';
+    } else if (sel.typ === 'verbuendeter') {
+      html += '<div class="zeile"><button class="btn" onclick="saebelSetzen(\'' + (id === (snap.saebeltraeger || null) ? '' : id) + '\')">' +
+        (id === (snap.saebeltraeger || null) ? 'Säbel wegnehmen' : 'Säbel geben') + '</button></div>';
+      html += '<div class="hinweis">Verbündeter — steuerst nur du, keine Spieler-Freigabe.</div>';
+    } else {
+      html += '<div class="hinweis">Gegner — steuerst nur du.</div>';
+    }
+    html += '<div class="zeile"><button class="btn warn" onclick="entfernen(\'' + id + '\')">Vom Feld entfernen</button></div>';
+    if (!sel.tot) {
+      html += '<div class="hinweis">' + (versetzen
+        ? 'Versetzen ist AN: beliebiges freies Feld anklicken.'
+        : (sel.hatGezogen ? '' : 'Markiertes Feld anklicken = bewegen. ') + (sel.hatAngegriffen ? '' : 'Umrandeten Gegner anklicken = angreifen.')) + '</div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function renderSaebel(tokens) {
+    const el = document.getElementById('saebelAnzeige');
+    const id = snap.saebeltraeger || null;
+    el.innerHTML = id && tokens[id]
+      ? '<b>⚔ ' + (tokens[id].name || id) + '</b>'
+      : '<span style="color:var(--ink-faint)">niemand</span>';
+  }
+
+  window.addEventListener('resize', render);
+
+  // ---------- Start ----------
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    statusEl.textContent = 'Verbunden — live';
+    statusEl.className = 'connected';
+    db.ref(BASIS.slice(0, -1)).on('value', function (s) {
+      snap = s.val() || {};
+      if (auswahlId && !(snap.tokens || {})[auswahlId]) auswahlId = null;
+      render();
+    });
+  } catch (e) {
+    statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft.';
+    statusEl.className = 'error';
+    snap = {};
+    render();
+  }
+</script>
+</body>
+</html>

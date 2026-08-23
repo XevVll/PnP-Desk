@@ -88,8 +88,18 @@ function arenaBedraengnis(angreifer, alleTokens, regeln) {
   return Math.max(0, feinde - 1);
 }
 
+// Zwei Seiten, vier Typen (seit 2026-08-23): "spieler" und "verbuendeter"
+// (mitkaempfende NSC wie Harwick oder Cormac) stehen auf der Helden-Seite,
+// "diener" und "seelenloser" auf der Gegner-Seite. Der Unterschied zwischen
+// spieler und verbuendeter ist NICHT die Seite, sondern die Steuerung:
+// Spieler duerfen ausschliesslich Figuren vom Typ "spieler" bewegen
+// (karte.html prueft das) - alles andere steuert die SL ueber
+// arena_admin.html.
+function arenaSeite(t) {
+  return (t && (t.typ === 'spieler' || t.typ === 'verbuendeter')) ? 'helden' : 'gegner';
+}
 function arenaIstSpieler(t) { return t && t.typ === 'spieler'; }
-function arenaIstFeind(a, b) { return arenaIstSpieler(a) !== arenaIstSpieler(b); }
+function arenaIstFeind(a, b) { return arenaSeite(a) !== arenaSeite(b); }
 
 // ---------- Angriff ----------
 // Liefert ein reines Ergebnisobjekt; das Anwenden auf den Zustand macht der
@@ -230,7 +240,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ARENA_BAENDER, arenaSchwellen, arenaBand, arenaVerschiebe, arenaSchaden,
     arenaDistanz, arenaInReichweite, arenaAngriffsart, arenaBedraengnis,
-    arenaIstSpieler, arenaIstFeind, arenaAngriff, arenaBewegungErlaubt,
+    arenaSeite, arenaIstSpieler, arenaIstFeind, arenaAngriff, arenaBewegungErlaubt,
     arenaBossLebt, arenaRundenwechsel, arenaFreieRandfelder
   };
 }

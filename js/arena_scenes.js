@@ -69,6 +69,13 @@ const ARENA_SCENES = {
         typ: "spieler", symbol: "☘", farbe: "#c9a24b",
         hpMax: 6, nahWert: 5, fernWert: 5, nahSchaden: 2, fernSchaden: 3, mastery: true
       },
+      // Mitkaempfende NSC (Harwick, Cormac, ...): gleiche Seite wie die
+      // Spieler, aber NUR von der SL steuerbar (arena_admin.html) - Spieler
+      // duerfen ausschliesslich Figuren vom Typ "spieler" bewegen.
+      verbuendeter: {
+        typ: "verbuendeter", symbol: "⚓", farbe: "#8fb3c9",
+        hpMax: 6, nahWert: 6, fernWert: 5, nahSchaden: 2, fernSchaden: 3, mastery: true
+      },
       diener: {
         typ: "diener", symbol: "☠", farbe: "#7fa87f",
         hpMax: 3, nahWert: 4, fernWert: 0, nahSchaden: 1, fernSchaden: 0, mastery: false

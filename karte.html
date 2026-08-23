@@ -1510,9 +1510,13 @@
         '<span>Am Zug: <b>' + (frei ? (frei.name || frei.id) : '—') + '</b></span>';
 
       // Erreichbare Felder und angreifbare Ziele der freigegebenen Figur.
+      // NUR Figuren vom Typ "spieler" sind fuer Spieler steuerbar (Hendriks
+      // Vorgabe): Verbuendete und Gegner steuert ausschliesslich die SL ueber
+      // arena_admin.html - deren Zuege kommen hier nur als Live-Update an.
+      const spielerSteuerbar = frei && frei.typ === 'spieler';
       const erreichbar = {};
       const angreifbar = {};
-      if (frei && !frei.tot) {
+      if (spielerSteuerbar && !frei.tot) {
         if (!frei.hatGezogen) {
           for (let x = 0; x < r.breite; x++) {
             for (let y = 0; y < r.hoehe; y++) {
@@ -1558,6 +1562,7 @@
       }
 
       if (!frei) arenaHinweisEl.textContent = 'Die Spielleitung gibt gleich die nächste Figur frei.';
+      else if (!spielerSteuerbar) arenaHinweisEl.textContent = (frei.name || frei.id) + ' handelt …';
       else if (frei.tot) arenaHinweisEl.textContent = (frei.name || frei.id) + ' ist am Boden.';
       else {
         const teile = [];

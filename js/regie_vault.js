@@ -534,7 +534,7 @@ function arenaFigurHinzu(sceneId, vorlageName, name) {
     if (t && !t.tot) belegt[t.x + ':' + t.y] = true;
   });
 
-  const spielerSeite = vorlageName === 'spieler';
+  const spielerSeite = arenaSeite(vorlage) === 'helden';
   const platz = (function () {
     // Von der eigenen Grundlinie nach innen suchen.
     for (let ring = 0; ring < r.hoehe; ring++) {
@@ -550,7 +550,8 @@ function arenaFigurHinzu(sceneId, vorlageName, name) {
   const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
   const anzeigename = (name && String(name).trim()) ? String(name).trim()
     : (vorlageName === 'seelenloser' ? 'Der Seelenlose'
-      : vorlageName === 'diener' ? 'Diener' : 'Spieler');
+      : vorlageName === 'diener' ? 'Diener'
+      : vorlageName === 'verbuendeter' ? 'Verbündeter' : 'Spieler');
 
   arenaUpdate(sceneId, {
     ['tokens/' + id]: Object.assign({}, vorlage, {
@@ -632,6 +633,7 @@ function renderArenaPanelHTML(sceneId) {
   // Figuren jederzeit nachsetzen - auch mitten im Kampf.
   html += '<div class="sh-graph-options" style="flex-direction:row;flex-wrap:wrap">' +
     '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'spieler\', prompt(\'Name der Spielerfigur\', \'Spieler\'))">+ Spieler</button>' +
+    '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'verbuendeter\', prompt(\'Name des Verbündeten\', \'Verbündeter\'))">+ Verbündeter</button>' +
     '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'diener\', \'\')">+ Diener</button>' +
     '<button class="sh-graph-btn" onclick="arenaFigurHinzu(\'' + sceneId + '\', \'seelenloser\', \'\')">+ Seelenloser</button>' +
     '</div>';
@@ -641,11 +643,15 @@ function renderArenaPanelHTML(sceneId) {
     return html;
   }
 
-  html += '<div class="sh-graph-ereignis-text">Eine Figur freigeben — solange sie frei ist, darf <b>jeder</b> Spieler sie bewegen und mit ihr angreifen. Der Säbelträger ist für die Spieler unsichtbar.</div>';
+  html += '<div class="sh-graph-ereignis-text">Für den eigentlichen Kampf gibt es das ' +
+    '<a href="arena_admin.html" target="_blank" style="color:var(--vgold)">⚔ Schlachtfeld (eigene Seite)</a> — ' +
+    'dort steuerst du per Klick jede Figur. Hier nur der Überblick: <b>freigeben lassen sich ausschließlich ' +
+    'Spieler-Figuren</b>, Verbündete und Gegner ziehst du selbst auf dem Schlachtfeld.</div>';
   html += '<div class="sh-graph-options">';
   ids.sort(function (a, b) { return (tokens[a].typ || '').localeCompare(tokens[b].typ || ''); }).forEach(function (id) {
     const t = tokens[id];
     const istFrei = id === frei;
+    const istSpieler = t.typ === 'spieler';
     const zustand = [];
     zustand.push('HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?'));
     if (t.tot) zustand.push(t.endgueltig ? 'endgültig' : 'am Boden');
@@ -654,11 +660,19 @@ function renderArenaPanelHTML(sceneId) {
     if (t.hatAngegriffen) zustand.push('angegriffen');
     if (id === saebel) zustand.push('SÄBEL');
 
-    html += '<button class="sh-graph-btn sh-graph-option' + (istFrei ? ' sh-graph-leader' : '') +
-      '" onclick="arenaFreigeben(\'' + sceneId + '\', \'' + (istFrei ? '' : id) + '\')">' +
-      '<span class="sh-graph-hinweis">' + (istFrei ? '▶ ' : '') + (t.symbol || '') + ' ' + (t.name || id) +
-      '<span class="sh-graph-ziel"> — ' + zustand.join(' · ') + '</span></span>' +
-      '<span class="sh-graph-votes">' + (istFrei ? 'freigegeben' : 'freigeben') + '</span></button>';
+    if (istSpieler) {
+      html += '<button class="sh-graph-btn sh-graph-option' + (istFrei ? ' sh-graph-leader' : '') +
+        '" onclick="arenaFreigeben(\'' + sceneId + '\', \'' + (istFrei ? '' : id) + '\')">' +
+        '<span class="sh-graph-hinweis">' + (istFrei ? '▶ ' : '') + (t.symbol || '') + ' ' + (t.name || id) +
+        '<span class="sh-graph-ziel"> — ' + zustand.join(' · ') + '</span></span>' +
+        '<span class="sh-graph-votes">' + (istFrei ? 'freigegeben' : 'freigeben') + '</span></button>';
+    } else {
+      // Keine Freigabe: Verbuendete und Gegner steuert die SL selbst.
+      html += '<div class="sh-graph-btn sh-graph-option" style="cursor:default;opacity:.8">' +
+        '<span class="sh-graph-hinweis">' + (t.symbol || '') + ' ' + (t.name || id) +
+        '<span class="sh-graph-ziel"> — ' + zustand.join(' · ') + '</span></span>' +
+        '<span class="sh-graph-votes">SL</span></div>';
+    }
   });
   html += '</div>';
 
