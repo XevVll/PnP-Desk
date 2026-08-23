@@ -6,6 +6,10 @@ und Abschnitt 17 „Arbeitsweise". Dieses Dokument hier ist rein technisch/proze
 zusätzlich einen laufenden Changelog. Für das Erkundungs-Graph-System (Riffinsel, `11.1`) siehe
 das ausführliche **[RIFFINSEL-ERKUNDUNGSGRAPH.md](RIFFINSEL-ERKUNDUNGSGRAPH.md)** — Datenmodell,
 Design-Begründung und vollständige Fehlergeschichte, vor jeder Erweiterung dieses Systems lesen.
+Für die **Kampf-Arena des Endkampfs** (`15.1`) gibt es das ebenso ausführliche
+**[ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md)** — Regelabbildung, Datenmodell, offene Punkte und die
+zentrale Design-Regel, dass die Arena nur bestimmt, *wie teuer* der Weg wird, nicht *ob* die
+Kernbeats des Finales geschehen. Vor jeder Arbeit an der Arena lesen.
 
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
@@ -16,8 +20,10 @@ Design-Begründung und vollständige Fehlergeschichte, vor jeder Erweiterung die
 > **Session 2 (Bibel 7.4) inhaltlich abgeschlossen**. Die **Grabesinsel (`13.1`) inkl. komplettem
 > Finale** (Bibel 12.1: Ritual, Untote, Wat/Josiah, Der Seelenlose, drei Ausgänge je nach
 > Jaguar-Säbel-Übergabe) ist seit 2026-08-23 inhaltlich fertig ausformuliert (`js/regie.js`,
-> `ORTE.die_ritualkammer`) — eine interaktive Kampf-Arena dazu ist bewusst separat und läuft in
-> einer anderen Session. Nächster Schritt offen (Codex, oder Feinschliff der Arena).
+> `ORTE.die_ritualkammer`). Die **Kampf-Arena dazu (`15.1`) steht seit 2026-08-23 als erste
+> lauffähige Fassung**, ist aber noch nicht am Tisch erprobt — Werte, mögliche Sonderfähigkeiten
+> des Seelenlosen und die offenen Punkte stehen in **`ARENA-ENDKAMPF.md`**, Abschnitt 9. Nächster
+> Schritt offen (Codex, oder Probekampf + Feinschliff der Arena).
 
 ## Projekt in Kürze
 
