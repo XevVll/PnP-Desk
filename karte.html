@@ -1158,6 +1158,88 @@
       abspannEl.innerHTML = '';
     }
 
+    // Sammelt automatisch ALLE Bilder aus den geladenen Szenendateien -
+    // Hintergruende, Marker-Bilder, Bildvarianten und imgOverrides, dazu die
+    // Golden-Lion-Basismarker. Damit muss fuer den Abspann keine Bildliste
+    // mehr von Hand gepflegt werden: neue Szenen und neue Ortsbilder tauchen
+    // automatisch auf.
+    //
+    // Warum nicht einfach den images/-Ordner auslesen? Das geht im Browser
+    // nicht - die Seite ist statisch (GitHub Pages), es gibt kein
+    // Verzeichnis-Listing. Ueber die Szenendaten kommt man an dieselbe Menge,
+    // nur ohne verwaiste Dateien und ohne die Portraits (die haengen an
+    // js/characters.js und kommen nur mit, wenn "mitPortraits" gesetzt ist).
+    // Als Funktionen, nicht als Namensliste mit eval(): die Container sind
+    // top-level "const" aus eigenen <script>-Tags, ein fehlender Tag wuerde
+    // sonst einen ReferenceError werfen. Neue Kartendatei = hier eine Zeile
+    // ergaenzen (dieselbe Stelle wie MAP_REGISTRY weiter oben).
+    const SZENEN_CONTAINER = [
+      function () { return typeof SCENES !== 'undefined' ? SCENES : null; },
+      function () { return typeof GOLDEN_LION_SCENES !== 'undefined' ? GOLDEN_LION_SCENES : null; },
+      function () { return typeof SCHATZINSEL_SCENES !== 'undefined' ? SCHATZINSEL_SCENES : null; },
+      function () { return typeof SPANISCHER_HAFEN_SCENES !== 'undefined' ? SPANISCHER_HAFEN_SCENES : null; },
+      function () { return typeof SCHMUGGLERNEST_SCENES !== 'undefined' ? SCHMUGGLERNEST_SCENES : null; },
+      function () { return typeof ARTEFAKTHANDEL_SCENES !== 'undefined' ? ARTEFAKTHANDEL_SCENES : null; },
+      function () { return typeof RIFFINSEL_SCENES !== 'undefined' ? RIFFINSEL_SCENES : null; },
+      function () { return typeof GRABESINSEL_SCENES !== 'undefined' ? GRABESINSEL_SCENES : null; }
+    ];
+
+    function sammleSzenenBilder(mitPortraits) {
+      const treffer = [];
+      function merke(pfad) {
+        if (typeof pfad === 'string' && pfad && treffer.indexOf(pfad) === -1) treffer.push(pfad);
+      }
+      // Rekursiv, weil Bildvarianten zwei Ebenen tief haengen
+      // (marker.variants.leer.img, js/golden_lion_scenes.js). Ein flacher
+      // Scan hat genau dieses eine Bild uebersehen.
+      function ausMarker(m, tiefe) {
+        if (!m || typeof m !== 'object' || (tiefe || 0) > 4) return;
+        merke(m.img);
+        Object.keys(m).forEach(function (k) {
+          const v = m[k];
+          if (v && typeof v === 'object') ausMarker(v, (tiefe || 0) + 1);
+        });
+      }
+
+      SZENEN_CONTAINER.forEach(function (hol) {
+        const obj = hol();
+        if (!obj || typeof obj !== 'object') return;
+        Object.keys(obj).forEach(function (id) {
+          const sc = obj[id];
+          if (!sc || typeof sc !== 'object') return;
+          merke(sc.background);
+          // NICHT forEach(ausMarker): forEach reicht den Index als zweites
+          // Argument durch, der landete sonst im Tiefen-Parameter und alles
+          // ab dem fuenften Marker wurde stillschweigend uebersprungen.
+          (sc.markers || []).forEach(function (m) { ausMarker(m, 0); });
+          Object.keys(sc.imgOverrides || {}).forEach(function (k) { merke(sc.imgOverrides[k]); });
+        });
+      });
+
+      if (typeof GOLDEN_LION_MARKERS_BASE !== 'undefined' && GOLDEN_LION_MARKERS_BASE) {
+        Object.keys(GOLDEN_LION_MARKERS_BASE).forEach(function (k) { ausMarker(GOLDEN_LION_MARKERS_BASE[k]); });
+      }
+      if (mitPortraits && typeof CHARACTERS !== 'undefined' && CHARACTERS) {
+        const liste = Array.isArray(CHARACTERS) ? CHARACTERS : Object.keys(CHARACTERS).map(function (k) { return CHARACTERS[k]; });
+        liste.forEach(function (c) { if (c) merke(c.img || c.portrait || c.bild); });
+      }
+      return treffer;
+    }
+
+    // Liefert die Bildliste einer Abspann-Szene: entweder automatisch aus den
+    // Szenendaten (Standard) oder die im Feld "slideshow" hinterlegte Liste.
+    // "zusatzBilder" wird immer angehaengt, "ohneBilder" immer entfernt -
+    // so laesst sich das Automatische gezielt ergaenzen und beschneiden.
+    function abspannBilder(scene) {
+      let liste = Array.isArray(scene.slideshow) && scene.slideshow.length
+        ? scene.slideshow.slice()
+        : sammleSzenenBilder(!!scene.mitPortraits);
+      (scene.zusatzBilder || []).forEach(function (b) { if (liste.indexOf(b) === -1) liste.push(b); });
+      const raus = scene.ohneBilder || [];
+      if (raus.length) liste = liste.filter(function (b) { return raus.indexOf(b) === -1; });
+      return liste;
+    }
+
     // Fisher-Yates. Wird bewusst ueber ALLE Bilder der Kampagne gemischt,
     // nicht innerhalb der Szenen - Hendriks Vorgabe "vor allem
     // szenenuebergreifend". Ist die Liste durch, wird neu gemischt, damit
@@ -1187,8 +1269,9 @@
 
     function startSlideshow(scene) {
       stopSlideshow();
-      if (!abspannEl || !scene || !scene.slideshow || !scene.slideshow.length) return;
-      const bilder = scene.slideshow;
+      if (!abspannEl || !scene) return;
+      const bilder = abspannBilder(scene);
+      if (!bilder.length) return;
       const blend = scene.blendDauer || 2500;
       const stand = scene.slideDauer || 7000;
       const anzahl = Math.max(1, Math.min(scene.gleichzeitig || 4, bilder.length));
@@ -1276,7 +1359,8 @@
       // Abspann-Szene? Dann keine Karte, keine Marker, keine Erkundung -
       // nur die Bildfolge. Beim Verlassen wird sauber aufgeraeumt.
       const sceneMeta = findSceneMeta(sceneId);
-      const abspannScene = sceneMeta && sceneMeta.raw && sceneMeta.raw.slideshow ? sceneMeta.raw : null;
+      const rohSzene = sceneMeta && sceneMeta.raw ? sceneMeta.raw : null;
+      const abspannScene = (rohSzene && (rohSzene.abspann === true || rohSzene.slideshow)) ? rohSzene : null;
       if (abspannScene) {
         clearOpenMarker();
         clearMarkers();          // sonst blieben die Marker der Vorszene im DOM liegen

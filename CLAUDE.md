@@ -96,6 +96,31 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 29)
+- **Abspann-Bildliste entfällt — die Bilder werden automatisch gesammelt** (Hendriks Frage: „muss
+  das für jedes einzelne definiert sein?"). Antwort: nein. `sammleSzenenBilder()` in `karte.html`
+  läuft über alle geladenen Szenendateien und nimmt Hintergründe, Marker-Bilder, Bildvarianten
+  und `imgOverrides` mit, dazu `GOLDEN_LION_MARKERS_BASE`. Ergebnis: **51 von 51** Nicht-Porträt-
+  Bildern aus `images/` — keines fehlt, keiner der Pfade ist verwaist. Neue Szenen und neue
+  Ortsbilder tauchen ab sofort von selbst im Abspann auf.
+  - **Den `images/`-Ordner direkt auslesen geht nicht**: die Seite ist statisch (GitHub Pages),
+    ein Browser bekommt kein Verzeichnis-Listing. Der Umweg über die Szenendaten liefert dieselbe
+    Menge und lässt verwaiste Dateien zusätzlich draußen.
+  - `js/abspann_scenes.js` ist dadurch von ~120 auf ~65 Zeilen geschrumpft, die Szene wird jetzt
+    über `abspann: true` erkannt statt über das Vorhandensein der Liste. Optional weiterhin
+    möglich: `mitPortraits` (nimmt die 7 NSC-Porträts dazu → 58 Bilder), `zusatzBilder`,
+    `ohneBilder`, und `slideshow` als feste Liste, die die Automatik ganz ersetzt.
+  - **Zwei Bugs beim Bauen, beide vom Vergleichs-Test gefunden:**
+    1. *Flacher Scan übersah `marker.variants.leer.img`* (zwei Ebenen tief,
+       `interior_frachtraum_leer.webp`) — Scan rekursiv gemacht.
+    2. *`forEach(ausMarker)` reicht den Index als zweites Argument durch.* Der landete im neuen
+       Tiefen-Parameter, wodurch **alles ab dem fünften Marker einer Szene stillschweigend
+       übersprungen** wurde (4 Bilder fehlten). Auf `forEach(function (m) { ausMarker(m, 0); })`
+       umgestellt.
+  - Test um zwei Prüfungen erweitert: Abgleich der Automatik gegen das tatsächliche
+    Verzeichnis (keine übersehenen, keine nicht existierenden Pfade) und dass `mitPortraits`
+    zusätzliche Bilder liefert. 10 Prüfungen, 0 Fehler.
+
 ### 2026-08-22 (Fortsetzung 28)
 - **Abspann-Feinjustage** (Hendriks Vorgaben): `gleichzeitig` von 4 auf **6**, Standzeit von 7 auf
   **11 s**, Ein-/Ausblendzeit von 2,5 auf **4 s** — die Bilder stehen länger und tauchen deutlich
