@@ -131,10 +131,18 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, wurf
   const band = arenaVerschiebe(rohBand, bedraengnis);
 
   const grund = art === 'nah' ? (angreifer.nahSchaden || 0) : (angreifer.fernSchaden || 0);
-  const schaden = arenaSchaden(band, grund);
-  const hpNeu = Math.max(0, (ziel.hp || 0) - schaden);
-  const toetet = hpNeu === 0 && (ziel.hp || 0) > 0;
+  let schaden = arenaSchaden(band, grund);
   const mitSaebel = !!saebeltraegerId && angreifer.id === saebeltraegerId;
+
+  // Jaguar-Saebel (Hendriks Regel, 2026-08-23): JEDER Treffer des Traegers
+  // gegen einen normalen Diener ist sofort toedlich - unabhaengig von
+  // Schadenswert und Rest-HP. "Treffer" heisst: das Band ist kein Misserfolg.
+  // Gilt nur fuer Diener; beim Seelenlosen zaehlt der Saebel normal.
+  const saebelToetet = mitSaebel && ziel.typ === 'diener' && schaden > 0;
+  if (saebelToetet) schaden = Math.max(schaden, ziel.hp || 0);
+
+  const hpNeu = saebelToetet ? 0 : Math.max(0, (ziel.hp || 0) - schaden);
+  const toetet = hpNeu === 0 && (ziel.hp || 0) > 0;
   const endgueltig = toetet && ziel.typ === 'diener' && mitSaebel;
 
   return {

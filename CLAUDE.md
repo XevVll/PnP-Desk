@@ -105,6 +105,17 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung 5) — Saebel: jeder Treffer toetet Diener sofort
+- **Hendriks Regel:** Mit dem Jaguar-Saebel ist jeder Treffer gegen normale Diener sofort
+  toedlich - unabhaengig von Schadenswert und Rest-HP, sobald das Band kein Misserfolg ist.
+  Vorher musste der Saebel die HP regulaer auf 0 bringen. Umgesetzt in arenaAngriff()
+  (js/arena.js), gilt damit in allen drei Ansichten. Misserfolg toetet weiterhin nicht, gegen
+  den Seelenlosen zaehlt der Saebel normal, und der endgueltige Tod (Token verschwindet, kein
+  Wiederaufstehen) bleibt wie gehabt.
+- Engine-Test um vier Faelle erweitert (Treffer mit "schlechtem Erfolg" toetet vollen Diener /
+  Miss toetet nicht / ohne Saebel normaler Schaden / Boss nimmt normalen Schaden). Handbuch 4.5
+  entsprechend umgeschrieben. 0 Fehler in allen Arena-Tests.
+
 ### 2026-08-23 (Fortsetzung 4) — Kampfwerte je Figur editierbar
 - **Anlass Hendriks Einwand "Aber Spieler haben ja unterschiedliche Kampfwerte"** - bis dahin
   bekam jede Spieler-Figur die Einheitswerte der Vorlage. Die Charakterboegen liegen nur im

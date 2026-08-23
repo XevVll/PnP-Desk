@@ -177,9 +177,17 @@ Kampfes und nicht bloß der dickste Gegner — ohne dass dafür eine Siegbedingu
 
 ### 4.5 Der Jaguar-Säbel
 
-Nur der Träger tötet Diener **endgültig**: das Token wird gelöscht statt auf `tot` gesetzt, es
-kann also nicht wieder aufstehen. Bei allen anderen Zielen (auch beim Seelenlosen) hat der Säbel
-keine Sonderwirkung.
+Zwei Wirkungen, beide nur beim Träger und beide nur gegen **Diener**:
+
+1. **Jeder Treffer ist sofort tödlich** (Hendriks Regel, 2026-08-23): sobald das Band kein
+   Misserfolg ist, fällt der Diener — unabhängig von Schadenswert und Rest-HP. Ein „schlechter
+   Erfolg" mit 1 Schaden gegen einen vollen Diener genügt.
+2. **Der Tod ist endgültig**: das Token wird gelöscht statt auf `tot` gesetzt, es kann also nicht
+   wieder aufstehen.
+
+Beim Seelenlosen hat der Säbel **keine** Sonderwirkung — er nimmt normalen Schaden. Dass Diener
+unter dem Säbel „zu Staub zerfallen", ist für alle sichtbar (in-fiction entdeckt der Träger die
+Eigenschaft ja gerade so, siehe `die_ersten_wellen`) — nur *benannt* wird der Säbel nirgends.
 
 **Wer ihn trägt, setzt allein die SL** (im Schlachtfeld per „Säbel geben" — möglich für Spieler
 UND Verbündete, denn laut Finale kann er auch Harwick in die Hand gedrückt werden), und es wird
