@@ -96,6 +96,38 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 25)
+- **Musik lässt sich jetzt LIVE wechseln, ohne dass Spieler neu laden** (Hendriks Wunsch für das
+  Finale: erst `ritual`, dann `temple`, am Ende `ending`). Das Adminpanel schrieb den Wechsel
+  schon immer nach `sceneAudioFile/{szene}` — `karte.html` las den Wert aber mit **`.once()`**,
+  also nur beim Szenenwechsel. Ein Wechsel innerhalb derselben Szene kam bei laufenden
+  Spieler-Seiten schlicht nicht an.
+  - `resolveSoundForScene()` durch **`attachSceneAudioListener()`** ersetzt: ein `on('value')`
+    auf `sceneAudioFile/{szene}`, sauber ab-/angehängt beim Szenenwechsel (gleiches Muster wie
+    `renderCharacterRail()`). Firebase-Wert hat weiter Vorrang; wird er gelöscht, greift wieder
+    das statische `soundFile` der Szene.
+  - **Sanftes Überblenden statt hartem Schnitt** (`runAudioFade()`, 1,2 s aus / 1,2 s ein) —
+    mitten in einer laufenden Szene wäre ein harter Wechsel sonst unangenehm auffällig.
+  - **Zwei echte Bugs, die der Test gefunden hat:**
+    1. *Fade zählte feste Schritte.* Browser drosseln `setInterval` in nicht sichtbaren Tabs auf
+       ~1×/Sekunde — 24 Schritte hätten dort 24 Sekunden gedauert. Jetzt zeitbasiert über
+       `Date.now()`: notfalls in wenigen groben Sprüngen, aber nach 1,2 s Wandzeit sicher fertig.
+    2. *Verspätete `play()`-Promises haben den Wechsel verschluckt.* Das Promise des VORIGEN
+       Titels löste erst nach dem nächsten Wechsel auf, startete seinen Einblend-Fade, killte
+       damit den laufenden Ausblend-Fade **samt dessen Callback** — und der Titelwechsel fiel
+       still unter den Tisch. Genau der Fall, wenn die SL zügig hintereinander umschaltet. Behoben
+       mit einem Generations-Token (`audioSwapToken`), das verspätete Callbacks verwerfen lässt.
+  - Neuer Playwright-Test (Fake-`db`, rein lokal) prüft: Offline-Fallback aufs statische Feld,
+    Live-Wechsel `ritual`→`temple`→`ending` ohne Reload, Rückfall auf den Default beim Löschen des
+    Werts, sauberes `off()` beim Szenenwechsel, und dass ein identischer Wert keinen Fade auslöst.
+    0 Fehler. **Testhinweis:** feste Sleeps taugen hier nicht (Timer-Drosselung), es wird aktiv
+    gepollt.
+- **`ending.ogg` auf 45 Minuten gekürzt** (Hendriks Vorgabe): `ffmpeg -t 2700 -c copy`, also
+  **verlustfreier Stream-Copy ohne Neukodierung** — 88,9 MB → 21 MB, Länge exakt 2700,02 s. Damit
+  ist auch die Warnung „nah am 100-MB-Limit" vom Tisch. Kein Ausblenden am Ende, weil die Datei
+  im Player ohnehin geloopt wird; ein Fade zu Stille vor dem Neustart klänge dort falscher als
+  ein Schnitt.
+
 ### 2026-08-22 (Fortsetzung 24)
 - **`ritual.ogg` konvertiert** (Opus, 64 kbps VBR) aus `ritual.mp3`: 28,6 MB → 8,1 MB (-72 %),
   Länge unverändert bei 936,55 s (per `ffprobe` gegen die Quelle geprüft). Quell-MP3 bewusst

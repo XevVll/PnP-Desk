@@ -677,19 +677,34 @@
       return meta && meta.raw.soundFile ? meta.raw.soundFile : null;
     }
 
-    // Liefert den Sound-Dateinamen für eine Szene per Callback, da der
-    // Firebase-Wert (vom Admin-Panel gesetzt) Vorrang vor dem statischen
-    // "soundFile"-Feld aus der jeweiligen *_scenes.js-Datei hat. Fällt
-    // still auf das statische Feld zurück, falls Firebase nichts liefert
-    // oder nicht erreichbar ist.
-    function resolveSoundForScene(sceneId, callback) {
+    // LIVE-Listener auf den Sound der aktuellen Szene (seit 2026-08-22).
+    // Vorher las das hier mit .once() - der Wert wurde also nur beim
+    // Szenenwechsel geholt, und ein Wechsel in der Sound-Leiste des
+    // Adminpanels erreichte laufende Spieler-Seiten erst nach einem Reload.
+    // Jetzt haengt ein on('value') an sceneAudioFile/{szene}: die SL kann
+    // mitten in einer Szene die Musik wechseln (z.B. auf der Grabesinsel
+    // ritual -> temple -> ending), und alle Spieler blenden automatisch um.
+    //
+    // Der Firebase-Wert hat weiterhin Vorrang vor dem statischen
+    // "soundFile"-Feld aus der jeweiligen *_scenes.js-Datei; faellt der
+    // Wert weg (Loeschen in der Sound-Leiste), greift wieder der Default.
+    // Ab-/Anhaengen nach demselben Muster wie renderCharacterRail().
+    let sceneAudioRef = null;
+    let sceneAudioListener = null;
+
+    function attachSceneAudioListener(sceneId) {
+      if (sceneAudioRef && sceneAudioListener) sceneAudioRef.off('value', sceneAudioListener);
+      sceneAudioRef = null;
+      sceneAudioListener = null;
+
       const fallback = getStaticSoundForScene(sceneId);
-      if (!db) { callback(fallback); return; }
-      db.ref('sceneAudioFile/' + fbKey(sceneId)).once('value').then(function (snap) {
-        const fromFirebase = snap.val();
-        callback(fromFirebase || fallback);
-      }).catch(function () {
-        callback(fallback);
+      if (!db) { syncAudioForScene(fallback); return; }
+
+      sceneAudioRef = db.ref('sceneAudioFile/' + fbKey(sceneId));
+      sceneAudioListener = sceneAudioRef.on('value', function (snap) {
+        syncAudioForScene(snap.val() || fallback);
+      }, function () {
+        syncAudioForScene(fallback);
       });
     }
 
@@ -1283,8 +1298,44 @@
       muteBtn.textContent = isMuted ? '🔇' : '🔊';
     }
 
+    // Sanftes Ueberblenden beim Musikwechsel (statt hartem Schnitt) - die SL
+    // wechselt jetzt auch mitten in einer laufenden Szene, siehe
+    // attachSceneAudioListener(). Ein laufender Fade steuert die Lautstaerke
+    // selbst; applyAudioState() darf ihm dann nicht dazwischenfunken.
+    const AUDIO_FADE_MS = 1200;
+    let audioFadeTimer = null;
+    let audioSwapToken = 0; // siehe syncAudioForScene(): schuetzt vor verspaeteten play()-Promises
+
+    function cancelAudioFade() {
+      if (audioFadeTimer) { clearInterval(audioFadeTimer); audioFadeTimer = null; }
+    }
+
+    function clampVol(v) { return Math.max(0, Math.min(1, v)); }
+
+    // Bewusst ZEITBASIERT (Date.now()) statt fester Schrittzahl: Browser
+    // drosseln setInterval in nicht sichtbaren Tabs auf ca. 1x pro Sekunde.
+    // Mit gezaehlten Schritten haette ein Fade dort ein Vielfaches gedauert
+    // und der Titelwechsel waere erst viel spaeter angekommen - bei einem
+    // Spieler mit der Karte im Hintergrund-Tab also faktisch kaputt. So
+    // laeuft der Fade notfalls in wenigen groben Spruengen ab, ist aber nach
+    // AUDIO_FADE_MS Wandzeit sicher fertig.
+    function runAudioFade(from, to, done) {
+      cancelAudioFade();
+      const startedAt = Date.now();
+      bgAudio.volume = clampVol(from);
+      audioFadeTimer = setInterval(function () {
+        const t = Math.min(1, (Date.now() - startedAt) / AUDIO_FADE_MS);
+        bgAudio.volume = clampVol(from + (to - from) * t);
+        if (t >= 1) {
+          cancelAudioFade();
+          bgAudio.volume = clampVol(to);
+          if (done) done();
+        }
+      }, 40);
+    }
+
     function applyAudioState() {
-      bgAudio.volume = savedVolume / 100;
+      if (!audioFadeTimer) bgAudio.volume = savedVolume / 100;
       bgAudio.muted = isMuted;
       // Manche Browser pausieren <audio>, wenn es (noch) stummgeschaltet
       // erstellt wurde - sicherheitshalber erneut abspielen versuchen.
@@ -1364,25 +1415,56 @@
       document.addEventListener('keydown', unlockOnFirstInteraction, { once: true });
     }
 
-    // Erwartet den Dateinamen der Audiodatei (oder null) als Parameter -
-    // wird als Callback an resolveSoundForScene(sceneId, ...) übergeben,
-    // da die Auflösung (Firebase-Override vs. statisches Feld) asynchron läuft.
+    // Erwartet den Dateinamen der Audiodatei (oder null) - wird vom
+    // Live-Listener attachSceneAudioListener() aufgerufen, sowohl beim
+    // Szenenwechsel als auch wenn die SL mitten in der Szene einen anderen
+    // Ton setzt. Laeuft schon etwas, wird ueberblendet statt hart geschnitten.
     function syncAudioForScene(audioFile) {
       if (audioFile === currentAudioFile) return; // schon richtig, nichts zu tun
+      const wasPlaying = !!bgAudio.getAttribute('src') && !bgAudio.paused;
       currentAudioFile = audioFile;
 
-      if (!audioFile) {
-        bgAudio.pause();
-        bgAudio.removeAttribute('src');
-        return;
+      // Jeder Wechsel bekommt eine Nummer. Grund: bgAudio.play() liefert ein
+      // Promise, das oft erst NACH dem naechsten Wechsel aufloest. Ohne diese
+      // Pruefung startete der alte Titel dann seinen Einblend-Fade, loeschte
+      // damit den laufenden Ausblend-Fade des neuen Wechsels UND dessen
+      // Callback - der Titelwechsel fiel still unter den Tisch. Genau der
+      // Fall, wenn die SL zuegig hintereinander umschaltet.
+      const myToken = ++audioSwapToken;
+
+      function startNewTrack() {
+        if (myToken !== audioSwapToken) return; // laengst ueberholt
+        if (!audioFile) {
+          cancelAudioFade();
+          bgAudio.pause();
+          bgAudio.removeAttribute('src');
+          bgAudio.volume = savedVolume / 100;
+          return;
+        }
+        bgAudio.src = 'audio/' + audioFile;
+        bgAudio.muted = isMuted;
+        const target = savedVolume / 100;
+        const playPromise = bgAudio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise.then(function () {
+            if (myToken !== audioSwapToken) return; // inzwischen weitergeschaltet
+            runAudioFade(0, target); // sanft einblenden
+          }).catch(function () {
+            if (myToken !== audioSwapToken) return;
+            // Blockiertes Autoplay ist normal, solange isMuted=true nichts
+            // Falsches signalisiert - sobald freigeschaltet wird, greift
+            // applyAudioState() erneut und startet die Wiedergabe.
+            cancelAudioFade();
+            bgAudio.volume = target;
+          });
+        } else {
+          cancelAudioFade();
+          bgAudio.volume = target;
+        }
       }
-      bgAudio.src = 'audio/' + audioFile;
-      applyAudioState();
-      bgAudio.play().catch(function () {
-        // Blockiertes Autoplay ist normal, solange isMuted=true nichts
-        // Falsches signalisiert - sobald freigeschaltet wird, greift
-        // applyAudioState() erneut und startet die Wiedergabe.
-      });
+
+      if (wasPlaying) runAudioFade(bgAudio.volume, 0, startNewTrack);
+      else startNewTrack();
     }
 
     // ==========================================================
@@ -1436,7 +1518,7 @@
         statusEl.className = 'connected';
         setTimeout(function () { statusEl.classList.add('hidden'); }, 1200);
         renderScene(sceneId);
-        resolveSoundForScene(sceneId, syncAudioForScene);
+        attachSceneAudioListener(sceneId);
         renderCharacterRail(sceneId);
       }, function (err) {
         statusEl.textContent = 'Verbindungsfehler: ' + err.message;
@@ -1446,7 +1528,7 @@
       statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft.';
       statusEl.className = 'error';
       renderScene(getFallbackDefaultScene());
-      resolveSoundForScene(getFallbackDefaultScene(), syncAudioForScene);
+      attachSceneAudioListener(getFallbackDefaultScene());
       renderCharacterRail(getFallbackDefaultScene());
     }
   </script>
