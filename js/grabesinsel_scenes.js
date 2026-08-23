@@ -47,8 +47,8 @@
 // (images/interior_ritualkammer.webp). Prompts dazu in BILD-PROMPTS.md.
 //
 // MARKER-POSITIONEN sind gegen images/grabesinsel.webp kalibriert (Playwright-
-// Screenshot, von Hendrik nachjustiert): Strand auf der linken Hälfte der
-// schwarzen Felsplatte am Wasser, Ritualkammer auf dem Höhleneingang.
+// Screenshot, von Hendrik zweimal nachjustiert): Strand an der kleinen Bucht
+// am Westende der schwarzen Felsplatte, Ritualkammer auf dem Höhleneingang.
 const GRABESINSEL_SCENES = {
   "13.1": {
     label: "Grabesinsel",
@@ -56,7 +56,7 @@ const GRABESINSEL_SCENES = {
     markers: [
       {
         id: "grabesstrand",
-        top: 79, left: 41,
+        top: 77, left: 38,
         title: "Der schwarze Strand",
         desc: "Kein Sand, sondern blanker schwarzer Fels, vom Wasser rund geschliffen. Es ist die einzige Stelle, an der man anlegen kann — ringsum fällt das Gestein steil ins Meer. Landeinwärts öffnet sich ein Tal zwischen zwei hohen, scharfkantigen Felswänden, der Boden dazwischen aus demselben schwarzen Stein. Pflanzen sind kaum zu sehen, und die wenigen sind grau.",
         img: "images/interior_grabesstrand.webp"
