@@ -69,6 +69,11 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.7);
     position: relative; cursor: pointer;
   }
+  /* Token mit eigenem Bild statt Symbol (z.B. der Seelenlose). */
+  .token-bild {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    border-radius: 50%; object-fit: cover; display: block;
+  }
   .token.ausgewaehlt { box-shadow: 0 0 0 4px rgba(201,162,75,0.55); }
   .token.frei { animation: puls 1.6s ease-in-out infinite; }
   @keyframes puls { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }
@@ -423,7 +428,16 @@
       + (t.tot ? ' tot' : '')
       + (angreifbar[id] ? ' angreifbar' : '');
     el.style.color = t.farbe || '#c9a24b';
-    el.textContent = t.symbol || '?';
+    // Eigenes Bild (t.bild) fuellt den Token aus, sonst wie bisher das Symbol.
+    if (t.bild) {
+      const bildEl = document.createElement('img');
+      bildEl.className = 'token-bild';
+      bildEl.src = t.bild;
+      bildEl.alt = '';
+      el.appendChild(bildEl);
+    } else {
+      el.textContent = t.symbol || '?';
+    }
     el.title = (t.name || id) + ' — ' + t.typ + ', HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?');
 
     // Helden-Seite (Spieler + Verbuendete) immer beschriften - Gegner sind

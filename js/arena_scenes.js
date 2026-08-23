@@ -80,8 +80,14 @@ const ARENA_SCENES = {
         typ: "diener", symbol: "☠", farbe: "#7fa87f",
         hpMax: 3, nahWert: 4, fernWert: 0, nahSchaden: 1, fernSchaden: 0, mastery: false
       },
+      // "bild" (optional, jede Vorlage kann es haben): fuellt den runden
+      // Token anstelle des Symbols aus. Hier der Kopf-Ausschnitt aus dem
+      // Portrait images/Der_Seelenlose.webp - der Boss soll auf dem Brett
+      // sofort als eigene Figur erkennbar sein, nicht als weiteres Zeichen.
+      // "symbol" bleibt als Rueckfallwert stehen, falls das Bild fehlt.
       seelenloser: {
         typ: "seelenloser", symbol: "✦", farbe: "#a8391e",
+        bild: "images/token_seelenloser.webp",
         hpMax: 18, nahWert: 7, fernWert: 0, nahSchaden: 3, fernSchaden: 0, mastery: true
       }
     }

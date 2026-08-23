@@ -129,6 +129,12 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.7);
     position: relative;
   }
+  /* Token mit eigenem Bild statt Symbol (z.B. der Seelenlose): das Bild
+     fuellt den runden Token komplett aus, der farbige Rand bleibt. */
+  .arena-token-bild {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    border-radius: 50%; object-fit: cover; display: block;
+  }
   .arena-token.frei { animation: markPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(201,162,75,0.35); }
   .arena-token.tot { opacity: 0.32; filter: grayscale(1); }
   .arena-token.angreifbar { cursor: pointer; outline: 2px dashed var(--accent); outline-offset: 3px; }
@@ -1582,7 +1588,18 @@
       const el = document.createElement('div');
       el.className = 'arena-token' + (id === freigegebenId ? ' frei' : '') + (t.tot ? ' tot' : '');
       el.style.color = t.farbe || '#c9a24b';
-      el.textContent = t.symbol || '?';
+      // Hat die Figur ein eigenes Bild (t.bild), fuellt das den Token aus -
+      // sonst wie bisher das Symbol. Das Bild wird VOR dem Namensschild
+      // eingehaengt, damit der Name weiterhin darueber liegt.
+      if (t.bild) {
+        const bildEl = document.createElement('img');
+        bildEl.className = 'arena-token-bild';
+        bildEl.src = t.bild;
+        bildEl.alt = '';
+        el.appendChild(bildEl);
+      } else {
+        el.textContent = t.symbol || '?';
+      }
 
       // Beschriftet werden IMMER: die Helden-Seite (Spieler + Verbuendete,
       // Hendriks Vorgabe - man muss sehen, wer wer ist) und die gerade

@@ -105,6 +105,29 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung)
+- **Porträt des Seelenlosen eingebunden** (von Hendrik generiert, nach dem Prompt in
+  `BILD-PROMPTS.md`, Abschnitt „4. Der Seelenlose"): `Seelenloser.jpg` → auf die
+  Porträt-Namenskonvention umbenannt (`Der_Seelenlose.jpg`, **ohne** `interior_`-Präfix, damit
+  `cap_for()` korrekt auf 900px statt 1600px kappt) → `images/Der_Seelenlose.webp`
+  (2,4 MB → **49 KB**, 672×900). Als achter Eintrag in `js/characters.js` registriert und damit in
+  der Charakter-Leiste von `13.1` ein-/ausblendbar. **Bewusst kein `charaktere`-Feld an
+  `SZENEN_REGIE["13.1"]`** — die Szene schränkt die Leiste nicht ein, er ist dort also ohnehin
+  wählbar; eine Einschränkung hätte umgekehrt die übrigen Figuren aus der Leiste geworfen.
+- **Kopf-Ausschnitt als Arena-Token**: `images/token_seelenloser.webp` (256×256, 7 KB), aus dem
+  Porträt geschnitten (Schädel inkl. Kapuze). Dafür ein neues **optionales `bild`-Feld an
+  Arena-Figuren**: `arenaTokenEl()` (`karte.html`) und `tokenEl()` (`arena_admin.html`) rendern ein
+  `<img>`, das den runden Token ausfüllt, statt des Textsymbols; `symbol` bleibt als Rückfallwert
+  bestehen und alle übrigen Figuren verhalten sich unverändert. Eingetragen in
+  `ARENA_SCENES["15.1"].vorlagen.seelenloser` (`js/arena_scenes.js`). Der farbige Rand, das
+  Namensschild und die HP-Leiste liegen weiterhin über bzw. um das Bild.
+  - Offline mit Playwright verifiziert (`pnp-safe-test`, 0 Fehler): beide Bilder per HTTP
+    erreichbar, `CHARACTERS` enthält den Eintrag, `13.1` listet ihn, alle sieben
+    Ritualkammer-Interaktionen vorhanden, und beide Token-Renderer liefern mit `bild` ein `<img>`
+    und ohne `bild` weiterhin das Symbol. Zusätzlich per Screenshot gegengeprüft.
+  - Die Roh-JPG `images/Der_Seelenlose.jpg` liegt weiterhin unversioniert im Ordner — nach eigener
+    Sichtprüfung **nicht** committet (2,4 MB), Löschen bleibt wie üblich Hendriks Handgriff.
+
 ### 2026-08-23 (Fortsetzung 5) — Saebel: jeder Treffer toetet Diener sofort
 - **Hendriks Regel:** Mit dem Jaguar-Saebel ist jeder Treffer gegen normale Diener sofort
   toedlich - unabhaengig von Schadenswert und Rest-HP, sobald das Band kein Misserfolg ist.

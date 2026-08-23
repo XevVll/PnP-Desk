@@ -18,5 +18,9 @@ const CHARACTERS = [
   { id: "dirk", name: "Dirk van Hoorn", img: "images/Dirk_van_Hoorn.webp" },
   { id: "francesco", name: "Francesco Almeida", img: "images/Francesco_Benedetto_Almeida.webp" },
   { id: "wat", name: "Walter „Wat“ Crozier", img: "images/Walter_Wat_Crozier.webp" },
-  { id: "josiah", name: "Josiah Pryce", img: "images/Josiah_Pryce.webp" }
+  { id: "josiah", name: "Josiah Pryce", img: "images/Josiah_Pryce.webp" },
+  // Antagonist des Finales (Bibel 12.1), nur fuer die Grabesinsel-Szene
+  // "13.1" gedacht - dort ueber die Charakter-Leiste einblenden, sobald er
+  // zum ersten Mal spricht ("Kein Toter verlaesst je diese Insel.").
+  { id: "seelenloser", name: "Der Seelenlose", img: "images/Der_Seelenlose.webp" }
 ];
