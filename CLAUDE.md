@@ -96,6 +96,37 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 26)
+- **Neue Abschluss-/Erinnerungsszene `14.1` „Abspann"** (Hendriks Wunsch): Nach dem Finale laufen
+  alle Bilder des Abenteuers noch einmal durch und blenden ineinander.
+- **Dafür ein neuer Szenentyp** (`js/abspann_scenes.js`): Die Szene hat **keine Marker und keinen
+  Hintergrund**, sondern ein Feld `slideshow` (Liste von Bildpfaden) plus `slideDauer`/
+  `blendDauer`. `renderScene()` in `karte.html` erkennt das Feld und zeigt statt der Marker-Karte
+  eine bildschirmfüllende Überblend-Sequenz (`startSlideshow()`, zwei gestapelte `<img>`-Ebenen,
+  die sich abwechseln). Das MAP_REGISTRY-Muster bleibt unangetastet — jede andere Szene verhält
+  sich unverändert; `getMarkers` liefert für diese Szene bewusst `[]` statt `null`, damit sie als
+  bekannte Szene gilt, aber keine Marker rendert.
+  - **51 Bilder in Kampagnen-Chronologie**, nicht in Dateiordnung: Grimsgate → Golden Lion →
+    Sturm → Schatzinsel → Spanischer Hafen → Schmugglernest → Artefakthandel → Riffinsel →
+    Einberufung → Grabesinsel. Alle Pfade per Test gegen das Dateisystem geprüft (0 fehlend,
+    keine Doppelten). Am Ende blendet die Sequenz nach Schwarz und **bleibt dort stehen** (kein
+    Loop) — ein Abspann soll enden.
+  - `soundFile: "ending.ogg"` als Voreinstellung; zusammen mit dem Live-Wechsel aus Fortsetzung 25
+    läuft der Ton beim Umschalten automatisch über.
+  - **`#audioControl` von `z-index: 60` auf `410` gehoben** — der Abspann liegt bei 400, und die
+    Spieler müssen ausgerechnet während einer 7-Minuten-Musiksequenz stummschalten und die
+    Lautstärke regeln können. Per Test mit `elementFromPoint` abgesichert.
+  - Beim Betreten der Szene werden Marker, offene Overlays und der Erkundungs-Listener sauber
+    abgeräumt (`clearMarkers()`, `clearOpenMarker()`, `attachGraphStateListener(null)`) — sonst
+    blieben die Marker der Vorszene unsichtbar im DOM liegen, samt Präsenz-Einträgen. Beim
+    Verlassen stoppt `stopSlideshow()` Timer und Ebenen.
+  - `SZENEN_REGIE["14.1"]` mit SL-Hinweisen (nichts anklicken lassen, laufen lassen, Tempo über
+    `slideDauer`/`blendDauer` regelbar — Standard ergibt bei 51 Bildern gut 7 Minuten).
+  - Registry an allen sechs Stellen ergänzt; neuer Playwright-Test (6 Prüfungen, 0 Fehler) und
+    Screenshot-Kontrolle.
+  - **[OFFEN]** Hendrik wollte „eventuell noch 2-3 extra erstellte" Abschlussbilder — dafür ist
+    am Ende der Liste ein kommentierter Platz vorgesehen, Inhalte stehen noch aus.
+
 ### 2026-08-22 (Fortsetzung 25)
 - **Musik lässt sich jetzt LIVE wechseln, ohne dass Spieler neu laden** (Hendriks Wunsch für das
   Finale: erst `ritual`, dann `temple`, am Ende `ending`). Das Adminpanel schrieb den Wechsel

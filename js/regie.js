@@ -2406,6 +2406,13 @@ const SZENEN_REGIE = {
   // Vorgabe); Ritualort und Finale folgen. KEINE "ghosts": an Land geht nur
   // mit, wer sich in 12.1 einzeln dafuer entschieden hat - ein Pool anonymer
   // Statisten wuerde genau die Entscheidung entwerten, um die es geht.
+  // Abspann. Keine Orte, keine Marker, kein Wurf - die Szene ist eine reine
+  // Bildfolge auf der Spielerseite (js/abspann_scenes.js, karte.html).
+  "14.1": {
+    uebergeordnetesZiel: "Nichts mehr zu tun. Umschalten und laufen lassen.", // Bibel 2.9
+    stimmung: "Alle Bilder des Abenteuers laufen der Reihe nach durch und blenden ineinander — von Grimsgate bis zur Grabesinsel, in der Reihenfolge, in der die Runde sie erlebt hat. Am Ende blendet die Sequenz nach Schwarz und bleibt dort stehen.\n\nSL-Hinweise:\n— Diese Szene hat auf der Spielerseite bewusst KEINE Marker und keine Karte. Nichts anklicken lassen, nichts erklären, einfach laufen lassen.\n— Als Ton ist ending.ogg voreingestellt. Wer vorher schon auf ending umgeschaltet hat, hört ihn durchlaufen; sonst blendet er beim Szenenwechsel automatisch ein.\n— Bei 51 Bildern und der Standardeinstellung (6,5 s Standzeit + 2 s Überblendung) läuft die Sequenz gut 7 Minuten. Kürzer oder länger geht über slideDauer/blendDauer in js/abspann_scenes.js.\n— Ein guter Moment, die Runde einfach reden zu lassen, während es läuft."
+  },
+
   "13.1": {
     uebergeordnetesZiel: "Harwick den einzigen Weg entlang folgen — oder am Boot bleiben. Mehr steht in dieser Szene nicht zur Wahl.", // Bibel 2.9
     stimmung: "Kein Wind, keine Vögel, keine Brandung, die man von den anderen Inseln kennt. Der schwarze Stein schluckt Schritte, statt sie zu tragen. Alle sprechen leiser, als nötig wäre, ohne dass jemand darum gebeten hätte. Weit vorn, wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Gestein."

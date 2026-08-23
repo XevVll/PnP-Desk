@@ -55,7 +55,7 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // Firebase-Init weiter unten stehen (dessen catch-Zweig ruft renderAll() ->
 // getAllSceneEntries() synchron auf, noch bevor eine spätere const-Deklaration
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
-const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1'];
+const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1', '14.1'];
 
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
@@ -147,6 +147,9 @@ function getAllSceneEntries() {
   if (typeof GRABESINSEL_SCENES !== 'undefined') {
     Object.keys(GRABESINSEL_SCENES).forEach(function (id) { bySource[id] = { label: GRABESINSEL_SCENES[id].label, source: 'grabesinsel' }; });
   }
+  if (typeof ABSPANN_SCENES !== 'undefined') {
+    Object.keys(ABSPANN_SCENES).forEach(function (id) { bySource[id] = { label: ABSPANN_SCENES[id].label, source: 'abspann' }; });
+  }
   const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   return ordered.concat(remaining);
@@ -161,6 +164,7 @@ function getSceneLabel(sceneId) {
   if (typeof ARTEFAKTHANDEL_SCENES !== 'undefined' && ARTEFAKTHANDEL_SCENES[sceneId]) return ARTEFAKTHANDEL_SCENES[sceneId].label;
   if (typeof RIFFINSEL_SCENES !== 'undefined' && RIFFINSEL_SCENES[sceneId]) return RIFFINSEL_SCENES[sceneId].label;
   if (typeof GRABESINSEL_SCENES !== 'undefined' && GRABESINSEL_SCENES[sceneId]) return GRABESINSEL_SCENES[sceneId].label;
+  if (typeof ABSPANN_SCENES !== 'undefined' && ABSPANN_SCENES[sceneId]) return ABSPANN_SCENES[sceneId].label;
   return sceneId;
 }
 
@@ -173,6 +177,7 @@ function getMarkersForScene(sceneId) {
   if (typeof ARTEFAKTHANDEL_SCENES !== 'undefined' && ARTEFAKTHANDEL_SCENES[sceneId]) return ARTEFAKTHANDEL_SCENES[sceneId].markers;
   if (typeof RIFFINSEL_SCENES !== 'undefined' && RIFFINSEL_SCENES[sceneId]) return RIFFINSEL_SCENES[sceneId].markers;
   if (typeof GRABESINSEL_SCENES !== 'undefined' && GRABESINSEL_SCENES[sceneId]) return GRABESINSEL_SCENES[sceneId].markers;
+  if (typeof ABSPANN_SCENES !== 'undefined' && ABSPANN_SCENES[sceneId]) return [];
   return [];
 }
 
