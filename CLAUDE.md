@@ -101,9 +101,30 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   Länge unverändert bei 936,55 s (per `ffprobe` gegen die Quelle geprüft). Quell-MP3 bewusst
   **nicht** gelöscht — anders als bei `jungle.mp3` (110 MB, riss GitHubs Hardlimit) besteht hier
   kein Zwang, und die Konvention sieht vor, dass Hendrik erst hört und dann von Hand entfernt.
-  **Noch keiner Szene zugeordnet** — naheliegender Kandidat ist `soundFile` in
-  `GRABESINSEL_SCENES["13.1"]`, aber die Zuordnung bleibt wie bei `jungle`/`mystic`/`BBay`/
-  `flamenco` Hendriks Entscheidung.
+  Auf Hendriks Freigabe dann doch beides erledigt: **`soundFile: "ritual.ogg"` in
+  `GRABESINSEL_SCENES["13.1"]`** eingetragen (erste Szene der Grabesinsel mit Ton) und die
+  Quell-MP3 gelöscht, nachdem geprüft war, dass die `.ogg` bereits committet ist. Offline
+  verifiziert, dass `resolveSoundForScene('13.1')` auf den statischen Wert zurückfällt und
+  `audio/ritual.ogg` erreichbar ist (HTTP 200) — der Firebase-Wert aus der Sound-Leiste hat
+  weiterhin Vorrang, das Feld ist nur der Default.
+- **`ending.ogg` und `temple.ogg` konvertiert** (Opus, 64 kbps VBR), auf Hendriks Ansage ohne
+  Gegenprüfung direkt hochgeladen: `Ending.mp3` 357,1 MB → **88,9 MB** (-75 %, Länge 11701,93 s
+  ≈ 3:15 h), `temple.mp3` 114,4 MB → 30,1 MB (-74 %, Länge 3748,33 s ≈ 1:02 h). Längen per
+  `ffprobe` gegen die Quellen geprüft, beide identisch. Quell-MP3s gelöscht. Noch keiner Szene
+  zugeordnet.
+  - **Achtung `ending.ogg`:** mit 89 MB die zweitgrößte Datei im Repo (nach `mystic.ogg`, 94 MB)
+    und nah am 100-MB-Hardlimit. Bei noch längeren Stücken künftig die Bitrate senken statt
+    stumpf zu konvertieren.
+- **Eigener Fehler, festgehalten: `git add -A` hat zwei frisch abgelegte MP3s (357 MB und 114 MB)
+  mit in einen Commit gezogen**, der Push wurde vom GitHub-Hook abgelehnt (`GH001: Large files
+  detected`). Behoben mit `git reset --soft HEAD~1` + `git restore --staged` — die Blobs waren nie
+  auf dem Remote. **Konsequenz: bei Commits in diesem Repo keine pauschalen `git add -A`-Läufe
+  mehr, sondern Pfade einzeln stagen** — im `audio/`-Ordner liegen regelmäßig Quelldateien weit
+  über dem Limit (siehe Faustregel vom 14.08.). Ein `git status` in derselben Befehlszeile hilft
+  nicht, weil die Ausgabe erst nach dem Commit sichtbar wird.
+
+  **Damit sind `jungle`/`mystic`/`BBay`/`flamenco`/`ending`/`temple` die noch unzugeordneten
+  Tondateien.**
 
 ### 2026-08-22 (Fortsetzung 23)
 - **Grabesinsel auf zwei Orte reduziert** (Hendriks Vorgabe): nur noch `grabesstrand` und

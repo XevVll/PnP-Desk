@@ -53,6 +53,7 @@ const GRABESINSEL_SCENES = {
   "13.1": {
     label: "Grabesinsel",
     background: "images/grabesinsel.webp",
+    soundFile: "ritual.ogg", // nur der Dateiname, das audio/-Praefix setzt karte.html
     markers: [
       {
         id: "grabesstrand",
