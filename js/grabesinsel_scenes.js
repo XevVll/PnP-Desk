@@ -38,11 +38,11 @@
 // 'grabesinsel.png' in MAP_NAMES, tools/optimize_images.py) und Strandbild
 // (images/interior_grabesstrand.webp) sind da; das Strandbild zeigt das Tal
 // mit Blick auf das Leuchten und wird deshalb auch vom Weg-Marker genutzt.
-// Höhleneingang und Ritualkammer haben noch KEIN eigenes Bild und zeigen
-// vorerst das Kartenbild - ein Marker ohne gueltiges img zeigt in karte.html
-// sonst "Kein Bild hinterlegt." (siehe CLAUDE.md, Bild-Overlay-Fallback).
-// Prompt für die Ritualkammer steht in BILD-PROMPTS.md, geplanter Dateiname
-// images/interior_ritualkammer.webp.
+// Die Ritualkammer hat ihr eigenes Bild (images/interior_ritualkammer.webp).
+// Nur der Höhleneingang hat noch KEINS und zeigt vorerst das Kartenbild -
+// ein Marker ohne gueltiges img zeigt in karte.html sonst "Kein Bild
+// hinterlegt." (siehe CLAUDE.md, Bild-Overlay-Fallback). Alle Prompts stehen
+// in BILD-PROMPTS.md.
 const GRABESINSEL_SCENES = {
   "13.1": {
     label: "Grabesinsel",
@@ -85,7 +85,7 @@ const GRABESINSEL_SCENES = {
         top: 17, left: 71,
         title: "Die Ritualkammer",
         desc: "Der Gang öffnet sich in eine Halle, die größer ist als alles, was auf diese Insel passt. Kein Ende, keine Decke — der Fels steigt in Rippen und Pfeilern auf und verliert sich, lange bevor das Licht ihn erreicht. Die Kanten sind scharf und gerade, wie geschlagen, und brechen daneben roh aus dem Stein. Weit drinnen erhebt sich eine flache Anhöhe aus dem Boden, kaum kniehoch, mit weichen Kanten. Darauf liegt ein Kind.",
-        img: "images/grabesinsel.webp" // PLATZHALTER, Prompt siehe BILD-PROMPTS.md
+        img: "images/interior_ritualkammer.webp"
       }
     ]
   }

@@ -96,6 +96,18 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 22)
+- **Ritualkammer-Bild eingebunden**: `Ritualkammer.jpg` → `interior_ritualkammer.webp`
+  (2,7 MB → **63 KB**, 1600×893 — die kleinste Datei im Projekt, weil das Bild fast nur aus
+  dunklen Flächen besteht und WebP das extrem gut komprimiert). Der nachgeschärfte Prompt hat
+  getroffen: Pfeiler laufen oben aus dem Bild, keine sichtbare Decke, Tiefenstaffelung im Dunst,
+  spitz zulaufende Nischen im gewachsenen Fels (Mensch-oder-Natur bleibt unentscheidbar), und die
+  weiche Anhöhe als einziges Runde in der Halle, mit dem winzigen Kind darauf als Maßstab.
+  Roh-JPG nach Sichtprüfung entfernt.
+- **Bildstand Grabesinsel:** Übersichtskarte, Strand und Ritualkammer sind da. Einzig der
+  **Höhleneingang** hat noch kein eigenes Bild und zeigt weiterhin das Kartenbild — Dateikopf in
+  `js/grabesinsel_scenes.js` entsprechend aktualisiert.
+
 ### 2026-08-22 (Fortsetzung 21)
 - **Ritualkammer nachgeschärft: gigantisch statt Höhle, und bewusst mehrdeutig** (Hendriks
   Korrektur: „aktuell ist es eine kleine Höhle, es muss gigantisch wirken — gerne mit scharfen
