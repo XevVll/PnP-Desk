@@ -96,6 +96,26 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 28)
+- **Abspann-Feinjustage** (Hendriks Vorgaben): `gleichzeitig` von 4 auf **6**, Standzeit von 7 auf
+  **11 s**, Ein-/Ausblendzeit von 2,5 auf **4 s** — die Bilder stehen länger und tauchen deutlich
+  langsamer auf.
+- **Neuer fester Schriftzug „Vielen Dank"** unten im Bild (`dankText` in
+  `js/abspann_scenes.js`, also pro Szene änderbar): Georgia kursiv, gold, weit gesperrt, mit
+  dunklem Verlauf darunter, damit er auch über einem hellen Bild lesbar bleibt. Blendet einmalig
+  über 3,5 s ein und bleibt dann stehen. Liegt mit `z-index: 40` über allen Bildebenen (1–10).
+- **Zwei Layout-Korrekturen, die dabei nötig wurden:**
+  - *Bildgröße skaliert jetzt mit der Ebenenzahl* (`Math.sqrt(4 / anzahl)`, 4 Ebenen als
+    Referenz). Bei 6 gleichzeitigen Bildern in Originalgröße hätten sie einander zugedeckt statt
+    sich nur zu überlappen.
+  - *Vertikale Verteilung über abwechselnde Bänder* (gerade Ebenen oben, ungerade unten). Bei rein
+    zufälliger Höhe landeten regelmäßig fast alle Bilder in derselben Bildhälfte und die andere
+    blieb leer — per Screenshot aufgefallen. Unten bleibt zusätzlich Platz für den Schriftzug
+    (Bilder enden spätestens bei 78 vh).
+- Test um eine Prüfung auf den Schriftzug erweitert (Text, Einblendung, Verankerung am unteren
+  Rand) — 8 Prüfungen, 0 Fehler. **Testfehler dabei:** die Prüfung stand zunächst hinter dem
+  Szenenwechsel-Test, wo der Abspann längst abgebaut war; nach hinten verschoben.
+
 ### 2026-08-22 (Fortsetzung 27)
 - **Abspann von Diashow auf Collage umgebaut** (Hendriks Korrektur: „mehrere Bilder gleichzeitig
   in zufälliger Reihenfolge ein- und ausblenden, sich ein wenig überlappen, aber vor allem

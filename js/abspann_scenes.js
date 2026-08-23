@@ -30,14 +30,18 @@
 //   gleichzeitig - wie viele Bilder gleichzeitig zu sehen sind
 //   slideDauer   - Standzeit je Bild in ms (je Ebene um +-25% variiert)
 //   blendDauer   - Ein-/Ausblendzeit in ms
+//   dankText     - fest im unteren Bildbereich stehender Schriftzug
+// Die Bildgroesse skaliert automatisch mit "gleichzeitig" (mehr Bilder =
+// etwas kleiner), damit sie sich ueberlappen, ohne einander zuzudecken.
 // Die Sequenz laeuft endlos weiter, bis die SL die Szene wechselt - bei
 // einer Collage gibt es kein natuerliches Ende wie bei einer Diashow.
 const ABSPANN_SCENES = {
   "14.1": {
     label: "Abspann — Erinnerungen",
-    gleichzeitig: 4,
-    slideDauer: 7000,
-    blendDauer: 2500,
+    gleichzeitig: 6,
+    slideDauer: 11000,
+    blendDauer: 4000,
+    dankText: "Vielen Dank",
     soundFile: "ending.ogg",
     // Bildvorrat, chronologisch sortiert nur der Pflege wegen - abgespielt
     // wird zufaellig gemischt (siehe Kopf).
