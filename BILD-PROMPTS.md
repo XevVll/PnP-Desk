@@ -568,6 +568,61 @@ that only happens to resemble architecture.`
 sunlight, no blue tropical water, no green foliage, no sandy beach. The only colour in the image
 is the greenish-turquoise glow in the distance.`
 
+### 3. Die Ritualkammer
+
+Das Kathedralenherz im Inneren der Höhle. Dateiname: `interior_ritualkammer.jpg`.
+
+**Zwei Dinge tragen das Bild, sonst nichts:** der Maßstab der Halle, und das Kind auf der Anhöhe.
+Deshalb bewusst **keine Figuren sonst** — kein Harwick, keine Crew. Die Gruppe steht davor, sie
+gehört nicht ins Bild.
+
+Das Heikelste am Prompt: das Kind muss **schlafend** wirken, nicht tot und nicht inszeniert.
+Keine gefalteten Hände, keine Grabbeigaben, keine Kerzen, keine Symbole — nichts, was nach
+Aufbahrung aussieht. Und **kein sichtbarer Schaden**.
+
+```
+Dutch Golden Age oil painting, cracked varnish, aged canvas texture, painted in the style of
+17th-century Dutch masters — cold and desaturated: black rock, deep shadow, and a single cold
+greenish-turquoise light source. Wide landscape format, approx. 16:9.
+
+The interior of an enormous natural cavern inside black rock. The scale is the point: the walls
+fall away to both sides and the ceiling is so high that the light never reaches it — the top of
+the frame is simply darkness. The far end of the hall is lost in shadow. Rough natural rock
+throughout, dry, no water, no stalactites, no built structures, no carvings on the walls.
+
+In the middle of the floor a low, flat rise swells out of the rock — barely knee-high, with soft
+rounded edges, blending into the floor with no visible join. It looks as though it grew there,
+and only on a second look does it read as having been cut from the stone. It is not an altar and
+not a plinth: no steps, no base, no ornament, no inscription.
+
+On the rise lies a young girl, on her back, as if asleep. Her hands are not folded but simply
+resting at her sides, her head turned slightly to one side, her hair loose on the stone. Her
+clothing is simple and undisturbed. There is no visible injury of any kind, no blood, no
+discolouration, no decay — she looks like a sleeping child and nothing else. No shroud, no
+flowers, no candles, no grave goods, nothing arranged around her.
+
+The cold greenish-turquoise light fills the hall without a visible source — it does not come from
+a fire, a torch or an opening, and it casts soft, directionless shadows. The girl and the rise are
+the brightest things in the painting; everything beyond them falls away into black.
+
+No other figures. Absolutely empty otherwise.
+
+Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
+text or labels anywhere in the image.
+```
+
+*Falls es nach Aufbahrung/Grab aussieht:* `Important: this must not look like a funeral or a
+tomb. No folded hands, no shroud, no candles, no flowers, no offerings, no symbols, no altar
+steps. She simply lies on bare stone as if she had fallen asleep there.`
+
+*Falls das Kind verletzt oder tot dargestellt wird:* `Important: the girl must look completely
+unharmed and peacefully asleep — no wounds, no blood, no pallor, no decay, no signs of death of
+any kind.`
+
+*Falls die Halle zu klein wirkt:* `Important: the cavern must feel enormous. The ceiling is beyond
+the reach of the light — the upper part of the image is pure darkness — and the side walls recede
+far out of frame. The figure on the rise should be small within the space.`
+
 ---
 
 ## Vorlage: Stammesdorf (Schatzinsel)

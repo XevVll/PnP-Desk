@@ -1847,6 +1847,32 @@ const ORTE = {
     }
   },
 
+  // Die Ritualkammer im Inneren der Hoehle. Tableau von Hendrik vorgegeben
+  // (2026-08-22): gigantische Halle, eine aus dem Stein geschlagene, fast
+  // gewachsen wirkende Anhoehe von etwa einem halben Meter, darauf Jessica
+  // wie schlafend, kein sichtbarer Schaden am Kind. Was DANN passiert -
+  // Ritual, Scheitern, Untote, Finale (Bibel 12.1) - ist noch nicht
+  // vorgegeben und bleibt [OFFEN].
+  "die_ritualkammer": {
+    personen: "James Harwick · Jessica",
+    kurz: "Das Ende des Wegs. Eine gewaltige Halle, in der Mitte eine kaum kniehohe Anhöhe aus dem Fels — aus dem Stein geschlagen, aber so weich in den Kanten, dass sie gewachsen wirkt. Darauf liegt Jessica, als schliefe sie. Kein sichtbarer Schaden am Kind, obwohl sie seit Jahren tot ist.",
+    interaktionen: {
+      "das_kind_auf_dem_stein": {
+        title: "Das Kind auf dem Stein",
+        kurz: "Das Tableau, mehr nicht: die Halle, die Anhöhe, Jessica wie schlafend, unversehrt. Nichts erklären, nichts deuten, keine Probe verlangen — den Spielern Zeit lassen, selbst zu reagieren. Was danach geschieht, gibt Hendrik noch vor.",
+        details: "VORLESE-TABLEAU — bewusst langsam, in dieser Reihenfolge:\n\nDer Gang öffnet sich, und der Raum dahinter ist größer als alles, was auf diese Insel zu passen scheint. Die Wände weichen nach beiden Seiten zurück, die Decke liegt so hoch, dass das Licht sie nicht mehr erreicht. Es ist trocken und vollkommen still. Das grünlich-türkise Licht steht im Raum, ohne dass sich sagen ließe, woher es kommt.\n\nIn der Mitte erhebt sich eine flache Anhöhe aus dem Boden, kaum kniehoch, mit weichen, runden Kanten. Sie sieht aus, als wäre sie so gewachsen. Wer genauer hinsieht, erkennt, dass sie aus dem Fels geschlagen wurde — aber so, dass man es fast nicht merkt.\n\nDarauf liegt ein Mädchen. Sie liegt auf dem Rücken, die Hände nicht gefaltet, sondern einfach abgelegt, den Kopf ein wenig zur Seite. Sie sieht aus, als schliefe sie.\n\nAn ihr ist nichts kaputt. Keine Wunde, kein Blut, keine Spur von dem, was ihr zugestoßen ist. Nichts an ihr sieht so aus, als läge sie seit Jahren hier.\n\nSL-HINWEISE:\n— Hier nichts erklären. Keine Probe verlangen, keine Wahrnehmung, keine Wissensprobe. Es gibt nichts zu entdecken, was nicht ohnehin jeder sieht, und jede Mechanik an dieser Stelle würde den Moment zerreden.\n— Nach dem Tableau eine echte Pause lassen. Die Spieler sollen als Erste sprechen dürfen, nicht die SL.\n— Harwick: Wie er reagiert, hängt vom Ausgang der Kinder-Rettung im Artefakthandel ab (siehe ORTE.kapitaenskajuete, \"Harwick nach dem Verrat\", und Bibel 12.1). In der gespielten Runde wurden die Kinder gerettet — er ist also nicht dauerhaft manisch, was diesen Moment eher still als fiebrig macht.\n— Cormac, falls er mitgekommen ist: Er trägt die Schuld an ihrem Tod (Bibel 8.1). Das geknotete Seil, das sie ihm beibrachte, darf laut Bibel 2.7 höchstens noch ein einziges Mal auftauchen — falls es in der Einberufung (12.1) schon dran war, hier nicht mehr.\n\n[OFFEN] Was danach geschieht — das Ritual selbst, sein Scheitern, die Untoten und der Endkampf (Bibel 12.1) — ist noch nicht ausgearbeitet und bekommt eigene Interaktionen, sobald Hendrik es vorgibt.",
+        trigger: [
+          { id: "halle_oeffnet_sich", label: "Der Gang öffnet sich in eine Halle, größer als die Insel vermuten lässt", info: "Die Decke liegt so hoch, dass das Licht sie nicht mehr erreicht. Trocken, vollkommen still." },
+          { id: "licht_ohne_quelle", label: "Das grünlich-türkise Licht steht im Raum, ohne erkennbare Quelle", info: "Es lässt sich nicht sagen, woher es kommt." },
+          { id: "die_anhoehe", label: "Eine kaum kniehohe Anhöhe in der Mitte, weiche Kanten, wie gewachsen", info: "Wer genauer hinsieht, erkennt: aus dem Fels geschlagen — aber so, dass man es fast nicht merkt." },
+          { id: "jessica_wie_schlafend", label: "Darauf liegt ein Mädchen — auf dem Rücken, als schliefe sie", info: "Die Hände nicht gefaltet, sondern einfach abgelegt, den Kopf ein wenig zur Seite." },
+          { id: "kein_sichtbarer_schaden", label: "Kein sichtbarer Schaden — keine Wunde, kein Blut, keine Spur", info: "Nichts an ihr sieht so aus, als läge sie seit Jahren hier." },
+          { id: "pause_lassen", label: "SL: Pause lassen. Die Spieler sprechen zuerst.", info: "Nichts erklären, keine Probe verlangen — jede Mechanik würde den Moment zerreden." }
+        ]
+      }
+    }
+  },
+
   "das_kathedralenherz": {
     kurz: "Das Ende des Wegs: Der Talboden laeuft ohne Absatz in eine hohe, unregelmaessige Oeffnung im Fels. Aus ihr kommt das gruenlich-tuerkise Licht. [OFFEN] Was drinnen liegt (Ritualort, Finale nach Bibel 12.1), ist noch nicht ausgearbeitet.",
     interaktionen: {

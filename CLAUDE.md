@@ -96,6 +96,39 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 20)
+- **Grabesinsel-Karte und Strandbild eingebunden, Marker gegen das echte Bild kalibriert.**
+  `Ritualinsel.jpg` → `grabesinsel.webp` (3,4 MB → 261 KB, **1920×1072** — der vorsorgliche
+  `MAP_NAMES`-Eintrag hat gegriffen) und `schwarzerStrand.jpg` → `interior_grabesstrand.webp`
+  (2,8 MB → 139 KB, 1600×893). Der zweite Karten-Anlauf trifft die Vorgabe: erodiertes Gebirge
+  statt gestanzter Form, unregelmäßige Küste, die Höhle mit dem Leuchten am Ende des Tals. Das
+  Strandbild zeigt Boot, Kisten, den Talboden und das Leuchten in der Ferne — es wird deshalb
+  auch vom `der_schwarze_weg`-Marker genutzt. Marker per Playwright-Screenshot gegen das
+  Kartenbild nachjustiert (Strand auf die schwarze Felsplatte am Wasser, Weg auf den Talboden,
+  Eingang in die Höhlenöffnung, Kammer in den Berg dahinter). Roh-JPGs nach Sichtprüfung entfernt.
+- **Neuer Ort „Die Ritualkammer"** (`die_ritualkammer`, vierter Marker) — Tableau von Hendrik
+  vorgegeben: eine gewaltige Halle, in der Mitte eine kaum kniehohe Anhöhe, aus dem Fels
+  geschlagen, aber mit so weichen Kanten, dass sie gewachsen wirkt; darauf Jessica, wie schlafend,
+  **kein sichtbarer Schaden am Kind**. `ORTE.die_ritualkammer` mit der Interaktion „Das Kind auf
+  dem Stein" (6 Trigger): ein Vorlese-Tableau in fünf Schritten, das ausschließlich beschreibt,
+  was zu sehen ist.
+  - **Bewusst keine Probe an dieser Stelle** — es gibt nichts zu entdecken, was nicht ohnehin
+    jeder sieht, und Mechanik würde den Moment zerreden (Bibel 2.6). Stattdessen ein expliziter
+    SL-Hinweis, nach dem Tableau eine echte Pause zu lassen und die Spieler zuerst sprechen zu
+    lassen.
+  - Zwei Figuren-Hinweise verknüpft: Harwicks Reaktion hängt am Ausgang der Kinder-Rettung
+    (in der gespielten Runde gerettet → nicht dauerhaft manisch, also eher still als fiebrig),
+    und Cormac trägt die Schuld an ihrem Tod (Bibel 8.1) — das geknotete Seil darf laut Bibel 2.7
+    nur noch einmal auftauchen, hier ODER in `12.1`, nicht beides.
+  - Marker-`desc` nennt bewusst **keinen Namen** — die Spieler sehen „ein Kind", nicht „Jessica".
+  - Bildprompt in `BILD-PROMPTS.md`: Maßstab der Halle und das Kind sind die einzigen Bildinhalte,
+    keine weiteren Figuren. Drei Nachfass-Zeilen gegen die naheliegenden Fehlgriffe (Aufbahrung/
+    Grab-Ästhetik mit gefalteten Händen und Kerzen, verletzt/tot dargestelltes Kind, zu kleine
+    Halle).
+  - Der Marker sollte beim Szenenstart über `hiddenMarkersLive` ausgeblendet bleiben, sonst
+    verrät der Pin den Fund vorzeitig — steht als Kommentar in der Szenendatei.
+  - **[OFFEN]** bleibt, was danach geschieht: Ritual, Scheitern, Untote, Endkampf (Bibel 12.1).
+
 ### 2026-08-22 (Fortsetzung 19)
 - **Grabesinsel-Karte nachgeschärft nach Hendriks Bildkritik** („zu plastisch, als wäre das Kreuz
   eingestanzt — sieht nach gestanzter Knete aus"). Der erzeugte Entwurf hatte eine gleichmäßig
