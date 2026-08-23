@@ -17,6 +17,16 @@
 // Hafen (7.x), Schmugglernest (8.x), Artefakthandel (9.x) und Riffinsel
 // (11.x) - siehe CLAUDE.md, Szenen-ID-Konvention.
 //
+// FORM DER INSEL (Hendriks Skizze, 2026-08-22): Scharfkantige Bergruecken
+// umschliessen ein Tal, dessen Grundriss ein Kreuz bildet - ein langes
+// "Langhaus" vom Meer nach innen, zwei kuerzere Querarme, ein runder Kopf am
+// Ende. Die Kathedralen-Anmutung entsteht damit AUS DER NATUERLICHEN
+// GELAENDEFORM, nicht aus einem Bauwerk: kein Mauerwerk, keine Treppen,
+// keine Ruine, nur minimale Andeutungen (Fels, der zufaellig wie Pfeiler
+// oder ein Bogen steht) und die verschmelzen mit dem Gestein. Genau EIN
+// Zugang zum Meer, am Fuss des Langhauses; das Leuchten sitzt an der
+// Vierung. Bildprompt dazu in BILD-PROMPTS.md.
+//
 // STAND: Ausgearbeitet ist bisher nur die ANKUNFT (Hendriks Vorgabe vom
 // 2026-08-22): der schwarze Strand mit der letzten Rückfrage, und der eine
 // gangbare Weg, an dessen Ende in der Ferne ein grünlich-türkises Glühen
@@ -35,18 +45,22 @@ const GRABESINSEL_SCENES = {
     label: "Grabesinsel",
     background: "images/schatzinsel.webp", // PLATZHALTER, siehe Kopf
     markers: [
+      // Positionen folgen Hendriks Skizze (Meereszugang unten am Fuß des
+      // "Langhauses", der Weg von dort nach innen). Sobald das echte
+      // Kartenbild existiert, gegen das Bild nachjustieren - siehe die
+      // Marker-Kalibrierung der Riffinsel, RIFFINSEL-ERKUNDUNGSGRAPH.md 11.1.
       {
         id: "grabesstrand",
-        top: 62, left: 46,
+        top: 84, left: 50,
         title: "Der schwarze Strand",
-        desc: "Kein Sand, sondern schwarzer Stein, glatt geschliffen und bis ans Wasser reichend. Die Insel dahinter steigt in Stufen und schmalen Türmen auf, so regelmäßig, dass die Form von See aus an eine Kathedrale erinnert. Pflanzen sind kaum zu sehen, und die wenigen sind grau. Vom Strand führt ein gerader Weg aus demselben schwarzen Stein landeinwärts.",
+        desc: "Kein Sand, sondern blanker schwarzer Fels, vom Wasser rund geschliffen. Es ist die einzige Stelle, an der man anlegen kann — ringsum fällt das Gestein steil ins Meer. Landeinwärts öffnet sich ein Tal zwischen zwei hohen, scharfkantigen Felswänden, der Boden dazwischen aus demselben schwarzen Stein. Pflanzen sind kaum zu sehen, und die wenigen sind grau.",
         img: "images/schatzinsel.webp" // PLATZHALTER
       },
       {
         id: "der_schwarze_weg",
-        top: 44, left: 52,
+        top: 62, left: 50,
         title: "Der schwarze Weg",
-        desc: "Ein gerader, gleichmäßig breiter Weg aus schwarzem Stein, ohne Abzweig und ohne Stufen, landeinwärts. Rechts und links steht der Fels zu steil, um daneben zu gehen. Weit vorn, dort wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Stein, das mit keiner Tageszeit zu tun hat.",
+        desc: "Der Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, mit unregelmäßigen Kanten und natürlichen Bruchlinien. Rechts und links stehen die Wände zu steil, um daneben zu gehen — es gibt keinen Abzweig. Stellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Weit vorn, wo das Tal sich verengt, liegt ein grünlich-türkises Leuchten über dem Stein, das mit keiner Tageszeit zu tun hat.",
         img: "images/schatzinsel.webp" // PLATZHALTER
       }
     ]

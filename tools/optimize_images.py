@@ -38,7 +38,7 @@ MAP_NAMES = {
     'grimsgate_map.png', 'golden_lion.png', 'golden_lion_cutaway.png',
     'golden_lion_cutaway_sturm.png', 'schatzinsel.png',
     'spanischer_hafen_map.png', 'schmugglernest_map.png', 'scene_artefakthandel.png',
-    'riffinsel.png'
+    'riffinsel.png', 'grabesinsel.png'
 }
 
 WEBP_QUALITY = 82  # bei sichtbaren Artefakten hochsetzen, siehe Bibel 14.4

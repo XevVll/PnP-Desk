@@ -426,41 +426,75 @@ sonst wird sie auf 900px gekappt statt auf 1920px — genau wie damals bei `riff
 
 Bis beide existieren zeigt die Szene `images/schatzinsel.webp` als Platzhalter.
 
-Leitgedanke für beide: **die Insel sieht aus wie ein Bauwerk, ist aber keins.** Nicht Ruine, nicht
-verfallen, nicht bewachsen — sondern zu regelmäßig, zu sauber, zu absichtlich. Das Unbehagen
-kommt daher, dass nichts kaputt ist.
+**Leitgedanke (Hendriks Vorgabe, mit Skizze):** Die Kathedralen-Form entsteht **nicht durch ein
+Bauwerk**, sondern durch scharfkantige Bergrücken, die ein kreuzförmiges Tal umschließen. Es soll
+**nicht nach Zivilisation aussehen** — der Weg darin ist natürlicher schwarzer Fels, keine
+gepflasterte Straße. Nur **minimale Andeutungen** von Tempel/Kirche, die mit dem natürlichen
+Gesteinsbild verschmelzen. Also ausdrücklich **keine Ruine, kein Mauerwerk, keine Treppen**.
 
-### 1. Übersichtskarte der Insel
+Grundriss nach der Skizze: ein langes Langhaus, das unten am Meer beginnt, links und rechts zwei
+Querarme, oben ein abschließender Kopf. **Genau ein Zugang zum Meer**, am Fuß des Langhauses —
+sonst fällt der Fels ringsum steil ins Wasser. Das grünlich-türkise Leuchten sitzt an der
+**Vierung**, dort wo Langhaus und Querarme zusammentreffen.
+
+### 1. Übersichtskarte der Insel (Grundszene)
 
 ```
-Dutch Golden Age oil painting, cracked varnish, warm aged tones, painted in the style of
-17th-century Dutch masters — but far colder and darker in palette than the other maps in this set:
-desaturated greys, black stone, cold green-grey sea, a heavy overcast sky with no warmth in it.
+Dutch Golden Age oil painting, cracked varnish, aged canvas texture, painted in the style of
+17th-century Dutch masters — matching the other island maps in this set in technique and framing,
+but far colder and more desaturated in palette: black and dark grey stone, cold grey-green sea,
+a heavy overcast sky with no warmth in it.
 
-Wide landscape format, horizontally composed (approx. 16:9). A whole small island seen from a
-raised distance, slightly from above and from seaward, as a painted chart-like view — the same
-kind of overview as the other island maps in this set.
+Wide landscape format, approx. 16:9. A whole small island seen from high above at a steep oblique
+angle — high enough that the shape of the island's interior reads clearly as a plan, but still
+tilted enough to show the height and faces of the rock. Open sea all around, the island filling
+most of the frame.
 
-The island is made of black stone. Its silhouette unmistakably suggests a cathedral: a broad
-stepped mass rising toward the centre, flanked by tall narrow spires of rock, with long straight
-ridges running like buttresses down toward the water. Nothing is broken, crumbled or overgrown —
-that is precisely what makes it wrong. The steps are too even, the spires too vertical, the
-proportions too deliberate for anything shaped by weather and sea.
+THE SHAPE — this is the point of the image: the island is a ring of sharp, jagged black mountain
+ridges, and those ridges enclose a single connected valley whose plan forms a cross: one long
+straight valley running from the shore inland, two shorter valley arms branching left and right
+partway along it, and a rounded valley head closing it off at the far end. The cross shape is
+formed ENTIRELY by the natural rock walls around it — it is not built, not carved, not paved.
+Anyone looking down on it would think of a cathedral floor plan without being able to say why.
 
-A single dead-straight causeway of the same black stone runs from a small black shore at the
-lower edge of the island inland toward the centre, without a branch or a bend, cutting between
-steep rock walls.
+The surrounding ridges are steep, angular and knife-edged, falling directly into the sea on every
+side but one. There is exactly ONE opening to the water: a narrow inlet at the foot of the long
+valley, with a small shelf of black rock at the waterline — the only place a boat could land.
 
-Vegetation is almost absent: a few sparse grey-green patches clinging in cracks, nothing green,
-no palms, no jungle. A small ship lies at anchor off the shore, tiny in the frame.
+Inside the valley the ground is bare black stone, worn naturally smooth, forming a broad natural
+floor that leads inland from the inlet. It reads as rock, not as a road: uneven edges, natural
+fracture lines, no paving, no kerbs, no steps.
 
-Deep inland, where the causeway disappears between the rocks, an unnatural greenish-turquoise
-glow lies over the stone — cold, steady, not firelight, casting a faint sickly light on the rock
-faces around it. It is the only colour in the painting.
+Only the faintest suggestions of a temple anywhere — a few places where the rock happens to stand
+in tall narrow forms like pillars, or where a ridge face falls in a way that suggests an arch.
+These must look like natural rock formations that merely resemble architecture, never like
+built or carved structures. No walls, no masonry, no ruins, no rubble, no carvings.
+
+Vegetation is almost absent: a few sparse grey stalks in cracks, nothing green, no palms, no
+jungle.
+
+Where the long valley meets the two side arms, an unnatural greenish-turquoise glow lies over the
+stone — cold, steady, not firelight, throwing a faint sickly light onto the rock walls around it.
+It is the only colour in the painting.
+
+A small ship lies at anchor outside the inlet, tiny in the frame.
 
 Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
 text or labels anywhere in the image.
 ```
+
+*Falls Gemini ein Bauwerk oder eine Ruine baut:* `Important: there is no building and no ruin on
+this island. No walls, no masonry, no columns, no steps, no carvings, no rubble. Everything is
+natural rock. The cathedral shape exists only as the outline of the valley between the mountain
+ridges, seen from above.`
+
+*Falls der Kreuz-Grundriss nicht lesbar ist:* `Important: the valley floor between the ridges must
+clearly form a cross when seen from above — one long arm running to the sea inlet, two short arms
+to the left and right, and a rounded head at the far end.`
+
+*Falls es zu warm/freundlich wird:* `Important: keep the palette cold and desaturated. No warm
+sunlight, no blue tropical water, no green foliage, no sandy beach. The only colour in the image
+is the greenish-turquoise glow at the centre.`
 
 ### 2. Der schwarze Strand (Ortsbild)
 
@@ -472,32 +506,36 @@ heavy overcast sky.
 Wide landscape format, horizontally composed (approx. 16:9). View from ground level, standing on
 the shore itself, looking inland toward the island's interior.
 
-There is no sand. The shore is smooth black stone, worn flat, running straight down into the
-water. A ship's boat has been drawn up onto it, and several wooden crates stand unloaded beside
-it on the bare rock.
+There is no sand. The shore is bare black stone, worn naturally smooth by the sea, sloping
+straight down into the water. A ship's boat has been drawn up onto it, and several wooden crates
+stand unloaded beside it on the bare rock.
 
-Ahead, a dead-straight causeway of the same black stone leads inland between rising rock walls,
-without a branch or a bend. Above and behind it the island rises in even steps and narrow
-vertical spires, close enough now to see that nothing is broken or weathered — the regularity is
-unsettling rather than impressive.
+Ahead, the ground continues inland as a broad floor of the same black stone, running between two
+steep walls of jagged black rock that rise high on either side and leave no way around. It reads
+as a natural valley floor, not as a road — uneven edges, natural fracture lines, no paving, no
+kerbs, no steps, nothing built.
+
+Here and there the rock walls happen to stand in tall narrow forms suggesting pillars, and one
+opening between them suggests an arch — but these are clearly natural formations that merely
+resemble architecture. No walls, no masonry, no carvings, no ruins.
 
 Vegetation is almost absent: a few sparse grey stalks in the cracks, nothing green. No birds, no
 surf breaking, no movement.
 
-Far inland, where the causeway vanishes between the rocks, a faint greenish-turquoise glow lies
-over the stone — cold, steady, the only colour in the scene.
+Far inland, where the valley narrows between the rocks, a faint greenish-turquoise glow lies over
+the stone — cold, steady, the only colour in the scene.
 
 No people in the scene. Tight framing filling roughly 85-90% of the canvas, little empty space.
 No modern elements, no text or labels anywhere in the image.
 ```
 
-*Falls Gemini eine verfallene Ruine baut:* `Important: this is not a ruin. Nothing is broken,
-cracked, crumbled or overgrown. The stone is intact, smooth and regular — the unease comes from
-how deliberate and undamaged it looks, not from decay.`
+*Falls Gemini ein Bauwerk oder eine Ruine baut:* `Important: there is no building and no ruin.
+No walls, no masonry, no columns, no steps, no carvings, no rubble. Everything is natural rock
+that only happens to resemble architecture.`
 
 *Falls es zu warm/freundlich wird:* `Important: keep the palette cold and desaturated. No warm
-sunlight, no blue tropical water, no green foliage. The only colour in the image is the
-greenish-turquoise glow in the distance.`
+sunlight, no blue tropical water, no green foliage, no sandy beach. The only colour in the image
+is the greenish-turquoise glow in the distance.`
 
 ---
 

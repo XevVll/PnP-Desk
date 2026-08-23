@@ -96,6 +96,36 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 18)
+- **Grabesinsel-Form nach Hendriks Skizze korrigiert — natürlicher Fels statt Bauwerk.** Der erste
+  Entwurf (Fortsetzung 17) hatte die Kathedralen-Anmutung als *gebaute* Struktur beschrieben
+  („Stufen zu gleichmäßig, Türme zu gerade, Proportionen zu absichtlich"). Hendriks Skizze zeigt
+  etwas anderes: **scharfkantige Bergrücken umschließen ein Tal, dessen Grundriss ein Kreuz
+  bildet** — Langhaus vom Meer nach innen, zwei Querarme, runder Kopf am Ende. Genau EIN Zugang
+  zum Meer am Fuß des Langhauses, das Leuchten sitzt an der Vierung. Ausdrücklich **kein Hinweis
+  auf Zivilisation**: der Weg ist gewachsener schwarzer Fels, kein Pflaster; nur minimale
+  Tempel-Andeutungen, die mit dem Gestein verschmelzen.
+  - Karten-Prompt in `BILD-PROMPTS.md` komplett neu geschrieben: steile Schrägaufsicht (hoch genug,
+    dass der Kreuz-Grundriss lesbar wird, aber im Stil der übrigen Grundkarten), Ringgebirge mit
+    einer einzigen Bucht, Talboden aus gewachsenem Fels „reads as rock, not as a road", nur
+    zufällige Pfeiler-/Bogenformen. Drei Nachfass-Zeilen: gegen Ruinen/Mauerwerk, für die
+    Lesbarkeit des Kreuz-Grundrisses, gegen zu warme Farbigkeit. Der Strand-Prompt entsprechend
+    angeglichen.
+  - Marker-`desc` beider Orte und beide `ORTE`-Interaktionen umgeschrieben: kein „gebaut" mehr,
+    stattdessen gewachsener Fels ohne Werkzeugspur, Fuge oder Mörtel. Neuer Trigger
+    `pfeiler_und_bogen`. Der Kirchengrundriss wird jetzt ausdrücklich **nicht** von der SL
+    erklärt — wer selbst darauf kommt, soll es selbst aussprechen (Design-Regel 2.8).
+  - Marker-Positionen an die Skizze angepasst (Strand unten am Fuß des Langhauses `top:84`, Weg
+    darüber `top:62`), mit Kommentar, dass sie gegen das echte Bild nachjustiert werden müssen.
+  - **`grabesinsel.png` vorsorglich in `MAP_NAMES`** (`tools/optimize_images.py`) eingetragen, damit
+    die Übersichtskarte auf 1920px statt 900px gekappt wird — geprüft, dass `cap_for()` jetzt für
+    `.png` UND `.jpg` 1920 liefert. Genau dieser Fehler ist bei `riffinsel.png` schon einmal
+    passiert.
+  - **Zwischenfehler:** Der Skript-Ersetzungslauf für die GM-Texte hat an zwei Stellen echte
+    Zeilenumbrüche statt `\n` in die JS-Strings geschrieben und `js/regie.js` damit unparsebar
+    gemacht. Per `node --check` lokalisiert und repariert; Absatzstruktur danach gegengeprüft
+    (5 Absätze je Interaktion).
+
 ### 2026-08-22 (Fortsetzung 17)
 - **Neue Örtlichkeit `13.1` „Grabesinsel" angelegt** (Bibel 7.1, Station 5: Ritual + Finale) —
   neue Datei `js/grabesinsel_scenes.js`, Inhalt der Ankunft von Hendrik vorgegeben. Zwei Marker im
