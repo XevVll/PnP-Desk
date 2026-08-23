@@ -12,24 +12,35 @@
 // Szenen-ID "14.1": naechste freie fuehrende Ziffer nach der Grabesinsel
 // (13.x) - siehe CLAUDE.md, Szenen-ID-Konvention.
 //
-// REIHENFOLGE ist die Chronologie der Kampagne, nicht die Dateiordnung:
-// Grimsgate -> Golden Lion -> Sturm -> Schatzinsel -> Verzweigung 1
-// (Spanischer Hafen / Schmugglernest) -> Artefakthandel -> Riffinsel ->
-// Einberufung -> Grabesinsel. So liest sich die Sequenz als Rueckblick auf
-// die tatsaechlich gespielte Reise.
+// DARSTELLUNG (Hendriks Vorgabe, 2026-08-22): KEINE Diashow, sondern eine
+// Collage - mehrere Bilder gleichzeitig, jedes in seinem eigenen Rhythmus
+// ein- und ausblendend, einander leicht ueberlappend. Die Auswahl ist
+// zufaellig und ausdruecklich SZENENUEBERGREIFEND gemischt: nebeneinander
+// haengen Grimsgate, der Sturm und die Grabesinsel, nicht die Bilder einer
+// Szene am Stueck. Die Liste unten ist deshalb nur ein Vorrat, keine
+// Abspielreihenfolge - sie steht trotzdem chronologisch da, weil sie sich so
+// leichter pflegen laesst.
 //
-// TEMPO: "slideDauer" ist die Standzeit je Bild in ms, "blendDauer" die
-// Ueberblendzeit. Beide hier zentral einstellbar - bei 51 Bildern ergibt
-// 6500/2000 gut 5,5 Minuten, passt zur Laenge von ending.ogg.
+// Gemischt wird per Fisher-Yates ueber die ganze Liste; erst wenn alle
+// Bilder einmal dran waren, wird neu gemischt. Damit kommt garantiert jedes
+// Bild vor, bevor sich etwas wiederholt, und nie haengt dasselbe Bild
+// zweimal gleichzeitig.
 //
-// Am Ende blendet die Sequenz nach Schwarz und bleibt dort stehen (kein
-// Loop) - der Abspann soll enden, nicht von vorn beginnen.
+// EINSTELLUNGEN:
+//   gleichzeitig - wie viele Bilder gleichzeitig zu sehen sind
+//   slideDauer   - Standzeit je Bild in ms (je Ebene um +-25% variiert)
+//   blendDauer   - Ein-/Ausblendzeit in ms
+// Die Sequenz laeuft endlos weiter, bis die SL die Szene wechselt - bei
+// einer Collage gibt es kein natuerliches Ende wie bei einer Diashow.
 const ABSPANN_SCENES = {
   "14.1": {
     label: "Abspann — Erinnerungen",
-    slideDauer: 6500,
-    blendDauer: 2000,
+    gleichzeitig: 4,
+    slideDauer: 7000,
+    blendDauer: 2500,
     soundFile: "ending.ogg",
+    // Bildvorrat, chronologisch sortiert nur der Pflege wegen - abgespielt
+    // wird zufaellig gemischt (siehe Kopf).
     slideshow: [
       // --- Grimsgate: der Ausgangshafen ---
       "images/grimsgate_map.webp",

@@ -96,6 +96,30 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 27)
+- **Abspann von Diashow auf Collage umgebaut** (Hendriks Korrektur: „mehrere Bilder gleichzeitig
+  in zufälliger Reihenfolge ein- und ausblenden, sich ein wenig überlappen, aber vor allem
+  szenenübergreifend"). Der erste Entwurf zeigte ein Bild nach dem anderen in
+  Kampagnen-Chronologie — genau das Gegenteil.
+  - **Mehrere Ebenen gleichzeitig** (`gleichzeitig: 4`, pro Szene einstellbar). Die Ebenen werden
+    dynamisch erzeugt statt fest im Markup zu stehen. Jede läuft in **ihrem eigenen Rhythmus**:
+    versetzter Start (`slot * stand/anzahl`) und je Ebene um ±25 % variierte Standzeit — sonst
+    wäre es wieder eine Diashow, nur mit mehreren Bildern gleichzeitig.
+  - **Zufällig und szenenübergreifend**: Fisher-Yates über die **ganze** Bildliste, nicht
+    innerhalb der Szenen. Ist die Liste durch, wird neu gemischt — damit kommt garantiert jedes
+    Bild vor, bevor sich etwas wiederholt. `abspannSichtbar` verhindert, dass dasselbe Bild
+    zweimal gleichzeitig hängt.
+  - **Überlappung**: jede Ebene bekommt zufällige Größe (30–46 vw × 34–50 vh), eine über die
+    Breite verteilte Grundposition mit Streuung, leichte Drehung (±2,5°) und zufälligen
+    `z-index`. Schlagschatten, damit sich überlappende Bilder auf Schwarz voneinander abheben.
+  - Die Sequenz **läuft endlos**, bis die SL die Szene wechselt — bei einer Collage gibt es kein
+    natürliches Ende wie bei einer Diashow. Die Bildliste ist damit nur noch ein Vorrat; sie steht
+    weiterhin chronologisch da, aber ausschließlich der Pflege wegen.
+  - Test entsprechend umgebaut (7 Prüfungen, 0 Fehler): max. 4 gleichzeitig sichtbar, **nie ein
+    Bild doppelt**, alle 51 Bilder innerhalb des Testfensters gesehen, **9 verschiedene
+    Szenengruppen** vertreten (Beleg für „szenenübergreifend"), sauberes Aufräumen beim
+    Szenenwechsel, Ton-Steuerung erreichbar. Per Screenshot gegengeprüft.
+
 ### 2026-08-22 (Fortsetzung 26)
 - **Neue Abschluss-/Erinnerungsszene `14.1` „Abspann"** (Hendriks Wunsch): Nach dem Finale laufen
   alle Bilder des Abenteuers noch einmal durch und blenden ineinander.

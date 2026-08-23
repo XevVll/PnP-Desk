@@ -59,13 +59,19 @@
     opacity: 0; transition: opacity 1.2s ease;
   }
   #abspann.on { display: block; opacity: 1; }
+  /* Mehrere Bilder gleichzeitig, jedes in seinem eigenen Rhythmus ein- und
+     ausblendend (Hendriks Vorgabe). Position/Groesse setzt startSlideshow()
+     per Inline-Style, damit sich die Bilder ueberlappen, ohne einander ganz
+     zu verdecken. Schlagschatten, damit sich ueberlappende Bilder auf dem
+     schwarzen Grund voneinander abheben. */
   .abspann-layer {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
+    position: absolute;
     object-fit: contain;
     opacity: 0;
-    transition: opacity var(--abspann-blend, 2000ms) ease-in-out;
+    transition: opacity var(--abspann-blend, 2500ms) ease-in-out;
+    filter: drop-shadow(0 6px 24px rgba(0,0,0,0.85));
     user-select: none; -webkit-user-drag: none;
+    will-change: opacity;
   }
   .abspann-layer.visible { opacity: 1; }
   #mapImage {
@@ -552,10 +558,9 @@
        js/abspann_scenes.js). Zwei gestapelte Ebenen, die sich gegenseitig
        ueberblenden - deshalb zwei <img> statt einem. Liegt ueber allem,
        ist aber nur bei solchen Szenen sichtbar. -->
-  <div id="abspann" aria-hidden="true">
-    <img class="abspann-layer" alt="">
-    <img class="abspann-layer" alt="">
-  </div>
+  <!-- Ebenen werden von startSlideshow() erzeugt, so viele wie "gleichzeitig"
+       in der Szene vorgibt. -->
+  <div id="abspann" aria-hidden="true"></div>
 
   <div id="charSheetHandle" onclick="toggleCharSheetDrawer()">📋 Charakterbogen</div>
   <div id="charSheetBackdrop" onclick="closeCharSheetDrawer()"></div>
@@ -1115,48 +1120,107 @@
     // eingeblendet, waehrend die alte ausblendet.
     // ==========================================================
     const abspannEl = document.getElementById('abspann');
-    const abspannLayers = abspannEl ? abspannEl.querySelectorAll('.abspann-layer') : [];
-    let abspannTimer = null;
-    let abspannLayerIdx = 0;
+    let abspannTimers = [];      // ein Timer je Ebene
+    let abspannSichtbar = {};    // aktuell gezeigte Bilder, gegen Doppelungen
+    let abspannQueue = [];       // gemischte Restliste
 
     function stopSlideshow() {
-      if (abspannTimer) { clearTimeout(abspannTimer); abspannTimer = null; }
+      abspannTimers.forEach(function (t) { clearTimeout(t); });
+      abspannTimers = [];
+      abspannSichtbar = {};
+      abspannQueue = [];
       if (!abspannEl) return;
       abspannEl.classList.remove('on');
       abspannEl.setAttribute('aria-hidden', 'true');
-      abspannLayers.forEach(function (l) { l.classList.remove('visible'); l.removeAttribute('src'); });
-      abspannLayerIdx = 0;
+      abspannEl.innerHTML = '';
     }
+
+    // Fisher-Yates. Wird bewusst ueber ALLE Bilder der Kampagne gemischt,
+    // nicht innerhalb der Szenen - Hendriks Vorgabe "vor allem
+    // szenenuebergreifend". Ist die Liste durch, wird neu gemischt, damit
+    // jedes Bild garantiert vorkommt, bevor sich etwas wiederholt.
+    function mischen(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    function naechstesBild(bilder) {
+      // Nichts nehmen, was gerade schon irgendwo haengt.
+      for (let versuch = 0; versuch < 2; versuch++) {
+        while (abspannQueue.length) {
+          const kandidat = abspannQueue.shift();
+          if (!abspannSichtbar[kandidat]) return kandidat;
+        }
+        abspannQueue = mischen(bilder);
+      }
+      return bilder[Math.floor(Math.random() * bilder.length)];
+    }
+
+    function zufall(min, max) { return min + Math.random() * (max - min); }
 
     function startSlideshow(scene) {
       stopSlideshow();
       if (!abspannEl || !scene || !scene.slideshow || !scene.slideshow.length) return;
       const bilder = scene.slideshow;
-      const blend = scene.blendDauer || 2000;
-      const stand = scene.slideDauer || 6500;
+      const blend = scene.blendDauer || 2500;
+      const stand = scene.slideDauer || 7000;
+      const anzahl = Math.max(1, Math.min(scene.gleichzeitig || 4, bilder.length));
+
       abspannEl.style.setProperty('--abspann-blend', blend + 'ms');
       abspannEl.classList.add('on');
       abspannEl.setAttribute('aria-hidden', 'false');
+      abspannQueue = mischen(bilder);
 
-      let i = 0;
-      function zeigeNaechstes() {
-        if (i >= bilder.length) {
-          // Ende: letzte Ebene ausblenden, danach bleibt Schwarz stehen.
-          abspannLayers.forEach(function (l) { l.classList.remove('visible'); });
-          abspannTimer = null;
-          return;
-        }
-        const naechste = abspannLayers[abspannLayerIdx % abspannLayers.length];
-        const vorige = abspannLayers[(abspannLayerIdx + 1) % abspannLayers.length];
-        abspannLayerIdx++;
-        naechste.src = bilder[i];
-        naechste.classList.add('visible');
-        vorige.classList.remove('visible');
-        i++;
-        // Standzeit + Ueberblendzeit bis zum naechsten Wechsel.
-        abspannTimer = setTimeout(zeigeNaechstes, stand + blend);
+      for (let slot = 0; slot < anzahl; slot++) {
+        const el = document.createElement('img');
+        el.className = 'abspann-layer';
+        el.alt = '';
+        abspannEl.appendChild(el);
+        // Jede Ebene laeuft in ihrem eigenen Rhythmus. Der versetzte Start
+        // sorgt dafuer, dass nicht alle gleichzeitig wechseln - sonst waere
+        // es wieder eine Diashow, nur mit mehreren Bildern.
+        planeEbene(el, slot, anzahl, bilder, blend, stand);
       }
-      zeigeNaechstes();
+    }
+
+    function planeEbene(el, slot, anzahl, bilder, blend, stand) {
+      // Grundposition je Ebene ueber die Breite verteilt (mit Streuung),
+      // damit sich die Bilder ueberlappen, ohne einander ganz zu verdecken.
+      function zeigen() {
+        const bild = naechstesBild(bilder);
+        const vorher = el.dataset.bild;
+        if (vorher) delete abspannSichtbar[vorher];
+        abspannSichtbar[bild] = true;
+        el.dataset.bild = bild;
+        el.src = bild;
+
+        const hoehe = zufall(34, 50);                       // vh
+        const breite = zufall(30, 46);                      // vw
+        const spurBreite = 100 / anzahl;
+        const links = (slot + 0.5) * spurBreite - breite / 2 + zufall(-spurBreite * 0.3, spurBreite * 0.3);
+        const oben = zufall(6, 94 - hoehe);
+        el.style.width = breite + 'vw';
+        el.style.height = hoehe + 'vh';
+        el.style.left = Math.max(-6, Math.min(106 - breite, links)) + 'vw';
+        el.style.top = oben + 'vh';
+        el.style.transform = 'rotate(' + zufall(-2.5, 2.5).toFixed(2) + 'deg)';
+        el.style.zIndex = String(1 + Math.floor(Math.random() * 10));
+
+        // Einblenden im naechsten Frame, sonst greift die Transition nicht.
+        requestAnimationFrame(function () { el.classList.add('visible'); });
+
+        const standzeit = stand * zufall(0.75, 1.25); // leicht unterschiedlich je Ebene
+        abspannTimers.push(setTimeout(function () {
+          el.classList.remove('visible');
+          abspannTimers.push(setTimeout(zeigen, blend));
+        }, blend + standzeit));
+      }
+      // Versetzter Start: Ebene n beginnt um n * (Standzeit / Ebenenzahl).
+      abspannTimers.push(setTimeout(zeigen, slot * (stand / anzahl)));
     }
 
     function renderScene(sceneId) {
