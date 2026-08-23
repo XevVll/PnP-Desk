@@ -656,6 +656,151 @@ steps. She simply lies on bare stone as if she had fallen asleep there.`
 unharmed and peacefully asleep — no wounds, no blood, no pallor, no decay, no signs of death of
 any kind.`
 
+### 4. Der Seelenlose (Porträt)
+
+Der Antagonist des Finales (Bibel 12.1, siehe `js/regie.js`, Interaktionen
+`wat_und_josiah_fallen` / `harwicks_anklage` / `die_entscheidung_um_den_saebel`): Herr der
+endlosen Toten der Grabesinsel.
+
+**Porträt, nicht Ortsbild** — Dateiname deshalb ohne `interior_`-Präfix:
+`Der_Seelenlose.jpg`, analog zur Porträt-Namenskonvention (`Walter_Wat_Crozier.webp` etc.).
+`cap_for()` in `tools/optimize_images.py` kappt es damit korrekt auf 900px. Anders als die
+Ortsbilder oben also **Hochformat**, Figur groß und präsent im Bild.
+
+**Skelettkrieger, aber nicht comichaft.** Er darf klar als Untoter lesbar sein — Schädel,
+verwitterte Rüstungsreste, eine Klinge —, aber der Ton bleibt der der Szene: ruhig, würdevoll,
+uralt, fast müde. Er spricht nie triumphierend, sondern eher wie ein Naturgesetz, das ein Urteil
+ausspricht; das soll das Bild tragen. Also **keine Angriffspose, kein Brüllen, keine
+Halloween-Ästhetik**.
+
+Hintergrund ist dieselbe Halle wie `images/interior_ritualkammer.webp` — dieses Bild Gemini nach
+Möglichkeit als Bildeingabe mitgeben, damit Palette und Architektur zusammenpassen.
+
+```
+The attached image is the reference for the setting behind the figure: a colossal hall of black
+rock, ceiling lost in darkness, knife-sharp ribbed pillars and deep pointed recesses receding
+into cold haze, lit only by a cold greenish-turquoise glow with no visible source. Keep that
+palette and that architecture — but here it is only the backdrop, thrown far out of focus behind
+the figure.
+
+Dutch Golden Age oil painting, cracked varnish, aged canvas texture, painted in the style of
+17th-century Dutch masters — cold and desaturated: black stone, deep shadow, tarnished metal,
+and a single cold greenish-turquoise light source. Vertical portrait format (approx. 3:4),
+matching the framing of the other character portraits in this set.
+
+A single figure, shown large and close — roughly a three-quarter length portrait, filling most
+of the frame, facing the viewer almost directly. This is an ancient skeletal warrior: the skull
+bare and clearly visible, weathered to the colour of old stone rather than white, the bone
+pitted and worn as if it had stood in this hall for centuries. The eye sockets are empty and
+dark — a faint cold greenish light sits deep inside them, barely there, not blazing.
+
+He wears the remains of a warrior's harness from no identifiable nation or century: corroded
+plate and scale at the shoulders and chest, straps rotted to fibres, a heavy tattered cloak of
+grey, colourless cloth hanging from the shoulders and dissolving into the darkness at the
+bottom of the frame. The metal is black-green with age, dulled, without a single highlight of
+polish. Nothing is ornate, nothing is gilded, nothing looks ceremonial.
+
+One skeletal hand rests on the pommel of a long, plain sword whose point is set against the
+stone floor — the weapon is at rest, not raised. His posture is upright and utterly still,
+shoulders squared, head level, regarding the viewer calmly and without hostility. The
+impression is of an ancient judge or warden who has done this many times before, not of a
+monster about to attack.
+
+Behind him the vast hall falls away into darkness and cold haze, the ribbed pillars barely
+suggested, deliberately out of focus so that the figure dominates the frame completely.
+
+The greenish-turquoise light rakes across him from one side, catching the ridge of the skull,
+one shoulder plate and the edge of the blade, and leaving the rest of him in deep shadow.
+
+No modern elements, no text or labels anywhere in the image.
+```
+
+*Falls es zu comichaft/Halloween-mäßig wird:* `Important: this must not look like a Halloween
+skeleton or a fantasy video-game boss. No glowing red eyes, no flaming aura, no horns, no spiked
+armour, no crown, no gaping jaw or screaming pose. The bone is dull and stone-coloured, the
+armour corroded and plain, and the figure stands calm and completely still.`
+
+*Falls er zu aggressiv/dynamisch dargestellt wird:* `Important: the figure is at rest. The sword
+point is on the ground and the hand rests on the pommel — the blade is never raised. No lunging,
+no combat stance, no motion. Quiet, upright, still.`
+
+*Falls das Skelett zu sauber/anatomisch wirkt:* `Important: the bone must look ancient and
+weathered — pitted, discoloured to the shade of old stone, worn at the edges. Not a clean white
+anatomical skeleton.`
+
+*Falls der Hintergrund zu dominant wird:* `Important: the hall behind him is only a dark,
+out-of-focus backdrop. The figure fills most of the frame and is the sole subject of the
+portrait.`
+
+---
+
+### 5. Das Schlachtfeld (Draufsicht für die Arena, Szene 15.1)
+
+Der Boden der Ritualkammer **von direkt oben**, als Untergrund für das 16×16-Raster der
+Kampf-Arena (`arena_admin.html` / Spieleransicht). Dateiname:
+`interior_ritualkammer_schlachtfeld.jpg` → nach dem Konvertieren als `hintergrund` in
+`ARENA_SCENES["15.1"]` (`js/arena_scenes.js`) eintragen.
+
+**Bild 1 anhängen: `images/interior_ritualkammer.webp`** — das Schlachtfeld muss als derselbe
+Raum wiedererkennbar sein (Rippen, Pfeiler, die Anhöhe, das Licht).
+
+Drei Dinge machen diesen Prompt anders als alle anderen:
+
+1. **Quadratisch (1:1)**, nicht 16:9 — das Spielbrett ist quadratisch, `background-size: cover`
+   würde bei 16:9 links und rechts abschneiden.
+2. **Echte Draufsicht**, kein Schrägblick — die Spielfiguren stehen senkrecht auf dem Raster,
+   eine isometrische Perspektive würde dazu schief aussehen.
+3. **Der Boden muss lesbar bleiben.** Auf dem Bild stehen später runde Spielsteine (gold, blau,
+   grün, rot) und ein feines Gitternetz — die Bodenfläche braucht ruhige, dunkle Mitteltöne ohne
+   kleinteiliges Gewusel.
+
+```
+Attached image 1 is the reference: the interior of this exact ritual chamber, seen at eye level.
+Reproduce its materials, palette and mood — black rock with sharp carved-looking ribs, the cold
+greenish-turquoise light, the low smooth mound — but from a completely different camera.
+
+Top-down view, camera pointing STRAIGHT DOWN from high above, like a battle map or an
+architectural floor plan rendered as a painting. No horizon, no walls seen from the side, no
+isometric angle — pure plan view. SQUARE format (1:1).
+
+The scene: the floor of a colossal hall inside black rock. Most of the frame is open, walkable
+stone floor — dark grey-black rock, worn smooth, with natural fracture lines and subtle tonal
+variation, but calm and readable, no clutter. Around all four edges of the frame the floor meets
+the feet of massive rock ribs and pillars, seen from above as sharp angular shapes cutting into
+the open area — they frame the battlefield without crowding it.
+
+In the LOWER THIRD of the frame, horizontally centered: the low, flat rise from image 1, seen
+from directly above as a soft rounded plateau of paler smooth stone, clearly distinct from the
+rough floor around it. On it lies a young girl, seen from above, on her back as if asleep, arms
+at her sides, hair loose — tiny relative to the hall, unharmed, no shroud, no candles, no grave
+goods. She and the rise are the brightest point of the image.
+
+The cold greenish-turquoise light fills the hall without a visible source, brightest around the
+rise in the lower third and falling off toward the edges, where the floor darkens toward black
+under the pillar shadows.
+
+Dutch Golden Age oil painting texture — cracked varnish, visible brushwork — but cold and
+desaturated: black stone, deep shadow, the greenish-turquoise glow as the only colour.
+
+No grid, no markings, no figures other than the girl, no text or labels anywhere in the image.
+```
+
+*Falls Gemini schräg statt senkrecht schaut:* `Important: the camera looks STRAIGHT DOWN at 90
+degrees, like a map. No perspective tilt, no isometric view, no visible walls or horizon — only
+the floor, the tops of rock shapes, and the girl seen from directly above.`
+
+*Falls der Boden zu unruhig wird:* `Important: the open floor must stay calm and readable — large
+smooth areas of dark stone with only subtle variation. Game pieces will be placed on top of this
+image; avoid small-scale clutter, debris fields and busy patterns.`
+
+*Falls das Format nicht stimmt:* `Important: square image, 1:1 aspect ratio.`
+
+**Nach dem Einbinden prüfen:** Die Anhöhe liegt im unteren Drittel — dort starten laut
+Standard-Aufstellung auch die Spieler (untere Grundlinie), während Harwick in der Feldmitte
+steht. Wenn Harwick optisch **am Altar** stehen soll, ihn nach dem Aufbauen einfach per
+Versetzen-Modus auf die Anhöhe ziehen — oder sagen, dann ändern wir seinen Startplatz im Code
+auf das untere Drittel.
+
 ---
 
 ## Vorlage: Stammesdorf (Schatzinsel)
