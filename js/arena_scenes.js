@@ -47,7 +47,12 @@ const ARENA_SCENES = {
   "15.1": {
     label: "Endkampf — Die Ritualkammer",
     arena: true,
-    hintergrund: "images/interior_ritualkammer.webp",
+    // Eigene Draufsicht als Brett-Untergrund (quadratisch 1:1 wie das
+    // 16x16-Raster, Anhoehe mit Jessica im unteren Drittel) - die
+    // Seitenansicht interior_ritualkammer.webp passte perspektivisch nicht
+    // unter senkrecht stehende Spielfiguren. Prompt: BILD-PROMPTS.md,
+    // "Das Schlachtfeld".
+    hintergrund: "images/interior_ritualkammer_schlachtfeld.webp",
     soundFile: "ritual.ogg",
     regeln: {
       breite: 16,

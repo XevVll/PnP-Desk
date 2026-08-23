@@ -105,6 +105,16 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung 7) — Schlachtfeld-Hintergrund eingebunden
+- **`BattleField.jpg` -> `interior_ritualkammer_schlachtfeld.webp`** (2,1 MB -> 101 KB,
+  **1600x1600** - quadratisch wie das 16x16-Brett) und als `hintergrund` in
+  `ARENA_SCENES["15.1"]` eingetragen. Das Bild trifft den Prompt: senkrechte Draufsicht,
+  ruhiger dunkler Boden, Pfeilerfuesse als Rahmen, Anhoehe mit Jessica im unteren Drittel als
+  hellster Punkt. Die bisherige Seitenansicht (interior_ritualkammer.webp) bleibt das Marker-
+  Bild der Szene 13.1 - sie passte perspektivisch nicht unter senkrecht stehende Spielfiguren.
+- Roh-JPG nach Sichtpruefung entfernt. Der Hintergrund-Tausch fasst arenaState nicht an -
+  laufender Kampfstand und eingetragene Werte bleiben erhalten (siehe Fortsetzung 4).
+
 ### 2026-08-23 (Fortsetzung)
 - **Porträt des Seelenlosen eingebunden** (von Hendrik generiert, nach dem Prompt in
   `BILD-PROMPTS.md`, Abschnitt „4. Der Seelenlose"): `Seelenloser.jpg` → auf die
