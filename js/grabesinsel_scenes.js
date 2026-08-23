@@ -84,7 +84,7 @@ const GRABESINSEL_SCENES = {
         id: "die_ritualkammer",
         top: 17, left: 71,
         title: "Die Ritualkammer",
-        desc: "Der Gang öffnet sich in eine Halle, deren Ende im Dunkeln liegt — der Fels darüber ist so hoch, dass das Licht ihn nicht mehr erreicht. In der Mitte erhebt sich eine flache Anhöhe aus dem Boden, kaum kniehoch, mit weichen Kanten; sie sieht aus, als wäre sie gewachsen, und ist doch aus dem Stein geschlagen. Darauf liegt ein Kind.",
+        desc: "Der Gang öffnet sich in eine Halle, die größer ist als alles, was auf diese Insel passt. Kein Ende, keine Decke — der Fels steigt in Rippen und Pfeilern auf und verliert sich, lange bevor das Licht ihn erreicht. Die Kanten sind scharf und gerade, wie geschlagen, und brechen daneben roh aus dem Stein. Weit drinnen erhebt sich eine flache Anhöhe aus dem Boden, kaum kniehoch, mit weichen Kanten. Darauf liegt ein Kind.",
         img: "images/grabesinsel.webp" // PLATZHALTER, Prompt siehe BILD-PROMPTS.md
       }
     ]

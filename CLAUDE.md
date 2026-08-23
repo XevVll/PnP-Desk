@@ -96,6 +96,28 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 21)
+- **Ritualkammer nachgeschärft: gigantisch statt Höhle, und bewusst mehrdeutig** (Hendriks
+  Korrektur: „aktuell ist es eine kleine Höhle, es muss gigantisch wirken — gerne mit scharfen
+  behauenen Kanten, die an Kirchen/Tempel erinnern, alles nicht ganz klar ob Mensch oder
+  natürlich"). Zwei Punkte, in denen der erste Entwurf danebenlag:
+  - **Maßstab.** „Enormous cavern" allein erzeugt keine Größe. Der Prompt hat jetzt einen eigenen
+    SCALE-Block mit konkreten Bauanweisungen: **das Kind ist der Maßstab** und muss winzig in der
+    Mitteldistanz liegen (wer die Anhöhe formatfüllend malt, hat eine kleine Höhle gemalt); das
+    obere Bilddrittel bleibt Dunkelheit **ohne sichtbare Decke**; Tiefenstaffelung aus mehreren
+    Felsrändern hintereinander mit Dunst dazwischen, sodass das Ende „sich auflöst statt
+    aufzuhören"; riesige Felsschäfte, die oben aus dem Bild laufen.
+  - **Mensch oder Natur.** Draußen musste alles natürlich wirken — drinnen ist das Gegenteil
+    gewollt: scharf behauene Rippen, Pfeilerformen und spitz zulaufende Nischen neben rohem
+    Bruch im selben Gestein, aber **kein Ornament, keine Inschrift, keine Fuge, keine
+    Werkzeugspur**. Die Geometrie ist zu absichtlich für Zufall und zu schmucklos für ein
+    Bauwerk; die Entscheidung soll unmöglich bleiben.
+  - Zwei neue Nachfass-Zeilen (zu kleine Halle als „häufigster Fehler", eindeutig gebaut/eindeutig
+    natürlich). Marker-`desc` und das Vorlese-Tableau in `ORTE.die_ritualkammer` entsprechend neu
+    geschrieben (9 statt 7 Absätze, 7 statt 6 Trigger, neuer Trigger
+    `kanten_mensch_oder_natur`). Die Anhöhe ist jetzt bewusst als **einziges Sanfte** in einer
+    Halle voller scharfer Kanten beschrieben — der Kontrast trägt den Moment.
+
 ### 2026-08-22 (Fortsetzung 20)
 - **Grabesinsel-Karte und Strandbild eingebunden, Marker gegen das echte Bild kalibriert.**
   `Ritualinsel.jpg` → `grabesinsel.webp` (3,4 MB → 261 KB, **1920×1072** — der vorsorgliche

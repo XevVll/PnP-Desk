@@ -576,40 +576,77 @@ Das Kathedralenherz im Inneren der Höhle. Dateiname: `interior_ritualkammer.jpg
 Deshalb bewusst **keine Figuren sonst** — kein Harwick, keine Crew. Die Gruppe steht davor, sie
 gehört nicht ins Bild.
 
-Das Heikelste am Prompt: das Kind muss **schlafend** wirken, nicht tot und nicht inszeniert.
-Keine gefalteten Hände, keine Grabbeigaben, keine Kerzen, keine Symbole — nichts, was nach
-Aufbahrung aussieht. Und **kein sichtbarer Schaden**.
+**Der Maßstab ist das Schwerste** (Hendriks Kritik am ersten Entwurf: „aktuell ist es eine kleine
+Höhle, es muss gigantisch wirken"). Ohne Figur zum Vergleich hat ein Raum keine Größe — deshalb
+ist **das Kind selbst der Maßstab**: es muss winzig im Bild sein, ein kleiner heller Fleck in der
+Mitteldistanz. Wer die Anhöhe formatfüllend malt, hat eine kleine Höhle gemalt. Dazu kommen
+Tiefenstaffelung (mehrere Felsränder hintereinander, mit Dunst dazwischen) und eine Decke, die
+außerhalb des Bildes bleibt.
+
+**Innen anders als außen:** Draußen musste alles natürlich wirken. Hier drinnen ist das Gegenteil
+gewollt — **scharf behauene Kanten, die an Kirchen und Tempel erinnern, ohne dass klar wird, ob
+Mensch oder Natur.** Also: kantige Rippen, Pfeilerformen, spitzbogenartige Nischen — aber
+**kein Ornament, keine Inschrift, keine Figuren, keine Werkzeugspur**. Die Geometrie ist zu
+absichtlich für Zufall und zu schmucklos für ein Bauwerk.
+
+Das Kind muss **schlafend** wirken, nicht tot und nicht inszeniert: keine gefalteten Hände, keine
+Grabbeigaben, keine Kerzen, keine Symbole. Und **kein sichtbarer Schaden**.
 
 ```
 Dutch Golden Age oil painting, cracked varnish, aged canvas texture, painted in the style of
 17th-century Dutch masters — cold and desaturated: black rock, deep shadow, and a single cold
 greenish-turquoise light source. Wide landscape format, approx. 16:9.
 
-The interior of an enormous natural cavern inside black rock. The scale is the point: the walls
-fall away to both sides and the ceiling is so high that the light never reaches it — the top of
-the frame is simply darkness. The far end of the hall is lost in shadow. Rough natural rock
-throughout, dry, no water, no stalactites, no built structures, no carvings on the walls.
+The interior of a colossal hall inside black rock — cathedral-scale and far beyond it. SCALE IS
+THE MOST IMPORTANT THING IN THIS IMAGE. Build it like this:
+  - The ceiling is not in the picture. The upper third of the frame is darkness the light never
+    reaches; no vault, no roof, no top edge is visible anywhere.
+  - The side walls recede far past the edges of the frame and are only partly lit.
+  - Depth is layered: several successive walls, ridges and rock shoulders stand one behind
+    another into the distance, each fainter than the last, with cold haze hanging between them,
+    so the far end of the hall dissolves rather than ends.
+  - Enormous vertical shafts of rock rise from the floor and leave the frame at the top without
+    their tops being visible.
 
-In the middle of the floor a low, flat rise swells out of the rock — barely knee-high, with soft
-rounded edges, blending into the floor with no visible join. It looks as though it grew there,
-and only on a second look does it read as having been cut from the stone. It is not an altar and
-not a plinth: no steps, no base, no ornament, no inscription.
+THE SURFACES — deliberately ambiguous: the rock is cut into sharp, clean, angular edges that
+recall the interior of a cathedral or a temple — tall ribbed faces, pillar-like shafts, deep
+narrow recesses with pointed tops, long straight arrises meeting at crisp angles. Some edges are
+knife-sharp and unmistakably deliberate; others break away into raw natural fracture. It must be
+genuinely impossible to decide whether this hall was carved or simply formed that way. BUT: no
+ornament of any kind, no inscriptions, no reliefs, no statues, no masonry joints, no tool marks,
+no steps, no doorways. The shapes are severe and completely bare.
 
-On the rise lies a young girl, on her back, as if asleep. Her hands are not folded but simply
-resting at her sides, her head turned slightly to one side, her hair loose on the stone. Her
-clothing is simple and undisturbed. There is no visible injury of any kind, no blood, no
-discolouration, no decay — she looks like a sleeping child and nothing else. No shroud, no
-flowers, no candles, no grave goods, nothing arranged around her.
+In the middle distance, small on the vast floor, a low flat rise swells out of the rock — barely
+knee-high, with soft rounded edges, blending into the floor with no visible join. Unlike the walls
+it is smooth and gentle. It is not an altar and not a plinth: no steps, no base, no ornament.
 
-The cold greenish-turquoise light fills the hall without a visible source — it does not come from
-a fire, a torch or an opening, and it casts soft, directionless shadows. The girl and the rise are
-the brightest things in the painting; everything beyond them falls away into black.
+On that rise lies a young girl, on her back, as if asleep. In the frame she is TINY — a small pale
+shape, far away, dwarfed by the space around her. Her hands are not folded but simply resting at
+her sides, her head turned slightly to one side, her hair loose on the stone. Her clothing is
+simple and undisturbed. There is no visible injury of any kind, no blood, no discolouration, no
+decay — she looks like a sleeping child and nothing else. No shroud, no flowers, no candles, no
+grave goods, nothing arranged around her.
+
+The cold greenish-turquoise light fills the hall without a visible source — not from a fire, a
+torch or an opening — casting soft, directionless shadows and picking out the sharp edges of the
+rock. The girl and her rise are the brightest point; everything else falls away into black.
 
 No other figures. Absolutely empty otherwise.
 
-Tight framing filling roughly 85-90% of the canvas, little empty space. No modern elements, no
-text or labels anywhere in the image.
+Tight framing filling roughly 85-90% of the canvas. No modern elements, no text or labels
+anywhere in the image.
 ```
+
+*Falls die Halle wieder zu klein wirkt (häufigster Fehler):* `Important: the hall is not a cave,
+it is colossal — larger than any cathedral. Make the girl and her rise very small in the frame,
+far away in the middle distance. Show no ceiling at all: the top third of the image must be
+darkness with no visible roof. Stack several layers of rock into the distance with haze between
+them, and let huge vertical rock shafts run out of the top of the frame.`
+
+*Falls es eindeutig gebaut oder eindeutig natürlich aussieht:* `Important: it must be impossible
+to tell whether this hall was carved or formed naturally. Mix knife-sharp deliberate angular
+edges, ribs and pillar-like shafts with raw natural fracture in the same walls. No ornament, no
+inscriptions, no statues, no masonry joints, no tool marks — severe and completely bare.`
 
 *Falls es nach Aufbahrung/Grab aussieht:* `Important: this must not look like a funeral or a
 tomb. No folded hands, no shroud, no candles, no flowers, no offerings, no symbols, no altar
@@ -618,10 +655,6 @@ steps. She simply lies on bare stone as if she had fallen asleep there.`
 *Falls das Kind verletzt oder tot dargestellt wird:* `Important: the girl must look completely
 unharmed and peacefully asleep — no wounds, no blood, no pallor, no decay, no signs of death of
 any kind.`
-
-*Falls die Halle zu klein wirkt:* `Important: the cavern must feel enormous. The ceiling is beyond
-the reach of the light — the upper part of the image is pure darkness — and the side walls recede
-far out of frame. The figure on the rise should be small within the space.`
 
 ---
 
