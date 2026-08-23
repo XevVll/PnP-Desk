@@ -326,6 +326,27 @@
     schreibe({ ['tokens/' + id + '/geladen']: !t.geladen, ['tokens/' + id + '/entladenSeitRunde']: t.geladen ? (snap.runde || 1) : null });
   }
 
+  // Kampfwerte je Figur setzen. Noetig, weil die Spielercharaktere
+  // unterschiedliche Werte haben und ihre Boegen nur im localStorage des
+  // jeweiligen Spieler-Browsers liegen - die SL traegt die Werte hier einmal
+  // pro Figur ein (Vorlage liefert nur den Startwert).
+  function wertSetzen(id, feld, wert) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    const erlaubt = { nahWert: [0, 10], fernWert: [0, 10], nahSchaden: [0, 20], fernSchaden: [0, 20], hpMax: [1, 99] };
+    if (!erlaubt[feld]) return;
+    let v = parseInt(wert, 10);
+    if (isNaN(v)) { render(); return; } // Eingabe verworfen -> Feld zuruecksetzen
+    v = Math.max(erlaubt[feld][0], Math.min(erlaubt[feld][1], v));
+    const aenderungen = { ['tokens/' + id + '/' + feld]: v };
+    // hpMax runter -> aktuelle HP nicht darueber stehen lassen
+    if (feld === 'hpMax' && (t.hp || 0) > v) aenderungen['tokens/' + id + '/hp'] = v;
+    schreibe(aenderungen);
+  }
+  function masteryUmschalten(id) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    schreibe({ ['tokens/' + id + '/mastery']: !t.mastery });
+  }
+
   function auswaehlen(id) {
     auswahlId = (auswahlId === id) ? null : id;
     render();
@@ -466,6 +487,22 @@
     if ((sel.fernWert || 0) > 0) {
       html += '<div class="zeile"><button class="btn" onclick="ladungUmschalten(\'' + id + '\')">' + (sel.geladen ? 'Waffe entladen' : 'Waffe laden') + '</button></div>';
     }
+
+    // Kampfwerte je Figur - Spielercharaktere haben unterschiedliche Werte,
+    // und die Boegen liegen nur bei den Spielern. Schwelle = Wert x 10.
+    function wertFeld(feld, label, wert) {
+      return '<label style="display:flex;align-items:center;gap:4px">' + label +
+        ' <input type="number" value="' + (wert || 0) + '" min="0" max="99" ' +
+        'style="width:46px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font-family:inherit;padding:2px 4px;border-radius:3px" ' +
+        'onchange="wertSetzen(\'' + id + '\', \'' + feld + '\', this.value)"></label>';
+    }
+    html += '<div class="zeile" style="row-gap:6px">' +
+      wertFeld('nahWert', 'Nah', sel.nahWert) + wertFeld('nahSchaden', 'Schd', sel.nahSchaden) +
+      wertFeld('fernWert', 'Fern', sel.fernWert) + wertFeld('fernSchaden', 'Schd', sel.fernSchaden) +
+      wertFeld('hpMax', 'HPmax', sel.hpMax) +
+      '<label style="display:flex;align-items:center;gap:4px">Mastery <input type="checkbox" ' + (sel.mastery ? 'checked' : '') +
+      ' onchange="masteryUmschalten(\'' + id + '\')"></label></div>' +
+      '<div class="hinweis">Trefferchance = Wert × 10 (Nah ' + ((sel.nahWert || 0) * 10) + '%, Fern ' + ((sel.fernWert || 0) * 10) + '%). Fern 0 = kann nicht schießen.</div>';
     if (sel.typ === 'spieler') {
       html += '<div class="zeile"><button class="btn ' + (istFrei ? 'warn' : 'primary') + '" onclick="freigeben(\'' + (istFrei ? '' : id) + '\')">' +
         (istFrei ? 'Freigabe entziehen' : 'Für Spieler freigeben') + '</button></div>';

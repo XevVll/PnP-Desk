@@ -105,6 +105,19 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung 4) — Kampfwerte je Figur editierbar
+- **Anlass Hendriks Einwand "Aber Spieler haben ja unterschiedliche Kampfwerte"** - bis dahin
+  bekam jede Spieler-Figur die Einheitswerte der Vorlage. Die Charakterboegen liegen nur im
+  localStorage der jeweiligen Spieler-Browser (charakterbogen.html), die SL kommt an die Werte
+  nicht heran - also traegt sie sie einmal pro Figur ein.
+- Schlachtfeld-Auswahlpanel (arena_admin.html): Zahlenfelder fuer nahWert/nahSchaden/fernWert/
+  fernSchaden/hpMax plus Mastery-Haken, onchange direkt nach Firebase (wertSetzen()/
+  masteryUmschalten()). Grenzwert-Klemmung (Werte 0-10, Schaden 0-20, hpMax 1-99); hpMax
+  runtersetzen kappt aktuelle HP mit. Anzeige der Trefferchance (Wert x 10 %) zur Kontrolle,
+  inkl. "Fern 0 = kann nicht schiessen".
+- Test erweitert: Werte setzen, Klemmung, hpMax-Kappung, und dass die Engine den editierten
+  Wert tatsaechlich nutzt (Wurf 99 bei Wert 10 = Schwelle 100 -> kein Miss). 0 Fehler.
+
 ### 2026-08-23 (Fortsetzung 3) — Namensschilder, Harwick mittig, Engine-Fix
 - **Helden-Seite immer beschriftet** (Hendriks Vorgabe "die Namen sollten dran stehen, zumindest
   von den freundlichen"): Spieler + Verbuendete tragen ihr Namensschild jetzt in BEIDEN Ansichten

@@ -220,8 +220,13 @@ Figuren-Vorlagen (`vorlagen.spieler` / `.verbuendeter` / `.diener` / `.seelenlos
 | `fernWert` / `fernSchaden` | 5 / 3 | 5 / 3 | 0 / 0 | 0 / 0 |
 | `mastery` | ja | ja | nein | ja |
 
-**Diese Zahlen sind ein Aufschlag, kein Kanon.** Sie sind bewusst zentral einstellbar; einzelne
-Figuren lassen sich im Panel abweichend setzen.
+**Diese Zahlen sind ein Aufschlag, kein Kanon.** Die Vorlage liefert nur den **Startwert** beim
+Erzeugen einer Figur — danach sind die Kampfwerte **je Figur** im Schlachtfeld-Auswahlpanel
+editierbar (`nahWert`/`nahSchaden`/`fernWert`/`fernSchaden`/`hpMax`/`mastery`, mit
+Grenzwert-Klemmung). Das ist der vorgesehene Weg für die unterschiedlichen Werte der
+Spielercharaktere: ihre Bögen liegen nur im `localStorage` der jeweiligen Spieler-Browser, die SL
+trägt die Werte deshalb einmal pro Figur von Hand ein. Das Panel zeigt zur Kontrolle die
+Trefferchance (`Wert × 10 %`) an.
 
 ### 5.2 Firebase (`arenaState/{sceneId}`)
 
