@@ -96,6 +96,21 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-22 (Fortsetzung 23)
+- **Grabesinsel auf zwei Orte reduziert** (Hendriks Vorgabe): nur noch `grabesstrand` und
+  `die_ritualkammer`. Die Marker `der_schwarze_weg` und `das_kathedralenherz` sind entfallen —
+  sie trugen weder eine Entscheidung noch einen eigenen Aufenthalt, sondern nur den Marsch
+  dazwischen.
+  - **Kein Textverlust:** Beide Inhalte (Talboden ohne Abzweig, Pfeiler-/Bogenformen, das
+    Leuchten, das beim Zugehen nicht heller wird, und die Öffnung ohne Schwelle am Ende) sind zu
+    einer Übergangs-Interaktion `der_weg_zur_hoehle` („Der Weg zur Höhle") in
+    `ORTE.grabesstrand` zusammengezogen — 6 Trigger, mit dem ausdrücklichen Schlusshinweis, danach
+    auf den Kammer-Marker umzuschalten. Die beiden alten Top-Level-`ORTE`-Einträge sind gelöscht.
+  - Begründung im Dateikopf von `js/grabesinsel_scenes.js` festgehalten, damit die Marker nicht
+    versehentlich wieder angelegt werden.
+  - Nebeneffekt: der Höhleneingang braucht damit **kein eigenes Bild mehr** — die offene
+    Bildaufgabe der Grabesinsel entfällt ersatzlos, alle verbliebenen Orte haben ihr Artwork.
+
 ### 2026-08-22 (Fortsetzung 22)
 - **Ritualkammer-Bild eingebunden**: `Ritualkammer.jpg` → `interior_ritualkammer.webp`
   (2,7 MB → **63 KB**, 1600×893 — die kleinste Datei im Projekt, weil das Bild fast nur aus

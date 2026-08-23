@@ -7,6 +7,12 @@
 // Flaches Muster, Marker direkt auf dem Szenenhintergrund, KEIN
 // Container-Marker (siehe CLAUDE.md/Skill pnp-scene, Schritt 3).
 //
+// GENAU ZWEI ORTE (Hendriks Vorgabe, 2026-08-22): der schwarze Strand und die
+// Ritualkammer. Der Weg dorthin und der Hoehleneingang hatten kurzzeitig
+// eigene Marker, haben aber keine eigene Entscheidung und keinen eigenen
+// Aufenthalt getragen - beides laeuft jetzt als Uebergangs-Interaktion
+// "Der Weg zur Hoehle" am Strand (js/regie.js, ORTE.grabesstrand).
+//
 // BEWUSST KEIN Erkundungs-Graph (anders als die Riffinsel, "11.1"): Auf
 // dieser Insel gibt es laut Hendriks Vorgabe genau EINEN gangbaren Weg -
 // es gibt nichts zu erkunden und nichts zu wählen. Ein Graph mit einem
@@ -58,22 +64,6 @@ const GRABESINSEL_SCENES = {
         title: "Der schwarze Strand",
         desc: "Kein Sand, sondern blanker schwarzer Fels, vom Wasser rund geschliffen. Es ist die einzige Stelle, an der man anlegen kann — ringsum fällt das Gestein steil ins Meer. Landeinwärts öffnet sich ein Tal zwischen zwei hohen, scharfkantigen Felswänden, der Boden dazwischen aus demselben schwarzen Stein. Pflanzen sind kaum zu sehen, und die wenigen sind grau.",
         img: "images/interior_grabesstrand.webp"
-      },
-      {
-        id: "der_schwarze_weg",
-        top: 60, left: 54,
-        title: "Der schwarze Weg",
-        desc: "Der Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, mit unregelmäßigen Kanten und natürlichen Bruchlinien. Rechts und links stehen die Wände zu steil, um daneben zu gehen — es gibt keinen Abzweig. Stellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Weit vorn, wo das Tal endet, liegt ein grünlich-türkises Leuchten auf dem Stein, das nicht von oben kommt, sondern von irgendwo weiter unten.",
-        img: "images/interior_grabesstrand.webp" // zeigt das Tal mit Blick auf das Leuchten
-      },
-      // Das "Kathedralenherz" (Hendriks Begriff): Das Tal endet nicht im
-      // Freien, sondern muendet in eine Hoehle - dort kommt das Leuchten her.
-      {
-        id: "das_kathedralenherz",
-        top: 28, left: 66,
-        title: "Der Höhleneingang",
-        desc: "Am Ende des Tals steht die Felswand geschlossen — bis auf eine Öffnung, hoch und unregelmäßig, in die der Talboden ohne Absatz hineinläuft. Aus ihr kommt das grünlich-türkise Licht, gleichmäßig und ohne zu flackern, und legt sich auf den Stein davor. Weiter hinein reicht der Blick nicht.",
-        img: "images/grabesinsel.webp" // PLATZHALTER (Kartenbild zeigt den Eingang)
       },
       // Die Ritualkammer im Inneren (Hendriks Vorgabe, 2026-08-22). Sollte
       // beim Szenenstart ueber hiddenMarkersLive ausgeblendet sein und erst

@@ -1830,7 +1830,7 @@ const ORTE = {
   // Hendriks Vorgabe - was am Ende des Wegs liegt, folgt separat.
   "grabesstrand": {
     personen: "James Harwick · Cormac Daly",
-    kurz: "Ankunft auf der Grabesinsel. Schwarzer Fels statt Sand, die einzige Stelle ringsum, an der man anlegen kann. Landeinwärts öffnet sich ein Tal zwischen scharfkantigen Felswänden. Hier wird ein letztes Mal gefragt, ob wirklich jeder mitkommt. Harwick lässt mehrere Kisten von Bord holen und geht los.",
+    kurz: "Ankunft auf der Grabesinsel und der Weg von hier nach innen — die Insel hat nur zwei Orte, Strand und Ritualkammer. Erst die letzte Frage an jeden Einzelnen und Harwicks Kisten, dann als Übergang der Marsch durchs Tal bis zum Höhleneingang (Interaktion \"Der Weg zur Höhle\"), danach auf die Ritualkammer umschalten.",
     interaktionen: {
       "die_letzte_frage": {
         title: "Die letzte Frage am Strand",
@@ -1842,6 +1842,25 @@ const ORTE = {
           { id: "letzte_frage_einzeln", label: "Jeder wird EINZELN gefragt, ob er wirklich mitkommt", info: "Keine rhetorische Geste — in 12.1 hat Harwick zugesichert, dass niemand gezwungen wird. Wer umkehrt, kehrt ohne Vorwurf um." },
           { id: "kisten_von_bord", label: "Harwick lässt mehrere Kisten von Bord holen", info: "Er erklärt nicht, was darin ist." },
           { id: "harwick_geht_los", label: "Harwick geht den einzigen Weg entlang los, ohne sich umzudrehen", info: "Er prüft nicht, wer ihm folgt." }
+        ]
+      },
+
+      // Der Weg und der Hoehleneingang haben KEINE eigenen Marker mehr
+      // (Hendriks Vorgabe: nur zwei Orte auf dieser Insel). Beides laeuft als
+      // Uebergang hier am Strand - die Gruppe bricht von hier auf, die SL
+      // liest die beiden Beats hintereinander, dann wird auf die Ritualkammer
+      // umgeschaltet.
+      "der_weg_zur_hoehle": {
+        title: "Der Weg zur Höhle (Übergang)",
+        kurz: "Kein eigener Ort — der Marsch vom Strand landeinwärts. Ein Talboden ohne Abzweig, Fels der stellenweise an Pfeiler denken lässt, und weit vorn ein Leuchten, das nicht heller wird, während man darauf zugeht. Reine Beobachtung, keine Probe.",
+        details: "Der Weg lässt keine Wahl: ein Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, ohne einen einzigen Abzweig, und zu beiden Seiten stehen die Wände zu steil, um daneben zu gehen. Der Stein unter den Füßen ist gewachsen, nicht verlegt — unregelmäßige Kanten, natürliche Bruchlinien, vom Wetter rund geschliffen.\n\nStellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Es ist nichts davon gebaut. Wer danach sucht, findet keine Werkzeugspur, keine Fuge, keinen Mörtel.\n\nWeit vorn, dort wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Gestein. Es flackert nicht wie Feuer und wandert nicht wie Licht durch Wolken. Es wird auch nicht heller, während die Gruppe darauf zugeht — was schwer einzuschätzen macht, wie weit es noch ist.\n\nAm Ende steht die Felswand geschlossen, bis auf eine Öffnung: hoch, unregelmäßig, ohne bearbeitete Kante. Der Talboden läuft ohne Absatz und ohne Schwelle hinein — man merkt den Übergang eher am Geräusch der eigenen Schritte als am Boden. Das Licht kommt aus der Tiefe, nicht aus dem Eingangsbereich. Der Gang führt nach unten und weiter, als das Licht zeigt.\n\nSL-Hinweis: Nichts deuten, nichts erklären lassen, keine Probe verlangen — es gibt hier nichts zu entdecken, was nicht ohnehin jeder sieht. Wer trotzdem eine Wahrnehmungsprobe würfeln will, bekommt Beobachtungen (kein Bewuchs in den Ritzen, keine Tierspuren, keine einzige Werkzeugspur; die Luft aus der Öffnung ist kälter als draußen und riecht nach nichts; kein Echo, obwohl es eines geben müsste), aber keine Auflösung.\n\nDanach auf den Marker \"Die Ritualkammer\" umschalten.",
+        trigger: [
+          { id: "keine_wahl_im_weg", label: "Ein Talboden ohne Abzweig — die Wände daneben sind zu steil", info: "Gewachsener Fels, unregelmäßige Kanten, natürliche Bruchlinien. Nichts davon ist verlegt oder gebaut." },
+          { id: "pfeiler_und_bogen", label: "Fels, der stellenweise an Pfeiler und einen Bogen denken lässt", info: "Keine Werkzeugspur, keine Fuge, kein Mörtel — wer danach sucht, findet nichts." },
+          { id: "gruenliches_gluehen", label: "Grünlich-türkises Leuchten über dem Stein weit vorn", info: "Flackert nicht wie Feuer, wandert nicht wie Licht durch Wolken." },
+          { id: "gluehen_wird_nicht_heller", label: "Es wird nicht heller, während man darauf zugeht", info: "Macht schwer einzuschätzen, wie weit es noch ist." },
+          { id: "oeffnung_ohne_schwelle", label: "Die Öffnung am Ende: ohne Absatz, ohne Schwelle, ohne bearbeitete Kante", info: "Man merkt den Übergang eher am Geräusch der eigenen Schritte als am Boden. Der Gang führt nach unten." },
+          { id: "wahrnehmung_ohne_aufloesung", label: "Optionale Probe: Beobachtungen, aber keine Auflösung", info: "Kein Bewuchs, keine Tierspuren, keine Werkzeugspur. Die Luft ist kälter als draußen und riecht nach nichts. Kein Echo, obwohl es eines geben müsste." }
         ]
       }
     }
@@ -1869,41 +1888,6 @@ const ORTE = {
           { id: "jessica_wie_schlafend", label: "Darauf liegt ein Mädchen — auf dem Rücken, als schliefe sie", info: "Die Hände nicht gefaltet, sondern einfach abgelegt, den Kopf ein wenig zur Seite." },
           { id: "kein_sichtbarer_schaden", label: "Kein sichtbarer Schaden — keine Wunde, kein Blut, keine Spur", info: "Nichts an ihr sieht so aus, als läge sie seit Jahren hier." },
           { id: "pause_lassen", label: "SL: Pause lassen. Die Spieler sprechen zuerst.", info: "Nichts erklären, keine Probe verlangen — jede Mechanik würde den Moment zerreden." }
-        ]
-      }
-    }
-  },
-
-  "das_kathedralenherz": {
-    kurz: "Das Ende des Wegs: Der Talboden laeuft ohne Absatz in eine hohe, unregelmaessige Oeffnung im Fels. Aus ihr kommt das gruenlich-tuerkise Licht. [OFFEN] Was drinnen liegt (Ritualort, Finale nach Bibel 12.1), ist noch nicht ausgearbeitet.",
-    interaktionen: {
-      "am_hoehleneingang": {
-        title: "Am Höhleneingang",
-        kurz: "Der Talboden läuft ohne Absatz in die Öffnung hinein — kein Tor, keine Schwelle, kein Bauwerk. Das Licht kommt von weiter unten und wird nicht heller. Reine Beobachtung, keine Probe.",
-        details: "Am Ende des Tals steht die Felswand geschlossen, bis auf eine Öffnung: hoch, unregelmäßig, ohne bearbeitete Kante. Der Talboden läuft ohne Absatz und ohne Schwelle hinein — man merkt den Übergang eher am Geräusch der eigenen Schritte als am Boden.\n\nDas grünlich-türkise Licht kommt aus der Tiefe, nicht von einer sichtbaren Quelle im Eingangsbereich. Es ist gleichmäßig, ohne Flackern, ohne Wärme. Wer hineinsieht, erkennt, dass der Gang nach unten führt und weiter reicht, als das Licht zeigt.\n\nSL-Hinweis: Keine Deutung, keine Erklärung. Wer eine Probe verlangt, bekommt Beobachtungen (die Luft aus der Öffnung ist kälter als draußen und riecht nach nichts; kein Echo, obwohl es eines geben müsste), aber keine Auflösung.\n\n[OFFEN] Was im Inneren liegt — der Ritualort und das Finale nach Bibel 12.1 — ist noch nicht ausgearbeitet und bekommt eigene Marker, sobald Hendrik es vorgibt.",
-        trigger: [
-          { id: "oeffnung_ohne_schwelle", label: "Der Talboden läuft ohne Absatz und ohne Schwelle in die Öffnung", info: "Kein Tor, keine bearbeitete Kante, kein Bauwerk." },
-          { id: "licht_aus_der_tiefe", label: "Das Licht kommt aus der Tiefe, nicht aus dem Eingangsbereich", info: "Gleichmäßig, ohne Flackern, ohne Wärme." },
-          { id: "gang_fuehrt_nach_unten", label: "Der Gang führt nach unten und weiter, als das Licht zeigt", info: "Wie weit, ist von außen nicht zu sehen." },
-          { id: "beobachtung_ohne_aufloesung", label: "Optionale Probe: Beobachtungen, aber keine Auflösung", info: "Die Luft ist kälter als draußen und riecht nach nichts. Kein Echo, obwohl es eines geben müsste." }
-        ]
-      }
-    }
-  },
-
-  "der_schwarze_weg": {
-    kurz: "Der einzige gangbare Weg landeinwärts: gerade, gleichmäßig breit, ohne Abzweig. Rechts und links ist der Fels zu steil. Weit vorn liegt ein grünlich-türkises Leuchten über dem Stein.",
-    interaktionen: {
-      "das_gluehen_in_der_ferne": {
-        title: "Das Glühen in der Ferne",
-        kurz: "Ein grünlich-türkises Leuchten über dem Stein weit vorn, das mit keiner Tageszeit und keinem Feuer zu erklären ist. Es wird nicht heller oder dunkler, während man darauf zugeht. Reine Beobachtung — keine Probe, keine Deutung durch die SL.",
-        details: "Der Weg lässt keine Wahl: ein Talboden aus schwarzem Fels, breit genug für mehrere nebeneinander, ohne einen einzigen Abzweig, und zu beiden Seiten stehen die Wände zu steil, um daneben zu gehen. Der Stein unter den Füßen ist gewachsen, nicht verlegt — unregelmäßige Kanten, natürliche Bruchlinien, vom Wetter rund geschliffen.\n\nStellenweise steht der Fels in hohen schmalen Formen, die an Pfeiler denken lassen, und eine Öffnung dazwischen an einen Bogen. Es ist nichts davon gebaut. Wer danach sucht, findet keine Werkzeugspur, keine Fuge, keinen Mörtel.\n\nWeit vorn, dort wo der Weg zwischen den Felsen verschwindet, liegt ein grünlich-türkises Leuchten über dem Gestein. Es flackert nicht wie Feuer und wandert nicht wie Licht durch Wolken. Es wird auch nicht heller, während die Gruppe darauf zugeht — was schwer einzuschätzen macht, wie weit es noch ist.\n\nSL-Hinweis: Nichts davon deuten und nichts erklären lassen. Keine Probe: es gibt hier nichts zu entdecken, was nicht ohnehin jeder sieht. Wer eine Wahrnehmungsprobe verlangt, bekommt Details zur Beschaffenheit des Gesteins (kein Bewuchs in den Ritzen, keine Tierspuren, keine einzige Werkzeugspur), aber keine Auflösung zum Leuchten.\n\n[OFFEN] Was am Ende des Wegs liegt, ist noch nicht ausgearbeitet — Ritualort und Finale bekommen eigene Marker, sobald Hendrik sie vorgibt (Bibel 12.1).",
-        trigger: [
-          { id: "keine_wahl_im_weg", label: "Ein Talboden ohne Abzweig — die Wände daneben sind zu steil", info: "Gewachsener Fels, unregelmäßige Kanten, natürliche Bruchlinien. Nichts davon ist verlegt oder gebaut." },
-          { id: "pfeiler_und_bogen", label: "Fels, der stellenweise an Pfeiler und einen Bogen denken lässt", info: "Keine Werkzeugspur, keine Fuge, kein Mörtel — wer danach sucht, findet nichts." },
-          { id: "gruenliches_gluehen", label: "Grünlich-türkises Leuchten über dem Stein weit vorn", info: "Flackert nicht wie Feuer, wandert nicht wie Licht durch Wolken." },
-          { id: "gluehen_wird_nicht_heller", label: "Es wird nicht heller, während man darauf zugeht", info: "Macht schwer einzuschätzen, wie weit es noch ist." },
-          { id: "wahrnehmung_ohne_aufloesung", label: "Optionale Wahrnehmung: Details zum Fels, aber keine Auflösung zum Leuchten", info: "Kein Bewuchs in den Ritzen, keine Tierspuren, keine einzige Werkzeugspur." }
         ]
       }
     }
