@@ -490,12 +490,17 @@ function arenaAufbauen(sceneId) {
   }
 
   // Spieler unten, Gegner oben - klassische Aufstellung, per Hand aenderbar.
-  const pcs = (typeof CHARACTERS !== 'undefined' && CHARACTERS)
-    ? (Array.isArray(CHARACTERS) ? CHARACTERS : Object.keys(CHARACTERS).map(function (k) { return CHARACTERS[k]; }))
-    : [];
   // Ueber die Grundlinie verteilt statt zusammengedraengt - auf 16 Feldern
   // Breite waere eine Viererkette am linken Rand unbrauchbar.
-  const spielerNamen = pcs.length ? pcs.map(function (c) { return c.name || c.id; }).slice(0, 6) : ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'];
+  //
+  // BEWUSST GENERISCHE NAMEN: js/characters.js (CHARACTERS) enthaelt die
+  // sieben NSC (Harwick, Cormac, Wat, ...), NICHT die Spielercharaktere -
+  // deren Namen stehen nirgends im Repo. Ein frueher Entwurf zog die
+  // CHARACTERS-Namen und stellte damit NSC als Spielerfiguren auf ("James
+  // Harwick schiesst auf Der Seelenlose"). Die SL benennt die Figuren beim
+  // Nachsetzen ueber "+ Spieler" selbst; NSC, die mitkaempfen (Harwick,
+  // Cormac), kommen auf demselben Weg dazu.
+  const spielerNamen = ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'];
   const abstand = Math.max(1, Math.floor(r.breite / (spielerNamen.length + 1)));
   spielerNamen.forEach(function (n, i) {
     setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, abstand * (i + 1)), r.hoehe - 1);

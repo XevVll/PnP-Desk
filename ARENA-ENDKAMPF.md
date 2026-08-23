@@ -307,6 +307,17 @@ Drei Fehler beim Bau, alle vom Test gefunden:
    Argument durch. Beim Abspann landete der in einem Tiefen-Parameter und ließ alles ab dem
    fünften Element ausfallen. Wenn eine Funktion optionale Zweitparameter hat, **nie** direkt an
    `forEach` übergeben.
+4. **Nachträglich ergänzte Funktion fehlte in `module.exports`.** `arenaBossLebt()` kam per Edit
+   nach dem ursprünglich geschriebenen Export-Block dazu und wurde dort nicht nachgetragen — im
+   Browser unauffällig (globale Funktion), aber für Node-Tests unerreichbar. Beim Audit des
+   Handbuchs gefunden, weil die API-Tabelle (6.1) sie auflistete. **Bei jeder neuen Funktion in
+   `js/arena.js` den Export-Block am Dateiende mitpflegen.**
+5. **`arenaAufbauen()` stellte NSC als Spielerfiguren auf.** `CHARACTERS` (`js/characters.js`)
+   enthält die sieben **NSC** der Kampagne, nicht die Spielercharaktere — der Aufbau zog diese
+   Namen und produzierte Züge wie „James Harwick schießt auf Der Seelenlose". In 9.2 stand das
+   zunächst als „ungeprüft"; das Audit hat es bestätigt. Jetzt setzt der Aufbau vier generische
+   „Spieler 1–4", die die SL über „+ Spieler" selbst benennt; mitkämpfende NSC (Harwick, Cormac)
+   kommen auf demselben Weg dazu.
 
 ---
 
@@ -331,8 +342,10 @@ Drei Fehler beim Bau, alle vom Test gefunden:
   Freigeben grob korrigieren.
 - **Keine Sichtlinien, keine Deckung, keine Zonen** — die Ritualkammer ist als offene Fläche
   modelliert, obwohl das Bild Pfeiler zeigt.
-- **Spielerfiguren tragen die Namen aus `js/characters.js`**, wenn `arenaAufbauen()` benutzt wird.
-  Ob das die richtigen Namen sind (Spielercharaktere vs. NSC), ist ungeprüft.
+- ~~Spielerfiguren tragen die Namen aus `js/characters.js`~~ — **geklärt und behoben** (siehe
+  Fehlergeschichte Nr. 5): `CHARACTERS` sind die NSC, der Aufbau setzt jetzt generische
+  „Spieler 1–4". Die Namen der echten Spielercharaktere stehen nirgends im Repo; die SL vergibt
+  sie beim Nachsetzen über „+ Spieler".
 - **Firebase-Regeln** für `arenaState` müssen freigegeben werden, siehe 5.3.
 
 ### 9.3 Sinnvolle nächste Schritte

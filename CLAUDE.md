@@ -105,6 +105,20 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 (Fortsetzung) — Audit von ARENA-ENDKAMPF.md
+- **Handbuch gegen den Code geprueft** (jede pruefbare Behauptung nachgerechnet: Interaktionskette
+  des Finales, Engine-Exporte, Regelwerte, Vorlagen-Tabelle, Bibel-Beispiel, Saebel-Regel,
+  Boss-Kopplung, Registry-Verdrahtung, TDZ-Fix, fbKey, Log-Verdeckung). Zwei echte Funde:
+  - **`arenaBossLebt()` fehlte in `module.exports`** von `js/arena.js` - per Edit nach dem
+    Export-Block ergaenzt und dort nie nachgetragen. Im Browser unauffaellig, fuer Node-Tests
+    unerreichbar. Nachgetragen; als Fehlergeschichte Nr. 4 im Handbuch dokumentiert.
+  - **`arenaAufbauen()` stellte NSC als Spielerfiguren auf**: `CHARACTERS` (js/characters.js)
+    sind die sieben NSC, nicht die Spielercharaktere - sichtbar an Testzuegen wie "James Harwick
+    schiesst auf Der Seelenlose". Aufbau setzt jetzt generische "Spieler 1-4" (die SL benennt
+    ueber "+ Spieler" selbst; mitkaempfende NSC kommen auf demselben Weg). Der in Handbuch 9.2
+    als "ungeprueft" markierte Punkt ist damit geklaert und dort als behoben vermerkt
+    (Fehlergeschichte Nr. 5).
+
 ### 2026-08-23 — Kampf-Arena für den Endkampf (Szene `15.1`)
 - **Neuer Szenentyp „Arena"** (Hendriks Wunsch: den Endkampf wie in einem CRPG spielen).
   `arena: true` in `js/arena_scenes.js` schaltet `karte.html` auf ein Raster statt der

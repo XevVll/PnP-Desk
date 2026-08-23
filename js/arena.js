@@ -231,6 +231,6 @@ if (typeof module !== 'undefined' && module.exports) {
     ARENA_BAENDER, arenaSchwellen, arenaBand, arenaVerschiebe, arenaSchaden,
     arenaDistanz, arenaInReichweite, arenaAngriffsart, arenaBedraengnis,
     arenaIstSpieler, arenaIstFeind, arenaAngriff, arenaBewegungErlaubt,
-    arenaRundenwechsel, arenaFreieRandfelder
+    arenaBossLebt, arenaRundenwechsel, arenaFreieRandfelder
   };
 }
