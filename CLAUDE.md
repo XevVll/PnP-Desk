@@ -99,6 +99,54 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-23 — Kampf-Arena für den Endkampf (Szene `15.1`)
+- **Neuer Szenentyp „Arena"** (Hendriks Wunsch: den Endkampf wie in einem CRPG spielen).
+  `arena: true` in `js/arena_scenes.js` schaltet `karte.html` auf ein Raster statt der
+  Marker-Karte um — dasselbe Muster wie beim Abspann, MAP_REGISTRY bleibt unangetastet.
+  Hintergrund ist das Ritualkammer-Bild.
+- **Verhältnis zum Text-Finale (wichtig):** Die Arena ersetzt den Ablauf aus
+  `ORTE.die_ritualkammer` nicht. Die Kernbeats (Wats und Josiahs Tod, Harwicks Anklage, die
+  Entscheidung um den Säbel) bleiben fest und werden von der SL ausgelöst — **die Arena bestimmt
+  nur, wie teuer der Weg dorthin wird, nicht ob die Beats geschehen.** Deshalb gibt es bewusst
+  keine Siegbedingung und keinen Automatismus, der den Kampf beendet, und die SL kann jederzeit
+  Figuren setzen, entfernen und HP von Hand ändern.
+- **Regel-Engine als eigene Datei** (`js/arena.js`, ohne DOM und ohne Firebase): rechnet nach dem
+  Probensystem der Bibel (4.1) — `Schwelle = Wert × 10`, vier Bänder, ohne Mastery entfällt
+  „schlechter Erfolg" ohne die Zahlenschwellen zu verschieben (4.2), Bedrängnis verschiebt je
+  zusätzlichem angrenzenden Gegner um ein Band (4.4). Per Node-Test gegen das Bibel-Beispiel
+  (Wert 5 → 1-25/26-50/51-75/76-100) auf allen 100 Würfen abgeglichen, 0 Abweichungen.
+- **Ablauf:** Die SL gibt reihum **eine** Figur frei; solange sie frei ist, darf **jeder** Spieler
+  sie bewegen (Reichweite) und mit ihr angreifen. Die Angriffsart ergibt sich aus der Entfernung —
+  angrenzend Nahkampf, sonst Fernkampf; es gibt keine Wahl. Nach einem Schuss ist die Waffe leer
+  (Anzeige am Token) und erst in der übernächsten Runde wieder bereit.
+- **Der Seelenlose ist die Quelle des Nachschubs** (Hendriks Vorgabe): solange er lebt, stehen
+  normal getötete Diener nach 2 Runden wieder auf und alle 3 Runden erscheinen neue. **Fällt er,
+  hört beides auf** — damit ist er das eigentliche Ziel und nicht nur der dickste Gegner.
+- **Der Jaguar-Säbel** tötet Diener endgültig (sie verschwinden statt aufzustehen). Wer ihn
+  trägt, trägt die SL im Panel ein; **den Spielern wird das nie angezeigt** und das Kampf-Log
+  erwähnt ihn bewusst nicht — sonst ließe sich der Träger daran ablesen.
+- **Spieler schreiben hier erstmals echten Spielzustand** (`arenaState/{sceneId}`: `runde`,
+  `freigegeben`, `saebeltraeger`, `tokens/{id}`, `log/{id}`) — anders als beim Erkundungs-Graphen,
+  wo nur die SL `currentNode` setzt. Sonst müsste die SL jeden Schritt nachklicken, was den Sinn
+  der Arena aufhöbe; die Kontrolle bleibt über die Freigabe (ohne freigegebene Figur ist nichts
+  anklickbar). Alle Schreibvorgänge laufen als **ein** `update()` von der Wurzel, damit der
+  Live-Listener nicht auf halben Zwischenständen feuert.
+- **Zahlen:** 8×8-Feld, 2 Felder Bewegung (Hendriks Vorgabe); Reichweiten, HP und Schaden sind
+  ein erster Aufschlag in `ARENA_SCENES['15.1'].regeln`/`vorlagen` und je Figur im Panel änderbar
+  — die Bibel kennt keine Kampfwerte, nur „Schadenspunkte" als kleine ganze Zahlen.
+- **Wieder in die TDZ-Falle getappt** (steht seit 08/2026 in diesem Changelog): die neuen
+  `let`-State-Variablen standen zunächst bei den Arena-Funktionen weiter unten in
+  `js/regie_vault.js` — der Firebase-Init-catch-Zweig ruft `renderAll()` aber synchron auf, und
+  das Adminpanel brach mit „Cannot access 'arenaStateScene' before initialization" ab. Nach oben
+  zu den übrigen State-Variablen verschoben.
+- Zwei Testskripte: Regel-Engine gegen die Bibel (Node, 0 Fehler) und ein Integrationstest über
+  beide Ansichten mit Fake-Firebase (Aufbau, Freigabe, Bewegung inkl. Sperre nach dem Zug,
+  Angriff mit Log, Rundenwechsel, Aufräumen beim Szenenwechsel — 8 Prüfungen, 0 Fehler), dazu
+  Screenshot-Kontrolle.
+- **[OFFEN]** Feinschliff nach dem ersten Testlauf: Werte (HP/Schaden/Reichweiten), ob der
+  Seelenlose eigene Fähigkeiten jenseits des Zuschlagens bekommt, und ob Spielerfiguren aus der
+  Charakterleiste automatisch die richtigen Namen ziehen sollen.
+
 ### 2026-08-23
 - **Grabesinsel-Finale (Bibel 12.1) komplett ausformuliert** — Inhalt in einer reinen
   Sparring-Session mit Hendrik entwickelt (keine Codeänderungen während des Sparrings; erst danach

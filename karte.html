@@ -89,6 +89,74 @@
     transition: opacity 3.5s ease-in;
   }
   #abspannDank.visible { opacity: 1; }
+
+  /* ---------- Kampf-Arena (Szenen mit "arena: true") ---------- */
+  #arena {
+    position: fixed; inset: 0; z-index: 380;
+    display: none;
+    background: #0a0806;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px;
+    padding: 12px;
+  }
+  #arena.on { display: flex; }
+  #arenaKopf {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    justify-content: center;
+    font-size: 13px; color: var(--ink-dim);
+  }
+  #arenaKopf b { color: var(--gold); font-weight: normal; letter-spacing: 1px; }
+  #arenaBrett {
+    position: relative;
+    display: grid;
+    border: 1px solid rgba(201,162,75,0.35);
+    background-size: cover; background-position: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  }
+  .arena-feld {
+    position: relative;
+    border: 1px solid rgba(201,162,75,0.10);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .arena-feld.erreichbar { background: rgba(201,162,75,0.16); cursor: pointer; }
+  .arena-feld.erreichbar:hover { background: rgba(201,162,75,0.32); }
+  .arena-token {
+    width: 78%; height: 78%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(14px, 2.4vh, 26px);
+    background: rgba(12,9,6,0.82);
+    border: 2px solid currentColor;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+    position: relative;
+  }
+  .arena-token.frei { animation: markPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(201,162,75,0.35); }
+  .arena-token.tot { opacity: 0.32; filter: grayscale(1); }
+  .arena-token.angreifbar { cursor: pointer; outline: 2px dashed var(--accent); outline-offset: 3px; }
+  .arena-hp {
+    position: absolute; left: 6%; right: 6%; bottom: -9px; height: 5px;
+    background: rgba(0,0,0,0.75); border: 1px solid rgba(0,0,0,0.9); border-radius: 3px;
+    overflow: hidden;
+  }
+  .arena-hp i { display: block; height: 100%; background: #7fa87f; }
+  .arena-hp i.wenig { background: #c76a5a; }
+  .arena-leer {
+    position: absolute; top: -8px; right: -6px;
+    font-size: 11px; line-height: 1;
+    background: rgba(12,9,6,0.9); border: 1px solid var(--accent);
+    color: #e0a08e; border-radius: 8px; padding: 1px 4px;
+  }
+  .arena-name {
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; white-space: nowrap; color: var(--ink-dim);
+    text-shadow: 0 1px 4px #000;
+  }
+  #arenaLog {
+    max-width: 92vw; max-height: 15vh; overflow-y: auto;
+    font-size: 12.5px; color: var(--ink-dim); text-align: center;
+    line-height: 1.55;
+  }
+  #arenaLog div:first-child { color: var(--ink); }
+  #arenaHinweis { font-size: 13px; color: var(--gold); min-height: 1.2em; text-align: center; }
   #abspannDank span {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(30px, 4.6vw, 68px);
@@ -585,6 +653,14 @@
        in der Szene vorgibt. -->
   <div id="abspann" aria-hidden="true"></div>
 
+  <!-- Kampf-Arena (Szenen mit "arena: true", siehe js/arena_scenes.js) -->
+  <div id="arena" aria-hidden="true">
+    <div id="arenaKopf"></div>
+    <div id="arenaBrett"></div>
+    <div id="arenaHinweis"></div>
+    <div id="arenaLog"></div>
+  </div>
+
   <div id="charSheetHandle" onclick="toggleCharSheetDrawer()">📋 Charakterbogen</div>
   <div id="charSheetBackdrop" onclick="closeCharSheetDrawer()"></div>
   <div id="charSheetDrawer">
@@ -616,6 +692,8 @@
   <script src="js/riffinsel_scenes.js"></script>
 <script src="js/grabesinsel_scenes.js"></script>
 <script src="js/abspann_scenes.js"></script>
+<script src="js/arena.js"></script>
+<script src="js/arena_scenes.js"></script>
   <script src="js/exploration_graphs.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/dice.js"></script>
@@ -717,6 +795,14 @@
         },
         getMarkers: function (sceneId) {
           return (typeof ABSPANN_SCENES !== 'undefined' && ABSPANN_SCENES[sceneId]) ? [] : null;
+        }
+      },
+      {
+        getScene: function (sceneId) {
+          return (typeof ARENA_SCENES !== 'undefined') ? ARENA_SCENES[sceneId] : undefined;
+        },
+        getMarkers: function (sceneId) {
+          return (typeof ARENA_SCENES !== 'undefined' && ARENA_SCENES[sceneId]) ? [] : null;
         }
       }
     ];
@@ -1352,9 +1438,258 @@
       abspannTimers.push(setTimeout(zeigen, slot * (stand / anzahl)));
     }
 
+    // ==========================================================
+    // KAMPF-ARENA (js/arena_scenes.js + js/arena.js)
+    // Raster statt Marker-Karte. Die SL gibt reihum EINE Figur frei; solange
+    // sie frei ist, darf JEDER Spieler sie bewegen und mit ihr angreifen
+    // (Hendriks Vorgabe). Gerechnet wird nach dem Probensystem der Bibel,
+    // die Regeln stehen in js/arena.js.
+    //
+    // Anders als beim Erkundungs-Graphen schreiben die Spieler hier
+    // tatsaechlich den Zustand (Position, Schaden) - sonst muesste die SL
+    // jeden einzelnen Schritt nachklicken, was den Sinn der Arena aufheben
+    // wuerde. Die SL behaelt die Kontrolle ueber die Freigabe: ohne
+    // freigegebene Figur ist gar nichts anklickbar.
+    // ==========================================================
+    const arenaEl = document.getElementById('arena');
+    const arenaBrettEl = document.getElementById('arenaBrett');
+    const arenaKopfEl = document.getElementById('arenaKopf');
+    const arenaHinweisEl = document.getElementById('arenaHinweis');
+    const arenaLogEl = document.getElementById('arenaLog');
+    let arenaRef = null, arenaListener = null, arenaScene = null, arenaSnap = {};
+
+    function arenaSzene(sceneId) {
+      return (typeof ARENA_SCENES !== 'undefined' && ARENA_SCENES[sceneId]) ? ARENA_SCENES[sceneId] : null;
+    }
+
+    function stopArena() {
+      if (arenaRef && arenaListener) arenaRef.off('value', arenaListener);
+      arenaRef = null; arenaListener = null; arenaScene = null; arenaSnap = {};
+      if (!arenaEl) return;
+      arenaEl.classList.remove('on');
+      arenaEl.setAttribute('aria-hidden', 'true');
+      arenaBrettEl.innerHTML = '';
+    }
+
+    function startArena(sceneId) {
+      stopArena();
+      const sz = arenaSzene(sceneId);
+      if (!sz || !arenaEl) return;
+      arenaScene = sceneId;
+      arenaEl.classList.add('on');
+      arenaEl.setAttribute('aria-hidden', 'false');
+      if (!db) { arenaSnap = {}; renderArena(); return; }
+      arenaRef = db.ref('arenaState/' + fbKey(sceneId));
+      arenaListener = arenaRef.on('value', function (snap) {
+        arenaSnap = snap.val() || {};
+        renderArena();
+      });
+    }
+
+    function renderArena() {
+      const sz = arenaSzene(arenaScene);
+      if (!sz || !arenaEl) return;
+      const r = sz.regeln;
+      const tokens = arenaSnap.tokens || {};
+      const freigegebenId = arenaSnap.freigegeben || null;
+      const frei = freigegebenId ? tokens[freigegebenId] : null;
+
+      // Brettgroesse an die Fensterhoehe binden, damit immer alles sichtbar
+      // bleibt (die Arena liegt bildschirmfuellend ueber der Karte).
+      const platz = Math.min(window.innerWidth * 0.94, window.innerHeight * 0.66);
+      const feld = Math.floor(platz / Math.max(r.breite, r.hoehe));
+      arenaBrettEl.style.gridTemplateColumns = 'repeat(' + r.breite + ', ' + feld + 'px)';
+      arenaBrettEl.style.gridTemplateRows = 'repeat(' + r.hoehe + ', ' + feld + 'px)';
+      arenaBrettEl.style.backgroundImage = sz.hintergrund ? 'url("' + sz.hintergrund + '")' : 'none';
+
+      arenaKopfEl.innerHTML = '<span>Runde <b>' + (arenaSnap.runde || 1) + '</b></span>' +
+        '<span>Am Zug: <b>' + (frei ? (frei.name || frei.id) : '—') + '</b></span>';
+
+      // Erreichbare Felder und angreifbare Ziele der freigegebenen Figur.
+      const erreichbar = {};
+      const angreifbar = {};
+      if (frei && !frei.tot) {
+        if (!frei.hatGezogen) {
+          for (let x = 0; x < r.breite; x++) {
+            for (let y = 0; y < r.hoehe; y++) {
+              if (arenaBewegungErlaubt(Object.assign({ id: freigegebenId }, frei), { x: x, y: y }, r, tokens).ok) {
+                erreichbar[x + ':' + y] = true;
+              }
+            }
+          }
+        }
+        if (!frei.hatAngegriffen) {
+          Object.keys(tokens).forEach(function (id) {
+            const t = tokens[id];
+            if (!t || t.tot || !arenaIstFeind(frei, t)) return;
+            const art = arenaAngriffsart(frei, t, r);
+            if (!art) return;
+            if (art === 'fern' && !frei.geladen) return;
+            angreifbar[id] = art;
+          });
+        }
+      }
+
+      arenaBrettEl.innerHTML = '';
+      const belegung = {};
+      Object.keys(tokens).forEach(function (id) {
+        const t = tokens[id];
+        if (t) belegung[t.x + ':' + t.y] = id;
+      });
+
+      for (let y = 0; y < r.hoehe; y++) {
+        for (let x = 0; x < r.breite; x++) {
+          const zelle = document.createElement('div');
+          zelle.className = 'arena-feld';
+          const key = x + ':' + y;
+          const tokenId = belegung[key];
+
+          if (!tokenId && erreichbar[key]) {
+            zelle.classList.add('erreichbar');
+            zelle.onclick = function () { arenaBewege(freigegebenId, x, y); };
+          }
+          if (tokenId) zelle.appendChild(arenaTokenEl(tokenId, tokens[tokenId], freigegebenId, angreifbar));
+          arenaBrettEl.appendChild(zelle);
+        }
+      }
+
+      if (!frei) arenaHinweisEl.textContent = 'Die Spielleitung gibt gleich die nächste Figur frei.';
+      else if (frei.tot) arenaHinweisEl.textContent = (frei.name || frei.id) + ' ist am Boden.';
+      else {
+        const teile = [];
+        if (!frei.hatGezogen) teile.push('Feld anklicken zum Bewegen (' + (frei.bewegung || r.bewegung) + ')');
+        if (!frei.hatAngegriffen && Object.keys(angreifbar).length) teile.push('Gegner anklicken zum Angreifen');
+        if (!frei.geladen) teile.push('Waffe ist leer — lädt bis zur nächsten Runde');
+        arenaHinweisEl.textContent = teile.length ? teile.join(' · ') : 'Nichts mehr zu tun in dieser Runde.';
+      }
+
+      const log = arenaSnap.log || {};
+      const zeilen = Object.keys(log).map(function (k) { return log[k]; })
+        .sort(function (a, b) { return (b.zeit || 0) - (a.zeit || 0); }).slice(0, 6);
+      arenaLogEl.innerHTML = zeilen.map(function (z) { return '<div>' + z.text + '</div>'; }).join('');
+    }
+
+    function arenaTokenEl(id, t, freigegebenId, angreifbar) {
+      const el = document.createElement('div');
+      el.className = 'arena-token' + (id === freigegebenId ? ' frei' : '') + (t.tot ? ' tot' : '');
+      el.style.color = t.farbe || '#c9a24b';
+      el.textContent = t.symbol || '?';
+
+      const name = document.createElement('span');
+      name.className = 'arena-name';
+      name.textContent = t.name || '';
+      el.appendChild(name);
+
+      if (!t.tot) {
+        const bar = document.createElement('div');
+        bar.className = 'arena-hp';
+        const i = document.createElement('i');
+        const anteil = Math.max(0, Math.min(1, (t.hp || 0) / (t.hpMax || 1)));
+        i.style.width = (anteil * 100) + '%';
+        if (anteil <= 0.34) i.className = 'wenig';
+        bar.appendChild(i);
+        el.appendChild(bar);
+        // Nur bei Figuren mit Fernkampf ist "leer" ueberhaupt eine Aussage.
+        if (!t.geladen && (t.fernWert || 0) > 0) {
+          const leer = document.createElement('span');
+          leer.className = 'arena-leer';
+          leer.textContent = 'leer';
+          el.appendChild(leer);
+        }
+      }
+
+      if (angreifbar[id]) {
+        el.classList.add('angreifbar');
+        el.title = angreifbar[id] === 'nah' ? 'Nahkampf' : 'Fernkampf';
+        el.onclick = function (ev) { ev.stopPropagation(); arenaGreifeAn(freigegebenId, id); };
+      }
+      return el;
+    }
+
+    function arenaSchreibe(aenderungen, logText) {
+      if (!db || !arenaScene) return;
+      const basis = 'arenaState/' + fbKey(arenaScene) + '/';
+      const paket = {};
+      Object.keys(aenderungen).forEach(function (p) { paket[basis + p] = aenderungen[p]; });
+      if (logText) {
+        paket[basis + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
+      }
+      // Ein einziges update() - sonst feuert der Live-Listener mehrfach auf
+      // halben Zwischenstaenden (gleiche Begruendung wie beim Erkundungs-Graphen).
+      db.ref().update(paket);
+    }
+
+    function arenaBewege(id, x, y) {
+      const sz = arenaSzene(arenaScene); if (!sz) return;
+      const tokens = arenaSnap.tokens || {};
+      const t = tokens[id]; if (!t) return;
+      const pruef = arenaBewegungErlaubt(Object.assign({ id: id }, t), { x: x, y: y }, sz.regeln, tokens);
+      if (!pruef.ok) return;
+      arenaSchreibe({
+        ['tokens/' + id + '/x']: x,
+        ['tokens/' + id + '/y']: y,
+        ['tokens/' + id + '/hatGezogen']: true
+      }, (t.name || id) + ' bewegt sich.');
+    }
+
+    function arenaGreifeAn(angreiferId, zielId) {
+      const sz = arenaSzene(arenaScene); if (!sz) return;
+      const tokens = arenaSnap.tokens || {};
+      const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
+      const z = Object.assign({ id: zielId }, tokens[zielId] || {});
+      if (!a.typ || !z.typ) return;
+      const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null);
+      if (!erg.ok) return;
+
+      const aenderungen = { ['tokens/' + angreiferId + '/hatAngegriffen']: true };
+      if (erg.entlaedt) {
+        aenderungen['tokens/' + angreiferId + '/geladen'] = false;
+        aenderungen['tokens/' + angreiferId + '/entladenSeitRunde'] = arenaSnap.runde || 1;
+      }
+      if (erg.endgueltig) {
+        aenderungen['tokens/' + zielId] = null; // verschwindet ganz
+      } else {
+        aenderungen['tokens/' + zielId + '/hp'] = erg.zielHpNeu;
+        if (erg.toetet) {
+          aenderungen['tokens/' + zielId + '/tot'] = true;
+          aenderungen['tokens/' + zielId + '/totSeitRunde'] = arenaSnap.runde || 1;
+        }
+      }
+
+      // Der Saebel wird im Text bewusst nie erwaehnt - die Spieler sollen
+      // nicht am Log ablesen koennen, wer ihn traegt (Hendriks Vorgabe).
+      let text = (a.name || angreiferId) + (erg.art === 'nah' ? ' greift an' : ' schießt') +
+        ' auf ' + (z.name || zielId) + ': ' + erg.wurf + ' → ' + arenaBandName(erg.band);
+      if (erg.bedraengnis > 0) text += ' (bedrängt, −' + erg.bedraengnis + ')';
+      text += erg.schaden > 0 ? ', ' + erg.schaden + ' Schaden' : ', kein Schaden';
+      if (erg.endgueltig) text += ' — zerfällt zu Staub.';
+      else if (erg.toetet) text += ' — geht zu Boden.';
+      arenaSchreibe(aenderungen, text);
+    }
+
+    function arenaBandName(b) {
+      return b === 'gut' ? 'guter Erfolg' : b === 'normal' ? 'Erfolg'
+        : b === 'schlecht' ? 'schlechter Erfolg' : 'Misserfolg';
+    }
+
+    window.addEventListener('resize', function () { if (arenaScene) renderArena(); });
+
     function renderScene(sceneId) {
       if (sceneId === currentRenderedScene) return; // nichts geändert, kein Neu-Rendern nötig
       currentRenderedScene = sceneId;
+
+      // Arena-Szene? Wie beim Abspann: keine Karte, keine Marker.
+      if (arenaSzene(sceneId)) {
+        clearOpenMarker();
+        clearMarkers();
+        currentSceneRawMarkers = [];
+        clearErkundungOverlay();
+        stopSlideshow();
+        attachGraphStateListener(null);
+        startArena(sceneId);
+        return;
+      }
+      stopArena();
 
       // Abspann-Szene? Dann keine Karte, keine Marker, keine Erkundung -
       // nur die Bildfolge. Beim Verlassen wird sauber aufgeraeumt.

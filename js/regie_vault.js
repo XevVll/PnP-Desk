@@ -34,6 +34,7 @@ let openMarkersRef = null, openMarkersListener = null, openMarkersScene = null, 
 let hiddenMarkersRef = null, hiddenMarkersListener = null, hiddenMarkersScene = null, hiddenMarkerIds = {};
 let sceneRegieRef = null, sceneRegieListener = null, sceneRegieScene = null, sceneRegieSnapshot = {};
 let graphStateRef = null, graphStateListener = null, graphStateScene = null, graphStateSnapshot = {};
+let arenaStateRef = null, arenaStateListener = null, arenaStateScene = null, arenaStateSnap = {};
 
 let extraGhosts = {};   // { [fbKey(sceneId)]: { [ghostId]: {name,rolle,verfassung,beduerfnis} } }
 let extraNpcIds = {};   // { [npcId]: true }
@@ -55,7 +56,7 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // Firebase-Init weiter unten stehen (dessen catch-Zweig ruft renderAll() ->
 // getAllSceneEntries() synchron auf, noch bevor eine spätere const-Deklaration
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
-const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1', '14.1'];
+const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1', '14.1', '15.1'];
 
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
@@ -150,6 +151,9 @@ function getAllSceneEntries() {
   if (typeof ABSPANN_SCENES !== 'undefined') {
     Object.keys(ABSPANN_SCENES).forEach(function (id) { bySource[id] = { label: ABSPANN_SCENES[id].label, source: 'abspann' }; });
   }
+  if (typeof ARENA_SCENES !== 'undefined') {
+    Object.keys(ARENA_SCENES).forEach(function (id) { bySource[id] = { label: ARENA_SCENES[id].label, source: 'arena' }; });
+  }
   const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   return ordered.concat(remaining);
@@ -165,6 +169,7 @@ function getSceneLabel(sceneId) {
   if (typeof RIFFINSEL_SCENES !== 'undefined' && RIFFINSEL_SCENES[sceneId]) return RIFFINSEL_SCENES[sceneId].label;
   if (typeof GRABESINSEL_SCENES !== 'undefined' && GRABESINSEL_SCENES[sceneId]) return GRABESINSEL_SCENES[sceneId].label;
   if (typeof ABSPANN_SCENES !== 'undefined' && ABSPANN_SCENES[sceneId]) return ABSPANN_SCENES[sceneId].label;
+  if (typeof ARENA_SCENES !== 'undefined' && ARENA_SCENES[sceneId]) return ARENA_SCENES[sceneId].label;
   return sceneId;
 }
 
@@ -178,6 +183,7 @@ function getMarkersForScene(sceneId) {
   if (typeof RIFFINSEL_SCENES !== 'undefined' && RIFFINSEL_SCENES[sceneId]) return RIFFINSEL_SCENES[sceneId].markers;
   if (typeof GRABESINSEL_SCENES !== 'undefined' && GRABESINSEL_SCENES[sceneId]) return GRABESINSEL_SCENES[sceneId].markers;
   if (typeof ABSPANN_SCENES !== 'undefined' && ABSPANN_SCENES[sceneId]) return [];
+  if (typeof ARENA_SCENES !== 'undefined' && ARENA_SCENES[sceneId]) return [];
   return [];
 }
 
@@ -426,6 +432,197 @@ function renderGraphPanelHTML(sceneId) {
   return html;
 }
 
+// ---------- Kampf-Arena (js/arena_scenes.js + js/arena.js) ----------
+// SL-Seite: Runde weiterschalten, EINE Figur freigeben, Figuren setzen und
+// entfernen, Gegner ziehen lassen, und den Traeger des Jaguar-Saebels
+// festlegen. Der Saebeltraeger wird den Spielern NIE angezeigt (Hendriks
+// Vorgabe) - er geht nur in die Schadensberechnung ein.
+//
+// Bewusst KEINE Siegbedingung und kein Automatismus, der den Kampf beendet:
+// Der dramatische Ablauf des Finales steht als Interaktionen an
+// ORTE.die_ritualkammer und wird von der SL gefahren. Die Arena bestimmt nur,
+// wie teuer der Weg dorthin wird.
+// State-Variablen stehen ganz oben in der Datei (vor dem Firebase-Init-
+// catch-Zweig, der renderAll() synchron aufruft) - sonst TDZ, siehe
+// CLAUDE.md. Hier nur die Funktionen.
+
+function arenaSzeneRegie(sceneId) {
+  return (typeof ARENA_SCENES !== 'undefined' && ARENA_SCENES[sceneId]) ? ARENA_SCENES[sceneId] : null;
+}
+
+function attachArenaListener(sceneId) {
+  if (sceneId === arenaStateScene) return;
+  if (arenaStateRef && arenaStateListener) arenaStateRef.off('value', arenaStateListener);
+  arenaStateScene = sceneId; arenaStateSnap = {};
+  arenaStateRef = null; arenaStateListener = null;
+  if (!db || !sceneId || !arenaSzeneRegie(sceneId)) return;
+  arenaStateRef = db.ref('arenaState/' + fbKey(sceneId));
+  arenaStateListener = arenaStateRef.on('value', function (snap) {
+    arenaStateSnap = snap.val() || {};
+    renderSceneHead();
+  });
+}
+
+function arenaBasis(sceneId) { return 'arenaState/' + fbKey(sceneId) + '/'; }
+
+function arenaUpdate(sceneId, aenderungen, logText) {
+  if (!db) return;
+  const basis = arenaBasis(sceneId);
+  const paket = {};
+  Object.keys(aenderungen).forEach(function (p) { paket[basis + p] = aenderungen[p]; });
+  if (logText) paket[basis + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
+  db.ref().update(paket);
+}
+
+// Setzt den Kampf komplett neu auf: Spielerfiguren aus der Charakterleiste,
+// der Seelenlose, und eine Handvoll Diener.
+function arenaAufbauen(sceneId) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const r = sz.regeln;
+  const tokens = {};
+  let nr = 0;
+
+  function setze(vorlage, name, x, y) {
+    const id = 't' + (++nr);
+    tokens[id] = Object.assign({}, vorlage, {
+      name: name, x: x, y: y, hp: vorlage.hpMax, geladen: true
+    });
+  }
+
+  // Spieler unten, Gegner oben - klassische Aufstellung, per Hand aenderbar.
+  const pcs = (typeof CHARACTERS !== 'undefined' && CHARACTERS)
+    ? (Array.isArray(CHARACTERS) ? CHARACTERS : Object.keys(CHARACTERS).map(function (k) { return CHARACTERS[k]; }))
+    : [];
+  const spielerNamen = pcs.length ? pcs.map(function (c) { return c.name || c.id; }).slice(0, 6) : ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'];
+  spielerNamen.forEach(function (n, i) { setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, 1 + i), r.hoehe - 1); });
+
+  setze(sz.vorlagen.seelenloser, 'Der Seelenlose', Math.floor(r.breite / 2), 0);
+  for (let i = 0; i < 4; i++) setze(sz.vorlagen.diener, 'Diener ' + (i + 1), 1 + i * 2, 1);
+
+  db.ref(arenaBasis(sceneId).slice(0, -1)).set({
+    runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
+    log: { start: { text: 'Der Kampf beginnt.', zeit: Date.now() } }
+  });
+}
+
+function arenaFreigeben(sceneId, tokenId) {
+  arenaUpdate(sceneId, { freigegeben: tokenId || null });
+}
+
+function arenaRundeWeiter(sceneId) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const tokens = arenaStateSnap.tokens || {};
+  const erg = arenaRundenwechsel(tokens, sz.regeln, arenaStateSnap.runde || 1);
+  const aenderungen = Object.assign({}, erg.aenderungen);
+
+  // Nachschub: der Seelenlose beschwoert neue Diener an freien Randfeldern.
+  if (erg.nachschub > 0) {
+    const felder = arenaFreieRandfelder(tokens, sz.regeln, erg.nachschub);
+    let n = Object.keys(tokens).length;
+    felder.forEach(function (f) {
+      const id = 't' + (++n) + '_' + erg.runde;
+      aenderungen['tokens/' + id] = Object.assign({}, sz.vorlagen.diener, {
+        name: 'Diener', x: f.x, y: f.y, hp: sz.vorlagen.diener.hpMax, geladen: true
+      });
+    });
+  }
+
+  let text = 'Runde ' + erg.runde + '.';
+  if (erg.auferstanden.length) text += ' ' + erg.auferstanden.length + ' Gefallene erheben sich wieder.';
+  if (erg.nachschub > 0) text += ' Der Seelenlose ruft ' + erg.nachschub + ' neue herbei.';
+  if (!erg.bossLebt) text += ' Der Seelenlose ist gefallen — nichts steht mehr auf.';
+  arenaUpdate(sceneId, aenderungen, text);
+}
+
+function arenaSaebel(sceneId, tokenId) {
+  arenaUpdate(sceneId, { saebeltraeger: tokenId || null });
+}
+
+function arenaEntferne(sceneId, tokenId) {
+  const t = (arenaStateSnap.tokens || {})[tokenId];
+  arenaUpdate(sceneId, { ['tokens/' + tokenId]: null, freigegeben: null },
+    (t ? (t.name || tokenId) : tokenId) + ' verlässt das Feld.');
+}
+
+// Schaden von Hand setzen - fuer die festen Beats des Finales (Wat und
+// Josiah fallen zu einem gesetzten Zeitpunkt, nicht wenn die Wuerfel wollen).
+function arenaSetzeHp(sceneId, tokenId, wert) {
+  const t = (arenaStateSnap.tokens || {})[tokenId]; if (!t) return;
+  const hp = Math.max(0, Math.min(t.hpMax || 1, parseInt(wert, 10) || 0));
+  const aenderungen = { ['tokens/' + tokenId + '/hp']: hp };
+  if (hp === 0 && !t.tot) {
+    aenderungen['tokens/' + tokenId + '/tot'] = true;
+    aenderungen['tokens/' + tokenId + '/totSeitRunde'] = arenaStateSnap.runde || 1;
+  }
+  if (hp > 0 && t.tot) {
+    aenderungen['tokens/' + tokenId + '/tot'] = null;
+    aenderungen['tokens/' + tokenId + '/totSeitRunde'] = null;
+  }
+  arenaUpdate(sceneId, aenderungen);
+}
+
+function renderArenaPanelHTML(sceneId) {
+  const sz = arenaSzeneRegie(sceneId);
+  if (!sz) return '';
+  const tokens = arenaStateSnap.tokens || {};
+  const ids = Object.keys(tokens);
+  const runde = arenaStateSnap.runde || 1;
+  const frei = arenaStateSnap.freigegeben || null;
+  const saebel = arenaStateSnap.saebeltraeger || null;
+
+  let html = '<div class="sh-graph"><div class="sh-graph-label">⚔ Arena — Runde ' + runde +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="arenaRundeWeiter(\'' + sceneId + '\')">Runde weiter ▸</button>' +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="if(confirm(\'Kampf komplett neu aufsetzen?\'))arenaAufbauen(\'' + sceneId + '\')">↺ Aufbauen</button>' +
+    '</div>';
+
+  if (!ids.length) {
+    html += '<div class="sh-graph-ereignis-text">Noch keine Figuren auf dem Feld — „Aufbauen" setzt Spieler, den Seelenlosen und vier Diener.</div></div>';
+    return html;
+  }
+
+  html += '<div class="sh-graph-ereignis-text">Eine Figur freigeben — solange sie frei ist, darf <b>jeder</b> Spieler sie bewegen und mit ihr angreifen. Der Säbelträger ist für die Spieler unsichtbar.</div>';
+  html += '<div class="sh-graph-options">';
+  ids.sort(function (a, b) { return (tokens[a].typ || '').localeCompare(tokens[b].typ || ''); }).forEach(function (id) {
+    const t = tokens[id];
+    const istFrei = id === frei;
+    const zustand = [];
+    zustand.push('HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?'));
+    if (t.tot) zustand.push(t.endgueltig ? 'endgültig' : 'am Boden');
+    if (!t.geladen && (t.fernWert || 0) > 0) zustand.push('leer');
+    if (t.hatGezogen) zustand.push('gezogen');
+    if (t.hatAngegriffen) zustand.push('angegriffen');
+    if (id === saebel) zustand.push('SÄBEL');
+
+    html += '<button class="sh-graph-btn sh-graph-option' + (istFrei ? ' sh-graph-leader' : '') +
+      '" onclick="arenaFreigeben(\'' + sceneId + '\', \'' + (istFrei ? '' : id) + '\')">' +
+      '<span class="sh-graph-hinweis">' + (istFrei ? '▶ ' : '') + (t.symbol || '') + ' ' + (t.name || id) +
+      '<span class="sh-graph-ziel"> — ' + zustand.join(' · ') + '</span></span>' +
+      '<span class="sh-graph-votes">' + (istFrei ? 'freigegeben' : 'freigeben') + '</span></button>';
+  });
+  html += '</div>';
+
+  html += '<div class="sh-graph-ort-probe"><div class="sh-graph-ort-title">Jaguar-Säbel (nur für dich sichtbar)</div>' +
+    '<div class="sh-graph-options">';
+  html += '<button class="sh-graph-btn sh-graph-option' + (!saebel ? ' sh-graph-leader' : '') +
+    '" onclick="arenaSaebel(\'' + sceneId + '\', \'\')"><span class="sh-graph-hinweis">niemand</span></button>';
+  ids.filter(function (id) { return tokens[id].typ === 'spieler'; }).forEach(function (id) {
+    html += '<button class="sh-graph-btn sh-graph-option' + (id === saebel ? ' sh-graph-leader' : '') +
+      '" onclick="arenaSaebel(\'' + sceneId + '\', \'' + id + '\')"><span class="sh-graph-hinweis">' +
+      (tokens[id].name || id) + '</span></button>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="sh-graph-total">Schaden von Hand setzen (für die festen Beats des Finales): ' +
+    ids.map(function (id) {
+      return '<button class="sh-graph-btn" style="padding:2px 6px;margin:2px" onclick="arenaSetzeHp(\'' + sceneId +
+        '\', \'' + id + '\', prompt(\'Neue HP für ' + (tokens[id].name || id).replace(/'/g, '') + '\', \'' + (tokens[id].hp || 0) + '\'))">' +
+        (tokens[id].name || id) + '</button>';
+    }).join('') + '</div>';
+
+  html += '</div>';
+  return html;
+}
+
 function toggleQuestDone(sceneId, triggerId) {
   if (!db) return;
   const ref = db.ref('questDone/' + fbKey(sceneId) + '/' + triggerId);
@@ -592,6 +789,7 @@ function renderTree() {
   attachHiddenMarkersListener(viewState.szene);
   attachSceneRegieListener(viewState.szene);
   attachGraphStateListener(viewState.szene);
+  attachArenaListener(viewState.szene);
   const el = document.getElementById('v-tree');
   let html = '<div class="v-tree-head">VAULT</div>';
   getAllSceneEntries().forEach(function (entry) {
@@ -1033,6 +1231,7 @@ function renderSceneHead() {
       }).join('') + '</div>';
   }
   html += renderGraphPanelHTML(viewState.szene);
+  html += renderArenaPanelHTML(viewState.szene);
   el.classList.toggle('has-content', !!html);
   el.innerHTML = html;
 }
