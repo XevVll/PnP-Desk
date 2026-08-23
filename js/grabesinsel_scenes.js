@@ -33,12 +33,27 @@
 // Zugang zum Meer, am Fuss des Langhauses; das Leuchten sitzt an der
 // Vierung. Bildprompt dazu in BILD-PROMPTS.md.
 //
-// STAND: Ausgearbeitet ist der Weg bis zur Ritualkammer (Hendriks Vorgaben
-// vom 2026-08-22): schwarzer Strand mit der letzten Rückfrage und dem Marsch
-// durchs Tal, dann die Kammer mit Jessica auf der steinernen Anhöhe. Was DANN
-// geschieht - das Ritual selbst, sein Scheitern, die Untoten und der Endkampf
-// (Bibel 12.1) - ist noch nicht vorgegeben und bekommt eigene Interaktionen,
-// sobald Hendrik es liefert.
+// STAND (2026-08-23): Ausgearbeitet ist die komplette Insel bis zum Ende des
+// Finales. Schwarzer Strand mit der letzten Rückfrage (inkl. Josiahs
+// Entschluss mitzukommen) und dem Marsch durchs Tal, dann die Ritualkammer
+// mit Jessica auf der steinernen Anhöhe (Interaktion "das_kind_auf_dem_stein")
+// und im Anschluss der komplette Endkampf als sechs weitere Interaktionen an
+// "die_ritualkammer" (js/regie.js): "der_beginn_des_rituals" ->
+// "die_ersten_wellen" -> "wat_und_josiah_fallen" -> "die_zermuerbung" ->
+// "harwicks_anklage" -> "die_entscheidung_um_den_saebel" (drei Ausgaenge,
+// abhaengig davon, wem der Jaguar-Saebel aus 11.1 uebergeben wird). Inhalt in
+// einer Sparring-Session mit Hendrik entwickelt (siehe Plan-Dokument
+// "in-einer-anderen-session-idempotent-lynx.md").
+//
+// BEWUSST NICHT TEIL DIESES INHALTS: eine interaktive Kampf-"Arena"
+// (Positionen/Zonen, in denen Spieler waehrend des Endkampfs aktiv wie in
+// einem CRPG agieren koennen). Die sechs Finale-Interaktionen sind reiner
+// Text-Ablauf fuer die SL - Hendrik baut die Arena separat in einer anderen,
+// technischen Session und greift dabei auf diesen Ablauf zurueck. Wichtig
+// dabei (siehe Plan-Dokument): die Kernbeats (Wats/Josiahs Tod, Harwicks
+// Anklage-Rede, die Drei-Wege-Entscheidung) sollen fix bleiben, unabhaengig
+// von taktischem Spiel - die Arena soll nur steuern, wie teuer der Weg dahin
+// wird, nicht OB diese Beats geschehen.
 //
 // BILDER: vollständig. Übersichtskarte (images/grabesinsel.webp, 1920px -
 // dafür steht 'grabesinsel.png' in MAP_NAMES, tools/optimize_images.py),

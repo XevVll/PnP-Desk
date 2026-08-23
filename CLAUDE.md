@@ -13,8 +13,11 @@ Design-Begründung und vollständige Fehlergeschichte, vor jeder Erweiterung die
 > abgeschlossen (siehe Changelog unten) — die **Übergangsszenen nach der Insel**
 > (`5.1`/`6.1`/`7.1`/`8.1`) sind damit ebenfalls alle vier fertig. Der **Artefakthandel** (`9.1`)
 > und die anschließende **Flucht + Riffinsel** (`10.1`/`11.1`) sind ebenfalls fertig — damit ist
-> **Session 2 (Bibel 7.4) inhaltlich abgeschlossen**. Nächster Schritt offen (Session 3 /
-> Offizierskonferenz, Bibel 7.5, oder Codex).
+> **Session 2 (Bibel 7.4) inhaltlich abgeschlossen**. Die **Grabesinsel (`13.1`) inkl. komplettem
+> Finale** (Bibel 12.1: Ritual, Untote, Wat/Josiah, Der Seelenlose, drei Ausgänge je nach
+> Jaguar-Säbel-Übergabe) ist seit 2026-08-23 inhaltlich fertig ausformuliert (`js/regie.js`,
+> `ORTE.die_ritualkammer`) — eine interaktive Kampf-Arena dazu ist bewusst separat und läuft in
+> einer anderen Session. Nächster Schritt offen (Codex, oder Feinschliff der Arena).
 
 ## Projekt in Kürze
 
@@ -95,6 +98,37 @@ Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge 
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
 ## Changelog
+
+### 2026-08-23
+- **Grabesinsel-Finale (Bibel 12.1) komplett ausformuliert** — Inhalt in einer reinen
+  Sparring-Session mit Hendrik entwickelt (keine Codeänderungen während des Sparrings; erst danach
+  in `js/regie.js` übertragen). Sechs neue Interaktionen an `ORTE.die_ritualkammer`:
+  `der_beginn_des_rituals` (Cormac drückt Jessica vor dem Ritual ein Holzschwert in die Hand —
+  „Was auch immer gleich passiert. Hiermit kämpfst du dich zurück, wie es schon immer war." —,
+  Harwick beginnt das Ritual mit dem Artefakt aus `9.1`, es scheitert) → `die_ersten_wellen`
+  (Kampfbeginn, der Jaguar-Säbel schickt Seelen zurück, aber die Zahl der Toten schwindet nicht) →
+  `wat_und_josiah_fallen` (Wat opfert sich für einen bedrängten Spieler, Der Seelenlose spricht
+  zum ersten Mal — „Kein Toter verlässt je diese Insel." —, Josiah stirbt beim Versuch, Wat zu
+  helfen) → `die_zermuerbung` (modulare Ereignisse, u. a. ein Introll-Hinweis für den Löser des
+  Riffinsel-Grotten-Rätsels: der Jaguar als „Wandler zwischen den Welten") → `harwicks_anklage`
+  (Rückzugsbefehl, Der Seelenlose wirft Harwick vor, seine Trauer sei Egoismus, der seine Tochter
+  nicht ruhen lässt) → `die_entscheidung_um_den_saebel` (drei gleichwertige Ausgänge je nachdem,
+  wem der Säbel übergeben wird: an Jessica — sie befreit sich selbst, Harwick überlebt und begräbt
+  die Toten eigenhändig; an Harwick — er dominiert kurz, opfert sich dann, Jessicas Schicksal
+  bleibt bewusst unausgesprochen; an niemanden — Harwick stirbt unter dem Spott Der Seelenlosen).
+  - Zusätzlich: Josiahs Entschluss, trotz fehlender Kampferfahrung mit auf die Insel zu kommen, als
+    neuer, nicht verhandelbarer Beat in `ORTE.grabesstrand.die_letzte_frage` ergänzt (keine Probe
+    hält ihn zurück — Rollenspiel-Versuche sind erlaubt, ändern das Ergebnis aber nicht).
+  - **Bewusst NICHT Teil dieser Änderung:** eine interaktive Kampf-„Arena" (Positionen/Zonen, in
+    denen Spieler während des Endkampfs aktiv wie in einem CRPG agieren können) — Hendrik baut
+    diese separat in einer anderen, technischen Session. Als inhaltliche Leitplanke dafür
+    festgehalten (siehe Kommentar-Header in `js/grabesinsel_scenes.js` und das Sparring-
+    Plandokument `in-einer-anderen-session-idempotent-lynx.md`): Die Kernbeats (Wats/Josiahs Tod,
+    die Anklage-Rede, die Drei-Wege-Entscheidung) sollen fix bleiben, unabhängig von taktischem
+    Spiel — die Arena soll nur steuern, wie teuer der Weg dahin wird, nicht OB diese Beats
+    geschehen.
+  - `node --check js/regie.js` sauber. Kein Playwright-Test nötig (keine neuen Marker/Szenen,
+    reine `ORTE.interaktionen`-Ergänzung, Fall 1 aus Skill `pnp-scene`).
 
 ### 2026-08-22 (Fortsetzung 29)
 - **Abspann-Bildliste entfällt — die Bilder werden automatisch gesammelt** (Hendriks Frage: „muss
