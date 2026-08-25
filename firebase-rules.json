@@ -1,0 +1,42 @@
+{
+  "//": "Sicherheitsregeln der Realtime Database. Diese Datei ist REFERENZ/DOKUMENTATION -",
+  "//1": "sie wird nicht automatisch deployt. Einspielen in der Firebase-Konsole unter",
+  "//2": "Realtime Database -> Regeln -> Inhalt einfuegen -> Veroeffentlichen.",
+  "//3": "",
+  "//4": "ANLASS: Die Standard-Testmodus-Regeln enthalten ein Ablaufdatum der Form",
+  "//5": "  \".read\": \"now < 1234567890000\"",
+  "//6": "Nach diesem Datum verweigert die Datenbank JEDEN Zugriff - Karte und Adminpanel",
+  "//7": "waeren dann tot. Die Regeln unten haben KEIN Ablaufdatum.",
+  "//8": "",
+  "//9": "PRINZIP: Die Wurzel ist gesperrt, freigegeben sind nur die 17 Pfade, die die",
+  "//10": "Anwendung tatsaechlich benutzt. Das verhindert, dass Fremde beliebige neue",
+  "//11": "Aeste in die Datenbank schreiben, und begrenzt den Schaden bei Missbrauch.",
+  "//12": "Es ersetzt KEINE Anmeldung: Wer die URL aus js/firebase-config.js kennt (das",
+  "//13": "Repo ist oeffentlich), kann diese Pfade weiterhin lesen und schreiben. Fuer",
+  "//14": "echten Schutz waere anonyme Firebase-Anmeldung noetig, siehe ARENA-ENDKAMPF.md.",
+  "//15": "",
+  "//16": "NEUER PFAD? Hier eintragen, sonst schlaegt der Schreibzugriff still fehl.",
+
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "currentScene":      { ".read": true, ".write": true },
+    "sceneAudioFile":    { ".read": true, ".write": true },
+    "sceneCharacters":   { ".read": true, ".write": true },
+    "charStatus":        { ".read": true, ".write": true },
+    "hiddenMarkersLive": { ".read": true, ".write": true },
+    "markerVariant":     { ".read": true, ".write": true },
+    "openMarkers":       { ".read": true, ".write": true },
+    "diceRolls":         { ".read": true, ".write": true },
+    "gmTimer":           { ".read": true, ".write": true },
+    "players":           { ".read": true, ".write": true },
+    "pcRuf":             { ".read": true, ".write": true },
+    "questDone":         { ".read": true, ".write": true },
+    "extraNpcs":         { ".read": true, ".write": true },
+    "extraGhosts":       { ".read": true, ".write": true },
+    "regie":             { ".read": true, ".write": true },
+    "graphState":        { ".read": true, ".write": true },
+    "arenaState":        { ".read": true, ".write": true }
+  }
+}

@@ -274,9 +274,17 @@ bzw. `arenaUpdate()`). Grund ist derselbe wie beim Erkundungs-Graphen: mit mehre
 feuert der Live-Listener mehrfach auf halben Zwischenständen, was sich als Springen und
 Flackern zeigt.
 
-> **Hinweis:** Die Firebase-Sicherheitsregeln liegen nicht im Repo. Damit Spieler schreiben
-> können, muss `arenaState` in den Regeln freigegeben sein — sonst funktioniert die Arena live
-> nicht, obwohl sie offline korrekt läuft.
+> **Hinweis:** `arenaState` muss in den Firebase-Sicherheitsregeln freigegeben sein, sonst
+> funktioniert die Arena live nicht, obwohl sie offline korrekt läuft. Die Regeln stehen als
+> Referenz in **[firebase-rules.json](firebase-rules.json)** (dort auch der Grund, warum die
+> Testmodus-Regeln ersetzt werden mussten) — einspielen in der Firebase-Konsole, die Datei wird
+> nicht automatisch deployt. **Jeder neue Top-Level-Pfad muss dort ergänzt werden**, sonst
+> schlägt sein Schreibzugriff still fehl.
+>
+> Die Regeln kennen **keine Anmeldung**: `js/firebase-config.js` ist im öffentlichen Repo, wer
+> die Datenbank-URL kennt, kann die freigegebenen Pfade lesen und schreiben. Für echten Schutz
+> wäre anonyme Firebase-Anmeldung nötig (`signInAnonymously()` auf jeder Seite plus
+> `"auth != null"` in den Regeln) — das ist bewusst noch nicht gebaut, siehe 9.2.
 
 ---
 
@@ -400,7 +408,13 @@ Drei Fehler beim Bau, alle vom Test gefunden:
   Fehlergeschichte Nr. 5): `CHARACTERS` sind die NSC, der Aufbau setzt jetzt generische
   „Spieler 1–4". Die Namen der echten Spielercharaktere stehen nirgends im Repo; die SL vergibt
   sie beim Nachsetzen über „+ Spieler".
-- **Firebase-Regeln** für `arenaState` müssen freigegeben werden, siehe 5.3.
+- **Firebase-Regeln** für `arenaState` müssen freigegeben werden, siehe 5.3
+  ([firebase-rules.json](firebase-rules.json)).
+- **Kein Zugriffsschutz auf der Datenbank.** Die Regeln erlauben Lesen und Schreiben ohne
+  Anmeldung, und die Datenbank-URL steht im öffentlichen Repo. Praktisch muss jemand das Repo
+  finden und die Pfade kennen; der Schaden wäre verlorener Kampagnenstand, keine
+  personenbezogenen Daten. Nachrüstbar mit anonymer Firebase-Anmeldung — eine Zeile
+  `signInAnonymously()` je Seite und `"auth != null"` statt `true` in den Regeln.
 
 ### 9.3 Sinnvolle nächste Schritte
 

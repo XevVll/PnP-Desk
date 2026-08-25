@@ -105,6 +105,28 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-08-25 — Firebase-Sicherheitsregeln als Datei (Testmodus lief ab)
+- **Anlass:** Hendriks Meldung, der Firebase-Zugang laufe ab. Ursache sind die
+  Standard-Testmodus-Regeln, die ein hartes Ablaufdatum enthalten
+  (`".read": "now < <timestamp>"`); danach verweigert die Datenbank JEDEN Zugriff und
+  `karte.html`/`regie.html` waeren tot. Es laeuft also kein Konto und kein Schluessel ab,
+  sondern nur diese Regel.
+- **Neue `firebase-rules.json`** als Referenz/Doku im Repo (wird NICHT automatisch deployt -
+  Einspielen von Hand in der Firebase-Konsole). Kein Ablaufdatum mehr; Wurzel gesperrt, explizit
+  freigegeben sind die **17 Pfade**, die die Anwendung tatsaechlich nutzt (aus dem Code
+  erhoben: currentScene, sceneAudioFile, sceneCharacters, charStatus, hiddenMarkersLive,
+  markerVariant, openMarkers, diceRolls, gmTimer, players, pcRuf, questDone, extraNpcs,
+  extraGhosts, regie, graphState, arenaState).
+  **Wichtig fuer kuenftige Features: jeder neue Top-Level-Pfad muss dort ergaenzt werden**,
+  sonst schlaegt sein Schreibzugriff still fehl.
+- Der Multi-Path-`update()`-Stil der Arena (ein `db.ref().update()` von der Wurzel) funktioniert
+  mit den gescopeten Regeln: Firebase prueft jeden Pfad der Sammel-Aktualisierung einzeln, ein
+  Schreibrecht auf der Wurzel ist dafuer nicht noetig.
+- **Bewusst weiterhin ohne Anmeldung:** `js/firebase-config.js` liegt im oeffentlichen Repo, die
+  Datenbank-URL ist also bekannt - die Regeln begrenzen nur, WOHIN geschrieben werden kann, nicht
+  VON WEM. Nachruestbar mit anonymer Firebase-Anmeldung (`signInAnonymously()` je Seite +
+  `"auth != null"` in den Regeln); als offener Punkt in ARENA-ENDKAMPF.md 9.2 vermerkt.
+
 ### 2026-08-23 (Fortsetzung 7) — Schlachtfeld-Hintergrund eingebunden
 - **`BattleField.jpg` -> `interior_ritualkammer_schlachtfeld.webp`** (2,1 MB -> 101 KB,
   **1600x1600** - quadratisch wie das 16x16-Brett) und als `hintergrund` in
