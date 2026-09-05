@@ -3,14 +3,653 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Korsaren – Karte</title>
-<meta http-equiv="refresh" content="0; url=karte.html">
-<link rel="canonical" href="karte.html">
+<title>PnP-Desk — Korsaren</title>
 <style>
-  html, body { height: 100%; margin: 0; background: #0f0c08; }
+:root{
+  --bg:#12232a;--surface:rgba(255,255,255,.05);--border:rgba(201,168,76,.22);
+  --dark:#1a2e35;--teal:#2A9D8F;--gold:#c9a84c;--lgold:rgba(201,168,76,.12);
+  --ink:#fefcf8;--gray:#9a9080;--red:#8b2626;--green:#2D6A4F;--amber:#ca6702;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.55rem 1rem;backdrop-filter:blur(10px);flex-wrap:wrap}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.14em}
+.brand small{display:block;font-size:.56rem;color:var(--gray);letter-spacing:.18em;font-family:'Cinzel',serif}
+.who{display:flex;align-items:center;gap:.5rem;font-size:.78rem}
+.who-n{font-family:'Cinzel',serif;color:var(--gold);letter-spacing:.06em}
+.btn{padding:.34rem .8rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;border:1px solid;cursor:pointer;font-weight:600;transition:all .18s;background:transparent;border-color:rgba(201,168,76,.4);color:var(--gold)}
+.btn:hover{background:var(--lgold)}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+.btn-gold:hover{background:#e0c060}
+.btn-sm{padding:.22rem .55rem;font-size:.6rem}
+
+.wrap{max-width:1080px;margin:0 auto;padding:1.2rem 1rem 4rem}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:1rem;overflow:hidden}
+.card-hdr{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.15em;color:var(--gold);padding:.55rem 1rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.card-hdr-sub{font-size:.6rem;color:var(--gray);font-family:'Libre Baskerville',serif;letter-spacing:0;font-weight:400;font-style:italic;text-transform:none}
+.card-body{padding:.9rem 1rem}
+
+/* ── ANMELDUNG ── */
+.gate{text-align:center;padding:2.4rem 1rem}
+.gate h1{font-family:'Cinzel',serif;color:var(--gold);font-size:1.5rem;letter-spacing:.1em;margin-bottom:.4rem}
+.gate p{color:var(--gray);font-size:.85rem;margin-bottom:1.4rem;font-style:italic}
+.gate-form{display:flex;gap:.5rem;max-width:380px;margin:0 auto;flex-wrap:wrap}
+.gate-form input{flex:1;min-width:180px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--ink);padding:.55rem .8rem;font-family:inherit;font-size:.9rem;outline:none}
+.gate-form input:focus{border-color:var(--gold)}
+
+/* ── KACHELN ── */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.7rem}
+.tile{display:block;text-decoration:none;color:inherit;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:.9rem;transition:all .18s}
+.tile:hover{border-color:var(--gold);background:var(--lgold);transform:translateY(-2px)}
+.tile-i{font-size:1.5rem;line-height:1}
+.tile-n{font-family:'Cinzel',serif;color:var(--gold);font-size:.86rem;letter-spacing:.06em;margin:.35rem 0 .2rem}
+.tile-d{font-size:.72rem;color:var(--gray);line-height:1.45}
+.tile-tag{display:inline-block;font-size:.55rem;font-family:'Cinzel',serif;letter-spacing:.08em;border:1px solid var(--teal);color:var(--teal);border-radius:9px;padding:0 .4rem;margin-left:.3rem;vertical-align:middle}
+
+/* ── STATUS ── */
+.fbnote{font-size:.72rem;padding:.45rem .7rem;border-radius:5px;margin-bottom:.7rem;display:none}
+.fbnote.warn{display:block;background:rgba(202,103,2,.14);border:1px solid rgba(202,103,2,.5);color:#f0c48a}
+
+/* ── TERMIN: gewaehlt ── */
+.chosen{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;background:rgba(45,106,79,.16);border:1px solid rgba(45,106,79,.55);border-radius:6px;padding:.7rem .9rem;margin-bottom:.9rem}
+.chosen-l{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.12em;color:var(--gray);text-transform:uppercase}
+.chosen-v{font-family:'Cinzel',serif;font-size:1.05rem;color:#8fdcb0}
+.chosen-none{color:var(--gray);font-style:italic;font-size:.8rem}
+
+/* ── KALENDER ── */
+.calbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem;font-size:.74rem}
+.calbar select,.calbar input{background:var(--dark);color:var(--ink);border:1px solid var(--border);border-radius:5px;padding:.25rem .45rem;font-family:'Cinzel',serif;font-size:.72rem}
+.calscroll{overflow-x:auto;padding-bottom:.4rem}
+.cal{display:grid;gap:2px;min-width:max-content;user-select:none;-webkit-user-select:none;touch-action:none}
+.cal-h{font-family:'Cinzel',serif;font-size:.58rem;text-align:center;color:var(--gray);letter-spacing:.04em;padding:.15rem .1rem;line-height:1.3}
+.cal-h b{display:block;color:var(--ink);font-size:.72rem}
+.cal-h.we b{color:var(--gold)}
+.cal-t{font-family:'Cinzel',serif;font-size:.56rem;color:var(--gray);text-align:right;padding-right:.35rem;line-height:1}
+.cell{height:15px;border-radius:2px;background:rgba(255,255,255,.05);cursor:pointer;transition:background .1s}
+.cell.mine{background:var(--teal)}
+.cell.hour{box-shadow:inset 0 1px 0 rgba(201,168,76,.28)}
+.cell.win{outline:1px solid var(--gold);outline-offset:-1px}
+.legend{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;font-size:.66rem;color:var(--gray);margin-top:.5rem}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:2px;vertical-align:-2px;margin-right:.25rem}
+
+/* ── ERGEBNIS ── */
+.res{display:flex;flex-direction:column;gap:.4rem}
+.rw{display:flex;align-items:center;gap:.7rem;border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;flex-wrap:wrap}
+.rw.top{border-color:var(--gold);background:var(--lgold)}
+.rw-d{font-family:'Cinzel',serif;font-size:.86rem;color:var(--gold);min-width:190px}
+.rw-c{font-size:.74rem;color:var(--gray);flex:1;min-width:150px}
+.rw-n{font-family:'Cinzel',serif;font-size:.95rem;color:var(--teal);white-space:nowrap}
+.who-list{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.5rem}
+.chip{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.08rem .5rem;color:var(--gray)}
+.chip.on{border-color:var(--teal);color:#8fe0d6}
+.chip.me{border-color:var(--gold);color:var(--gold)}
+.hint{font-size:.71rem;color:var(--gray);font-style:italic;line-height:1.55;margin-top:.5rem}
+.empty{color:var(--gray);font-style:italic;font-size:.8rem;padding:.6rem 0}
 </style>
 </head>
 <body>
-  <p style="display:none">Weiterleitung zur <a href="karte.html">Karte</a> …</p>
+
+<div class="topbar">
+  <div class="brand">⚓ PNP-DESK<small>KORSAREN</small></div>
+  <div class="who" id="whoBar"></div>
+</div>
+
+<!-- ══════════ ANMELDUNG ══════════ -->
+<div id="gate" class="wrap" style="display:none">
+  <div class="card"><div class="card-body gate">
+    <h1>Willkommen an Bord</h1>
+    <p>Sag uns, wer du bist — dann merkt sich dieser Browser dich.</p>
+    <form class="gate-form" onsubmit="anmelden(event)">
+      <input id="gateName" type="text" maxlength="24" placeholder="Dein Name…" autocomplete="nickname">
+      <button type="submit" class="btn btn-gold">Anmelden</button>
+    </form>
+    <div class="hint" style="max-width:420px;margin:1rem auto 0">
+      Kein Passwort, kein Konto. Der Name liegt nur in diesem Browser und dient dazu,
+      deine Würfe und deine Termine zuzuordnen.
+    </div>
+  </div></div>
+</div>
+
+<!-- ══════════ HUB ══════════ -->
+<div id="hub" class="wrap" style="display:none">
+
+  <div class="fbnote" id="fbNote"></div>
+
+  <div class="card">
+    <div class="card-hdr">An Bord</div>
+    <div class="card-body">
+      <div class="tiles">
+        <a class="tile" href="karte.html">
+          <div class="tile-i">🗺️</div>
+          <div class="tile-n">Die Karte</div>
+          <div class="tile-d">Die Spieleransicht: Orte, Bilder, Würfel und alles, was die Spielleitung freigibt.</div>
+        </a>
+        <a class="tile" href="charakterbogen_sw.html">
+          <div class="tile-i">📜</div>
+          <div class="tile-n">Heldenbrief<span class="tile-tag">neu</span></div>
+          <div class="tile-d">Figur erschaffen und führen — Würfelstufen d4–d12, Zielzahl 4.</div>
+        </a>
+        <a class="tile" href="charakterbogen.html">
+          <div class="tile-i">🗒️</div>
+          <div class="tile-n">Alter Bogen</div>
+          <div class="tile-d">Die Figuren der gespielten Runde im bisherigen W100-System.</div>
+        </a>
+        <a class="tile" href="besatzung.html">
+          <div class="tile-i">⚓</div>
+          <div class="tile-n">Besatzung</div>
+          <div class="tile-d">Wer mit an Bord ist — Namen, Rollen und Gesichter der Crew.</div>
+        </a>
+        <a class="tile" href="codex.html">
+          <div class="tile-i">📖</div>
+          <div class="tile-n">Codex</div>
+          <div class="tile-d">Weltatlas zum Schmökern: Grimsgate, die Golden Lion, die Inseln.</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      Nächste Sitzung
+      <span class="card-hdr-sub" id="planCount"></span>
+    </div>
+    <div class="card-body">
+      <div id="chosenBox"></div>
+
+      <div class="calbar">
+        <span style="font-family:'Cinzel',serif;letter-spacing:.06em;color:var(--gray)">Trag ein, wann du kannst:</span>
+        <label>ab <select id="cfgVon" onchange="cfgAendern()"></select></label>
+        <label>bis <select id="cfgBis" onchange="cfgAendern()"></select></label>
+        <label>Dauer <select id="cfgDauer" onchange="cfgAendern()">
+          <option value="120">2 h</option><option value="180">3 h</option>
+          <option value="210" selected>3,5 h</option><option value="240">4 h</option>
+          <option value="300">5 h</option></select></label>
+        <button class="btn btn-sm" onclick="meineLeeren()">Meine Zeiten löschen</button>
+      </div>
+
+      <div class="calscroll"><div class="cal" id="cal"></div></div>
+
+      <div class="legend">
+        <span><i style="background:var(--teal)"></i>ich kann</span>
+        <span><i style="background:rgba(201,168,76,.55)"></i>andere können (je heller, desto mehr)</span>
+        <span><i style="background:rgba(255,255,255,.05)"></i>frei lassen = kann nicht</span>
+        <span>· Ziehen malt mehrere Felder</span>
+      </div>
+
+      <div class="who-list" id="whoList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Beste Fenster <span class="card-hdr-sub" id="resSub"></span></div>
+    <div class="card-body"><div class="res" id="results"></div></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script>
+/* ==========================================================
+   PnP-Desk — Hub / Startseite
+   ----------------------------------------------------------
+   Einstiegspunkt fuer Spieler: Anmeldung per Name (nur
+   localStorage, kein Konto), Navigation zu den Spielerseiten
+   und ein Verfuegbarkeits-Kalender, der das beste gemeinsame
+   Zeitfenster sucht.
+
+   BEWUSST NICHT VERLINKT: die Seiten der Spielleitung. Sie
+   sind allein dadurch geschuetzt, dass ihre Adresse nicht
+   bekannt ist - ein Link von der oeffentlichen Startseite
+   wuerde diesen Schutz aufheben. Aus demselben Grund stehen
+   ihre Dateinamen hier nicht: dieser Quelltext ist fuer jeden
+   Spieler lesbar. Welche Seiten gemeint sind, steht in
+   CLAUDE.md.
+
+   FIREBASE: nutzt den Pfad "termine". Der muss in
+   firebase-rules.json freigegeben UND in der Firebase-Konsole
+   veroeffentlicht sein, sonst schlagen die Schreibzugriffe
+   still fehl (siehe Kopf von firebase-rules.json).
+   ========================================================== */
+
+/* ---------- Identitaet ---------- */
+// Denselben Schluessel wie js/dice.js benutzen, damit die Wuerfelleiste
+// auf der Karte den hier angemeldeten Namen ohne zweite Abfrage kennt.
+const K_NAME = 'korsaren_playername';
+const K_PID  = 'pnp_player_id';
+
+function ls(k, v) {
+  try {
+    if (v === undefined) return localStorage.getItem(k);
+    localStorage.setItem(k, v); return v;
+  } catch (e) { return null; }
+}
+
+let meinName = (ls(K_NAME) || '').trim();
+let meinePid = ls(K_PID);
+if (!meinePid) {
+  meinePid = 'p' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  ls(K_PID, meinePid);
+}
+
+/* ---------- Zustand ---------- */
+const STD_CFG = { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 };
+let cfg = Object.assign({}, STD_CFG);
+let spieler = {};        // pid -> { name }
+let verfuegbar = {};     // pid -> { datum -> bitstring }
+let gewaehlt = null;     // { datum, slot }
+let db = null, online = false;
+
+const SLOT_MIN = 30;
+function slotAnzahl() { return Math.max(1, (cfg.bisStunde - cfg.vonStunde) * (60 / SLOT_MIN)); }
+function fensterSlots() { return Math.max(1, Math.round(cfg.dauerMin / SLOT_MIN)); }
+
+/* ---------- Datum ---------- */
+const WT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+function heute0() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function tagListe() {
+  const out = [], start = heute0();
+  for (let i = 0; i < cfg.tage; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    out.push(d);
+  }
+  return out;
+}
+function iso(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function slotZeit(i) {
+  const m = cfg.vonStunde * 60 + i * SLOT_MIN;
+  return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+}
+function langDatum(isoStr) {
+  const p = isoStr.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]);
+  return WT[d.getDay()] + '. ' + p[2] + '.' + p[1] + '.';
+}
+
+/* ---------- Bitstrings ---------- */
+function holeTag(pid, datum) {
+  const s = (verfuegbar[pid] && verfuegbar[pid][datum]) || '';
+  const n = slotAnzahl();
+  return (s + '0'.repeat(n)).slice(0, n);
+}
+function kannIch(datum, i) { return holeTag(meinePid, datum)[i] === '1'; }
+function zaehle(datum, i) {
+  let n = 0;
+  Object.keys(spieler).forEach(function (pid) { if (holeTag(pid, datum)[i] === '1') n++; });
+  return n;
+}
+
+/* ==========================================================
+   FIREBASE
+   ========================================================== */
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+  } catch (e) { zeigeOffline('Keine Verbindung zur Datenbank — Termine sind gerade nicht abrufbar.'); return; }
+
+  db.ref('termine/config').on('value', function (s) {
+    const v = s.val();
+    if (v) cfg = Object.assign({}, STD_CFG, v);
+    setzeCfgFelder(); renderKalender(); renderErgebnis();
+  }, fbFehler);
+
+  db.ref('termine/spieler').on('value', function (s) {
+    spieler = s.val() || {};
+    renderKalender(); renderErgebnis(); renderWhoList();
+  }, fbFehler);
+
+  db.ref('termine/verfuegbar').on('value', function (s) {
+    verfuegbar = s.val() || {};
+    renderKalender(); renderErgebnis();
+  }, fbFehler);
+
+  db.ref('termine/gewaehlt').on('value', function (s) {
+    gewaehlt = s.val() || null;
+    renderChosen(); renderKalender();
+  }, fbFehler);
+
+  online = true;
+  if (meinName) anmeldenBeiDb();
+}
+
+function fbFehler(err) {
+  online = false;
+  zeigeOffline('Die Datenbank verweigert den Zugriff auf „termine“. Wahrscheinlich fehlt der Pfad in den ' +
+    'Firebase-Regeln — siehe firebase-rules.json. (' + (err && err.code ? err.code : 'Fehler') + ')');
+}
+
+function zeigeOffline(txt) {
+  const n = document.getElementById('fbNote');
+  n.className = 'fbnote warn';
+  n.textContent = '⚠ ' + txt + ' Deine bereits eingetragenen Zeiten bleiben erhalten, sobald die Verbindung steht.';
+}
+
+function anmeldenBeiDb() {
+  if (!db || !meinName) return;
+  db.ref('termine/spieler/' + meinePid).set({ name: meinName, zuletzt: Date.now() });
+}
+
+function schreibeTag(datum, bits) {
+  if (!verfuegbar[meinePid]) verfuegbar[meinePid] = {};
+  verfuegbar[meinePid][datum] = bits;
+  if (db) db.ref('termine/verfuegbar/' + meinePid + '/' + datum).set(bits);
+}
+
+/* ==========================================================
+   ANMELDUNG
+   ========================================================== */
+function anmelden(ev) {
+  ev.preventDefault();
+  const v = document.getElementById('gateName').value.trim().slice(0, 24);
+  if (!v) return;
+  meinName = v; ls(K_NAME, v);
+  anmeldenBeiDb();
+  zeigeSeite();
+}
+
+function abmelden() {
+  if (!confirm('Abmelden? Dein Name wird aus diesem Browser entfernt. Deine eingetragenen Zeiten bleiben bestehen.')) return;
+  try { localStorage.removeItem(K_NAME); } catch (e) {}
+  meinName = '';
+  zeigeSeite();
+}
+
+function umbenennen() {
+  const v = (prompt('Neuer Name:', meinName) || '').trim().slice(0, 24);
+  if (!v) return;
+  meinName = v; ls(K_NAME, v);
+  anmeldenBeiDb(); zeigeSeite();
+}
+
+function zeigeSeite() {
+  const an = !!meinName;
+  document.getElementById('gate').style.display = an ? 'none' : 'block';
+  document.getElementById('hub').style.display  = an ? 'block' : 'none';
+  document.getElementById('whoBar').innerHTML = an
+    ? '<span class="who-n">' + esc(meinName) + '</span>' +
+      '<button class="btn btn-sm" onclick="umbenennen()">Name</button>' +
+      '<button class="btn btn-sm" onclick="abmelden()">Abmelden</button>'
+    : '';
+  if (an) { renderKalender(); renderErgebnis(); renderWhoList(); renderChosen(); }
+  else setTimeout(function () { const f = document.getElementById('gateName'); if (f) f.focus(); }, 60);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+  });
+}
+
+/* ==========================================================
+   KONFIGURATION
+   ========================================================== */
+function setzeCfgFelder() {
+  const von = document.getElementById('cfgVon'), bis = document.getElementById('cfgBis');
+  if (!von.options.length) {
+    for (let h = 0; h <= 22; h++) von.add(new Option(String(h).padStart(2,'0') + ':00', h));
+    for (let h = 2; h <= 24; h++) bis.add(new Option(String(h).padStart(2,'0') + ':00', h));
+  }
+  von.value = cfg.vonStunde; bis.value = cfg.bisStunde;
+  document.getElementById('cfgDauer').value = cfg.dauerMin;
+}
+
+function cfgAendern() {
+  const von = +document.getElementById('cfgVon').value;
+  const bis = +document.getElementById('cfgBis').value;
+  const dauer = +document.getElementById('cfgDauer').value;
+  if (bis <= von) { setzeCfgFelder(); return; }
+  cfg = Object.assign({}, cfg, { vonStunde: von, bisStunde: bis, dauerMin: dauer });
+  if (db) db.ref('termine/config').set(cfg);
+  setzeCfgFelder(); renderKalender(); renderErgebnis();
+}
+
+function meineLeeren() {
+  if (!confirm('Alle deine eingetragenen Zeiten löschen?')) return;
+  verfuegbar[meinePid] = {};
+  if (db) db.ref('termine/verfuegbar/' + meinePid).remove();
+  renderKalender(); renderErgebnis();
+}
+
+/* ==========================================================
+   KALENDER
+   ========================================================== */
+let malen = null;   // { auf: true|false } waehrend des Ziehens
+
+function renderKalender() {
+  const el = document.getElementById('cal');
+  if (!el) return;
+  const tage = tagListe(), n = slotAnzahl();
+  const gesamt = Object.keys(spieler).length || 1;
+
+  el.style.gridTemplateColumns = '42px repeat(' + tage.length + ', minmax(34px, 1fr))';
+  let h = '<div></div>';
+  tage.forEach(function (d) {
+    const we = (d.getDay() === 0 || d.getDay() === 6);
+    h += '<div class="cal-h' + (we ? ' we' : '') + '"><b>' + WT[d.getDay()] + '</b>' +
+         d.getDate() + '.' + (d.getMonth()+1) + '.</div>';
+  });
+
+  for (let i = 0; i < n; i++) {
+    const voll = (i * SLOT_MIN) % 60 === 0;
+    h += '<div class="cal-t">' + (voll ? slotZeit(i) : '') + '</div>';
+    tage.forEach(function (d) {
+      const ds = iso(d);
+      const mine = kannIch(ds, i);
+      const c = zaehle(ds, i);
+      const andere = c - (mine ? 1 : 0);
+      let stil = '';
+      if (!mine && andere > 0) {
+        const a = 0.14 + 0.55 * (andere / gesamt);
+        stil = ' style="background:rgba(201,168,76,' + a.toFixed(2) + ')"';
+      }
+      const gew = gewaehlt && gewaehlt.datum === ds &&
+                  i >= gewaehlt.slot && i < gewaehlt.slot + fensterSlots();
+      h += '<div class="cell' + (mine ? ' mine' : '') + (voll ? ' hour' : '') + (gew ? ' win' : '') +
+           '"' + stil + ' data-d="' + ds + '" data-i="' + i + '" title="' + langDatum(ds) + ' ' + slotZeit(i) +
+           ' — ' + c + ' von ' + Object.keys(spieler).length + '"></div>';
+    });
+  }
+  el.innerHTML = h;
+  document.getElementById('planCount').textContent =
+    Object.keys(spieler).length + ' angemeldet · nächste ' + cfg.tage + ' Tage';
+}
+
+function zelleSetzen(cell, auf) {
+  const ds = cell.getAttribute('data-d');
+  const i = +cell.getAttribute('data-i');
+  const bits = holeTag(meinePid, ds).split('');
+  if (bits[i] === (auf ? '1' : '0')) return false;
+  bits[i] = auf ? '1' : '0';
+  schreibeTag(ds, bits.join(''));
+  return true;
+}
+
+function zelleAus(x, y) {
+  const t = document.elementFromPoint(x, y);
+  return (t && t.classList && t.classList.contains('cell')) ? t : null;
+}
+
+document.addEventListener('mousedown', function (e) {
+  const c = e.target.closest ? e.target.closest('.cell') : null;
+  if (!c) return;
+  e.preventDefault();
+  malen = { auf: !c.classList.contains('mine') };
+  if (zelleSetzen(c, malen.auf)) renderKalender();
+});
+document.addEventListener('mousemove', function (e) {
+  if (!malen) return;
+  const c = zelleAus(e.clientX, e.clientY);
+  if (c && zelleSetzen(c, malen.auf)) renderKalender();
+});
+document.addEventListener('mouseup', function () {
+  if (malen) { malen = null; renderErgebnis(); }
+});
+
+// Touch: elementFromPoint statt Event-Ziel, weil das Ziel beim Wischen
+// am ersten beruehrten Element haengen bleibt.
+document.addEventListener('touchstart', function (e) {
+  const t = e.touches[0];
+  const c = zelleAus(t.clientX, t.clientY);
+  if (!c) return;
+  e.preventDefault();
+  malen = { auf: !c.classList.contains('mine') };
+  if (zelleSetzen(c, malen.auf)) renderKalender();
+}, { passive: false });
+document.addEventListener('touchmove', function (e) {
+  if (!malen) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  const c = zelleAus(t.clientX, t.clientY);
+  if (c && zelleSetzen(c, malen.auf)) renderKalender();
+}, { passive: false });
+document.addEventListener('touchend', function () {
+  if (malen) { malen = null; renderErgebnis(); }
+});
+
+/* ==========================================================
+   BESTE FENSTER
+   Fuer jeden Tag und jeden moeglichen Start wird gezaehlt,
+   wie viele Spieler das GANZE Fenster ueber koennen.
+   ========================================================== */
+function besteFenster() {
+  const pids = Object.keys(spieler);
+  const n = slotAnzahl(), w = fensterSlots(), out = [];
+  if (!pids.length || w > n) return out;
+  const jetzt = new Date();
+
+  tagListe().forEach(function (d) {
+    const ds = iso(d);
+    const tage = {};
+    pids.forEach(function (p) { tage[p] = holeTag(p, ds); });
+    for (let s = 0; s + w <= n; s++) {
+      // Fenster, das heute schon vorbei ist, nicht mehr vorschlagen
+      if (ds === iso(jetzt)) {
+        const ende = new Date(d);
+        ende.setHours(cfg.vonStunde, 0, 0, 0);
+        ende.setMinutes(ende.getMinutes() + (s + w) * SLOT_MIN);
+        if (ende < jetzt) continue;
+      }
+      const wer = pids.filter(function (p) {
+        for (let k = s; k < s + w; k++) if (tage[p][k] !== '1') return false;
+        return true;
+      });
+      if (wer.length) out.push({ datum: ds, slot: s, wer: wer });
+    }
+  });
+
+  // Beste zuerst: mehr Leute schlaegt frueher; danach das frueheste Fenster.
+  out.sort(function (a, b) {
+    if (b.wer.length !== a.wer.length) return b.wer.length - a.wer.length;
+    if (a.datum !== b.datum) return a.datum < b.datum ? -1 : 1;
+    return a.slot - b.slot;
+  });
+
+  // Je Tag nur das jeweils beste Fenster zeigen, sonst stehen dort
+  // 12 sich ueberlappende Varianten desselben Abends.
+  const proTag = {}, gefiltert = [];
+  out.forEach(function (r) {
+    if (proTag[r.datum]) return;
+    proTag[r.datum] = true; gefiltert.push(r);
+  });
+  return gefiltert.slice(0, 6);
+}
+
+function fensterText(r) {
+  const bis = r.slot + fensterSlots();
+  const endMin = cfg.vonStunde * 60 + bis * SLOT_MIN;
+  const endTxt = String(Math.floor(endMin/60)).padStart(2,'0') + ':' + String(endMin%60).padStart(2,'0');
+  return langDatum(r.datum) + ' ' + slotZeit(r.slot) + '–' + endTxt;
+}
+
+function renderErgebnis() {
+  const box = document.getElementById('results');
+  if (!box) return;
+  const pids = Object.keys(spieler), alle = pids.length;
+  const res = besteFenster();
+  document.getElementById('resSub').textContent =
+    (cfg.dauerMin / 60).toFixed(1).replace('.', ',') + ' Stunden am Stück';
+
+  if (!alle) { box.innerHTML = '<div class="empty">Noch niemand angemeldet.</div>'; return; }
+  if (!res.length) {
+    box.innerHTML = '<div class="empty">Noch kein Fenster, in dem jemand durchgehend Zeit hat. ' +
+      'Trag oben ein, wann du kannst.</div>';
+    return;
+  }
+
+  box.innerHTML = res.map(function (r, idx) {
+    const namen = r.wer.map(function (p) {
+      const nm = esc((spieler[p] && spieler[p].name) || '?');
+      return '<span class="chip on' + (p === meinePid ? ' me' : '') + '">' + nm + '</span>';
+    }).join('');
+    const fehlt = pids.filter(function (p) { return r.wer.indexOf(p) < 0; })
+      .map(function (p) { return '<span class="chip">' + esc((spieler[p] && spieler[p].name) || '?') + '</span>'; }).join('');
+    const istGewaehlt = gewaehlt && gewaehlt.datum === r.datum && gewaehlt.slot === r.slot;
+    return '<div class="rw' + (idx === 0 ? ' top' : '') + '">' +
+      '<div class="rw-d">' + fensterText(r) + '</div>' +
+      '<div class="rw-c">' + namen + (fehlt ? ' ' + fehlt : '') + '</div>' +
+      '<div class="rw-n">' + r.wer.length + '/' + alle + '</div>' +
+      '<button class="btn btn-sm' + (istGewaehlt ? ' btn-gold' : '') + '" onclick="waehle(\'' +
+        r.datum + '\',' + r.slot + ')">' + (istGewaehlt ? 'gesetzt' : 'festlegen') + '</button>' +
+    '</div>';
+  }).join('') +
+  '<div class="hint">Je Tag steht nur das beste Fenster — sonst stünden hier zwölf Varianten desselben Abends. ' +
+  'Wer ausgegraut ist, kann in diesem Fenster nicht durchgehend.</div>';
+}
+
+function renderWhoList() {
+  const box = document.getElementById('whoList');
+  if (!box) return;
+  const pids = Object.keys(spieler);
+  box.innerHTML = pids.length
+    ? pids.map(function (p) {
+        const eingetragen = verfuegbar[p] && Object.keys(verfuegbar[p]).some(function (d) {
+          return (verfuegbar[p][d] || '').indexOf('1') >= 0;
+        });
+        return '<span class="chip' + (eingetragen ? ' on' : '') + (p === meinePid ? ' me' : '') + '">' +
+          esc((spieler[p] && spieler[p].name) || '?') + (eingetragen ? '' : ' · nichts eingetragen') + '</span>';
+      }).join('')
+    : '';
+}
+
+function waehle(datum, slot) {
+  const ist = gewaehlt && gewaehlt.datum === datum && gewaehlt.slot === slot;
+  gewaehlt = ist ? null : { datum: datum, slot: slot, von: meinName, am: Date.now() };
+  if (db) db.ref('termine/gewaehlt').set(gewaehlt);
+  renderChosen(); renderKalender(); renderErgebnis();
+}
+
+function renderChosen() {
+  const box = document.getElementById('chosenBox');
+  if (!box) return;
+  if (!gewaehlt) {
+    box.innerHTML = '<div class="chosen"><span class="chosen-l">Nächste Sitzung</span>' +
+      '<span class="chosen-none">noch nicht festgelegt</span></div>';
+    return;
+  }
+  box.innerHTML = '<div class="chosen">' +
+    '<span class="chosen-l">Nächste Sitzung</span>' +
+    '<span class="chosen-v">' + fensterText(gewaehlt) + '</span>' +
+    (gewaehlt.von ? '<span class="chosen-l">von ' + esc(gewaehlt.von) + '</span>' : '') +
+  '</div>';
+}
+
+/* ==========================================================
+   START
+   ========================================================== */
+setzeCfgFelder();
+zeigeSeite();
+initFirebase();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { besteFenster, holeTag, slotAnzahl, fensterSlots,
+    setState: function (s) { cfg = s.cfg || cfg; spieler = s.spieler || {}; verfuegbar = s.verfuegbar || {}; },
+    iso, tagListe };
+}
+</script>
 </body>
 </html>

@@ -105,6 +105,95 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-05 (Fortsetzung) — `index.html` wird der Spieler-Hub
+- **Bisher** leitete `index.html` nur per `<meta refresh>` auf `karte.html` weiter. Jetzt ist die
+  Wurzel-URL (https://xevvll.github.io/PnP-Desk/) die Startseite: Anmeldung mit Namen,
+  Kacheln zu den Spielerseiten, Verfügbarkeits-Kalender.
+- **Anmeldung ohne Konto:** Der Name landet unter dem **bereits existierenden** Schlüssel
+  `localStorage.korsaren_playername` — demselben, den `js/dice.js` bisher per `prompt()`
+  abgefragt hat. Wer sich im Hub anmeldet, wird von der Würfelleiste auf der Karte also ohne
+  zweite Abfrage erkannt. Dazu neu: `pnp_player_id` (dauerhaft, im Gegensatz zur bestehenden
+  `sessionStorage.korsaren_session_id`, die nur pro Tab-Sitzung gilt und für Terminplanung
+  deshalb nicht taugt).
+- **Verfügbarkeits-Kalender statt Terminabstimmung** (Hendriks Vorgabe): Raster über die
+  nächsten 14 Tage in 30-Minuten-Schritten, mit der Maus bzw. per Wischen zu bemalen. Der Hub
+  sucht daraus das **beste zusammenhängende Fenster** (Vorgabe 3,5 h, umstellbar 2–5 h):
+  für jeden Tag und jeden möglichen Start wird gezählt, wer das *ganze* Fenster über kann.
+  Sortierung: mehr Leute schlägt früher. Je Tag wird nur das beste Fenster gezeigt, sonst
+  stünden dort ein Dutzend sich überlappender Varianten desselben Abends. Ein Fenster lässt
+  sich als „Nächste Sitzung" festlegen (`termine/gewaehlt`).
+- **Neuer Firebase-Pfad `termine`** (config / spieler / verfuegbar / gewaehlt) — in
+  `firebase-rules.json` ergänzt, damit sind es **18 freigegebene Pfade**.
+  **⚠ Muss in der Firebase-Konsole neu veröffentlicht werden**, sonst schlagen alle
+  Termin-Schreibzugriffe still fehl. Der Hub erkennt genau diesen Fall und zeigt statt eines
+  stummen Fehlers einen Hinweis mit Verweis auf die Regeldatei.
+- **Fehlende Verfügbarkeit heißt „kann nicht", nicht „unbekannt"** — bewusst so, weil ein
+  Kalender, der Schweigen als Zustimmung deutet, falsche Termine vorschlägt. Wer nichts
+  einträgt, taucht in der Anwesenden-Liste als „nichts eingetragen" auf.
+- **SL-Seiten bewusst nicht verlinkt** und **ihre Dateinamen stehen auch nicht im Quelltext**:
+  Sie sind allein durch ihre unbekannte Adresse geschützt, und `index.html` ist für jeden
+  Spieler über „Seitenquelltext anzeigen" lesbar. Ein erster Kommentar im Code nannte sie
+  ausdrücklich — beim Prüflauf aufgefallen und entfernt.
+- **Getestet** (Node/`vm`, kein Browser verfügbar): 14 Prüfungen der Fenstersuche mit 0 Fehlern —
+  Slot-Rechnung, genau passende vs. zu kurze Blöcke, Lücken brechen ein Fenster, bei Gleichstand
+  gewinnt das frühere Fenster, fehlende Einträge zählen nicht mit, kurze Bitstrings werden
+  aufgefüllt. Der Testlauf lässt `firebase.initializeApp` absichtlich werfen und belegt damit
+  zugleich, dass die Seite ohne Datenbank nicht abstürzt.
+  - **Zwei Testfehler, beide meine:** eine Erwartung war schlicht falsch (bei 2 h passt auch der
+    frühere Block, das Ergebnis war korrekt), und `python` sieht den Pfad `/tmp` anders als die
+    Git-Bash — Skriptdateien dort lassen sich nicht per Python-Heredoc nachbearbeiten.
+- **[OFFEN]** Der Hub zeigt noch nicht an, ob gerade eine Sitzung läuft (`currentScene` wäre
+  lesbar, bräuchte aber alle Szenendateien für den Klartext-Namen — für eine Startseite zu viel
+  Ladelast). Ebenfalls offen, ob der Kalender-Horizont von 14 Tagen einstellbar sein soll.
+
+### 2026-09-05 — Neuer Charaktererschaffer auf Savage-Worlds-Kern (`charakterbogen_sw.html`)
+- **Anlass:** Das W100-System (Bibel 4.1) ist am Tisch nicht intuitiv, und der „schlechte Erfolg"
+  war als bloßer Zahlenbereich nicht erzählbar. Neues System nach Hendriks Vorgabe: Werte sind
+  **Würfelstufen d4–d12**, Zielzahl ist **immer 4**, nichts wird addiert.
+- **Bänder (Hendriks eigener Entwurf, 1:1 übernommen):** Meisterschaft = **zwei Würfel**; beide
+  ≥ 4 = guter Erfolg, einer = Erfolg, keiner → **einmal nachwürfeln** → gelingt er, ist es der
+  **schlechte Erfolg**, sonst Misserfolg. Ungelernt = d4, und ein Erfolg zählt dort *immer nur*
+  als schlechter Erfolg. Erschwernis/Bedrängnis senkt den Würfel je eine Stufe (statt Bandshift).
+- **Warum die vier Bänder erhalten bleiben mussten:** In `js/regie.js` stehen **39× „Guter
+  Erfolg", 26× „Normaler Erfolg", 24× „Schlechter Erfolg"** — rund 90 ausformulierte Ausgänge.
+  Ein Drei-Stufen-System (Savage Worlds pur) hätte 24 davon verwaisen lassen. Ebenso sind die
+  **Wertenamen Kanon** und wurden unverändert übernommen (Kampf 44×, Geschick 44×, Mechanik 40×,
+  Handel 56×, Wahrnehmung 47× im Szenentext). Der Systemwechsel tauscht damit **nur die
+  Mathematik, nicht den Abenteuertext**.
+- **Neue Datei statt Umbau:** `charakterbogen.html` bleibt unangetastet (die gespielte Runde
+  hängt daran), eigener localStorage-Schlüssel `kors_sw` statt `kors_s` — beide Bögen können
+  nebeneinander existieren, ohne sich zu überschreiben.
+- **Inhalt:** Punktbudget 5 Grundwerte / 15 Fertigkeiten / 2 Talentpunkte; Fertigkeiten kosten
+  1 Punkt bis zum Leitwert, darüber 2 (Savage-Worlds-Prinzip). **12 Talente und 14 Handicaps**
+  neu für das Setting geschrieben (Aufschlag, noch nicht abgesegnet) — mehrere greifen bewusst
+  in bestehende Beats (`Aufbrausend` ↔ Provokation im spanischen Hafen, `Ehrenwort` ↔
+  Säbel-Entscheidung). Abgeleitet: Parade, Robustheit, Seemannsglück; Zustand als
+  Angeschlagen + 3 Wunden.
+- **`GUT_AB_8` als abschaltbare Variante:** Voreinstellung `false` — der gute Erfolg gehört
+  allein der Meisterschaft. Auf `true` erlaubt zusätzlich „ein Würfel zeigt 8+", öffnet die
+  Stufe auch für Rohlinge, treibt Meisterschaft bei d10/d12 aber auf ~67/77 % gute Erfolge.
+  **Offene Entscheidung Hendriks**, eine Zeile.
+- **Getestet ohne Browser** (Playwright ist in dieser Umgebung nicht mehr installiert): Regelkern
+  und Render-Funktionen per Node/`vm` mit aufzeichnendem DOM-Stub. 4 Vorlagen exakt im Budget
+  (5/15), alle 11 Würfel-/Meisterschafts-Kombinationen summieren auf 1,0, Erschwernis unter d4
+  macht die Probe unmöglich, 18 Struktur-Prüfungen im gerenderten Markup. 0 Fehler.
+  - **Zwei echte Funde im Bau:** (1) Ich hatte eigenmächtig „ein Würfel ≥ 8 = gut" in die
+    Meisterschaft eingebaut — das trieb den guten Erfolg bei d12 auf 77 % und entwertete das
+    Band; auf Hendriks Regel zurückgeschnitten. (2) Alle vier Archetyp-Vorlagen lagen mit 18–22
+    über dem 15-Punkte-Budget. Die Selbstkontrolle `pruefeVorlagen()` meldet so etwas jetzt in
+    der Konsole und ist für Node-Tests exportiert.
+  - **Testfehler dabei, zweimal derselbe Mechanismus:** Der `let`-deklarierte State `S` ist aus
+    dem vm-Kontext heraus **nicht** überschreibbar (`ctx.S = …` legt nur eine Kontext-Eigenschaft
+    an, die die Funktionen nicht sehen) — der erste Testlauf maß deshalb viermal dieselbe
+    Vorlage. Verwandt mit der bereits dokumentierten TDZ-Falle. Prüfung läuft jetzt über die
+    exportierte Funktion statt über direktes Setzen von `S`.
+- **[OFFEN]** `karte.html` lädt weiterhin `charakterbogen.html` in den Spieler-Iframe (Zeile
+  ~2051). Der Umschalter auf den neuen Bogen ist bewusst **nicht** gesetzt, solange die
+  `GUT_AB_8`-Frage offen und das System nicht am Tisch erprobt ist.
+- **[OFFEN]** `js/arena.js` rechnet weiter nach W100 (`arenaSchwellen`/`arenaBand`). Der Umbau
+  gehört **vor** den geplanten Arena-Umbau (feste Zugreihenfolge, Spieler übernehmen Figuren per
+  Code), sonst wird zweimal gebaut. Bibel 4.1/4.2 ist ebenfalls noch nicht umgeschrieben.
+
 ### 2026-08-25 — Firebase-Sicherheitsregeln als Datei (Testmodus lief ab)
 - **Anlass:** Hendriks Meldung, der Firebase-Zugang laufe ab. Ursache sind die
   Standard-Testmodus-Regeln, die ein hartes Ablaufdatum enthalten

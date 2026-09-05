@@ -8,7 +8,7 @@
   "//6": "Nach diesem Datum verweigert die Datenbank JEDEN Zugriff - Karte und Adminpanel",
   "//7": "waeren dann tot. Die Regeln unten haben KEIN Ablaufdatum.",
   "//8": "",
-  "//9": "PRINZIP: Die Wurzel ist gesperrt, freigegeben sind nur die 17 Pfade, die die",
+  "//9": "PRINZIP: Die Wurzel ist gesperrt, freigegeben sind nur die 18 Pfade, die die",
   "//10": "Anwendung tatsaechlich benutzt. Das verhindert, dass Fremde beliebige neue",
   "//11": "Aeste in die Datenbank schreiben, und begrenzt den Schaden bei Missbrauch.",
   "//12": "Es ersetzt KEINE Anmeldung: Wer die URL aus js/firebase-config.js kennt (das",
@@ -37,6 +37,7 @@
     "extraGhosts":       { ".read": true, ".write": true },
     "regie":             { ".read": true, ".write": true },
     "graphState":        { ".read": true, ".write": true },
-    "arenaState":        { ".read": true, ".write": true }
+    "arenaState":        { ".read": true, ".write": true },
+    "termine":           { ".read": true, ".write": true }
   }
 }
