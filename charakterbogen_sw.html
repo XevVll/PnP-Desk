@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Korsaren — Heldenbrief</title>
+<style>
+:root{
+  --bg:#12232a;--surface:rgba(255,255,255,.05);--border:rgba(201,168,76,.22);
+  --dark:#1a2e35;--teal:#2A9D8F;--lteal:#e8f5f4;
+  --gold:#c9a84c;--lgold:rgba(201,168,76,.12);
+  --ink:#fefcf8;--gray:#9a9080;
+  --red:#8b2626;--green:#2D6A4F;--amber:#ca6702;--blue:#1e5f8a;
+  --parch:#f7f2e8;--pb:#c8b888;--pi:#2c2416;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* ── NAV ── */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;backdrop-filter:blur(10px);flex-wrap:wrap}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.12em;padding:.65rem 1.3rem;border-right:1px solid var(--border);white-space:nowrap}
+.tabs{display:flex;flex:1;min-width:260px}
+.tab{flex:1;padding:.65rem .5rem;text-align:center;cursor:pointer;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;color:var(--gray);border-right:1px solid var(--border);transition:all .18s;text-transform:uppercase}
+.tab:hover{color:var(--gold);background:var(--lgold)}
+.tab.active{color:var(--gold);background:var(--lgold);border-bottom:2px solid var(--gold)}
+.topbar-right{padding:.45rem .8rem;display:flex;gap:.4rem}
+.btn{padding:.35rem .85rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;border:1px solid;cursor:pointer;transition:all .18s;font-weight:600}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+.btn-gold:hover{background:#e0c060}
+.btn-outline{background:transparent;border-color:rgba(201,168,76,.4);color:var(--gold)}
+.btn-outline:hover{background:var(--lgold)}
+
+.view{display:none;padding:1.2rem;max-width:1020px;margin:0 auto;padding-bottom:4rem}
+.view.active{display:block}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.9rem;overflow:hidden}
+.card-hdr{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.15em;color:var(--gold);padding:.5rem 1rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.card-hdr-sub{font-size:.6rem;color:var(--gray);font-family:'Libre Baskerville',serif;letter-spacing:0;font-weight:400;font-style:italic;text-transform:none}
+.card-body{padding:.75rem 1rem}
+
+/* ── BUDGET ── */
+.budget{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.bc{flex:1;min-width:120px;text-align:center;padding:.55rem .3rem;border-right:1px solid var(--border)}
+.bc:last-child{border-right:none}
+.bl{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase}
+.bv{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;line-height:1.1}
+.bv.ok{color:#4caf7d}.bv.over{color:#e05555}.bv.gold{color:var(--gold)}
+.bwarn{text-align:center;font-size:.78rem;color:#e05555;font-style:italic;margin-top:.45rem;display:none}
+
+/* ── ARCHETYPEN ── */
+.arch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+@media(max-width:640px){.arch-grid{grid-template-columns:repeat(2,1fr)}}
+.arch{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:.6rem .5rem;text-align:center;cursor:pointer;transition:all .18s}
+.arch:hover{border-color:var(--gold)}
+.arch.on{border-color:var(--gold);background:var(--lgold)}
+.arch-n{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.06em}
+.arch-d{font-size:.66rem;color:var(--gray);font-style:italic;margin-top:.2rem}
+.arch-g{font-size:.6rem;color:var(--teal);margin-top:.25rem;font-family:'Cinzel',serif;letter-spacing:.05em}
+
+/* ── WÜRFEL-STEPPER ── */
+.row{display:flex;align-items:center;gap:.5rem;padding:.32rem 0;border-bottom:1px solid rgba(201,168,76,.09)}
+.row:last-child{border-bottom:none}
+.row-n{flex:1;font-size:.82rem;min-width:110px}
+.row-sub{font-size:.62rem;color:var(--gray);font-style:italic}
+.step{display:flex;align-items:center;gap:.3rem}
+.sbtn{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--gold);cursor:pointer;font-size:.9rem;line-height:1;font-family:'Cinzel',serif}
+.sbtn:hover:not(:disabled){background:var(--lgold)}
+.sbtn:disabled{opacity:.25;cursor:default}
+.die{width:52px;text-align:center;font-family:'Cinzel',serif;font-weight:700;font-size:.95rem;padding:.15rem 0;border-radius:4px;border:1px solid var(--border)}
+.d0{color:var(--gray);font-size:.72rem;font-weight:400;font-style:italic}
+.d1{color:#b7b0a4}.d2{color:var(--lteal)}.d3{color:var(--teal)}.d4c{color:var(--gold)}.d5{color:#e0c060;background:var(--lgold)}
+.mast{display:flex;align-items:center;gap:.25rem;font-size:.6rem;color:var(--gray);font-family:'Cinzel',serif;letter-spacing:.06em;cursor:pointer;user-select:none;white-space:nowrap}
+.mast input{accent-color:var(--teal);cursor:pointer}
+.mast.off{opacity:.3;cursor:default}
+.cost{width:30px;text-align:right;font-size:.68rem;color:var(--gray);font-family:'Cinzel',serif}
+
+/* ── TALENTE / HANDICAPS ── */
+.pick{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem}
+@media(max-width:640px){.pick{grid-template-columns:1fr}}
+.pk{border:1px solid var(--border);border-radius:6px;padding:.45rem .6rem;cursor:pointer;transition:all .16s;background:rgba(255,255,255,.03)}
+.pk:hover{border-color:var(--gold)}
+.pk.on{border-color:var(--teal);background:rgba(42,157,143,.12)}
+.pk.on.neg{border-color:var(--amber);background:rgba(202,103,2,.12)}
+.pk.blocked{opacity:.35;cursor:default}
+.pk-n{font-family:'Cinzel',serif;font-size:.74rem;color:var(--gold);display:flex;justify-content:space-between;gap:.5rem}
+.pk-c{font-size:.62rem;color:var(--gray)}
+.pk-d{font-size:.68rem;color:#cfc8ba;margin-top:.2rem;line-height:1.4}
+
+/* ── BOGEN ── */
+.sheet{background:var(--parch);color:var(--pi);border:1px solid var(--pb);border-radius:var(--r);padding:1.1rem;font-size:.82rem}
+.sh-head{display:flex;gap:1rem;align-items:flex-start;border-bottom:2px solid var(--pb);padding-bottom:.7rem;margin-bottom:.7rem;flex-wrap:wrap}
+.sh-id{flex:1;min-width:200px}
+.sed{width:100%;background:transparent;border:none;border-bottom:1px solid var(--pb);font-family:'Cinzel',serif;font-size:1.05rem;color:var(--pi);padding:.2rem 0;outline:none}
+.sed.sm{font-size:.78rem;font-family:'Libre Baskerville',Georgia,serif}
+.sh-lbl{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.12em;color:#7a6f57;text-transform:uppercase;margin-top:.4rem}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+@media(max-width:760px){.sh-grid{grid-template-columns:1fr}}
+.sh-sec{border:1px solid var(--pb);border-radius:6px;margin-bottom:.7rem;overflow:hidden;background:rgba(255,255,255,.35)}
+.sh-sec-h{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.13em;background:rgba(200,184,136,.3);padding:.3rem .6rem;text-transform:uppercase;color:#5d5340}
+.sh-sec-i{padding:.5rem .6rem}
+.ft{width:100%;border-collapse:collapse;font-size:.76rem}
+.ft td{padding:.16rem .2rem;border-bottom:1px solid rgba(200,184,136,.4)}
+.ft tr:last-child td{border-bottom:none}
+.ft .v{text-align:right;font-family:'Cinzel',serif;font-weight:700;width:46px}
+.ft .m{text-align:center;width:26px;color:var(--teal);font-weight:700}
+.derived{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.7rem}
+.dv{border:1px solid var(--pb);border-radius:6px;text-align:center;padding:.45rem .3rem;background:rgba(255,255,255,.35)}
+.dv-l{font-family:'Cinzel',serif;font-size:.53rem;letter-spacing:.1em;color:#7a6f57;text-transform:uppercase}
+.dv-v{font-family:'Cinzel',serif;font-size:1.35rem;font-weight:700;color:#4a3f28}
+.wounds{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.wbox{width:34px;height:34px;border:1px solid var(--pb);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Cinzel',serif;font-size:.6rem;background:rgba(255,255,255,.5);color:#7a6f57;user-select:none}
+.wbox.on{background:var(--red);color:#fff;border-color:var(--red)}
+.wbox.shk.on{background:var(--amber);border-color:var(--amber)}
+.wnote{font-size:.68rem;color:#7a6f57;font-style:italic;margin-top:.35rem}
+.img-box{border:1px dashed var(--pb);border-radius:6px;width:120px;height:150px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.3)}
+.img-box img{width:100%;height:100%;object-fit:cover}
+.img-box input{display:none}
+.img-ph{font-size:.6rem;color:#9a9080;text-align:center;padding:.4rem;font-family:'Cinzel',serif;letter-spacing:.08em}
+.img-remove{position:absolute;top:3px;right:3px;background:rgba(139,38,38,.9);color:#fff;border:none;border-radius:3px;width:20px;height:20px;cursor:pointer;font-size:.7rem;line-height:1}
+.eqr{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(200,184,136,.5);font-size:.75rem;color:var(--pi);padding:.15rem 0;outline:none;font-family:inherit}
+.crew{display:flex;gap:.25rem;flex-wrap:wrap}
+.cs{flex:1;min-width:56px;text-align:center;font-size:.55rem;font-family:'Cinzel',serif;padding:.28rem .1rem;border:1px solid var(--pb);border-radius:4px;cursor:pointer;letter-spacing:.04em;background:rgba(255,255,255,.4)}
+.cs.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.na{width:100%;min-height:70px;background:transparent;border:none;resize:vertical;font-family:inherit;font-size:.76rem;color:var(--pi);outline:none;line-height:1.5}
+.tag{display:inline-block;font-size:.68rem;border:1px solid var(--pb);border-radius:11px;padding:.1rem .5rem;margin:.12rem .18rem .12rem 0;background:rgba(255,255,255,.5)}
+.tag.neg{border-color:#c08a4a;background:rgba(202,103,2,.12)}
+
+/* ── REGEL-/WÜRFELRECHNER ── */
+.rules{font-size:.86rem;line-height:1.65;color:#e4ddd0}
+.rules h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.82rem;letter-spacing:.1em;margin:1rem 0 .4rem;text-transform:uppercase}
+.rules h3:first-child{margin-top:0}
+.rules p{margin-bottom:.5rem}
+.rules ul{margin:.3rem 0 .6rem 1.1rem}
+.rules li{margin-bottom:.22rem}
+.rules em{color:var(--gold);font-style:normal;font-weight:600}
+.rtable{width:100%;border-collapse:collapse;font-size:.76rem;margin:.5rem 0}
+.rtable th,.rtable td{border:1px solid var(--border);padding:.3rem .5rem;text-align:left}
+.rtable th{background:var(--lgold);font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.rtable td.n{text-align:right;font-family:'Cinzel',serif}
+.calcbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem}
+.calcbar select{background:var(--dark);color:var(--ink);border:1px solid var(--border);border-radius:5px;padding:.3rem .5rem;font-family:'Cinzel',serif;font-size:.78rem}
+.bars{display:flex;flex-direction:column;gap:.3rem}
+.bar{display:flex;align-items:center;gap:.5rem}
+.bar-l{width:130px;font-size:.72rem;font-family:'Cinzel',serif;letter-spacing:.05em}
+.bar-t{flex:1;height:19px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.bar-f{height:100%;border-radius:4px;transition:width .25s}
+.bar-v{width:52px;text-align:right;font-size:.74rem;font-family:'Cinzel',serif}
+
+.eximp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:1rem}
+.eximp-overlay.on{display:flex}
+.eximp{background:var(--dark);border:1px solid var(--border);border-radius:var(--r);max-width:460px;width:100%;padding:1.1rem}
+.eximp h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.85rem;letter-spacing:.1em;margin-bottom:.7rem;text-transform:uppercase}
+.eximp-msg{font-size:.74rem;margin-top:.6rem;min-height:1.1rem;font-style:italic}
+.hint{font-size:.7rem;color:var(--gray);font-style:italic;margin-top:.4rem;line-height:1.5}
+
+@media print{
+  .topbar,.view:not(.active),#vErsch,#vRegeln,.noprint{display:none!important}
+  body{background:#fff}
+  .view{padding:0;max-width:none}
+  .sheet{border:none;border-radius:0}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">⚓ KORSAREN</div>
+  <div class="tabs">
+    <div class="tab active" onclick="showView('ersch',this)">Erschaffung</div>
+    <div class="tab" onclick="showView('bogen',this)">Heldenbrief</div>
+    <div class="tab" onclick="showView('regeln',this)">Regeln &amp; Würfel</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-outline" onclick="openEximp()">Sichern</button>
+    <button class="btn btn-gold" onclick="window.print()">Drucken</button>
+  </div>
+</div>
+
+<!-- ══════════ ERSCHAFFUNG ══════════ -->
+<div class="view active" id="vErsch">
+
+  <div class="card">
+    <div class="card-hdr">Archetyp <span class="card-hdr-sub">Vorlage — jeder Wert bleibt danach frei änderbar</span></div>
+    <div class="card-body">
+      <div class="arch-grid" id="archGrid"></div>
+      <div class="hint" id="archHint"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Punkte</div>
+    <div class="card-body">
+      <div class="budget">
+        <div class="bc"><div class="bl">Grundwerte</div><div class="bv" id="bGw">5</div></div>
+        <div class="bc"><div class="bl">Fertigkeiten</div><div class="bv" id="bSk">15</div></div>
+        <div class="bc"><div class="bl">Talentpunkte</div><div class="bv" id="bTal">2</div></div>
+        <div class="bc"><div class="bl">Handicaps</div><div class="bv gold" id="bHnd">+0</div></div>
+      </div>
+      <div class="bwarn" id="bWarn"></div>
+      <div class="hint">Grundwerte: 1 Punkt je Würfelstufe. Fertigkeiten: 1 Punkt je Stufe, solange die Fertigkeit ihren Leitwert nicht übersteigt — darüber 2 Punkte. Meisterschaft kostet 3 Talentpunkte und setzt d8 voraus.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Grundwerte <span class="card-hdr-sub">Start d4 · Höchstwert d12</span></div>
+    <div class="card-body" id="gwRows"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Fertigkeiten <span class="card-hdr-sub">Leitwert in Klammern — bis dahin billig</span></div>
+    <div class="card-body" id="fertRows"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Wissensgebiete</div>
+    <div class="card-body" id="wissRows"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Talente <span class="card-hdr-sub">2 Talentpunkte je Talent</span></div>
+    <div class="card-body"><div class="pick" id="talGrid"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Handicaps <span class="card-hdr-sub">höchstens 1 schweres und 2 leichte</span></div>
+    <div class="card-body">
+      <div class="pick" id="hndGrid"></div>
+      <div class="hint">Handicaps bringen Talentpunkte. Sie sind kein Nachteil auf dem Papier, sondern eine Zusage an den Tisch: Der Spielleiter <em>wird</em> sie dir vorlegen.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ HELDENBRIEF ══════════ -->
+<div class="view" id="vBogen">
+  <div class="sheet">
+    <div class="sh-head">
+      <div class="sh-id">
+        <input class="sed" id="shName" type="text" placeholder="Name der Figur…" oninput="saveSheet()">
+        <div class="sh-lbl">Spieler</div>
+        <input class="sed sm" id="shSpieler" type="text" placeholder="Spieler…" oninput="saveSheet()">
+        <div class="sh-lbl">Archetyp</div>
+        <div id="shArch" style="font-family:'Cinzel',serif;font-size:.85rem;color:#4a3f28"></div>
+      </div>
+      <div class="img-box" id="imgBox" onclick="document.getElementById('imgInput').click()">
+        <div class="img-ph" id="imgPh">Bildnis</div>
+        <button type="button" class="img-remove" id="imgRemoveBtn" onclick="removeImg(event)" style="display:none">✕</button>
+        <input type="file" accept="image/*" id="imgInput" onchange="loadImg(this)">
+      </div>
+    </div>
+
+    <div class="derived">
+      <div class="dv"><div class="dv-l">Parade</div><div class="dv-v" id="dvParade">2</div></div>
+      <div class="dv"><div class="dv-l">Robustheit</div><div class="dv-v" id="dvRob">4</div></div>
+      <div class="dv"><div class="dv-l">Seemannsglück</div><div class="dv-v" id="dvGlueck">3</div></div>
+    </div>
+
+    <div class="sh-sec">
+      <div class="sh-sec-h">Zustand</div>
+      <div class="sh-sec-i">
+        <div class="wounds" id="woundRow"></div>
+        <div class="wnote" id="woundNote"></div>
+      </div>
+    </div>
+
+    <div class="sh-grid">
+      <div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Grundwerte</div>
+          <div class="sh-sec-i"><table class="ft" id="shGW"></table></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Fertigkeiten</div>
+          <div class="sh-sec-i"><table class="ft" id="shFert"></table></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Wissen</div>
+          <div class="sh-sec-i"><table class="ft" id="shWiss"></table></div>
+        </div>
+      </div>
+      <div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Talente &amp; Handicaps</div>
+          <div class="sh-sec-i" id="shTagged"></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Ausrüstung</div>
+          <div class="sh-sec-i" id="shAusr"></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Ruf bei der Crew</div>
+          <div class="sh-sec-i"><div class="crew" id="shCrew"></div></div>
+        </div>
+        <div class="sh-sec">
+          <div class="sh-sec-h">Notizen</div>
+          <div class="sh-sec-i"><textarea class="na" id="shNote" placeholder="Notizen…" oninput="saveSheet()"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ REGELN ══════════ -->
+<div class="view" id="vRegeln">
+  <div class="card">
+    <div class="card-hdr">Die Probe</div>
+    <div class="card-body rules">
+      <p>Jede Probe hat dieselbe Zielzahl: <em>4</em>. Gewürfelt wird der Würfel des passenden Werts. Nichts wird addiert, nichts umgerechnet.</p>
+      <h3>Ein Würfel — ohne Meisterschaft</h3>
+      <ul>
+        <li><em>1–3</em> — Misserfolg</li>
+        <li><em>4 oder mehr</em> — Erfolg</li>
+      </ul>
+      <h3>Zwei Würfel — mit Meisterschaft</h3>
+      <ul>
+        <li>Beide schaffen die 4 → <em>guter Erfolg</em></li>
+        <li>Einer schafft die 4 → <em>Erfolg</em></li>
+        <li>Keiner schafft die 4 → einmal nachwürfeln. Gelingt der Nachwurf → <em>schlechter Erfolg</em>, sonst Misserfolg.</li>
+      </ul>
+      <p>Der gute Erfolg gehört damit allein der Meisterschaft. Wer sein Handwerk nur beherrscht, kommt durch — glänzen kann nur, wer es meisterhaft beherrscht.</p>
+      <p><em>Schlechter Erfolg</em> heißt: Die Handlung gelingt, aber unschön. Du kommst über die Reling, aber nicht leise. Du triffst, aber die Klinge bleibt stecken.</p>
+      <h3>Ungelernt</h3>
+      <p>Wer eine Fertigkeit gar nicht hat, würfelt d4 — und ein Erfolg zählt <em>immer nur</em> als schlechter Erfolg. Man kommt durch, nie mit Anstand.</p>
+      <h3>Erschwernis</h3>
+      <p>Jeder Umstand, der die Sache schwerer macht, senkt den Würfel um eine Stufe (d8 → d6). Das gilt auch für <em>Bedrängnis</em>: jeder zusätzliche Gegner im Nahkampf eine Stufe. Unter d4 geht es nicht — dort wird die Probe schlicht unmöglich.</p>
+      <h3>Wunden</h3>
+      <p><em>Angeschlagen</em> kostet die nächste Handlung. Jede der drei <em>Wunden</em> senkt alle Würfel um eine Stufe. Die vierte Wunde nimmt die Figur aus dem Spiel.</p>
+      <h3>Seemannsglück</h3>
+      <p>Drei Punkte je Sitzung. Ein Punkt erlaubt einen kompletten Wurfwiederholung oder streicht <em>Angeschlagen</em> sofort.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Würfelrechner <span class="card-hdr-sub">exakt ausgezählt, nicht simuliert</span></div>
+    <div class="card-body">
+      <div class="calcbar">
+        <label style="font-size:.75rem">Würfel
+          <select id="calcDie" onchange="renderCalc()">
+            <option value="0">ungelernt</option>
+            <option value="1">d4</option><option value="2" selected>d6</option>
+            <option value="3">d8</option><option value="4">d10</option><option value="5">d12</option>
+          </select>
+        </label>
+        <label class="mast" style="font-size:.72rem;color:var(--ink)">
+          <input type="checkbox" id="calcMast" onchange="renderCalc()"> Meisterschaft
+        </label>
+        <label style="font-size:.75rem">Erschwernis
+          <select id="calcMod" onchange="renderCalc()">
+            <option value="0" selected>keine</option>
+            <option value="1">1 Stufe</option><option value="2">2 Stufen</option><option value="3">3 Stufen</option>
+          </select>
+        </label>
+      </div>
+      <div class="bars" id="calcBars"></div>
+      <div class="hint" id="calcNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Alle Stufen im Überblick</div>
+    <div class="card-body"><div id="calcTable"></div></div>
+  </div>
+</div>
+
+<!-- ══════════ SICHERN ══════════ -->
+<div class="eximp-overlay" id="eximpOverlay" onclick="if(event.target===this)closeEximp()">
+  <div class="eximp">
+    <h3>Figur sichern</h3>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:.5rem" onclick="doExport()">Als Datei herunterladen</button>
+    <label class="btn btn-outline" style="display:block;text-align:center;cursor:pointer">
+      Datei laden
+      <input type="file" id="eximpFile" accept="application/json,.json" onchange="doImport(this)" style="display:none">
+    </label>
+    <div class="eximp-msg" id="eximpMsg"></div>
+    <div class="hint">Die Figur liegt außerdem automatisch im Speicher dieses Browsers. Die Datei ist für den Wechsel auf ein anderes Gerät gedacht — und als Sicherung.</div>
+    <button class="btn btn-outline" style="width:100%;margin-top:.7rem" onclick="closeEximp()">Schließen</button>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   KORSAREN — Heldenbrief (Savage-Worlds-Kern)
+   ----------------------------------------------------------
+   Regelkern: Zielzahl 4, Werte als Würfelstufen d4..d12.
+   Meisterschaft = zwei Würfel (beide Erfolge = guter Erfolg),
+   ein voll misslungener Wurf darf einmal nachgewürfelt werden
+   und wird dann zum "schlechten Erfolg".
+
+   BEWUSST UNVERAENDERT UEBERNOMMEN aus charakterbogen.html:
+   die vier Grundwerte, die sechs Fertigkeiten und die acht
+   Wissensgebiete - samt Schreibweise. Diese Namen stehen
+   hunderte Male in js/regie.js als Probenaufforderung
+   ("Wahrnehmungs-Probe", "Mechanik"). Wer sie hier umbenennt,
+   entwertet den kompletten Szenentext.
+   ========================================================== */
+
+/* ---------- Würfelstufen ---------- */
+// 0 = ungelernt, 1..5 = d4,d6,d8,d10,d12
+const SIDES = [4, 4, 6, 8, 10, 12];
+const DLBL  = ['—', 'd4', 'd6', 'd8', 'd10', 'd12'];
+const MAXD  = 5;
+function dcls(i){ return ['d0','d1','d2','d3','d4c','d5'][i] || 'd0'; }
+
+/* ---------- Werte (Namen sind Kanon, siehe Kopf) ---------- */
+const GW = ['Körper', 'INT', 'Auftreten', 'Wahrnehmung'];
+
+const FERT = [
+  { name:'Kampf',       gw:['Körper','Auftreten'] },
+  { name:'Geschick',    gw:['Körper','Wahrnehmung'] },
+  { name:'Geheim',      gw:['Körper','Wahrnehmung'] },
+  { name:'Erste Hilfe', gw:['Körper','INT'] },
+  { name:'Rhetorik',    gw:['INT','Auftreten'] },
+  { name:'Instinkt',    gw:['INT','Wahrnehmung'] }
+];
+
+const WISS = [
+  { name:'Seefahrt',         gw:['INT','Wahrnehmung'] },
+  { name:'Heilkunde',        gw:['INT','Körper'] },
+  { name:'Untergrund',       gw:['INT','Wahrnehmung'] },
+  { name:'Handel',           gw:['INT','Auftreten'] },
+  { name:'Geschichte',       gw:['INT'] },
+  { name:'Menschenkenntnis', gw:['INT','Auftreten'] },
+  { name:'Mechanik',         gw:['INT','Körper'] },
+  { name:'Eigener Slot',     gw:['INT'], custom:true }
+];
+
+const ALL_SKILLS = FERT.concat(WISS);
+const SKILL_BY_NAME = {};
+ALL_SKILLS.forEach(function (s) { SKILL_BY_NAME[s.name] = s; });
+
+const ARCHETYPES = [
+  { name:'Seemann',   gw:'Körper',      desc:'Auf See geboren' },
+  { name:'Gelehrter', gw:'INT',         desc:'Arzt & Forscher' },
+  { name:'Fuchs',     gw:'Auftreten',   desc:'Händler & Schmuggler' },
+  { name:'Schatten',  gw:'Wahrnehmung', desc:'Dieb & Spion' }
+];
+
+const CREW_STEPS = ['Unbekannt','Bemerkt','Respektiert','Vertraut','Unverzichtbar'];
+
+/* ----------------------------------------------------------
+   OFFENE REGELENTSCHEIDUNG (Hendrik)
+   Darf eine Figur OHNE Meisterschaft ueberhaupt einen guten
+   Erfolg erzielen? Voreinstellung: nein - der gute Erfolg ist
+   allein der zweite Wuerfel ("beide schaffen die 4"), genau
+   wie vorgeschlagen. Auf true gesetzt, gilt zusaetzlich
+   "ein Wuerfel zeigt 8+ = guter Erfolg"; das oeffnet die
+   Stufe ab d8 auch fuer Rohlinge, macht Meisterschaft bei
+   d10/d12 aber sehr maechtig (gut steigt dort auf ~67/77 %).
+   Nur diese eine Zeile umstellen - Rechner und Tabelle
+   ziehen automatisch nach.
+   ---------------------------------------------------------- */
+const GUT_AB_8 = false;
+
+/* ---------- Budgets ---------- */
+const P_GW = 5, P_SKILL = 15, P_TALENT = 2;
+const MASTERY_COST = 3;      // Talentpunkte
+const MASTERY_MIN  = 3;      // erst ab d8
+const TALENT_COST  = 2;
+
+/* ---------- Talente ---------- */
+const TALENTE = [
+  { id:'seebein',   n:'Seebein',        d:'Schwankender Untergrund erschwert dir nichts. An Bord darfst du eine misslungene Seefahrt-Probe einmal nachwürfeln.' },
+  { id:'kletter',   n:'Klettermaat',    d:'In der Takelage und an jeder Wand: Geschick eine Würfelstufe höher.' },
+  { id:'auge',      n:'Scharfes Auge',  d:'Auf Entfernung und im Ausguck: Wahrnehmung eine Würfelstufe höher.' },
+  { id:'kalt',      n:'Kaltblütig',     d:'Bedrängnis trifft dich eine Stufe schwächer. Zwei Gegner sind für dich wie einer.' },
+  { id:'zunge',     n:'Zungenfertig',   d:'Einmal je Szene darfst du eine misslungene Rhetorik-Probe wiederholen.' },
+  { id:'markt',     n:'Marktkenner',    d:'Du erkennst Wert und Herkunft einer Ware auf einen Blick: Handel eine Stufe höher.' },
+  { id:'feldscher', n:'Feldscher',      d:'Bei der Versorgung von Wunden: Erste Hilfe eine Stufe höher.' },
+  { id:'schlitz',   n:'Schlitzohr',     d:'Schlösser, Taschen, unbeobachtete Wege: Geheim eine Stufe höher.' },
+  { id:'duell',     n:'Duellant',       d:'Steht dir genau ein Gegner gegenüber, kämpfst du eine Stufe höher.' },
+  { id:'grob',      n:'Grobschlächtig', d:'Robustheit +1. Du steckst ein, was andere umwirft.' },
+  { id:'glueck',    n:'Glückspilz',     d:'Ein zusätzlicher Punkt Seemannsglück je Sitzung.' },
+  { id:'sprach',    n:'Sprachbegabt',   d:'Du verstehst Spanisch, Französisch und Portugiesisch bruchstückhaft — genug, um das Wichtigste mitzubekommen.' }
+];
+
+/* ---------- Handicaps ---------- */
+const HANDICAPS = [
+  { id:'landratte', n:'Landratte',     schwer:true,  d:'An Bord und auf See: Seefahrt und Balance eine Würfelstufe niedriger.' },
+  { id:'aufbraus',  n:'Aufbrausend',   schwer:true,  d:'Wirst du ernsthaft provoziert, brauchst du eine Instinkt-Probe — sonst schlägst du zu.' },
+  { id:'knochen',   n:'Alter Knochen', schwer:true,  d:'Wo Ausdauer und rohe Kraft zählen: Körper eine Stufe niedriger.' },
+  { id:'gesucht',   n:'Gesucht',       schwer:true,  d:'In jedem größeren Hafen kann dich jemand erkennen. Und einer wird es.' },
+  { id:'trunk',     n:'Trunksüchtig',  schwer:true,  d:'Ohne Rum am Abend ist der ganze folgende Tag eine Stufe niedriger.' },
+  { id:'blut',      n:'Blutschuld',    schwer:true,  d:'Jemand an Bord weiß etwas über dich, das niemand wissen darf.' },
+  { id:'glaube',    n:'Aberglaube',    schwer:false, d:'Zeichen, Omen, Rituale — du hältst sie ein, auch wenn es gerade nicht passt.' },
+  { id:'seekrank',  n:'Seekrank',      schwer:false, d:'Bei schwerer See ist deine erste Szene eine Stufe niedriger.' },
+  { id:'schulden',  n:'Schulden',      schwer:false, d:'Ein Teil jeder Beute ist längst vergeben. Der Gläubiger vergisst nicht.' },
+  { id:'neugier',   n:'Neugierig',     schwer:false, d:'Eine verschlossene Tür lässt dich nicht in Ruhe.' },
+  { id:'mundwerk',  n:'Loses Mundwerk',schwer:false, d:'Du sagst das Falsche — und zwar zur falschen Person.' },
+  { id:'nachtblind',n:'Nachtblind',    schwer:false, d:'Bei Dunkelheit: Wahrnehmung eine Stufe niedriger.' },
+  { id:'ehrenwort', n:'Ehrenwort',     schwer:false, d:'Ein gegebenes Versprechen bindet dich, koste es, was es wolle.' },
+  { id:'narbe',     n:'Narbe',         schwer:false, d:'Bei Fremden und bei Hofe: Auftreten eine Stufe niedriger.' }
+];
+const HND_BY_ID = {}; HANDICAPS.forEach(function (h) { HND_BY_ID[h.id] = h; });
+const TAL_BY_ID = {}; TALENTE.forEach(function (t) { TAL_BY_ID[t.id] = t; });
+
+/* ==========================================================
+   ARCHETYP-VORLAGEN
+   Jede Vorlage muss exakt 5 Grundwert- und 15 Fertigkeits-
+   punkte verbrauchen und mit 2 Talentpunkten auskommen.
+   Wird beim Laden geprüft (siehe pruefeVorlagen()).
+   ========================================================== */
+const PRESETS = {
+  'Seemann': {
+    gw: { 'Körper':4, 'INT':1, 'Auftreten':2, 'Wahrnehmung':2 },
+    sk: { 'Kampf':3, 'Geschick':3, 'Geheim':0, 'Erste Hilfe':1, 'Rhetorik':1, 'Instinkt':2,
+          'Seefahrt':2, 'Heilkunde':0, 'Untergrund':1, 'Handel':0, 'Geschichte':0,
+          'Menschenkenntnis':0, 'Mechanik':2, 'Eigener Slot':0 },
+    mast: [], tal: ['seebein'], hnd: []
+  },
+  'Gelehrter': {
+    gw: { 'Körper':1, 'INT':4, 'Auftreten':2, 'Wahrnehmung':2 },
+    sk: { 'Kampf':0, 'Geschick':1, 'Geheim':0, 'Erste Hilfe':3, 'Rhetorik':3, 'Instinkt':0,
+          'Seefahrt':0, 'Heilkunde':3, 'Untergrund':0, 'Handel':0, 'Geschichte':3,
+          'Menschenkenntnis':1, 'Mechanik':1, 'Eigener Slot':0 },
+    mast: [], tal: ['feldscher'], hnd: []
+  },
+  'Fuchs': {
+    gw: { 'Körper':2, 'INT':2, 'Auftreten':4, 'Wahrnehmung':1 },
+    sk: { 'Kampf':2, 'Geschick':2, 'Geheim':1, 'Erste Hilfe':0, 'Rhetorik':3, 'Instinkt':0,
+          'Seefahrt':0, 'Heilkunde':0, 'Untergrund':1, 'Handel':3, 'Geschichte':0,
+          'Menschenkenntnis':3, 'Mechanik':0, 'Eigener Slot':0 },
+    mast: [], tal: ['markt'], hnd: []
+  },
+  'Schatten': {
+    gw: { 'Körper':2, 'INT':2, 'Auftreten':1, 'Wahrnehmung':4 },
+    sk: { 'Kampf':2, 'Geschick':3, 'Geheim':3, 'Erste Hilfe':0, 'Rhetorik':0, 'Instinkt':3,
+          'Seefahrt':0, 'Heilkunde':0, 'Untergrund':3, 'Handel':0, 'Geschichte':0,
+          'Menschenkenntnis':1, 'Mechanik':0, 'Eigener Slot':0 },
+    mast: [], tal: ['schlitz'], hnd: []
+  }
+};
+
+function makeState(arch) {
+  const p = PRESETS[arch] || PRESETS['Seemann'];
+  return {
+    arch: arch,
+    gw: Object.assign({}, p.gw),
+    sk: Object.assign({}, p.sk),
+    mast: p.mast.slice(),
+    tal: p.tal.slice(),
+    hnd: p.hnd.slice(),
+    eigenName: ''
+  };
+}
+
+let S = makeState('Seemann');
+let SHEET = {
+  name:'', spieler:'', notizen:'',
+  ausr:['','','','','',''],
+  crew:[false,false,false,false,false],
+  shaken:false, wounds:0,
+  img:null
+};
+
+/* ==========================================================
+   KOSTEN
+   ========================================================== */
+function skillCap(name) {
+  const def = SKILL_BY_NAME[name];
+  if (!def) return 1;
+  let cap = 1;
+  def.gw.forEach(function (g) { cap = Math.max(cap, S.gw[g] || 1); });
+  return cap;
+}
+
+// Kosten, eine Fertigkeit von 0 (ungelernt) auf stufe zu bringen.
+// Jede Stufe kostet 1, solange sie den Leitwert nicht uebersteigt, sonst 2.
+function skillCost(name, stufe) {
+  const cap = skillCap(name);
+  let c = 0;
+  for (let t = 1; t <= stufe; t++) c += (t <= cap) ? 1 : 2;
+  return c;
+}
+
+function spentGw()    { let t = 0; GW.forEach(function (g) { t += (S.gw[g] || 1) - 1; }); return t; }
+function spentSkill() { let t = 0; ALL_SKILLS.forEach(function (s) { t += skillCost(s.name, S.sk[s.name] || 0); }); return t; }
+function handicapPts(){
+  let t = 0;
+  S.hnd.forEach(function (id) { const h = HND_BY_ID[id]; if (h) t += h.schwer ? 2 : 1; });
+  return t;
+}
+function spentTalent(){ return S.tal.length * TALENT_COST + S.mast.length * MASTERY_COST; }
+function talentBudget(){ return P_TALENT + handicapPts(); }
+
+function schwereHnd(){ return S.hnd.filter(function (id) { return HND_BY_ID[id] && HND_BY_ID[id].schwer; }).length; }
+function leichteHnd(){ return S.hnd.filter(function (id) { return HND_BY_ID[id] && !HND_BY_ID[id].schwer; }).length; }
+
+/* ==========================================================
+   ABGELEITETE WERTE
+   ========================================================== */
+function halbe(stufe) { return stufe >= 1 ? SIDES[stufe] / 2 : 2; }
+function parade()     { return 2 + halbe(S.sk['Kampf'] || 0); }
+function robustheit() { return 2 + halbe(S.gw['Körper'] || 1) + (S.tal.indexOf('grob') >= 0 ? 1 : 0); }
+function glueck()     { return 3 + (S.tal.indexOf('glueck') >= 0 ? 1 : 0); }
+
+/* ==========================================================
+   WAHRSCHEINLICHKEITEN — exakt ausgezaehlt
+   Baender: gut / normal / schlecht / miss
+   ========================================================== */
+function bandChancen(stufe, mastery, erschwernis) {
+  const eff = Math.max(0, stufe - (erschwernis || 0));
+  // Unter d4 gedrueckt: Probe unmoeglich
+  if (stufe >= 1 && eff < 1) return { gut:0, normal:0, schlecht:0, miss:1, unmoeglich:true };
+
+  const s = SIDES[eff];                       // Seitenzahl
+  const pS = (s - 3) / s;                     // Erfolg (>=4)
+  const pF = 3 / s;                           // Fehlschlag
+  const pG = GUT_AB_8 ? Math.max(0, s - 7) / s : 0;   // guter Erfolg mit einem Wuerfel
+
+  // Ungelernt: Erfolg zaehlt immer nur als schlechter Erfolg
+  if (stufe === 0) return { gut:0, normal:0, schlecht:pS, miss:pF };
+
+  if (!mastery) return { gut:pG, normal:pS - pG, schlecht:0, miss:pF };
+
+  // Meisterschaft: zwei Wuerfel auszaehlen
+  let gut = 0, normal = 0, keiner = 0;
+  for (let a = 1; a <= s; a++) {
+    for (let b = 1; b <= s; b++) {
+      const aOk = a >= 4, bOk = b >= 4;
+      if ((aOk && bOk) || (GUT_AB_8 && (a >= 8 || b >= 8))) gut++;
+      else if (aOk || bOk) normal++;
+      else keiner++;
+    }
+  }
+  const n = s * s;
+  return {
+    gut: gut / n,
+    normal: normal / n,
+    schlecht: (keiner / n) * pS,   // Nachwurf gelingt
+    miss: (keiner / n) * pF        // Nachwurf misslingt
+  };
+}
+
+/* ==========================================================
+   RENDER — Erschaffung
+   ========================================================== */
+function showView(v, el) {
+  ['ersch','bogen','regeln'].forEach(function (n) {
+    document.getElementById('v' + n.charAt(0).toUpperCase() + n.slice(1)).classList.toggle('active', n === v);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  if (v === 'bogen') renderSheet();
+  if (v === 'regeln') { renderCalc(); renderCalcTable(); }
+}
+
+function renderArch() {
+  document.getElementById('archGrid').innerHTML = ARCHETYPES.map(function (a) {
+    return '<div class="arch' + (S.arch === a.name ? ' on' : '') + '" onclick="setArch(\'' + a.name + '\')">' +
+      '<div class="arch-n">' + a.name + '</div>' +
+      '<div class="arch-d">' + a.desc + '</div>' +
+      '<div class="arch-g">' + a.gw + '</div></div>';
+  }).join('');
+  document.getElementById('archHint').textContent =
+    'Ein Klick setzt die Vorlage neu — alle bisherigen Änderungen an dieser Figur gehen dabei verloren.';
+}
+
+function setArch(name) {
+  if (name === S.arch) return;
+  if (!confirm('Vorlage „' + name + '“ laden? Alle Werte dieser Figur werden überschrieben.')) return;
+  S = makeState(name);
+  renderAll();
+}
+
+function budgetHtml() {
+  const gwLeft = P_GW - spentGw();
+  const skLeft = P_SKILL - spentSkill();
+  const talLeft = talentBudget() - spentTalent();
+
+  function set(id, val, prefix) {
+    const el = document.getElementById(id);
+    el.textContent = (prefix || '') + val;
+    el.className = 'bv ' + (val < 0 ? 'over' : (val === 0 ? 'gold' : 'ok'));
+  }
+  set('bGw', gwLeft); set('bSk', skLeft); set('bTal', talLeft);
+  const h = document.getElementById('bHnd');
+  h.textContent = '+' + handicapPts(); h.className = 'bv gold';
+
+  const probleme = [];
+  if (gwLeft < 0)  probleme.push('Grundwerte überzogen');
+  if (skLeft < 0)  probleme.push('Fertigkeiten überzogen');
+  if (talLeft < 0) probleme.push('Talentpunkte überzogen');
+  if (schwereHnd() > 1) probleme.push('höchstens ein schweres Handicap');
+  if (leichteHnd() > 2) probleme.push('höchstens zwei leichte Handicaps');
+  const w = document.getElementById('bWarn');
+  w.style.display = probleme.length ? 'block' : 'none';
+  w.textContent = '⚠ ' + probleme.join(' · ');
+}
+
+function stepRow(label, sub, stufe, min, onMinus, onPlus, mastKey, mastOn, mastAllowed, costTxt) {
+  return '<div class="row">' +
+    '<div class="row-n">' + label + (sub ? ' <span class="row-sub">' + sub + '</span>' : '') + '</div>' +
+    (mastKey !== null
+      ? '<label class="mast' + (mastAllowed ? '' : ' off') + '" title="Meisterschaft: zwei Würfel, kostet ' + MASTERY_COST + ' Talentpunkte, ab d8">' +
+        '<input type="checkbox" ' + (mastOn ? 'checked' : '') + ' ' + (mastAllowed ? '' : 'disabled') +
+        ' onchange="toggleMast(\'' + mastKey + '\')"> M</label>'
+      : '') +
+    '<div class="step">' +
+      '<button class="sbtn" ' + (stufe <= min ? 'disabled' : '') + ' onclick="' + onMinus + '">−</button>' +
+      '<div class="die ' + dcls(stufe) + '">' + DLBL[stufe] + '</div>' +
+      '<button class="sbtn" ' + (stufe >= MAXD ? 'disabled' : '') + ' onclick="' + onPlus + '">+</button>' +
+    '</div>' +
+    '<div class="cost">' + (costTxt || '') + '</div>' +
+  '</div>';
+}
+
+function renderGw() {
+  document.getElementById('gwRows').innerHTML = GW.map(function (g) {
+    const v = S.gw[g] || 1;
+    return stepRow(g, '', v, 1,
+      'chgGw(\'' + g + '\',-1)', 'chgGw(\'' + g + '\',1)',
+      null, false, false, (v - 1) + 'P');
+  }).join('');
+}
+
+function renderSkills(list, target) {
+  document.getElementById(target).innerHTML = list.map(function (sd) {
+    const v = S.sk[sd.name] || 0;
+    const cap = skillCap(sd.name);
+    const mastOn = S.mast.indexOf(sd.name) >= 0;
+    const mastAllowed = v >= MASTERY_MIN || mastOn;
+    const nm = sd.custom
+      ? '<input class="sed sm" style="max-width:150px;border-color:var(--border);color:var(--ink)" placeholder="Eigenes Wissen…" value="' +
+        String(S.eigenName || '').replace(/"/g, '&quot;') + '" oninput="setEigenName(this.value)">'
+      : sd.name;
+    const key = sd.name.replace(/'/g, "\\'");
+    return stepRow(nm, 'Leitwert ' + DLBL[cap], v, 0,
+      'chgSk(\'' + key + '\',-1)', 'chgSk(\'' + key + '\',1)',
+      key, mastOn, mastAllowed, skillCost(sd.name, v) + 'P');
+  }).join('');
+}
+
+function setEigenName(v) { S.eigenName = v; save(); }
+
+function chgGw(g, d) {
+  const nv = Math.max(1, Math.min(MAXD, (S.gw[g] || 1) + d));
+  S.gw[g] = nv;
+  // Meisterschaften, die durch gesunkene Werte ungueltig wuerden, bleiben bestehen -
+  // der Leitwert begrenzt nur die Kosten, nicht die Meisterschaft.
+  renderAll();
+}
+
+function chgSk(name, d) {
+  const nv = Math.max(0, Math.min(MAXD, (S.sk[name] || 0) + d));
+  S.sk[name] = nv;
+  if (nv < MASTERY_MIN) {
+    const i = S.mast.indexOf(name);
+    if (i >= 0) S.mast.splice(i, 1);   // Meisterschaft faellt weg, Punkte kommen zurueck
+  }
+  renderAll();
+}
+
+function toggleMast(name) {
+  const i = S.mast.indexOf(name);
+  if (i >= 0) S.mast.splice(i, 1);
+  else if ((S.sk[name] || 0) >= MASTERY_MIN) S.mast.push(name);
+  renderAll();
+}
+
+function renderTal() {
+  document.getElementById('talGrid').innerHTML = TALENTE.map(function (t) {
+    const on = S.tal.indexOf(t.id) >= 0;
+    return '<div class="pk' + (on ? ' on' : '') + '" onclick="toggleTal(\'' + t.id + '\')">' +
+      '<div class="pk-n"><span>' + t.n + '</span><span class="pk-c">' + TALENT_COST + ' P</span></div>' +
+      '<div class="pk-d">' + t.d + '</div></div>';
+  }).join('');
+}
+
+function renderHnd() {
+  document.getElementById('hndGrid').innerHTML = HANDICAPS.map(function (h) {
+    const on = S.hnd.indexOf(h.id) >= 0;
+    const voll = !on && (h.schwer ? schwereHnd() >= 1 : leichteHnd() >= 2);
+    return '<div class="pk' + (on ? ' on neg' : '') + (voll ? ' blocked' : '') + '"' +
+      (voll ? '' : ' onclick="toggleHnd(\'' + h.id + '\')"') + '>' +
+      '<div class="pk-n"><span>' + h.n + '</span><span class="pk-c">' +
+        (h.schwer ? 'schwer · +2 P' : 'leicht · +1 P') + '</span></div>' +
+      '<div class="pk-d">' + h.d + '</div></div>';
+  }).join('');
+}
+
+function toggleTal(id) {
+  const i = S.tal.indexOf(id);
+  if (i >= 0) S.tal.splice(i, 1); else S.tal.push(id);
+  renderAll();
+}
+
+function toggleHnd(id) {
+  const i = S.hnd.indexOf(id);
+  if (i >= 0) S.hnd.splice(i, 1);
+  else {
+    const h = HND_BY_ID[id];
+    if (h.schwer && schwereHnd() >= 1) return;
+    if (!h.schwer && leichteHnd() >= 2) return;
+    S.hnd.push(id);
+  }
+  renderAll();
+}
+
+/* ==========================================================
+   RENDER — Heldenbrief
+   ========================================================== */
+function skillLabel(name) {
+  const v = S.sk[name] || 0;
+  return v === 0 ? '—' : DLBL[v];
+}
+
+function renderSheet() {
+  document.getElementById('shArch').textContent = S.arch;
+  document.getElementById('dvParade').textContent = parade();
+  document.getElementById('dvRob').textContent = robustheit();
+  document.getElementById('dvGlueck').textContent = glueck();
+
+  document.getElementById('shGW').innerHTML = GW.map(function (g) {
+    return '<tr><td>' + g + '</td><td class="v">' + DLBL[S.gw[g] || 1] + '</td></tr>';
+  }).join('');
+
+  function skRows(list) {
+    return list.map(function (sd) {
+      const nm = sd.custom ? (S.eigenName || 'Eigenes Wissen') : sd.name;
+      const m = S.mast.indexOf(sd.name) >= 0 ? 'M' : '';
+      return '<tr><td>' + nm + '</td><td class="m">' + m + '</td><td class="v">' + skillLabel(sd.name) + '</td></tr>';
+    }).join('');
+  }
+  document.getElementById('shFert').innerHTML = skRows(FERT);
+  document.getElementById('shWiss').innerHTML = skRows(WISS);
+
+  document.getElementById('shTagged').innerHTML =
+    (S.tal.map(function (id) { return '<span class="tag">' + (TAL_BY_ID[id] ? TAL_BY_ID[id].n : id) + '</span>'; }).join('') || '') +
+    (S.hnd.map(function (id) { return '<span class="tag neg">' + (HND_BY_ID[id] ? HND_BY_ID[id].n : id) + '</span>'; }).join('') || '') ||
+    '<span style="font-size:.7rem;color:#7a6f57;font-style:italic">keine</span>';
+
+  document.getElementById('shAusr').innerHTML = SHEET.ausr.map(function (v, i) {
+    return '<input class="eqr" value="' + String(v).replace(/"/g, '&quot;') + '" placeholder="…" oninput="SHEET.ausr[' + i + ']=this.value;save()">';
+  }).join('');
+
+  document.getElementById('shCrew').innerHTML = CREW_STEPS.map(function (c, i) {
+    return '<div class="cs' + (SHEET.crew[i] ? ' on' : '') + '" onclick="toggleCrew(' + i + ')">' + c + '</div>';
+  }).join('');
+
+  renderWounds();
+
+  document.getElementById('shName').value = SHEET.name || '';
+  document.getElementById('shSpieler').value = SHEET.spieler || '';
+  document.getElementById('shNote').value = SHEET.notizen || '';
+  renderImg();
+}
+
+function renderWounds() {
+  let h = '<div class="wbox shk' + (SHEET.shaken ? ' on' : '') + '" onclick="toggleShaken()">Ang.</div>';
+  for (let i = 1; i <= 3; i++) {
+    h += '<div class="wbox' + (SHEET.wounds >= i ? ' on' : '') + '" onclick="setWounds(' + i + ')">' + i + '</div>';
+  }
+  document.getElementById('woundRow').innerHTML = h;
+  const parts = [];
+  if (SHEET.shaken) parts.push('Angeschlagen — die nächste Handlung entfällt.');
+  if (SHEET.wounds > 0) parts.push(SHEET.wounds + ' Wunde' + (SHEET.wounds > 1 ? 'n' : '') +
+    ' — alle Würfel ' + SHEET.wounds + ' Stufe' + (SHEET.wounds > 1 ? 'n' : '') + ' niedriger.');
+  document.getElementById('woundNote').textContent = parts.join(' ') || 'Unversehrt.';
+}
+function toggleShaken() { SHEET.shaken = !SHEET.shaken; save(); renderWounds(); }
+function setWounds(n)   { SHEET.wounds = (SHEET.wounds === n) ? n - 1 : n; save(); renderWounds(); }
+// Klick auf eine Stufe fuellt alles bis dorthin. Klick auf die aktuell
+// oberste Stufe nimmt genau eine Stufe zurueck (kein Komplettreset).
+function toggleCrew(i) {
+  const oben = SHEET.crew.lastIndexOf(true);
+  const ziel = (i === oben) ? i - 1 : i;
+  SHEET.crew = CREW_STEPS.map(function (_, j) { return j <= ziel; });
+  save(); renderSheet();
+}
+
+function saveSheet() {
+  SHEET.name    = document.getElementById('shName') ? document.getElementById('shName').value : '';
+  SHEET.spieler = document.getElementById('shSpieler') ? document.getElementById('shSpieler').value : '';
+  SHEET.notizen = document.getElementById('shNote') ? document.getElementById('shNote').value : '';
+  save();
+}
+
+/* ---------- Bild ---------- */
+function loadImg(input) {
+  if (!input.files || !input.files[0]) return;
+  const r = new FileReader();
+  r.onload = function (e) { SHEET.img = e.target.result; save(); renderImg(); };
+  r.readAsDataURL(input.files[0]);
+}
+function removeImg(ev) { ev.stopPropagation(); SHEET.img = null; save(); renderImg(); }
+function renderImg() {
+  const box = document.getElementById('imgBox');
+  const ph = document.getElementById('imgPh');
+  const rm = document.getElementById('imgRemoveBtn');
+  const old = box.querySelector('img');
+  if (old) old.remove();
+  if (SHEET.img) {
+    const im = document.createElement('img');
+    im.src = SHEET.img;
+    box.insertBefore(im, rm);
+    ph.style.display = 'none'; rm.style.display = 'block';
+  } else {
+    ph.style.display = 'block'; rm.style.display = 'none';
+  }
+}
+
+/* ==========================================================
+   RENDER — Würfelrechner
+   ========================================================== */
+const BAND_FARBE = { gut:'#c9a84c', normal:'#2A9D8F', schlecht:'#ca6702', miss:'#8b2626' };
+const BAND_NAME  = { gut:'Guter Erfolg', normal:'Erfolg', schlecht:'Schlechter Erfolg', miss:'Misserfolg' };
+
+function pct(x) { return (x * 100).toFixed(1).replace('.', ',') + ' %'; }
+
+function renderCalc() {
+  const stufe = +document.getElementById('calcDie').value;
+  const mast = document.getElementById('calcMast').checked;
+  const mod = +document.getElementById('calcMod').value;
+  const c = bandChancen(stufe, mast, mod);
+
+  document.getElementById('calcBars').innerHTML = ['gut','normal','schlecht','miss'].map(function (b) {
+    return '<div class="bar"><div class="bar-l">' + BAND_NAME[b] + '</div>' +
+      '<div class="bar-t"><div class="bar-f" style="width:' + (c[b] * 100).toFixed(1) + '%;background:' + BAND_FARBE[b] + '"></div></div>' +
+      '<div class="bar-v">' + pct(c[b]) + '</div></div>';
+  }).join('');
+
+  const notes = [];
+  if (c.unmoeglich) notes.push('Unter d4 gedrückt — die Probe ist nicht mehr möglich.');
+  if (stufe === 0) notes.push('Ungelernt: Ein Erfolg zählt immer nur als schlechter Erfolg.');
+  if (stufe > 0 && !mast && !GUT_AB_8) notes.push('Ohne Meisterschaft ist kein guter Erfolg möglich — dafür braucht es den zweiten Würfel.');
+  if (mast) notes.push('Meisterschaft: Gesamterfolg ' + pct(c.gut + c.normal + c.schlecht) + '.');
+  else if (stufe > 0) notes.push('Gesamterfolg ' + pct(c.gut + c.normal + c.schlecht) + '.');
+  document.getElementById('calcNote').textContent = notes.join(' ');
+}
+
+function renderCalcTable() {
+  let h = '<table class="rtable"><tr><th>Würfel</th><th>Gut</th><th>Erfolg</th><th>Schlecht</th><th>Miss</th><th>Erfolg gesamt</th></tr>';
+  [[0,false],[1,false],[2,false],[3,false],[4,false],[5,false],[1,true],[2,true],[3,true],[4,true],[5,true]].forEach(function (r) {
+    const c = bandChancen(r[0], r[1], 0);
+    const lbl = (r[0] === 0 ? 'ungelernt' : DLBL[r[0]]) + (r[1] ? ' + M' : '');
+    h += '<tr><td>' + lbl + '</td><td class="n">' + pct(c.gut) + '</td><td class="n">' + pct(c.normal) +
+      '</td><td class="n">' + pct(c.schlecht) + '</td><td class="n">' + pct(c.miss) +
+      '</td><td class="n">' + pct(c.gut + c.normal + c.schlecht) + '</td></tr>';
+  });
+  h += '</table>';
+  document.getElementById('calcTable').innerHTML = h;
+}
+
+/* ==========================================================
+   SPEICHERN / EXPORT
+   ========================================================== */
+function save() {
+  try { localStorage.setItem('kors_sw', JSON.stringify({ S:S, SHEET:SHEET })); } catch (e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('kors_sw');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && d.S) S = Object.assign(makeState(d.S.arch || 'Seemann'), d.S);
+    if (d && d.SHEET) SHEET = Object.assign(SHEET, d.SHEET);
+  } catch (e) {}
+}
+
+function openEximp()  { document.getElementById('eximpOverlay').classList.add('on'); document.getElementById('eximpMsg').textContent = ''; }
+function closeEximp() { document.getElementById('eximpOverlay').classList.remove('on'); }
+
+function doExport() {
+  const data = JSON.stringify({ version:'sw-1', S:S, SHEET:SHEET }, null, 2);
+  const blob = new Blob([data], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (SHEET.name || 'korsaren-figur').replace(/[^\wäöüÄÖÜß -]/g, '') + '.json';
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  document.getElementById('eximpMsg').style.color = '#4caf7d';
+  document.getElementById('eximpMsg').textContent = 'Datei erzeugt.';
+}
+
+function doImport(input) {
+  if (!input.files || !input.files[0]) return;
+  const msg = document.getElementById('eximpMsg');
+  const r = new FileReader();
+  r.onload = function (e) {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d || !d.S) throw new Error('Keine Figurendaten in dieser Datei.');
+      S = Object.assign(makeState(d.S.arch || 'Seemann'), d.S);
+      if (d.SHEET) SHEET = Object.assign(SHEET, d.SHEET);
+      save(); renderAll();
+      msg.style.color = '#4caf7d';
+      msg.textContent = 'Figur geladen: ' + (SHEET.name || '(ohne Namen)');
+    } catch (err) {
+      msg.style.color = '#e05555';
+      msg.textContent = 'Konnte nicht gelesen werden: ' + err.message;
+    }
+  };
+  r.readAsText(input.files[0]);
+  input.value = '';
+}
+
+/* ==========================================================
+   START
+   ========================================================== */
+function renderAll() {
+  renderArch();
+  budgetHtml();
+  renderGw();
+  renderSkills(FERT, 'fertRows');
+  renderSkills(WISS, 'wissRows');
+  renderTal();
+  renderHnd();
+  if (document.getElementById('vBogen').classList.contains('active')) renderSheet();
+  save();
+}
+
+// Selbstkontrolle der Vorlagen: jede muss genau ins Punktebudget passen.
+// Meldet sich nur in der Konsole - kein Eingriff in die Anzeige.
+function pruefeVorlagen() {
+  const merk = S;
+  const ergebnis = Object.keys(PRESETS).map(function (name) {
+    S = makeState(name);
+    const r = { name:name, gw:spentGw(), skill:spentSkill(), talent:spentTalent(), budget:talentBudget() };
+    r.ok = (r.gw === P_GW && r.skill === P_SKILL && r.talent <= r.budget);
+    if (!r.ok) {
+      console.warn('Vorlage „' + name + '“ passt nicht ins Budget:',
+        'Grundwerte ' + r.gw + '/' + P_GW, 'Fertigkeiten ' + r.skill + '/' + P_SKILL,
+        'Talente ' + r.talent + '/' + r.budget);
+    }
+    return r;
+  });
+  S = merk;
+  return ergebnis;
+}
+
+load();
+pruefeVorlagen();
+renderAll();
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { bandChancen, skillCost, PRESETS, makeState, pruefeVorlagen, SIDES, DLBL, GUT_AB_8 };
+}
+</script>
+</body>
+</html>
