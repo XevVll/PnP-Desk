@@ -105,6 +105,45 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-05 (Fortsetzung 2) — Geführte Charaktererschaffung mit zwei Regelsätzen
+- **Hendriks Auftrag:** eine geführte Erschaffung nach Savage-Worlds-Regeln, und zwar in **zwei
+  Fassungen** zum Vergleich — einmal Savage Worlds pur, einmal unsere Variante.
+- **Umgesetzt als EIN Assistent mit Regelwahl an Schritt 1**, nicht als zwei Dateien: zwei
+  Kopien derselben Logik driften auseinander, und zum Vergleichen müsste man zwischen zwei URLs
+  springen. Nach Hendriks Entscheidung fliegt der unterlegene Regelsatz als **ein Objekt** aus
+  `REGELWERKE` — mehr ist dann nicht zu tun.
+- **Neue `js/regelwerk.js`** als gemeinsame Regelbasis: Würfelstufen, die Kanon-Werte (vier
+  Grundwerte, sechs Fertigkeiten, acht Wissensgebiete), Talente, Handicaps, Kostenrechnung,
+  abgeleitete Werte und die exakte Wahrscheinlichkeitsrechnung **beider** Regelsätze.
+  - `savage`: explodierende Würfel (rekursiv exakt gerechnet, nicht simuliert), Wild Die d6 bei
+    jeder Probe, Steigerung ab 8, Patzer bei doppelter 1, Erschwernis als −2, 12 Fertigkeits-
+    punkte mit fünf Gratis-Fertigkeiten auf d4 (Athletik→Geschick, Aufmerksamkeit→Instinkt,
+    Überreden→Rhetorik, Heimlichkeit→Geheim, Allgemeinwissen→Geschichte), ein Gratis-Talent.
+  - `korsaren`: wie am selben Tag gebaut — gekaufte Meisterschaft, kein Explodieren, Nachwurf
+    erzeugt den schlechten Erfolg, Erschwernis als Würfelstufe, 15 Fertigkeitspunkte.
+- **Neue `charaktererstellung.html`** — sieben Schritte (Regeln, Konzept, Grundwerte,
+  Fertigkeiten, Handicaps, Talente, Fertig), Budgetleiste dauerhaft am unteren Rand, am Ende
+  eine Chancen-Tabelle für die tatsächlich gelernten Fertigkeiten und die Übergabe an den
+  Heldenbrief (`localStorage.kors_sw`, vorhandene Notizen/Ausrüstung/Bild bleiben erhalten).
+- **Vom Hub verlinkt** als eigene Kachel „Figur erschaffen"; der Heldenbrief verliert die
+  Kennzeichnung „neu" und heißt jetzt sinngemäß „fertige Figur führen".
+- **Getestet** (Node, kein Browser verfügbar): 22 Prüfungen des Assistenten und 24 des
+  Regelwerks, 0 Fehler. Darunter die bekannten Savage-Worlds-Werte als Referenz (d4 schafft 4+
+  zu 25 %, 8+ zu 6,25 %; d12 zu 75 %), Summe aller Bänder = 1,0 über **beide** Regelsätze und
+  alle Würfelstufen, Erschwernis wirkt je Regelsatz unterschiedlich (d4 wird in der
+  Korsaren-Variante unmöglich, im Savage-Satz nicht), Kostenregel diesseits/jenseits des
+  Leitwerts, und der Regelwechsel räumt korrekt auf (Meisterschaft fällt weg, Gratis-
+  Fertigkeiten werden angehoben, gesteigerte Werte bleiben).
+  - **Ein echter Fund:** Der Archetyp-Wechsel summierte die Grundwert-Boni auf — wer dreimal
+    klickte, hatte drei Stufen geschenkt. Der alte Bonus wird jetzt zurückgenommen, bevor der
+    neue gesetzt wird; drei Prüfungen sichern das ab.
+- **[OFFEN]** `charakterbogen_sw.html` rechnet weiterhin fest nach der Korsaren-Variante und
+  nutzt `js/regelwerk.js` noch nicht. Eine im Savage-Satz gebaute Figur wird dort also mit den
+  falschen Erfolgsstufen angezeigt (Werte und Talente stimmen). Der Assistent **warnt beim
+  Übernehmen ausdrücklich davor**. Bewusst nicht vorher zusammengeführt: Der Bogen wird nach
+  Hendriks Regelentscheidung ohnehin auf den einen verbleibenden Satz umgestellt, ein
+  Refactoring davor wäre doppelte Arbeit an einer 1000-Zeilen-Datei.
+
 ### 2026-09-05 (Fortsetzung) — `index.html` wird der Spieler-Hub
 - **Bisher** leitete `index.html` nur per `<meta refresh>` auf `karte.html` weiter. Jetzt ist die
   Wurzel-URL (https://xevvll.github.io/PnP-Desk/) die Startseite: Anmeldung mit Namen,
