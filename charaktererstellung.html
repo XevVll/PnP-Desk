@@ -16,21 +16,17 @@
 body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:5.5rem}
 
 .topbar{position:sticky;top:0;z-index:120;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
-.tbin{max-width:900px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.tbin{max-width:920px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
 .brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.92rem;letter-spacing:.13em;white-space:nowrap}
-.regel-badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--teal);color:var(--teal);border-radius:10px;padding:.1rem .55rem}
-
-/* ── Schrittleiste ── */
-.steps{display:flex;gap:.25rem;max-width:900px;margin:0 auto;padding:0 1rem .5rem;flex-wrap:wrap}
-.st{flex:1;min-width:54px;text-align:center;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.06em;color:var(--gray);padding:.28rem .15rem;border-bottom:2px solid rgba(201,168,76,.18);cursor:pointer;transition:all .18s;text-transform:uppercase}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--teal);color:var(--teal);border-radius:10px;padding:.1rem .55rem}
+.steps{display:flex;gap:.25rem;max-width:920px;margin:0 auto;padding:0 1rem .5rem;flex-wrap:wrap}
+.st{flex:1;min-width:58px;text-align:center;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.06em;color:var(--gray);padding:.28rem .15rem;border-bottom:2px solid rgba(201,168,76,.18);cursor:pointer;transition:all .18s;text-transform:uppercase}
 .st:hover{color:var(--gold)}
 .st.on{color:var(--gold);border-bottom-color:var(--gold)}
 .st.done{color:var(--teal);border-bottom-color:rgba(42,157,143,.5)}
 
-.wrap{max-width:900px;margin:0 auto;padding:1.1rem 1rem}
-.panel{display:none}
-.panel.on{display:block}
-
+.wrap{max-width:920px;margin:0 auto;padding:1.1rem 1rem}
+.panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
 
@@ -39,37 +35,33 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 .card-hdr-sub{font-size:.6rem;color:var(--gray);font-family:'Libre Baskerville',serif;letter-spacing:0;font-style:italic;text-transform:none}
 .card-body{padding:.75rem .9rem}
 
-/* ── Regelwahl ── */
-.rw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.8rem}
-.rw-card{border:1px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all .18s;background:rgba(255,255,255,.03)}
-.rw-card:hover{border-color:var(--gold)}
-.rw-card.on{border-color:var(--gold);background:var(--lgold);box-shadow:0 0 0 1px var(--gold) inset}
-.rw-n{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.06em}
-.rw-u{font-size:.62rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.08em;margin-bottom:.5rem}
-.rw-d{font-size:.78rem;color:#cfc8ba;line-height:1.55;margin-bottom:.6rem}
-.rw-l{list-style:none;font-size:.72rem;color:var(--gray);line-height:1.7}
-.rw-l li:before{content:'· ';color:var(--gold)}
-
-/* ── Eingaben ── */
 .f{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
 .f label{flex:1;min-width:170px;font-size:.68rem;font-family:'Cinzel',serif;letter-spacing:.08em;color:var(--gray);text-transform:uppercase}
 .f input{width:100%;margin-top:.2rem;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--ink);padding:.45rem .6rem;font-family:'Libre Baskerville',Georgia,serif;font-size:.9rem;outline:none}
 .f input:focus{border-color:var(--gold)}
 
-.arch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
-@media(max-width:620px){.arch-grid{grid-template-columns:repeat(2,1fr)}}
-.arch{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:.6rem .4rem;text-align:center;cursor:pointer;transition:all .18s}
-.arch:hover{border-color:var(--gold)}
-.arch.on{border-color:var(--gold);background:var(--lgold)}
-.arch-n{font-family:'Cinzel',serif;font-size:.8rem;color:var(--gold)}
-.arch-d{font-size:.63rem;color:var(--gray);font-style:italic;margin-top:.15rem}
-.arch-g{font-size:.58rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.05em;margin-top:.2rem}
+.rangwahl{display:flex;gap:.4rem;flex-wrap:wrap}
+.rw-b{flex:1;min-width:88px;text-align:center;border:1px solid var(--border);border-radius:6px;padding:.4rem .3rem;cursor:pointer;font-family:'Cinzel',serif;font-size:.72rem;color:var(--gray);transition:all .18s}
+.rw-b:hover{border-color:var(--gold);color:var(--gold)}
+.rw-b.on{border-color:var(--gold);background:var(--lgold);color:var(--gold)}
+.rw-b small{display:block;font-size:.55rem;color:var(--gray);letter-spacing:.05em;margin-top:.1rem}
 
-/* ── Stepper ── */
-.row{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid rgba(201,168,76,.09)}
+/* ── Ziel-Banner ── */
+.ziele{border:1px solid rgba(42,157,143,.5);background:rgba(42,157,143,.1);border-radius:6px;padding:.55rem .8rem;margin-bottom:.9rem}
+.ziele-h{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.12em;color:var(--teal);text-transform:uppercase;margin-bottom:.3rem}
+.ziel{font-size:.76rem;color:#cfc8ba;line-height:1.6}
+.ziel b{color:var(--gold);font-family:'Cinzel',serif;font-size:.74rem}
+.ziel .von{color:var(--gray);font-style:italic;font-size:.7rem}
+.ziele.fertig{border-color:rgba(76,175,125,.5);background:rgba(76,175,125,.1)}
+.ziele.fertig .ziele-h{color:#4caf7d}
+
+.row{display:flex;align-items:center;gap:.5rem;padding:.32rem 0;border-bottom:1px solid rgba(201,168,76,.09)}
 .row:last-child{border-bottom:none}
-.row-n{flex:1;font-size:.82rem;min-width:105px}
-.row-sub{font-size:.6rem;color:var(--gray);font-style:italic}
+.row.braucht{background:rgba(42,157,143,.07);border-radius:4px;padding-left:.4rem;padding-right:.4rem}
+.row-n{flex:1;font-size:.83rem;min-width:120px}
+.row-sub{font-size:.61rem;color:var(--gray);font-style:italic}
+.soll{font-size:.58rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.05em;border:1px solid rgba(42,157,143,.5);border-radius:8px;padding:0 .35rem;margin-left:.35rem;white-space:nowrap}
+.soll.ok{color:#4caf7d;border-color:rgba(76,175,125,.5)}
 .step{display:flex;align-items:center;gap:.3rem}
 .sbtn{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--gold);cursor:pointer;font-size:.9rem;line-height:1;font-family:'Cinzel',serif}
 .sbtn:hover:not(:disabled){background:var(--lgold)}
@@ -77,49 +69,68 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 .die{width:50px;text-align:center;font-family:'Cinzel',serif;font-weight:700;font-size:.92rem;padding:.12rem 0;border-radius:4px;border:1px solid var(--border)}
 .d0{color:var(--gray);font-size:.7rem;font-weight:400;font-style:italic}
 .d1{color:#b7b0a4}.d2{color:var(--lteal)}.d3{color:var(--teal)}.d4c{color:var(--gold)}.d5{color:#e0c060;background:var(--lgold)}
-.mast{display:flex;align-items:center;gap:.25rem;font-size:.58rem;color:var(--gray);font-family:'Cinzel',serif;letter-spacing:.06em;cursor:pointer;white-space:nowrap;user-select:none}
-.mast input{accent-color:var(--teal);cursor:pointer}
-.mast.off{opacity:.3;cursor:default}
-.cost{width:30px;text-align:right;font-size:.66rem;color:var(--gray);font-family:'Cinzel',serif}
+.cost{width:32px;text-align:right;font-size:.66rem;color:var(--gray);font-family:'Cinzel',serif}
+.cost.teuer{color:var(--amber)}
 .gratis{font-size:.55rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.06em}
+.wegbtn{border:none;background:transparent;color:var(--gray);cursor:pointer;font-size:.9rem;padding:0 .2rem;line-height:1}
+.wegbtn:hover{color:#e05555}
 
-/* ── Auswahlkarten ── */
 .pick{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem}
-@media(max-width:620px){.pick{grid-template-columns:1fr}}
+@media(max-width:640px){.pick{grid-template-columns:1fr}}
 .pk{border:1px solid var(--border);border-radius:6px;padding:.45rem .6rem;cursor:pointer;transition:all .16s;background:rgba(255,255,255,.03)}
 .pk:hover{border-color:var(--gold)}
 .pk.on{border-color:var(--teal);background:rgba(42,157,143,.12)}
 .pk.on.neg{border-color:var(--amber);background:rgba(202,103,2,.12)}
-.pk.blocked{opacity:.32;cursor:default}
+.pk.blocked{opacity:.42;cursor:default;border-style:dashed}
 .pk-n{font-family:'Cinzel',serif;font-size:.73rem;color:var(--gold);display:flex;justify-content:space-between;gap:.5rem}
-.pk-c{font-size:.6rem;color:var(--gray)}
-.pk-d{font-size:.68rem;color:#cfc8ba;margin-top:.18rem;line-height:1.4}
+.pk-c{font-size:.6rem;color:var(--gray);white-space:nowrap}
+.pk-d{font-size:.68rem;color:#cfc8ba;margin-top:.18rem;line-height:1.45}
+.pk-vor{font-size:.61rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.04em;margin-top:.28rem}
+.pk-vor.fehlt{color:var(--amber)}
+.pk-sperre{font-size:.6rem;color:var(--amber);font-family:'Cinzel',serif;letter-spacing:.05em;margin-top:.25rem}
+.pk-rang{font-size:.55rem;font-family:'Cinzel',serif;letter-spacing:.07em;border:1px solid var(--border);border-radius:8px;padding:0 .35rem;color:var(--gray);margin-left:.3rem}
+.haken{font-size:.55rem;color:var(--teal);font-family:'Cinzel',serif;letter-spacing:.06em;margin-left:.3rem}
+.kat-h{grid-column:1/-1;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.13em;color:var(--teal);text-transform:uppercase;margin:.8rem 0 .1rem;padding-bottom:.2rem;border-bottom:1px solid rgba(42,157,143,.25)}
+.kat-h:first-child{margin-top:0}
 
-/* ── Fußleiste ── */
+/* ── Fertigkeiten-Auswahlliste ── */
+.chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.25rem}
+.chip{border:1px dashed var(--border);border-radius:12px;padding:.15rem .6rem;font-size:.72rem;color:var(--gray);cursor:pointer;transition:all .16s;background:transparent}
+.chip:hover{border-color:var(--gold);color:var(--gold);border-style:solid}
+.chip .cs{font-size:.6rem;color:var(--gray);margin-left:.25rem}
+.chip.noetig{border-color:var(--teal);border-style:solid;color:#8fe0d6}
+.leer{font-size:.75rem;color:var(--gray);font-style:italic;padding:.4rem 0}
+
+.brief-f{margin-bottom:.9rem}
+.brief-q{font-family:'Cinzel',serif;font-size:.8rem;color:var(--gold);letter-spacing:.04em}
+.brief-h{font-size:.68rem;color:var(--gray);font-style:italic;margin:.15rem 0 .3rem;line-height:1.5}
+.brief-f textarea{width:100%;min-height:52px;background:var(--dark);border:1px solid var(--border);border-radius:6px;color:var(--ink);padding:.45rem .6rem;font-family:'Libre Baskerville',Georgia,serif;font-size:.85rem;outline:none;resize:vertical;line-height:1.5}
+.brief-f textarea:focus{border-color:var(--gold)}
+.brief-b{font-size:.68rem;color:#8fa89c;font-style:italic;margin-top:.25rem;cursor:pointer}
+.brief-b:hover{color:var(--teal)}
+
 .foot{position:fixed;left:0;right:0;bottom:0;z-index:130;background:rgba(18,35,42,.97);border-top:1px solid var(--border);backdrop-filter:blur(10px)}
-.ftin{max-width:900px;margin:0 auto;padding:.55rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.ftin{max-width:920px;margin:0 auto;padding:.55rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
 .budget{display:flex;gap:.5rem;flex:1;flex-wrap:wrap}
-.bc{border:1px solid var(--border);border-radius:6px;padding:.2rem .6rem;text-align:center;min-width:78px}
+.bc{border:1px solid var(--border);border-radius:6px;padding:.2rem .6rem;text-align:center;min-width:86px}
 .bl{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.09em;color:var(--gray);text-transform:uppercase}
 .bv{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;line-height:1.1}
 .bv.ok{color:#4caf7d}.bv.zero{color:var(--gold)}.bv.over{color:#e05555}
-.btn{padding:.42rem 1rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;border:1px solid;cursor:pointer;font-weight:600;transition:all .18s;background:transparent;border-color:rgba(201,168,76,.4);color:var(--gold)}
+.btn{padding:.42rem 1rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;border:1px solid;cursor:pointer;font-weight:600;transition:all .18s;background:transparent;border-color:rgba(201,168,76,.4);color:var(--gold);text-decoration:none;display:inline-block}
 .btn:hover:not(:disabled){background:var(--lgold)}
 .btn:disabled{opacity:.3;cursor:default}
 .btn-gold{background:var(--gold);border-color:var(--gold);color:var(--dark)}
 .btn-gold:hover:not(:disabled){background:#e0c060}
 .warn{width:100%;font-size:.72rem;color:#e05555;font-style:italic;text-align:center;display:none}
 
-/* ── Abschluss ── */
 .sum{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
 @media(max-width:700px){.sum{grid-template-columns:1fr}}
 .sl{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.11em;color:var(--gray);text-transform:uppercase;margin-bottom:.2rem}
 .ft{width:100%;border-collapse:collapse;font-size:.78rem}
 .ft td{padding:.15rem .2rem;border-bottom:1px solid rgba(201,168,76,.1)}
-.ft .v{text-align:right;font-family:'Cinzel',serif;font-weight:700;width:46px;color:var(--gold)}
-.ft .m{text-align:center;width:24px;color:var(--teal);font-weight:700;font-size:.7rem}
+.ft .v{text-align:right;font-family:'Cinzel',serif;font-weight:700;width:48px;color:var(--gold)}
 .derived{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem}
-.dv{flex:1;min-width:92px;border:1px solid var(--border);border-radius:6px;text-align:center;padding:.4rem .3rem}
+.dv{flex:1;min-width:88px;border:1px solid var(--border);border-radius:6px;text-align:center;padding:.4rem .3rem}
 .dv-l{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.09em;color:var(--gray);text-transform:uppercase}
 .dv-v{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:700;color:var(--gold)}
 .tag{display:inline-block;font-size:.68rem;border:1px solid var(--border);border-radius:11px;padding:.08rem .5rem;margin:.1rem .15rem .1rem 0}
@@ -131,6 +142,8 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 .rtable td.n{text-align:right;font-family:'Cinzel',serif}
 .hint{font-size:.71rem;color:var(--gray);font-style:italic;line-height:1.55;margin-top:.5rem}
 .ok-msg{font-size:.8rem;color:#4caf7d;font-style:italic;margin-top:.5rem;min-height:1.1rem}
+.brief-out{font-size:.78rem;line-height:1.6;color:#cfc8ba}
+.brief-out b{color:var(--gold);font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;display:block;margin-top:.5rem}
 </style>
 </head>
 <body>
@@ -138,32 +151,20 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 <div class="topbar">
   <div class="tbin">
     <span class="brand">⚓ CHARAKTERERSCHAFFUNG</span>
-    <span class="regel-badge" id="regelBadge">—</span>
+    <span class="badge" id="rangBadge">Novize</span>
     <span style="flex:1"></span>
-    <a class="btn" href="index.html" style="text-decoration:none">Zurück zum Hub</a>
+    <a class="btn" href="index.html">Zurück zum Hub</a>
   </div>
   <div class="steps" id="steps"></div>
 </div>
 
 <div class="wrap">
 
-  <!-- 0 — REGELWERK -->
+  <!-- 0 — KONZEPT -->
   <div class="panel on" id="p0">
-    <h2>Nach welchen Regeln?</h2>
-    <p class="lead">Zwei Fassungen zur Auswahl. Du kannst später jederzeit umschalten — die
-      Werte bleiben erhalten, nur die Punktebudgets und die Erfolgsstufen ändern sich.</p>
-    <div class="rw-grid" id="regelGrid"></div>
-    <div class="card" style="margin-top:.9rem">
-      <div class="card-hdr">Der Unterschied in einer Tabelle</div>
-      <div class="card-body"><div id="regelVergleich"></div></div>
-    </div>
-  </div>
-
-  <!-- 1 — KONZEPT -->
-  <div class="panel" id="p1">
     <h2>Wer bist du?</h2>
-    <p class="lead">Name und Archetyp. Der Archetyp ist nur eine Startrichtung — er hebt einen
-      Grundwert an und schlägt nichts weiter vor.</p>
+    <p class="lead">Nur der Name und dein Rang. Was deine Figur <em style="color:var(--gold);font-style:normal">kann</em>,
+      entsteht in den nächsten Schritten — und zwar von hinten: erst wer du bist, dann was daraus folgt. Es gibt keine Fertigpakete; jede Figur wird von Hand gebaut.</p>
     <div class="card"><div class="card-body">
       <div class="f">
         <label>Name der Figur<input id="fName" maxlength="40" placeholder="…" oninput="setName()"></label>
@@ -171,56 +172,71 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
       </div>
     </div></div>
     <div class="card">
-      <div class="card-hdr">Archetyp <span class="card-hdr-sub">hebt seinen Grundwert um eine Stufe</span></div>
-      <div class="card-body"><div class="arch-grid" id="archGrid"></div></div>
+      <div class="card-hdr">Rang <span class="card-hdr-sub">entscheidet, welche Talente offenstehen</span></div>
+      <div class="card-body">
+        <div class="rangwahl" id="rangWahl"></div>
+        <div class="hint">Neue Figuren beginnen als Novize. Vier Steigerungen — etwa eine je Sitzung —
+          ergeben einen Rang.</div>
+      </div>
     </div>
   </div>
 
-  <!-- 2 — GRUNDWERTE -->
+  <!-- 1 — SCHWÄCHEN -->
+  <div class="panel" id="p1">
+    <h2>Schwächen</h2>
+    <p class="lead">Der Anfang, nicht das Anhängsel. Was deiner Figur im Weg steht, sagt mehr über sie
+      als jeder Wert — und es bringt die Punkte, aus denen deine Talente bezahlt werden.
+      Höchstens ein schweres und zwei leichte.</p>
+    <div class="card"><div class="card-body">
+      <div class="pick" id="hndGrid"></div>
+      <div class="hint">Die mit <span class="haken">Haken</span> markierten senken keine Würfel, sondern
+        lösen Szenen aus. Das sind die interessanteren — sie geben der Spielleitung etwas, woran sie
+        deine Figur aufhängen kann.</div>
+    </div></div>
+  </div>
+
+  <!-- 2 — TALENTE -->
   <div class="panel" id="p2">
-    <h2>Grundwerte</h2>
-    <p class="lead" id="gwLead"></p>
-    <div class="card"><div class="card-body" id="gwRows"></div></div>
-    <div class="hint">Alles startet auf d4. Jeder Punkt hebt einen Wert um genau eine Stufe.
-      Die Grundwerte entscheiden mit, wie teuer deine Fertigkeiten werden — wer stark ist,
-      lernt Kämpfen billiger.</div>
-  </div>
-
-  <!-- 3 — FERTIGKEITEN -->
-  <div class="panel" id="p3">
-    <h2>Fertigkeiten</h2>
-    <p class="lead" id="skLead"></p>
-    <div class="card">
-      <div class="card-hdr">Fertigkeiten <span class="card-hdr-sub">Leitwert in Klammern — bis dahin kostet jede Stufe 1</span></div>
-      <div class="card-body" id="fertRows"></div>
-    </div>
-    <div class="card">
-      <div class="card-hdr">Wissensgebiete</div>
-      <div class="card-body" id="wissRows"></div>
-    </div>
-  </div>
-
-  <!-- 4 — HANDICAPS -->
-  <div class="panel" id="p4">
-    <h2>Handicaps</h2>
-    <p class="lead">Höchstens ein schweres und zwei leichte. Sie bringen Punkte für Talente —
-      und sind zugleich eine Zusage an den Tisch: Der Spielleiter <em style="color:var(--gold);font-style:normal">wird</em>
-      sie dir vorlegen.</p>
-    <div class="card"><div class="card-body"><div class="pick" id="hndGrid"></div></div></div>
-  </div>
-
-  <!-- 5 — TALENTE -->
-  <div class="panel" id="p5">
     <h2>Talente</h2>
     <p class="lead" id="talLead"></p>
     <div class="card"><div class="card-body"><div class="pick" id="talGrid"></div></div></div>
-    <div class="card" id="mastCard">
-      <div class="card-hdr">Meisterschaft <span class="card-hdr-sub">nur in der Korsaren-Variante</span></div>
-      <div class="card-body" id="mastRows"></div>
+  </div>
+
+  <!-- 3 — ATTRIBUTE -->
+  <div class="panel" id="p3">
+    <h2>Attribute</h2>
+    <p class="lead" id="attrLead"></p>
+    <div id="attrZiele"></div>
+    <div class="card"><div class="card-body" id="attrRows"></div></div>
+    <div class="hint">Stärke und Konstitution tragen keine Fertigkeiten — sie werden direkt gewürfelt,
+      wenn es ums Heben, Aushalten, Gift oder Wundenwegstecken geht. Konstitution bestimmt außerdem
+      deine Robustheit.</div>
+  </div>
+
+  <!-- 4 — FERTIGKEITEN -->
+  <div class="panel" id="p4">
+    <h2>Fertigkeiten</h2>
+    <p class="lead" id="fertLead"></p>
+    <div id="fertZiele"></div>
+    <div class="card">
+      <div class="card-hdr">Was du gelernt hast</div>
+      <div class="card-body" id="fertRows"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">Dazulernen <span class="card-hdr-sub">Klick fügt die Fertigkeit auf d4 hinzu</span></div>
+      <div class="card-body" id="fertPicker"></div>
     </div>
   </div>
 
-  <!-- 6 — ABSCHLUSS -->
+  <!-- 5 — STECKBRIEF -->
+  <div class="panel" id="p5">
+    <h2>Steckbrief</h2>
+    <p class="lead">Fünf Fragen ohne Zahlen. Sie kosten keinen Punkt und machen trotzdem den
+      Unterschied zwischen einem Wertebogen und einer Figur.</p>
+    <div class="card"><div class="card-body" id="briefFelder"></div></div>
+  </div>
+
+  <!-- 6 — FERTIG -->
   <div class="panel" id="p6">
     <h2>Fertig</h2>
     <p class="lead" id="endLead"></p>
@@ -230,28 +246,33 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
         <div class="derived" id="endDerived"></div>
         <div class="sum">
           <div>
-            <div class="sl">Grundwerte</div><table class="ft" id="endGW"></table>
-            <div class="sl" style="margin-top:.6rem">Fertigkeiten</div><table class="ft" id="endFert"></table>
+            <div class="sl">Attribute</div><table class="ft" id="endAttr"></table>
+            <div class="sl" style="margin-top:.6rem">Talente &amp; Schwächen</div><div id="endTags"></div>
           </div>
           <div>
-            <div class="sl">Wissen</div><table class="ft" id="endWiss"></table>
-            <div class="sl" style="margin-top:.6rem">Talente &amp; Handicaps</div><div id="endTags"></div>
+            <div class="sl">Fertigkeiten</div><table class="ft" id="endFert"></table>
           </div>
         </div>
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr">Was deine Würfel können <span class="card-hdr-sub">exakt gerechnet</span></div>
-      <div class="card-body"><div id="endChancen"></div></div>
+      <div class="card-hdr">Steckbrief</div>
+      <div class="card-body"><div class="brief-out" id="endBrief"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">Was deine Würfel können <span class="card-hdr-sub">exakt gerechnet, Wert-Würfel + Wild Die</span></div>
+      <div class="card-body"><div id="endChancen"></div>
+        <div class="hint">Gelesen wird, welcher der beiden Würfel getroffen hat: beide = guter Erfolg,
+          nur dein Wert = Erfolg, nur der Wild Die = schlechter Erfolg, keiner = Misserfolg.</div>
+      </div>
     </div>
     <div class="card">
       <div class="card-hdr">Sichern</div>
       <div class="card-body">
-        <button class="btn btn-gold" onclick="uebernehmen()">In den Heldenbrief übernehmen</button>
-        <button class="btn" onclick="exportieren()">Als Datei sichern</button>
+        <button class="btn btn-gold" onclick="exportieren()">Als Datei sichern</button>
+        <button class="btn" onclick="drucken()">Drucken</button>
         <div class="ok-msg" id="endMsg"></div>
-        <div class="hint">„Übernehmen" schreibt die Figur in den Speicher dieses Browsers —
-          der Heldenbrief zeigt sie danach sofort an.</div>
+        <div class="hint">Die Figur liegt außerdem automatisch im Speicher dieses Browsers.</div>
       </div>
     </div>
   </div>
@@ -271,22 +292,29 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 /* ==========================================================
    Gefuehrte Charaktererschaffung
    ----------------------------------------------------------
-   Ein Assistent, zwei umschaltbare Regelsaetze (siehe
-   js/regelwerk.js). Die Regelwahl ist bewusst Schritt 1 und
-   nicht in den Einstellungen versteckt: Sie ist die
-   Entscheidung, die alle folgenden Budgets bestimmt.
+   REIHENFOLGE: Konzept -> Schwaechen -> Talente -> Attribute
+   -> Fertigkeiten -> Steckbrief -> Fertig.
 
-   Speichert unter demselben Schluessel wie der Heldenbrief
-   (kors_sw), damit "uebernehmen" ohne Zwischenschritt wirkt.
+   Das ist bewusst NICHT die Reihenfolge des Regelbuchs. Sie
+   folgt der Empfehlung fuer Einsteiger: erst entscheidet man,
+   WER die Figur ist (Schwaechen, Talente), und diese Wahl sagt
+   dann selbst, welche Werte noetig sind. Ein Talent laesst
+   sich deshalb waehlen, bevor seine Werte stehen - es wird zum
+   Ziel, das die Schritte 3 und 4 sichtbar anzeigen.
+
+   Einzige harte Sperre bleibt der Rang: den kann man sich
+   nicht mit Punkten kaufen.
+
+   Die Seite kennt selbst KEINE Regeln - Werte, Kosten,
+   Raenge, Voraussetzungen und Wahrscheinlichkeiten kommen
+   alle aus js/regelwerk.js.
    ========================================================== */
 
-const SCHRITTE = ['Regeln','Konzept','Grundwerte','Fertigkeiten','Handicaps','Talente','Fertig'];
+const SCHRITTE = ['Konzept','Schwächen','Talente','Attribute','Fertigkeiten','Steckbrief','Fertig'];
 let schritt = 0;
-
-let F = leereFigur('korsaren', 'Seemann');
+let F = leereFigur();
 let META = { name:'', spieler:'' };
 
-function regel() { return REGELWERKE[F.regel] || REGELWERKE.korsaren; }
 function dcls(i) { return ['d0','d1','d2','d3','d4c','d5'][i] || 'd0'; }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function pct(x) { return (x * 100).toFixed(1).replace('.', ',') + ' %'; }
@@ -308,150 +336,38 @@ function zeige() {
   renderSteps();
   document.getElementById('btnBack').disabled = (schritt === 0);
   document.getElementById('btnNext').style.display = (schritt === SCHRITTE.length - 1) ? 'none' : '';
-  document.getElementById('regelBadge').textContent = regel().name;
-  if (schritt === 6) renderAbschluss();
   window.scrollTo(0, 0);
   renderAlles();
 }
 
-/* ---------- Schritt 0: Regelwerk ---------- */
-function renderRegelwahl() {
-  document.getElementById('regelGrid').innerHTML = Object.keys(REGELWERKE).map(function (id) {
-    const r = REGELWERKE[id];
-    const punkte = [
-      r.gwPunkte + ' Punkte für Grundwerte',
-      r.fertPunkte + ' Punkte für Fertigkeiten' + (r.gratisFertigkeiten.length ? ' (' + r.gratisFertigkeiten.length + ' gratis auf d4)' : ''),
-      r.explodierend ? 'Würfel explodieren bei Höchstzahl' : 'keine explodierenden Würfel',
-      r.wildDie ? 'Wild Die (d' + r.wildDie + ') bei jeder Probe' : 'zweiter Würfel nur über gekaufte Meisterschaft',
-      r.steigerungAb ? 'Steigerung ab ' + r.steigerungAb : 'guter Erfolg, wenn beide Würfel treffen',
-      r.baender.length + ' Erfolgsstufen'
-    ];
-    return '<div class="rw-card' + (F.regel === id ? ' on' : '') + '" onclick="waehleRegel(\'' + id + '\')">' +
-      '<div class="rw-n">' + r.name + '</div><div class="rw-u">' + r.unter + '</div>' +
-      '<div class="rw-d">' + r.beschreibung + '</div>' +
-      '<ul class="rw-l">' + punkte.map(function (p) { return '<li>' + p + '</li>'; }).join('') + '</ul></div>';
-  }).join('');
-
-  const a = REGELWERKE.savage, b = REGELWERKE.korsaren;
-  const zeilen = [
-    ['Punkte Grundwerte', a.gwPunkte, b.gwPunkte],
-    ['Punkte Fertigkeiten', a.fertPunkte + ' (5 gratis auf d4)', b.fertPunkte],
-    ['Zweiter Würfel', 'Wild Die, immer, für alles', 'Meisterschaft, gekauft, je Fertigkeit'],
-    ['Explodierende Würfel', 'ja', 'nein'],
-    ['Guter Ausgang', 'Steigerung ab 8', 'beide Würfel schaffen die 4'],
-    ['Schlechter Erfolg', '— (24 Szenenstellen ohne Stufe)', 'ja, über den Nachwurf'],
-    ['Patzer', 'ja, beide Würfel zeigen 1', 'nein'],
-    ['Erschwernis', '−2 auf das Ergebnis', 'eine Würfelstufe niedriger'],
-    ['Glückspunkte', a.glueckName + ' (' + a.glueck + ')', b.glueckName + ' (' + b.glueck + ')']
-  ];
-  document.getElementById('regelVergleich').innerHTML =
-    '<table class="rtable"><tr><th></th><th>' + a.name + '</th><th>' + b.name + '</th></tr>' +
-    zeilen.map(function (z) { return '<tr><td>' + z[0] + '</td><td>' + z[1] + '</td><td>' + z[2] + '</td></tr>'; }).join('') +
-    '</table>';
-}
-
-function waehleRegel(id) {
-  regelWechseln(F, id);
-  speichern(); renderAlles(); renderRegelwahl();
-  document.getElementById('regelBadge').textContent = regel().name;
-}
-
-/* ---------- Schritt 1: Konzept ---------- */
+/* ---------- Schritt 0: Konzept ---------- */
 function setName() {
   META.name = document.getElementById('fName').value;
   META.spieler = document.getElementById('fSpieler').value;
   speichern();
 }
-function renderArch() {
-  document.getElementById('archGrid').innerHTML = ARCHETYPES.map(function (a) {
-    return '<div class="arch' + (F.arch === a.name ? ' on' : '') + '" onclick="waehleArch(\'' + a.name + '\')">' +
-      '<div class="arch-n">' + a.name + '</div><div class="arch-d">' + a.desc + '</div>' +
-      '<div class="arch-g">' + a.gw + '</div></div>';
+function renderRang() {
+  document.getElementById('rangWahl').innerHTML = RAENGE.map(function (r) {
+    return '<div class="rw-b' + ((F.rang || 0) === r.id ? ' on' : '') + '" onclick="waehleRang(' + r.id + ')">' +
+      r.name + '<small>' + (r.abSteigerung ? 'ab ' + r.abSteigerung + ' Steig.' : 'Start') + '</small></div>';
   }).join('');
+  document.getElementById('rangBadge').textContent = rangName(F.rang || 0);
 }
-function waehleArch(name) {
-  const alt = ARCHETYPES.find(function (a) { return a.name === F.arch; });
-  const neu = ARCHETYPES.find(function (a) { return a.name === name; });
-  // Den Bonus des alten Archetyps zuruecknehmen, den neuen setzen -
-  // sonst summieren sich die Boni bei jedem Wechsel auf.
-  if (alt && F.gw[alt.gw] > 1) F.gw[alt.gw]--;
-  F.arch = name;
-  if (neu && F.gw[neu.gw] < MAXD) F.gw[neu.gw]++;
+function waehleRang(id) {
+  F.rang = id;
+  // Nur der Rang ist eine harte Sperre: Talente, die er nicht mehr traegt, fallen weg.
+  F.tal = F.tal.filter(function (tid) { const t = TAL_BY_ID[tid]; return !t || talentWaehlbar(F, t).ok; });
   speichern(); renderAlles();
 }
-
-/* ---------- Stepper-Bausteine ---------- */
-function stepRow(o) {
-  return '<div class="row">' +
-    '<div class="row-n">' + o.label + (o.sub ? ' <span class="row-sub">' + o.sub + '</span>' : '') + '</div>' +
-    (o.mast || '') +
-    '<div class="step">' +
-      '<button class="sbtn" ' + (o.wert <= o.min ? 'disabled' : '') + ' onclick="' + o.minus + '">−</button>' +
-      '<div class="die ' + dcls(o.wert) + '">' + DLBL[o.wert] + '</div>' +
-      '<button class="sbtn" ' + (o.wert >= MAXD ? 'disabled' : '') + ' onclick="' + o.plus + '">+</button>' +
-    '</div><div class="cost">' + (o.cost || '') + '</div></div>';
-}
-
-function renderGw() {
-  const r = regel();
-  document.getElementById('gwLead').textContent =
-    r.gwPunkte + ' Punkte auf vier Werte. Alles beginnt bei d4, jeder Punkt ist eine Stufe.';
-  document.getElementById('gwRows').innerHTML = GW.map(function (g) {
-    return stepRow({ label:g, wert:F.gw[g] || 1, min:1,
-      minus:"chgGw('" + g + "',-1)", plus:"chgGw('" + g + "',1)", cost:((F.gw[g]||1)-1) + 'P' });
-  }).join('');
-}
-function chgGw(g, d) {
-  F.gw[g] = Math.max(1, Math.min(MAXD, (F.gw[g] || 1) + d));
-  speichern(); renderAlles();
-}
-
-function renderSkillList(liste, ziel) {
-  const r = regel();
-  document.getElementById(ziel).innerHTML = liste.map(function (sd) {
-    const v = F.sk[sd.name] || 0;
-    const min = startStufe(r, sd.name);
-    const cap = leitwert(F, sd.name);
-    const key = sd.name.replace(/'/g, "\\'");
-    const nm = sd.custom
-      ? '<input style="max-width:145px;background:var(--dark);border:1px solid var(--border);border-radius:4px;color:var(--ink);padding:.15rem .35rem;font-family:inherit;font-size:.78rem" ' +
-        'placeholder="Eigenes Wissen…" value="' + esc(F.eigenName || '') + '" oninput="setEigen(this.value)">'
-      : sd.name + (min > 0 ? ' <span class="gratis">gratis</span>' : '');
-    return stepRow({ label:nm, sub:'Leitwert ' + DLBL[cap], wert:v, min:min,
-      minus:"chgSk('" + key + "',-1)", plus:"chgSk('" + key + "',1)",
-      cost:fertKosten(r, F, sd.name, v) + 'P' });
-  }).join('');
-}
-function setEigen(v) { F.eigenName = v; speichern(); }
-function chgSk(name, d) {
-  const r = regel();
-  const min = startStufe(r, name);
-  F.sk[name] = Math.max(min, Math.min(MAXD, (F.sk[name] || 0) + d));
-  if (r.meisterschaft && F.sk[name] < r.meisterschaftAb) {
-    const i = F.mast.indexOf(name);
-    if (i >= 0) F.mast.splice(i, 1);
-  }
-  speichern(); renderAlles();
-}
-
-function renderSkills() {
-  const r = regel();
-  document.getElementById('skLead').textContent =
-    r.fertPunkte + ' Punkte. Eine Stufe kostet 1 Punkt, solange die Fertigkeit ihren Leitwert nicht übersteigt — darüber 2.' +
-    (r.gratisFertigkeiten.length ? ' Fünf Fertigkeiten sind gratis auf d4.' : '');
-  renderSkillList(FERT, 'fertRows');
-  renderSkillList(WISS, 'wissRows');
-}
-
-/* ---------- Handicaps & Talente ---------- */
+/* ---------- Schritt 1: Schwächen ---------- */
 function renderHnd() {
   document.getElementById('hndGrid').innerHTML = HANDICAPS.map(function (h) {
     const on = F.hnd.indexOf(h.id) >= 0;
     const voll = !on && (h.schwer ? zaehleSchwer(F) >= MAX_SCHWER : zaehleLeicht(F) >= MAX_LEICHT);
     return '<div class="pk' + (on ? ' on neg' : '') + (voll ? ' blocked' : '') + '"' +
       (voll ? '' : ' onclick="toggleHnd(\'' + h.id + '\')"') + '>' +
-      '<div class="pk-n"><span>' + h.n + '</span><span class="pk-c">' +
-        (h.schwer ? 'schwer · +2 P' : 'leicht · +1 P') + '</span></div>' +
+      '<div class="pk-n"><span>' + h.n + (h.haken ? '<span class="haken">Haken</span>' : '') +
+      '</span><span class="pk-c">' + (h.schwer ? 'schwer · +2 P' : 'leicht · +1 P') + '</span></div>' +
       '<div class="pk-d">' + h.d + '</div></div>';
   }).join('');
 }
@@ -467,186 +383,292 @@ function toggleHnd(id) {
   speichern(); renderAlles();
 }
 
+/* ---------- Schritt 2: Talente ---------- */
 function renderTal() {
-  const r = regel();
-  const frei = Math.max(0, (r.gratisTalente || 0) - F.tal.length);
+  const p = pruefeFigur(F);
   document.getElementById('talLead').textContent =
-    (r.gratisTalente ? r.gratisTalente + ' Talent ist frei' + (frei ? ' (noch offen)' : '') + ', jedes weitere kostet ' + r.talentKosten + ' Punkte. ' : 'Jedes Talent kostet ' + r.talentKosten + ' Punkte. ') +
-    'Punkte kommen aus Handicaps' + (r.talentPunkte ? ' und ' + r.talentPunkte + ' Startpunkten' : '') + '.';
+    'Was kann deine Figur, das andere nicht können? ' + GRATIS_TALENTE + ' Talent ist frei, jedes weitere kostet ' +
+    TALENT_KOSTEN + ' Punkte aus deinen Schwächen (du hast ' + handicapPunkte(F) + ', davon ' +
+    Math.max(0, p.talentOffen) + ' übrig). Die Voraussetzungen musst du hier noch nicht erfüllen — ' +
+    'sie werden zu deinen Zielen für die nächsten beiden Schritte.';
 
-  document.getElementById('talGrid').innerHTML = TALENTE.map(function (t) {
-    const on = F.tal.indexOf(t.id) >= 0;
-    return '<div class="pk' + (on ? ' on' : '') + '" onclick="toggleTal(\'' + t.id + '\')">' +
-      '<div class="pk-n"><span>' + t.n + '</span><span class="pk-c">' +
-      (on || F.tal.length >= (r.gratisTalente || 0) ? r.talentKosten + ' P' : 'frei') + '</span></div>' +
-      '<div class="pk-d">' + t.d + '</div></div>';
+  document.getElementById('talGrid').innerHTML = TALENT_KATEGORIEN.map(function (kat) {
+    const liste = talenteDerKategorie(kat);
+    if (!liste.length) return '';
+    return '<div class="kat-h">' + kat + '</div>' + liste.map(function (t) {
+      const on = F.tal.indexOf(t.id) >= 0;
+      const rangOk = talentWaehlbar(F, t).ok;
+      const gesperrt = !on && !rangOk;
+      const preis = (!on && F.tal.length < GRATIS_TALENTE) ? 'frei' : TALENT_KOSTEN + ' P';
+      let vorTxt = '';
+      if ((t.vor || []).length) {
+        const teile = t.vor.map(function (v) {
+          const hat = wertVon(F, v[0]) >= v[1];
+          return (hat ? '✓ ' : '') + v[0] + ' ' + DLBL[v[1]];
+        });
+        const alleDa = t.vor.every(function (v) { return wertVon(F, v[0]) >= v[1]; });
+        vorTxt = '<div class="pk-vor' + (alleDa ? '' : ' fehlt') + '">verlangt ' + teile.join(' · ') + '</div>';
+      }
+      return '<div class="pk' + (on ? ' on' : '') + (gesperrt ? ' blocked' : '') + '"' +
+        (gesperrt ? '' : ' onclick="toggleTal(\'' + t.id + '\')"') + '>' +
+        '<div class="pk-n"><span>' + t.n +
+          (t.rang ? '<span class="pk-rang">' + rangName(t.rang) + '</span>' : '') +
+        '</span><span class="pk-c">' + preis + '</span></div>' +
+        '<div class="pk-d">' + t.d + '</div>' + vorTxt +
+        (gesperrt ? '<div class="pk-sperre">gesperrt: ab ' + rangName(t.rang) + '</div>' : '') +
+      '</div>';
+    }).join('');
   }).join('');
-
-  const card = document.getElementById('mastCard');
-  if (!r.meisterschaft) { card.style.display = 'none'; return; }
-  card.style.display = '';
-  const wahl = ALL_SKILLS.filter(function (s) { return (F.sk[s.name] || 0) >= r.meisterschaftAb; });
-  document.getElementById('mastRows').innerHTML = wahl.length
-    ? wahl.map(function (s) {
-        const on = F.mast.indexOf(s.name) >= 0;
-        const key = s.name.replace(/'/g, "\\'");
-        return '<div class="row"><div class="row-n">' + (s.custom ? (F.eigenName || 'Eigenes Wissen') : s.name) +
-          ' <span class="row-sub">' + DLBL[F.sk[s.name]] + '</span></div>' +
-          '<label class="mast"><input type="checkbox" ' + (on ? 'checked' : '') +
-          ' onchange="toggleMast(\'' + key + '\')"> Meisterschaft</label>' +
-          '<div class="cost">' + r.meisterschaftKosten + 'P</div></div>';
-      }).join('')
-    : '<div class="hint" style="margin:0">Meisterschaft lässt sich erst ab ' + DLBL[r.meisterschaftAb] +
-      ' kaufen. Steigere zuerst eine Fertigkeit so weit.</div>';
 }
 function toggleTal(id) {
   const i = F.tal.indexOf(id);
-  if (i >= 0) F.tal.splice(i, 1); else F.tal.push(id);
+  if (i >= 0) F.tal.splice(i, 1);
+  else {
+    const t = TAL_BY_ID[id];
+    if (t && !talentWaehlbar(F, t).ok) return;   // nur der Rang sperrt
+    F.tal.push(id);
+  }
   speichern(); renderAlles();
 }
-function toggleMast(name) {
-  const i = F.mast.indexOf(name);
-  if (i >= 0) F.mast.splice(i, 1);
-  else if ((F.sk[name] || 0) >= regel().meisterschaftAb) F.mast.push(name);
+
+/* ---------- Ziel-Banner ---------- */
+function zieleHtml(nurAttribute) {
+  const alle = offeneVoraussetzungen(F);
+  const liste = alle.filter(function (o) { return nurAttribute ? o.attribut : !o.attribut; });
+  if (!F.tal.length) return '';
+  if (!liste.length) {
+    const rest = alle.length;
+    return '<div class="ziele' + (rest ? '' : ' fertig') + '"><div class="ziele-h">Aus deinen Talenten</div>' +
+      '<div class="ziel">' + (rest
+        ? 'Hier ist nichts mehr offen — der Rest steht im nächsten Schritt.'
+        : 'Alle Voraussetzungen deiner Talente sind erfüllt.') + '</div></div>';
+  }
+  return '<div class="ziele"><div class="ziele-h">Deine Talente verlangen noch</div>' +
+    liste.map(function (o) {
+      return '<div class="ziel"><b>' + o.wert + ' ' + DLBL[o.noetig] + '</b> — du hast ' +
+        DLBL[o.ist] + ' <span class="von">für ' + o.von.join(', ') + '</span></div>';
+    }).join('') + '</div>';
+}
+
+/* ---------- Stepper ---------- */
+function stepRow(o) {
+  return '<div class="row' + (o.braucht ? ' braucht' : '') + '">' +
+    '<div class="row-n">' + o.label + (o.soll || '') +
+      (o.sub ? '<br><span class="row-sub">' + o.sub + '</span>' : '') + '</div>' +
+    (o.weg || '') +
+    '<div class="step">' +
+      '<button class="sbtn" ' + (o.wert <= o.min ? 'disabled' : '') + ' onclick="' + o.minus + '">−</button>' +
+      '<div class="die ' + dcls(o.wert) + '">' + DLBL[o.wert] + '</div>' +
+      '<button class="sbtn" ' + (o.wert >= MAXD ? 'disabled' : '') + ' onclick="' + o.plus + '">+</button>' +
+    '</div><div class="cost' + (o.teuer ? ' teuer' : '') + '">' + (o.cost || '') + '</div></div>';
+}
+function sollBadge(noetig, ist) {
+  if (!noetig) return '';
+  const ok = ist >= noetig;
+  return '<span class="soll' + (ok ? ' ok' : '') + '">' + (ok ? '✓ ' : 'braucht ') + DLBL[noetig] + '</span>';
+}
+
+/* ---------- Schritt 3: Attribute ---------- */
+function renderAttr() {
+  document.getElementById('attrLead').textContent =
+    ATTR_PUNKTE + ' Punkte auf fünf Attribute. Alles beginnt bei d4, jeder Punkt ist eine Würfelstufe. ' +
+    'Sie entscheiden außerdem, wie teuer deine Fertigkeiten werden.';
+  document.getElementById('attrZiele').innerHTML = zieleHtml(true);
+
+  document.getElementById('attrRows').innerHTML = ATTRIBUTE.map(function (a) {
+    const v = F.attr[a.name] || 1;
+    const soll = verlangtVon(F, a.name);
+    const anzahl = fertigkeitenVon(a.name).length;
+    const sub = a.d + (anzahl ? ' · Leitwert für ' + anzahl + ' Fertigkeiten' : ' · wird direkt gewürfelt');
+    return stepRow({ label:a.name, soll:sollBadge(soll, v), braucht:(soll && v < soll),
+      sub:sub, wert:v, min:1,
+      minus:"chgAttr('" + a.name + "',-1)", plus:"chgAttr('" + a.name + "',1)", cost:(v - 1) + 'P' });
+  }).join('');
+}
+function chgAttr(name, d) {
+  F.attr[name] = Math.max(1, Math.min(MAXD, (F.attr[name] || 1) + d));
   speichern(); renderAlles();
+}
+
+/* ---------- Schritt 4: Fertigkeiten ---------- */
+function renderFert() {
+  document.getElementById('fertLead').textContent =
+    FERT_PUNKTE + ' Punkte. Eine Stufe kostet 1 Punkt, solange die Fertigkeit ihr Attribut nicht ' +
+    'übersteigt — darüber 2. Fünf Fertigkeiten kann jeder ein wenig und stehen schon auf d4.';
+  document.getElementById('fertZiele').innerHTML = zieleHtml(false);
+
+  // Gezeigt wird, was gelernt ist ODER was ein Talent verlangt.
+  const gelernt = FERTIGKEITEN.filter(function (s) {
+    return (F.fert[s.name] || 0) > 0 || verlangtVon(F, s.name) > 0;
+  });
+  document.getElementById('fertRows').innerHTML = gelernt.length
+    ? gelernt.map(function (s) {
+        const v = F.fert[s.name] || 0;
+        const min = startStufe(s.name);
+        const cap = F.attr[s.attr] || 1;
+        const soll = verlangtVon(F, s.name);
+        const weg = (v > min && !soll)
+          ? '<button class="wegbtn" title="wieder verlernen" onclick="setFert(\'' + s.name + '\',' + min + ')">✕</button>'
+          : '';
+        return stepRow({ label:s.name + (min > 0 ? ' <span class="gratis">frei</span>' : ''),
+          soll:sollBadge(soll, v), braucht:(soll && v < soll),
+          sub:s.attr + ' ' + DLBL[cap] + ' · ' + s.d, wert:v, min:min, teuer:(v > cap), weg:weg,
+          minus:"chgFert('" + s.name + "',-1)", plus:"chgFert('" + s.name + "',1)",
+          cost:fertKosten(F, s.name, v) + 'P' });
+      }).join('')
+    : '<div class="leer">Noch nichts gelernt. Nimm dir unten etwas aus der Liste.</div>';
+
+  // Auswahlliste alles Ungelernten, nach Attribut gruppiert.
+  document.getElementById('fertPicker').innerHTML = ATTRIBUTE.map(function (a) {
+    const offen = fertigkeitenVon(a.name).filter(function (s) {
+      return (F.fert[s.name] || 0) === 0 && verlangtVon(F, s.name) === 0;
+    });
+    if (!offen.length) return '';
+    return '<div style="margin-bottom:.5rem"><div class="sl">' + a.name + ' <span style="color:var(--gray)">' +
+      DLBL[F.attr[a.name] || 1] + '</span></div><div class="chips">' +
+      offen.map(function (s) {
+        return '<button class="chip" onclick="setFert(\'' + s.name + '\',1)" title="' + esc(s.d) + '">' +
+          s.name + '<span class="cs">+1P</span></button>';
+      }).join('') + '</div></div>';
+  }).join('') || '<div class="leer">Du hast jede Fertigkeit mindestens angefangen.</div>';
+}
+function chgFert(name, d) {
+  setFert(name, (F.fert[name] || 0) + d);
+}
+function setFert(name, wert) {
+  const min = startStufe(name);
+  F.fert[name] = Math.max(min, Math.min(MAXD, wert));
+  speichern(); renderAlles();
+}
+
+/* ---------- Schritt 5: Steckbrief ---------- */
+function renderBrief() {
+  document.getElementById('briefFelder').innerHTML = STECKBRIEF.map(function (b) {
+    return '<div class="brief-f">' +
+      '<div class="brief-q">' + b.n + ' — ' + b.frage + '</div>' +
+      '<div class="brief-h">' + b.hilfe + '</div>' +
+      '<textarea id="brief_' + b.id + '" placeholder="…" oninput="setBrief(\'' + b.id + '\',this.value)">' +
+        esc(F.brief[b.id] || '') + '</textarea>' +
+      '<div class="brief-b" onclick="uebernehmeBeispiel(\'' + b.id + '\')">Beispiel: ' + b.beispiel + '</div>' +
+    '</div>';
+  }).join('');
+}
+function setBrief(id, v) { F.brief[id] = v; speichern(); }
+function uebernehmeBeispiel(id) {
+  const b = STECKBRIEF.find(function (x) { return x.id === id; });
+  if (!b) return;
+  if (F.brief[id] && !confirm('Dein Text wird durch das Beispiel ersetzt.')) return;
+  F.brief[id] = b.beispiel;
+  const el = document.getElementById('brief_' + id);
+  if (el) el.value = b.beispiel;
+  speichern();
 }
 
 /* ---------- Budgetleiste ---------- */
 function renderBudget() {
-  const r = regel(), p = pruefeFigur(r, F);
+  const p = pruefeFigur(F);
   function box(l, v) {
     const k = v < 0 ? 'over' : (v === 0 ? 'zero' : 'ok');
     return '<div class="bc"><div class="bl">' + l + '</div><div class="bv ' + k + '">' + v + '</div></div>';
   }
+  const offen = offeneVoraussetzungen(F).length;
   document.getElementById('budget').innerHTML =
-    box('Grundwerte', p.gwOffen) + box('Fertigk.', p.fertOffen) + box('Talente', p.talentOffen) +
-    '<div class="bc"><div class="bl">Handicaps</div><div class="bv zero">+' + handicapPunkte(F) + '</div></div>';
+    box('Attribute', p.attrOffen) + box('Fertigkeiten', p.fertOffen) + box('Talentpunkte', p.talentOffen) +
+    '<div class="bc"><div class="bl">Ziele offen</div><div class="bv ' + (offen ? 'over' : 'zero') + '">' + offen + '</div></div>';
   const w = document.getElementById('warn');
   w.style.display = p.probleme.length ? 'block' : 'none';
   w.textContent = '⚠ ' + p.probleme.join(' · ');
 }
 
-/* ---------- Abschluss ---------- */
+/* ---------- Schritt 6: Abschluss ---------- */
 function renderAbschluss() {
-  const r = regel(), p = pruefeFigur(r, F);
-  document.getElementById('endLead').textContent = p.ok
-    ? 'Die Figur ist regelkonform. Übernimm sie in den Heldenbrief oder sichere sie als Datei.'
-    : 'Achtung: ' + p.probleme.join(', ') + '. Du kannst trotzdem übernehmen — der Heldenbrief zeigt die Warnung weiter an.';
+  const p = pruefeFigur(F);
+  const offen = offeneVoraussetzungen(F);
+  document.getElementById('endLead').textContent = !p.ok
+    ? 'Achtung: ' + p.probleme.join(', ') + '.'
+    : (offen.length
+        ? 'Noch offen: ' + offen.map(function (o) { return o.wert + ' ' + DLBL[o.noetig]; }).join(', ') + '.'
+        : ((p.attrOffen > 0 || p.fertOffen > 0)
+            ? 'Es sind noch Punkte übrig (' + p.attrOffen + ' Attribute, ' + p.fertOffen + ' Fertigkeiten) — du kannst sie liegen lassen oder zurückgehen.'
+            : 'Die Figur ist fertig und regelkonform.'));
 
   document.getElementById('endDerived').innerHTML =
     '<div class="dv"><div class="dv-l">Parade</div><div class="dv-v">' + parade(F) + '</div></div>' +
     '<div class="dv"><div class="dv-l">Robustheit</div><div class="dv-v">' + robustheit(F) + '</div></div>' +
-    '<div class="dv"><div class="dv-l">' + r.glueckName + '</div><div class="dv-v">' + glueck(r, F) + '</div></div>';
+    '<div class="dv"><div class="dv-l">Bennies</div><div class="dv-v">' + bennies(F) + '</div></div>' +
+    '<div class="dv"><div class="dv-l">Bewegung</div><div class="dv-v">' + bewegung() + '</div></div>' +
+    '<div class="dv"><div class="dv-l">Rang</div><div class="dv-v" style="font-size:.9rem">' + rangName(F.rang || 0) + '</div></div>';
 
-  document.getElementById('endGW').innerHTML = GW.map(function (g) {
-    return '<tr><td>' + g + '</td><td class="v">' + DLBL[F.gw[g] || 1] + '</td></tr>';
+  document.getElementById('endAttr').innerHTML = ATTRIBUTE.map(function (a) {
+    return '<tr><td>' + a.name + '</td><td class="v">' + DLBL[F.attr[a.name] || 1] + '</td></tr>';
   }).join('');
 
-  function rows(list) {
-    return list.map(function (s) {
-      const nm = s.custom ? (F.eigenName || 'Eigenes Wissen') : s.name;
-      const m = F.mast.indexOf(s.name) >= 0 ? 'M' : '';
-      return '<tr><td>' + esc(nm) + '</td><td class="m">' + m + '</td><td class="v">' +
-        (F.sk[s.name] ? DLBL[F.sk[s.name]] : '—') + '</td></tr>';
-    }).join('');
-  }
-  document.getElementById('endFert').innerHTML = rows(FERT);
-  document.getElementById('endWiss').innerHTML = rows(WISS);
+  const gelernt = FERTIGKEITEN.filter(function (s) { return (F.fert[s.name] || 0) > 0; });
+  document.getElementById('endFert').innerHTML = gelernt.length
+    ? gelernt.map(function (s) {
+        return '<tr><td>' + s.name + '</td><td class="v">' + DLBL[F.fert[s.name]] + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="2" class="row-sub">nichts gelernt</td></tr>';
 
   const tags = F.tal.map(function (i) { return '<span class="tag pos">' + (TAL_BY_ID[i] ? TAL_BY_ID[i].n : i) + '</span>'; }).join('') +
                F.hnd.map(function (i) { return '<span class="tag neg">' + (HND_BY_ID[i] ? HND_BY_ID[i].n : i) + '</span>'; }).join('');
   document.getElementById('endTags').innerHTML = tags || '<span class="hint">keine</span>';
 
-  // Chancen fuer die tatsaechlich gelernten Fertigkeiten
-  const baender = r.baender.concat(r.patzer ? ['patzer'] : []);
-  let h = '<table class="rtable"><tr><th>Fertigkeit</th><th>Würfel</th>' +
-    baender.map(function (b) { return '<th>' + r.bandNamen[b] + '</th>'; }).join('') + '</tr>';
-  const gelernt = ALL_SKILLS.filter(function (s) { return (F.sk[s.name] || 0) > 0; });
-  (gelernt.length ? gelernt : ALL_SKILLS.slice(0, 3)).forEach(function (s) {
-    const st = F.sk[s.name] || 0;
-    const c = chancen(r, st, { mastery: F.mast.indexOf(s.name) >= 0 });
-    const nm = s.custom ? (F.eigenName || 'Eigenes Wissen') : s.name;
-    h += '<tr><td>' + esc(nm) + (F.mast.indexOf(s.name) >= 0 ? ' <span class="gratis">M</span>' : '') +
-      '</td><td>' + (st ? DLBL[st] : 'ungelernt') + '</td>' +
-      baender.map(function (b) { return '<td class="n">' + pct(c[b] || 0) + '</td>'; }).join('') + '</tr>';
-  });
-  h += '</table>';
-  document.getElementById('endChancen').innerHTML = h;
+  const gefuellt = STECKBRIEF.filter(function (b) { return (F.brief[b.id] || '').trim(); });
+  document.getElementById('endBrief').innerHTML = gefuellt.length
+    ? gefuellt.map(function (b) { return '<b>' + b.n + '</b>' + esc(F.brief[b.id]); }).join('')
+    : '<span class="hint">Noch nichts ausgefüllt. Das ist der Teil, der deine Figur von einem Wertebogen unterscheidet.</span>';
+
+  let t = '<table class="rtable"><tr><th>Wert</th><th>Würfel</th>' +
+    BAENDER.map(function (b) { return '<th>' + BAND_NAMEN[b] + '</th>'; }).join('') + '</tr>';
+  ATTRIBUTE.map(function (a) { return { n:a.name, v:F.attr[a.name] || 1 }; })
+    .concat(gelernt.map(function (s) { return { n:s.name, v:F.fert[s.name] }; }))
+    .forEach(function (z) {
+      const c = chancen(z.v, {});
+      t += '<tr><td>' + z.n + '</td><td>' + DLBL[z.v] + '</td>' +
+        BAENDER.map(function (b) { return '<td class="n">' + pct(c[b] || 0) + '</td>'; }).join('') + '</tr>';
+    });
+  document.getElementById('endChancen').innerHTML = t + '</table>';
 }
 
-/* ---------- Speichern ---------- */
+/* ---------- Speichern / Export ---------- */
 function speichern() {
-  try { localStorage.setItem('kors_erstellung', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
 }
 function laden() {
   try {
-    const d = JSON.parse(localStorage.getItem('kors_erstellung') || 'null');
-    if (d && d.F) { F = Object.assign(leereFigur(d.F.regel || 'korsaren', d.F.arch), d.F); }
+    const d = JSON.parse(localStorage.getItem('kors_figur') || 'null');
+    if (d && d.F && d.F.attr && d.F.fert) F = Object.assign(leereFigur(), d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
 }
-
-// Schreibt in das Format, das charakterbogen_sw.html liest.
-function bogenFormat() {
-  return {
-    version: 'sw-1',
-    S: { arch:F.arch, gw:F.gw, sk:F.sk, mast:F.mast, tal:F.tal, hnd:F.hnd, eigenName:F.eigenName, regel:F.regel },
-    SHEET: { name:META.name, spieler:META.spieler, notizen:'', ausr:['','','','','',''],
-             crew:[false,false,false,false,false], shaken:false, wounds:0, img:null }
-  };
-}
-
-function uebernehmen() {
-  try {
-    const alt = JSON.parse(localStorage.getItem('kors_sw') || 'null');
-    const neu = bogenFormat();
-    // Vorhandene Bogen-Angaben (Notizen, Ausruestung, Bild) nicht wegwerfen.
-    if (alt && alt.SHEET) {
-      neu.SHEET = Object.assign({}, alt.SHEET, { name:META.name || alt.SHEET.name, spieler:META.spieler || alt.SHEET.spieler });
-    }
-    localStorage.setItem('kors_sw', JSON.stringify(neu));
-    const m = document.getElementById('endMsg');
-    m.style.color = '#4caf7d';
-    // Der Heldenbrief rechnet bis zur Regelentscheidung fest nach der
-    // Korsaren-Variante. Eine Savage-Figur wird dort also mit den falschen
-    // Erfolgsstufen angezeigt - das muss man wissen, statt es zu entdecken.
-    m.innerHTML = 'Übernommen. <a href="charakterbogen_sw.html" style="color:var(--gold)">Zum Heldenbrief →</a>' +
-      (F.regel === 'savage'
-        ? '<br><span style="color:#f0c48a">Hinweis: Der Heldenbrief zeigt die Erfolgsstufen bis auf Weiteres nach der ' +
-          'Korsaren-Variante an. Werte und Talente stimmen, die Wahrscheinlichkeiten dort nicht — die stehen richtig ' +
-          'auf dieser Seite.</span>'
-        : '');
-  } catch (e) {
-    document.getElementById('endMsg').textContent = 'Konnte nicht gespeichert werden: ' + e.message;
-  }
-}
-
 function exportieren() {
-  const data = JSON.stringify(bogenFormat(), null, 2);
+  const data = JSON.stringify({ version:'korsaren-sw-2', F:F, META:META }, null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type:'application/json' }));
   a.download = (META.name || 'korsaren-figur').replace(/[^\wäöüÄÖÜß -]/g, '') + '.json';
   a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-  document.getElementById('endMsg').style.color = '#4caf7d';
-  document.getElementById('endMsg').textContent = 'Datei erzeugt.';
+  const m = document.getElementById('endMsg');
+  m.style.color = '#4caf7d'; m.textContent = 'Datei erzeugt.';
 }
+function drucken() { window.print(); }
 
 /* ---------- Start ---------- */
 function renderAlles() {
-  renderRegelwahl(); renderArch(); renderGw(); renderSkills();
-  renderHnd(); renderTal(); renderBudget();
+  renderRang(); renderHnd(); renderTal();
+  renderAttr(); renderFert(); renderBrief(); renderBudget();
   const n = document.getElementById('fName'), s = document.getElementById('fSpieler');
   if (n && document.activeElement !== n) n.value = META.name || '';
   if (s && document.activeElement !== s) s.value = META.spieler || '';
-  if (schritt === 6) renderAbschluss();
+  if (schritt === SCHRITTE.length - 1) renderAbschluss();
 }
 
 laden();
 zeige();
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { bogenFormat, setFigur: function (f) { F = f; }, getFigur: function () { return F; } };
+  module.exports = { getFigur:function () { return F; }, setSchritt:springe };
 }
 </script>
 </body>

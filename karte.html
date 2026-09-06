@@ -2033,13 +2033,17 @@
       applyAudioState();
     });
 
-    // ---------- Charakterbogen-Drawer ----------
-    // Eigenständige Seite (charakterbogen.html) im iframe statt inline
-    // eingebettet - vermeidet CSS-Konflikte (die Datei definiert eigene
-    // :root-Variablen mit denselben Namen wie hier, z.B. --gold/--line,
-    // aber anderen Werten). iframe-src wird erst beim ersten Öffnen
-    // gesetzt (lazy), damit die Seite nicht bei jedem Kartenaufruf
-    // mitgeladen wird, auch wenn niemand den Bogen öffnet.
+    // ---------- Charakter-Drawer ----------
+    // Eigenständige Seite im iframe statt inline eingebettet - vermeidet
+    // CSS-Konflikte (die Datei definiert eigene :root-Variablen mit
+    // denselben Namen wie hier, z.B. --gold/--line, aber anderen Werten).
+    // iframe-src wird erst beim ersten Öffnen gesetzt (lazy), damit die
+    // Seite nicht bei jedem Kartenaufruf mitgeladen wird.
+    //
+    // Zeigt seit dem Systemwechsel charaktererstellung.html. Der alte
+    // W100-Bogen ist ersatzlos entfallen; ein eigener Bogen fuer das neue
+    // System steht noch aus - bis dahin traegt der Assistent selbst die
+    // Uebersicht am Ende.
     (function () {
       const handle = document.getElementById('charSheetHandle');
       const backdrop = document.getElementById('charSheetBackdrop');
@@ -2048,7 +2052,7 @@
       let loaded = false;
 
       function openDrawer() {
-        if (!loaded) { iframe.src = 'charakterbogen.html'; loaded = true; }
+        if (!loaded) { iframe.src = 'charaktererstellung.html'; loaded = true; }
         drawer.classList.add('open');
         backdrop.classList.add('open');
       }

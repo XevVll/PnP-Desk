@@ -105,6 +105,161 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-06 (Fortsetzung 3) — Kompletter Schnitt: alles Alte entfernt
+- **Hendriks Ansage, zum dritten Mal:** „Ich möchte das System komplett umstellen. Nicht halb
+  halb." Ich hatte trotz zweier vorheriger Ansagen Reste stehen lassen — die Archetypen als
+  „Abkürzung", den toten Bogen und den alten W100-Bogen als „Archiv". Jetzt vollständig weg.
+- **Archetypen ersatzlos entfernt** aus `js/regelwerk.js` (`ARCHETYPES`, `archetypSetzen`,
+  `pruefeVorlagen`) und aus dem Assistenten. `leereFigur()` nimmt kein Argument mehr, das Feld
+  `arch` an der Figur ist weg. Begründung im Code: Ein Paket, das Attribute und Fertigkeiten
+  vorab füllt, überspringt genau den Weg, um den es bei dieser Reihenfolge geht.
+- **`charakterbogen_sw.html` gelöscht** — stand auf dem gestrichenen Wertemodell und hätte jede
+  Figur falsch angezeigt.
+- **`charakterbogen.html` gelöscht** (der alte W100-Bogen). Dabei fiel auf, dass `karte.html` ihn
+  im Charakter-Fach per iframe lädt (Zeile ~2051) — ein reines Löschen hätte die Spieleransicht
+  gebrochen. Der Drawer zeigt jetzt `charaktererstellung.html`; bis ein eigener Bogen für das
+  neue System steht, trägt der Assistent selbst die Übersicht am Ende.
+  - **Folge, die Hendrik kennen sollte:** Figuren, die Spieler unter `localStorage.kors_s`
+    gespeichert haben, sind damit nicht mehr aufrufbar. Das ist die Konsequenz des
+    Systemwechsels, nicht ein Versehen.
+- **Hub bereinigt:** verlinkt nur noch Karte, Figur erschaffen, Besatzung, Codex. Im gesamten
+  Repo gibt es keine Referenz auf `charakterbogen*` mehr.
+- **Getestet:** 36 Prüfungen des Regelwerks und 26 des Assistenten, 0 Fehler; alle Links in
+  `index.html` und `karte.html` zeigen auf existierende Dateien.
+
+### 2026-09-06 (Fortsetzung 2) — Geführte Erschaffung in Einsteiger-Reihenfolge
+- **Anlass:** Hendrik hat „Charaktererstellung #2 | Savage Worlds" gesehen und will diese
+  Reihenfolge: **erst Schwächen und Talente**, die auf ihre Attribute verweisen, **am Ende die
+  Fertigkeiten aus einer Liste**. (Das Video selbst konnte ich nicht ansehen — gebaut wurde nach
+  Hendriks Beschreibung; sie deckt sich mit der gängigen Einsteiger-Empfehlung.)
+- **Neue Schrittfolge:** Konzept → **Schwächen → Talente → Attribute → Fertigkeiten** →
+  Steckbrief → Fertig. Bewusst nicht die Reihenfolge des Regelbuchs: Erst entscheidet man, WER
+  die Figur ist, und diese Wahl sagt dann selbst, welche Werte nötig sind.
+- **Weiche Voraussetzungen** (`talentWaehlbar` / `verlangtVon` / `offeneVoraussetzungen` in
+  `js/regelwerk.js`). Der Kern des Umbaus, weil ein Talent jetzt gewählt wird, *bevor* seine
+  Werte stehen:
+  - **Rang bleibt harte Sperre** — den kann man sich mit Punkten nicht kaufen.
+  - **Wert-Voraussetzungen werden zum Ziel.** Das Talent ist wählbar, und die Schritte Attribute
+    und Fertigkeiten zeigen an, was noch fehlt: ein Banner „Deine Talente verlangen noch
+    Kämpfen d8 — du hast — · für Duellant", ein Abzeichen an der betroffenen Zeile
+    („braucht d8" → „✓ d8"), die Zeile selbst hervorgehoben, und ein Zähler „Ziele offen" in
+    der Fußleiste.
+  - Eine von einem Talent verlangte Fertigkeit erscheint automatisch in der Liste, auch wenn sie
+    noch ungelernt ist — sonst müsste man sie suchen.
+- **Fertigkeiten als Auswahlliste** statt 16 fester Zeilen: Gezeigt wird, was gelernt ist oder
+  was ein Talent verlangt; alles Übrige steht als anklickbare Chips nach Attribut gruppiert
+  darunter und wird per Klick auf d4 dazugenommen. Ein ✕ verlernt wieder.
+- **Archetypen zur Abkürzung degradiert:** Sie stehen als optionale Chips auf dem Konzept-Schritt
+  mit dem ausdrücklichen Hinweis, dass der geführte Weg ohne sie läuft. Ein Paket, das Attribute
+  und Fertigkeiten vorab füllt, widerspricht sonst genau dem Prinzip dieser Reihenfolge.
+- **Getestet** (Node, kein Browser): 25 Prüfungen des Assistenten und 39 des Regelwerks,
+  0 Fehler. Darunter: die Schrittreihenfolge selbst, dass eine fehlende **Wert**-Voraussetzung
+  nicht sperrt (Marktkenner, Rang 0), dass ein Rang zu niedrig weiterhin sperrt, dass ein
+  gewähltes Talent zum offenen Ziel wird und nach Erfüllen verschwindet, und der
+  Hinzufügen/Verlernen-Kreis in der Fertigkeitsliste.
+  - **Zwei Testfehler, beide meine:** Die Prüfung „Wert-Voraussetzung sperrt nicht" lief gegen
+    Duellant, während die Figur noch Novize war — dort sperrte korrekt der *Rang*; jetzt gegen
+    Marktkenner (Rang 0). Und `class="row` traf als Regex auch `row-n`/`row-sub`.
+
+### 2026-09-06 (Fortsetzung) — Altes Wertegerüst gestrichen, ein einziges Regelwerk
+- **Hendriks Ansage: „wir vergessen das alte System vollständig."** Ich hatte die alten
+  Wertenamen mehrfach mit dem Szenentext verteidigt (Körper 51×, Wahrnehmung 36× in
+  `js/regie.js`) und damit das Charaktersystem aus den Zwängen des Abenteuers abgeleitet —
+  genau das war nicht gewollt. Die Zuordnung der Proben im Abenteuertext ist ein **späterer,
+  eigener Schritt**.
+- **`js/regelwerk.js` neu gebaut.** Entfallen: die vier Grundwerte (Körper/INT/Auftreten/
+  Wahrnehmung), die sechs Fertigkeiten, die acht Wissensgebiete — und die Umschaltung zwischen
+  zwei Regelsätzen. Hendriks Frage „Savage Worlds mit unserer Zwei-Würfel-Logik?" hatte den
+  Vergleich bereits entschieden; es gibt jetzt **genau ein System**.
+  - **Fünf Attribute:** Geschicklichkeit · Verstand · Willenskraft · Stärke · Konstitution.
+    Stärke und Konstitution tragen bewusst **keine** Fertigkeiten (werden direkt gewürfelt),
+    wie im Original.
+  - **16 Fertigkeiten, jede an genau EINEM Attribut.** Das behebt den gemessenen Fehler des
+    alten Gerüsts, wo ein Wert Leitwert für 11 von 14 Fertigkeiten und damit Zwangskauf war.
+    Verteilung jetzt 6 / 7 / 3 / 0 / 0. Fünf Kernfertigkeiten starten frei auf d4.
+  - **Budgets:** 5 Attributs-, 12 Fertigkeitspunkte; eine Stufe kostet 1 bis zum Attribut,
+    darüber 2. Sechs Archetypen als Startpakete, alle innerhalb des Budgets.
+- **Die Würfellogik ist Hendriks Verschmelzung** und die einzige bewusste Hausregel: Savage
+  Worlds gibt Spielerfiguren ohnehin zwei Würfel (Wert + Wild Die d6). Statt „nimm den besseren"
+  wird gelesen, **welcher** getroffen hat — beide = guter Erfolg, nur der Wert = Erfolg, nur der
+  Wild Die = schlechter Erfolg, keiner = Misserfolg. Kein Addieren, kein Explodieren, keine
+  8er-Schwelle, kein Nachwurf. Ungelernt gibt es keinen Wert-Würfel: dann trägt allein der Wild
+  Die, es kann also höchstens ein schlechter Erfolg herauskommen.
+  - Ergebnis (gut / Erfolg / schlecht / Miss): d4 12,5–12,5–37,5–37,5 · d6 je 25 ·
+    d8 31,3–31,3–18,8–18,8 · d12 37,5–37,5–12,5–12,5. **Der Anfänger schafft die Dinge
+    überwiegend mit Glück, der Meister überwiegend mit Können** — dieselbe Handlung, eine andere
+    Geschichte. Stellschraube ist `WILD_DIE`: ein d4 dort halbiert die guten Erfolge.
+  - Statisten würfeln ohne Wild Die (`chancen(stufe,{wild:false})`) und kennen nur Erfolg/Miss.
+- **Steckbrief neu** (`STECKBRIEF`): fünf Pflichtfelder ohne Zahlen — Antrieb, Band, Geheimnis,
+  Marke, Erste Szene, je mit Hilfetext und einem übernehmbaren Beispiel. Das ist der Teil, den
+  Savage Worlds nicht liefert und der Hendriks eigentliches Ziel trägt.
+- **`charaktererstellung.html` neu gebaut**: sieben Schritte (Konzept · Attribute ·
+  Fertigkeiten · Handicaps · Talente · Steckbrief · Fertig). Fertigkeiten nach Attribut
+  gruppiert mit dem Leitwert in der Kopfzeile; Kosten oberhalb des Attributs orange markiert.
+  Talente nach Kategorie, gesperrte mit Begründung statt versteckt. Nimmt man einem Talent die
+  Voraussetzung wieder weg (Wert senken, Rang senken, Archetyp wechseln), fällt es automatisch
+  ab. Die Seite kennt selbst **keine** Regeln — alles kommt aus `js/regelwerk.js`.
+- **Getestet** (Node, kein Browser): 39 Prüfungen des Regelwerks und 25 des Assistenten,
+  0 Fehler. Darunter: jede Fertigkeit hängt an genau einem Attribut, kein alter Wertename mehr
+  vorhanden, alle Bänder summieren auf 1, schlechter Erfolg sinkt und guter Erfolg steigt
+  monoton mit dem Würfel, alle Voraussetzungen zeigen auf existierende Werte, jedes Talent ist
+  erreichbar, Archetypen im Budget, mehrfaches Setzen summiert nicht.
+- **Hub angepasst:** Die Kachel „Heldenbrief" ist entfernt — `charakterbogen_sw.html` steht auf
+  dem gestrichenen Modell und würde eine Figur falsch anzeigen. `charakterbogen.html` bleibt als
+  „Archiv" verlinkt (die gespielte Runde hängt daran).
+- **[OFFEN]** `charakterbogen_sw.html` ist damit verwaist und sollte gelöscht werden, sobald ein
+  neuer Bogen auf `js/regelwerk.js` steht — bewusst nicht eigenmächtig entfernt.
+- **[OFFEN]** Ausrüstung fehlt noch (Startgeld, Traglast an der Stärke, Waffen mit eigenem
+  Schadenswürfel, Rüstung erhöht die Robustheit). Die Struktur ist dafür vorgesehen.
+- **[OFFEN]** Die Zuordnung der Proben in `js/regie.js` auf die neuen Werte steht aus. Das ist
+  Absicht: erst das Charaktersystem, dann das Abenteuer daran anpassen.
+
+### 2026-09-06 — Talente und Handicaps auf Savage-Worlds-Struktur, mit Rängen
+- **Anlass:** Hendriks Frage, ob man die offiziellen Listen übernimmt oder eigene schreibt.
+  **Antwort und Vorgehen: Mechanik übernehmen, Texte selbst schreiben.** Wirkung, Rangstufen
+  und Mindestvoraussetzungen folgen dem Savage-Worlds-Muster (über Jahre austariert, das
+  nachzuerfinden wäre töricht); die Beschreibungen sind eigene, weil die offiziellen für ein
+  generisches System von Fantasy bis Science-Fiction geschrieben sind und deshalb bewusst
+  farblos bleiben — genau das Gegenteil des Ziels „mehr Pen-and-Paper-Gefühl".
+  - Der zuerst von mir angeführte Copyright-Aspekt war **nicht** der tragende Grund und wurde
+    auf Hendriks Einwand fallen gelassen: Für eine private Runde spielt er keine Rolle.
+- **Ränge neu** (`RAENGE` in `js/regelwerk.js`): Novize → Erfahren → Veteran → Heroisch →
+  Legendär, je vier Steigerungen ein Rang, dazu `rangVon()`/`rangName()`. Der Rang ist kein
+  Selbstzweck: **daran hängen die Talente**, und genau das gibt Spielern zwischen den Sitzungen
+  ein Ziel.
+- **Talente 12 → 29**, erstmals mit `kat`/`rang`/`vor` (Kategorie, Mindestrang, Mindestwerte).
+  Verteilung: Hintergrund 6 · Handwerk 6 · Kampf 7 · Umgang 3 · **Führung 4** · **Unheimliches 3**.
+  Die beiden letzten Zweige fehlten komplett — bei einem Schiff mit 120 Mann und einem
+  übernatürlichen Finale eine echte Lücke. Nach Rang: 12 Novize, 12 Erfahren, 4 Veteran,
+  1 Heroisch.
+- **Handicaps 14 → 20** und inhaltlich verschoben: neu `Schwur`, `Erzfeind`, `Getrieben`,
+  `Verpflichtung`, `Treu`, `Stolz`. **15 der 20 tragen jetzt das Merkmal `haken`** — sie lösen
+  Szenen aus, statt Würfel zu senken. Vorher war die Liste mehrheitlich Malus; die Stärke der
+  offiziellen Vorlage liegt aber genau bei den Verpflichtungen.
+- **Assistent** (`charaktererstellung.html`): Talente nach Kategorien gruppiert, Rangabzeichen
+  an höheren Talenten, gesperrte Karten **mit Begründung** („gesperrt: ab Erfahren · Kampf d8")
+  statt sie zu verstecken — man soll sehen, worauf man hinarbeitet. Neue **Rangwahl** im
+  Konzept-Schritt (Vorgabe Novize; wer die gespielte Kampagne als Vorgeschichte zählt, steigt
+  höher ein). Senkt man den Rang, fallen dadurch unerlaubt gewordene Talente automatisch weg.
+- **Getestet** (Node, kein Browser): 27 Prüfungen des Regelwerks und 14 des Assistenten,
+  0 Fehler. Darunter: alle Voraussetzungen zeigen auf tatsächlich existierende Werte, jedes
+  Talent ist von irgendeiner legalen Figur erreichbar, keine doppelten IDs, die Sperrlogik
+  nennt Rang und Wert getrennt, und ein Rangaufstieg gibt gezielt das richtige Talent frei.
+  - **Drei Testfehler, alle meine, alle dieselbe Sorte falscher Erwartung:** (1) „höherer Rang
+    sperrt weniger" schlug fehl, weil eine frische Figur alle Werte auf Minimum hat — die
+    Wert-Voraussetzungen scheitern dann auch als Legendär, das Verhalten war korrekt.
+    (2) `Kampf d8` gibt **zwei** Talente frei (Duellant *und* Ruhige Hand), nicht eines.
+    (3) Erneut die vm-Falle: `const TALENTE` im Skript-Scope ist von außen nicht als
+    `ctx.TALENTE` sichtbar — Daten jetzt über `require()` des Moduls statt über den Kontext.
+- **[OFFEN]** Die Voraussetzungen zeigen auf die **derzeitigen** Wertenamen (Körper/INT/
+  Auftreten/Wahrnehmung plus die vierzehn Fertigkeiten). Wird die vorgeschlagene Umstellung auf
+  fünf Savage-Worlds-Attribute mit eigener Fertigkeitsliste beschlossen, müssen rund 30
+  Voraussetzungen umgehängt werden — rein mechanisch, der teure Teil (Namen, Texte, Wirkungen,
+  Rangstaffelung) bleibt davon unberührt.
+- **[OFFEN]** Legendär trägt bisher kein Talent (die Kampagne erreicht den Rang ohnehin nicht).
+  `charakterbogen_sw.html` nutzt `js/regelwerk.js` weiterhin nicht und kennt daher weder Ränge
+  noch die neuen Talente.
+
 ### 2026-09-05 (Fortsetzung 2) — Geführte Charaktererschaffung mit zwei Regelsätzen
 - **Hendriks Auftrag:** eine geführte Erschaffung nach Savage-Worlds-Regeln, und zwar in **zwei
   Fassungen** zum Vergleich — einmal Savage Worlds pur, einmal unsere Variante.
