@@ -244,7 +244,56 @@ const TALENTE = [
   { id:'standhaft', n:'Standhaft',          kat:'Unheimliches', rang:1, vor:[['Willenskraft',3]],
     d:'Gegen Furcht und gegen das, was nicht tot bleibt: eine Stufe höher. Du hast entschieden, nicht wegzulaufen.' },
   { id:'omen',      n:'Zeichenleser',       kat:'Unheimliches', rang:2, vor:[['Allgemeinwissen',3]],
-    d:'Einmal je Sitzung fragst du, ob ein Vorhaben unter einem guten Zeichen steht. Die Antwort ist ehrlich: gut, schlecht oder unklar.' }
+    d:'Einmal je Sitzung fragst du, ob ein Vorhaben unter einem guten Zeichen steht. Die Antwort ist ehrlich: gut, schlecht oder unklar.' },
+
+  /* ==========================================================
+     Zwoelf Talente mit Seefahrtsdrall, zwei je Kategorie.
+     Stossrichtung angelehnt an die nautischen Talente der
+     Savage-Worlds-Settings "50 Fathoms" und "Pirates of the
+     Spanish Main" (enger Raum, unsauberer Kampf, Schwimmen,
+     Schiffsfuehrung); Wirkung und Texte sind eigene.
+
+     WICHTIG: Jede Kategorie hat dadurch mindestens ein
+     Novizen-Talent. Vorher waren Fuehrung und Unheimliches
+     fuer neue Figuren komplett zu - ausgerechnet die beiden
+     Zweige, die ergaenzt wurden, weil sie fehlten.
+     ========================================================== */
+
+  /* ---- Hintergrund ---- */
+  { id:'schwimmer', n:'Wassergänger',        kat:'Hintergrund', rang:0, vor:[['Athletik',2]],
+    d:'Du schwimmst, wie andere gehen. Über Bord zu gehen ist für dich ein Ärgernis, kein Todesurteil.' },
+  { id:'magen',     n:'Eiserner Magen',      kat:'Hintergrund', rang:0, vor:[['Konstitution',2]],
+    d:'Pökelfleisch am Rand, brackiges Wasser, Zwieback mit Bewohnern — dir wird davon nichts. Gegen Verdorbenes und schwache Gifte würfelst du eine Stufe höher.' },
+
+  /* ---- Handwerk ---- */
+  { id:'kanonier',  n:'Kanonier',            kat:'Handwerk', rang:0, vor:[['Schießen',2]],
+    d:'Laden, richten, abfeuern — an einem Geschütz bist du zu Hause. Schießen mit schwerem Gerät eine Stufe höher.' },
+  { id:'zimmerer',  n:'Schiffszimmermann',   kat:'Handwerk', rang:1, vor:[['Handwerk',3]],
+    d:'Lecks stopfen, Masten fischen, Planken flicken — auch während geschossen wird. Reparaturen an einem Schiff gelingen dir unter Beschuss ohne Erschwernis.' },
+
+  /* ---- Kampf ---- */
+  { id:'enge',      n:'Enger Raum',          kat:'Kampf', rang:0, vor:[['Kämpfen',2]],
+    d:'Unter Deck, in Gängen, an der Luke: wo lange Klingen und weite Ausholbewegungen im Weg sind, kämpfst du eine Stufe höher.' },
+  { id:'unfair',    n:'Kein Kodex',          kat:'Kampf', rang:0, vor:[['Kämpfen',2]],
+    d:'Sand, Tritte, der Krug ins Gesicht. Einmal je Kampf verschaffst du dir einen Vorteil aus etwas, das kein Ehrenmann täte.' },
+
+  /* ---- Umgang ---- */
+  { id:'shanty',    n:'Shanty-Sänger',       kat:'Umgang', rang:0, vor:[['Überreden',2]],
+    d:'Du hältst den Takt und die Laune. Bei stumpfer Arbeit und langer Fahrt hebst du die Stimmung der ganzen Mannschaft — die Spielleitung weiß, was das wert ist.' },
+  { id:'luegner',   n:'Glatte Zunge',        kat:'Umgang', rang:1, vor:[['Überreden',3]],
+    d:'Eine Lüge, die du selbst glaubst, hält jeder Prüfung stand. Einmal je Sitzung nimmt man dir eine Geschichte ab, die niemandem sonst abgekauft würde.' },
+
+  /* ---- Führung ---- */
+  { id:'bootsmann', n:'Bootsmann',           kat:'Führung', rang:0, vor:[['Willenskraft',2]],
+    d:'Du bringst eine Handvoll Leute dazu, gleichzeitig anzupacken. Wo viele Hände nötig sind — Segel, Anker, Kanone, Pumpe —, arbeitet die Gruppe unter dir eine Stufe stärker.' },
+  { id:'kapitaen',  n:'Herr über Schiff und Mannschaft', kat:'Führung', rang:2, vor:[['Segeln',4],['Einschüchtern',3]],
+    d:'Im Gefecht führst du das Schiff, als wäre es dein eigener Körper. Solange du an Deck stehst und befiehlst, gelingt der Mannschaft jedes Manöver eine Stufe besser.' },
+
+  /* ---- Unheimliches ---- */
+  { id:'garn',      n:'Seemannsgarn',        kat:'Unheimliches', rang:0, vor:[['Allgemeinwissen',2]],
+    d:'Du kennst die Geschichten — welche Insel man meidet, was man einem Ertrunkenen nicht nachruft. Einmal je Sitzung darfst du fragen, ob es zu einer Sache eine alte Geschichte gibt.' },
+  { id:'totenstill',n:'Totenstill',          kat:'Unheimliches', rang:1, vor:[['Willenskraft',3]],
+    d:'Was von den Toten kommt, wählt dich zuletzt. Solange ein anderes Ziel in Reichweite steht, gehen Untote und Geister an dir vorbei.' }
 ];
 
 /* ==========================================================

@@ -105,6 +105,31 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-06 (Fortsetzung 4) — Zwölf neue Talente mit Seefahrtsdrall
+- **Anlass:** Hendriks Frage, ob eine neue Figur wirklich nur aus 12 Talenten wählen kann.
+  Ja — und die Prüfung deckte einen echten Fehler auf: **Führung und Unheimliches waren für
+  Novizen komplett zu** (0 von 4 bzw. 0 von 3). Ausgerechnet die beiden Zweige, die ergänzt
+  worden waren, weil sie fehlten. Kampf hatte 2, Umgang 1 — dünn für eine Kampagne, in der
+  Kämpfen und Reden das Kerngeschäft sind.
+- **Netzsuche nach Savage-Worlds-Seefahrtsmaterial** (auf Hendriks Bitte): **50 Fathoms** und
+  **Pirates of the Spanish Main** sind die einschlägigen Settings. 50 Fathoms bringt 16 eigene
+  Talente, die meisten davon in jedem Piratenspiel brauchbar (Close Fighting, Dirty Fighter,
+  Natural Swimmer, Master & Commander). Stoßrichtung übernommen, Wirkung und Texte eigene.
+- **Zwölf neue Talente, zwei je Kategorie** (29 → 41): Wassergänger · Eiserner Magen ·
+  Kanonier · Schiffszimmermann · Enger Raum · Kein Kodex · Shanty-Sänger · Glatte Zunge ·
+  Bootsmann · Herr über Schiff und Mannschaft · Seemannsgarn · Totenstill.
+- **Jede Kategorie hat jetzt mindestens ein Novizen-Talent.** Neue Verteilung (Novize/gesamt):
+  Hintergrund 7/8 · Handwerk 5/8 · Kampf 4/9 · Umgang 2/5 · Führung 1/6 · Unheimliches 1/5.
+  Eine neue Figur wählt damit aus **20 statt 12** Talenten.
+- **Getestet:** 36 Prüfungen des Regelwerks und 26 des Assistenten, 0 Fehler. Neu darunter:
+  keine doppelten IDs *und* keine doppelten Namen, alle Voraussetzungen zeigen auf existierende
+  Werte, jedes Talent ist von irgendeiner legalen Figur erreichbar, und keine Kategorie ist für
+  Novizen mehr geschlossen.
+- **[OFFEN]** Die zuvor vorgeschlagene Verschiebung von fünf Talenten auf Novize (Kommandostimme,
+  Standhaft, Vorahnung, Beidhändig, Drohende Gegenwart) ist damit **nicht** erledigt — sie würde
+  Führung und Unheimliches von einem auf zwei Einstiege bringen. Hendrik hat sich für neue
+  Talente statt für die Verschiebung entschieden; beides zusammen wäre möglich.
+
 ### 2026-09-06 (Fortsetzung 3) — Kompletter Schnitt: alles Alte entfernt
 - **Hendriks Ansage, zum dritten Mal:** „Ich möchte das System komplett umstellen. Nicht halb
   halb." Ich hatte trotz zweier vorheriger Ansagen Reste stehen lassen — die Archetypen als
