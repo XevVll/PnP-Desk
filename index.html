@@ -187,6 +187,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/identitaet.js"></script>
 <script>
 /* ==========================================================
    PnP-Desk — Hub / Startseite
@@ -210,25 +211,11 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
    still fehl (siehe Kopf von firebase-rules.json).
    ========================================================== */
 
-/* ---------- Identitaet ---------- */
-// Denselben Schluessel wie js/dice.js benutzen, damit die Wuerfelleiste
-// auf der Karte den hier angemeldeten Namen ohne zweite Abfrage kennt.
-const K_NAME = 'korsaren_playername';
-const K_PID  = 'pnp_player_id';
-
-function ls(k, v) {
-  try {
-    if (v === undefined) return localStorage.getItem(k);
-    localStorage.setItem(k, v); return v;
-  } catch (e) { return null; }
-}
-
-let meinName = (ls(K_NAME) || '').trim();
-let meinePid = ls(K_PID);
-if (!meinePid) {
-  meinePid = 'p' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
-  ls(K_PID, meinePid);
-}
+/* ---------- Identitaet ----------
+   Name und Kennung kommen aus js/identitaet.js, damit Hub und
+   Charaktererschaffung garantiert dieselben Schluessel benutzen. */
+let meinName = spielerName();
+let meinePid = spielerId();
 
 /* ---------- Zustand ---------- */
 const STD_CFG = { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 };
@@ -342,14 +329,14 @@ function anmelden(ev) {
   ev.preventDefault();
   const v = document.getElementById('gateName').value.trim().slice(0, 24);
   if (!v) return;
-  meinName = v; ls(K_NAME, v);
+  meinName = setzeSpielerName(v);
   anmeldenBeiDb();
   zeigeSeite();
 }
 
 function abmelden() {
   if (!confirm('Abmelden? Dein Name wird aus diesem Browser entfernt. Deine eingetragenen Zeiten bleiben bestehen.')) return;
-  try { localStorage.removeItem(K_NAME); } catch (e) {}
+  loescheSpielerName();
   meinName = '';
   zeigeSeite();
 }
@@ -357,7 +344,7 @@ function abmelden() {
 function umbenennen() {
   const v = (prompt('Neuer Name:', meinName) || '').trim().slice(0, 24);
   if (!v) return;
-  meinName = v; ls(K_NAME, v);
+  meinName = setzeSpielerName(v);
   anmeldenBeiDb(); zeigeSeite();
 }
 

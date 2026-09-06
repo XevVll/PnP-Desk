@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Figuren am Tisch — Spielleitung</title>
+<style>
+:root{
+  --bg:#12232a;--surface:rgba(255,255,255,.05);--border:rgba(201,168,76,.22);
+  --dark:#1a2e35;--teal:#2A9D8F;--gold:#c9a84c;--lgold:rgba(201,168,76,.12);
+  --ink:#fefcf8;--gray:#9a9080;--red:#8b2626;--green:#2D6A4F;--amber:#ca6702;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px);display:flex;align-items:center;gap:.8rem;padding:.55rem 1rem;flex-wrap:wrap}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.95rem;letter-spacing:.13em}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.1rem .55rem}
+.btn{padding:.34rem .8rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;border:1px solid rgba(201,168,76,.4);cursor:pointer;font-weight:600;background:transparent;color:var(--gold);transition:all .18s}
+.btn:hover{background:var(--lgold)}
+.btn.on{background:var(--gold);color:var(--dark);border-color:var(--gold)}
+
+.wrap{max-width:1400px;margin:0 auto;padding:1rem}
+.fbnote{font-size:.74rem;padding:.5rem .8rem;border-radius:5px;margin-bottom:.9rem;display:none;line-height:1.6}
+.fbnote.warn{display:block;background:rgba(202,103,2,.14);border:1px solid rgba(202,103,2,.5);color:#f0c48a}
+.leer{color:var(--gray);font-style:italic;padding:2rem 1rem;text-align:center;line-height:1.7}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:.9rem;align-items:start}
+.fig{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.fig-h{background:var(--lgold);border-bottom:1px solid var(--border);padding:.55rem .8rem}
+.fig-n{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.04em}
+.fig-s{font-size:.68rem;color:var(--gray);font-style:italic;display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-top:.1rem}
+.fig-b{padding:.6rem .8rem}
+
+.dv-row{display:flex;gap:.35rem;margin-bottom:.6rem}
+.dv{flex:1;border:1px solid var(--border);border-radius:5px;text-align:center;padding:.25rem .2rem}
+.dv-l{font-family:'Cinzel',serif;font-size:.46rem;letter-spacing:.09em;color:var(--gray);text-transform:uppercase}
+.dv-v{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold)}
+
+.sl{font-family:'Cinzel',serif;font-size:.53rem;letter-spacing:.12em;color:var(--gray);text-transform:uppercase;margin:.6rem 0 .2rem;border-bottom:1px solid rgba(201,168,76,.14);padding-bottom:.1rem}
+.werte{display:flex;flex-wrap:wrap;gap:.25rem}
+.w{display:flex;align-items:baseline;gap:.3rem;border:1px solid var(--border);border-radius:5px;padding:.12rem .45rem;font-size:.74rem;background:rgba(255,255,255,.03)}
+.w b{font-family:'Cinzel',serif;font-weight:700;font-size:.76rem}
+.w.d1 b{color:#b7b0a4}.w.d2 b{color:#e8f5f4}.w.d3 b{color:var(--teal)}.w.d4 b{color:var(--gold)}.w.d5 b{color:#e0c060}
+.tags{display:flex;flex-wrap:wrap;gap:.2rem}
+.tag{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.05rem .45rem}
+.tag.pos{border-color:rgba(42,157,143,.55);color:#8fe0d6}
+.tag.neg{border-color:rgba(202,103,2,.55);color:#e0a86a}
+.brief b{display:block;font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-top:.45rem}
+.brief span{font-size:.75rem;color:#cfc8ba;line-height:1.55}
+.brief .fehlt{color:var(--gray);font-style:italic}
+.alt{font-size:.62rem;color:var(--gray);font-style:italic;margin-top:.5rem;text-align:right}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">⚓ FIGUREN AM TISCH</div>
+  <span class="badge" id="anzahl">—</span>
+  <span style="flex:1"></span>
+  <button class="btn on" id="btnBrief" onclick="toggleBrief()">Steckbrief</button>
+  <button class="btn" id="btnAlle" onclick="toggleAlle()">alle Fertigkeiten</button>
+</div>
+
+<div class="wrap">
+  <div class="fbnote" id="fbNote"></div>
+  <div id="inhalt"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/regelwerk.js"></script>
+<script>
+/* ==========================================================
+   FIGUREN AM TISCH — Uebersicht fuer die Spielleitung
+   ----------------------------------------------------------
+   Zeigt alle Figuren, die Spieler ueber charaktererstellung.html
+   angelegt haben (Firebase-Pfad "figuren"). Loest das Problem,
+   das seit August dokumentiert ist: die Boegen lagen nur im
+   localStorage des jeweiligen Spielers, die SL musste jeden
+   Wert von Hand abtippen (siehe Arena, CLAUDE.md 2026-08-23).
+
+   NICHT VERLINKT, wie die uebrigen Seiten der Spielleitung -
+   der Schutz besteht allein darin, dass die Adresse nicht
+   bekannt ist. Diese Seite zeigt Geheimnisse der Figuren; sie
+   gehoert nicht in die Haende der Spieler.
+
+   Nur lesend. Geaendert wird eine Figur ausschliesslich von
+   ihrem Spieler im Assistenten - sonst gaebe es zwei Quellen
+   fuer denselben Wert.
+   ========================================================== */
+
+let figuren = {};
+let zeigeBrief = true, zeigeAlle = false;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+  });
+}
+
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    db.ref('figuren').on('value', function (s) {
+      figuren = s.val() || {};
+      render();
+    }, function (err) {
+      warnung('Die Datenbank verweigert den Zugriff auf „figuren". Wahrscheinlich fehlt der Pfad ' +
+        'in den Firebase-Regeln — siehe firebase-rules.json, dort ergänzt, aber in der Konsole noch ' +
+        'zu veröffentlichen. (' + (err && err.code ? err.code : 'Fehler') + ')');
+    });
+  } catch (e) {
+    warnung('Keine Verbindung zur Datenbank: ' + e.message);
+  }
+}
+function warnung(t) {
+  const n = document.getElementById('fbNote');
+  n.className = 'fbnote warn';
+  n.textContent = '⚠ ' + t;
+}
+
+/* Baut aus den rohen Firebase-Daten eine Figur, wie js/regelwerk.js sie
+   erwartet - fehlende Felder aufgefuellt, damit eine halb gespeicherte
+   Figur die Seite nicht sprengt. */
+function alsFigur(roh) {
+  const f = leereFigur();
+  ATTR_NAMEN.forEach(function (a) { if (roh.attr && roh.attr[a]) f.attr[a] = roh.attr[a]; });
+  FERTIGKEITEN.forEach(function (s) { if (roh.fert && roh.fert[s.name] != null) f.fert[s.name] = roh.fert[s.name]; });
+  f.tal = Array.isArray(roh.tal) ? roh.tal : [];
+  f.hnd = Array.isArray(roh.hnd) ? roh.hnd : [];
+  f.brief = roh.brief || {};
+  f.rang = roh.rang || 0;
+  return f;
+}
+
+function wertChip(name, stufe) {
+  return '<span class="w d' + stufe + '">' + esc(name) + ' <b>' + DLBL[stufe] + '</b></span>';
+}
+
+function alterText(ts) {
+  if (!ts) return '';
+  const min = Math.floor((Date.now() - ts) / 60000);
+  if (min < 1) return 'gerade eben';
+  if (min < 60) return 'vor ' + min + ' min';
+  const h = Math.floor(min / 60);
+  if (h < 24) return 'vor ' + h + ' h';
+  return 'vor ' + Math.floor(h / 24) + ' Tagen';
+}
+
+function render() {
+  const ids = Object.keys(figuren);
+  document.getElementById('anzahl').textContent =
+    ids.length === 1 ? '1 Figur' : ids.length + ' Figuren';
+
+  if (!ids.length) {
+    document.getElementById('inhalt').innerHTML =
+      '<div class="leer">Noch keine Figur angelegt.<br>' +
+      'Sobald ein Spieler die Charaktererschaffung öffnet, erscheint sie hier von selbst.</div>';
+    return;
+  }
+
+  document.getElementById('inhalt').innerHTML = '<div class="grid">' + ids.map(function (pid) {
+    const roh = figuren[pid] || {};
+    const f = alsFigur(roh);
+
+    const attr = ATTRIBUTE.map(function (a) { return wertChip(a.name, f.attr[a.name] || 1); }).join('');
+    const fert = FERTIGKEITEN
+      .filter(function (s) { return zeigeAlle || (f.fert[s.name] || 0) > 0; })
+      .map(function (s) { return wertChip(s.name, f.fert[s.name] || 0); }).join('') ||
+      '<span class="brief fehlt" style="font-size:.72rem">nichts gelernt</span>';
+
+    const tal = f.tal.map(function (i) {
+      return '<span class="tag pos">' + esc(TAL_BY_ID[i] ? TAL_BY_ID[i].n : i) + '</span>'; }).join('');
+    const hnd = f.hnd.map(function (i) {
+      return '<span class="tag neg">' + esc(HND_BY_ID[i] ? HND_BY_ID[i].n : i) + '</span>'; }).join('');
+
+    const brief = zeigeBrief ? '<div class="sl">Steckbrief</div><div class="brief">' +
+      STECKBRIEF.map(function (b) {
+        const v = (f.brief[b.id] || '').trim();
+        return '<b>' + b.n + '</b><span' + (v ? '' : ' class="fehlt"') + '>' +
+          (v ? esc(v) : 'noch nicht ausgefüllt') + '</span>';
+      }).join('') + '</div>' : '';
+
+    return '<div class="fig">' +
+      '<div class="fig-h">' +
+        '<div class="fig-n">' + (esc(roh.name) || '<span style="color:var(--gray)">ohne Namen</span>') + '</div>' +
+        '<div class="fig-s"><span>' + (esc(roh.spieler) || '—') + '</span>' +
+          '<span>' + rangName(f.rang) + '</span></div>' +
+      '</div>' +
+      '<div class="fig-b">' +
+        '<div class="dv-row">' +
+          '<div class="dv"><div class="dv-l">Parade</div><div class="dv-v">' + parade(f) + '</div></div>' +
+          '<div class="dv"><div class="dv-l">Robust.</div><div class="dv-v">' + robustheit(f) + '</div></div>' +
+          '<div class="dv"><div class="dv-l">Bennies</div><div class="dv-v">' + bennies(f) + '</div></div>' +
+          '<div class="dv"><div class="dv-l">Bewegung</div><div class="dv-v">' + bewegung() + '</div></div>' +
+        '</div>' +
+        '<div class="sl">Attribute</div><div class="werte">' + attr + '</div>' +
+        '<div class="sl">Fertigkeiten</div><div class="werte">' + fert + '</div>' +
+        (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
+        brief +
+        '<div class="alt">' + alterText(roh.aktualisiert) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+function toggleBrief() {
+  zeigeBrief = !zeigeBrief;
+  document.getElementById('btnBrief').classList.toggle('on', zeigeBrief);
+  render();
+}
+function toggleAlle() {
+  zeigeAlle = !zeigeAlle;
+  document.getElementById('btnAlle').classList.toggle('on', zeigeAlle);
+  render();
+}
+
+render();
+initFirebase();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { setFiguren: function (f) { figuren = f; render(); }, alsFigur, render };
+}
+</script>
+</body>
+</html>

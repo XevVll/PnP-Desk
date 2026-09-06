@@ -152,6 +152,7 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
   <div class="tbin">
     <span class="brand">⚓ CHARAKTERERSCHAFFUNG</span>
     <span class="badge" id="rangBadge">Novize</span>
+    <span class="badge" id="syncBadge" style="border-color:var(--border);color:var(--gray)">…</span>
     <span style="flex:1"></span>
     <a class="btn" href="index.html">Zurück zum Hub</a>
   </div>
@@ -272,7 +273,7 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
         <button class="btn btn-gold" onclick="exportieren()">Als Datei sichern</button>
         <button class="btn" onclick="drucken()">Drucken</button>
         <div class="ok-msg" id="endMsg"></div>
-        <div class="hint">Die Figur liegt außerdem automatisch im Speicher dieses Browsers.</div>
+        <div class="hint">Die Figur liegt automatisch im Speicher dieses Browsers und wird zur Spielleitung übertragen, sobald eine Verbindung besteht — die Anzeige oben rechts sagt, was gerade gilt.</div>
       </div>
     </div>
   </div>
@@ -287,6 +288,10 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
 <script>
 /* ==========================================================
@@ -631,16 +636,83 @@ function renderAbschluss() {
   document.getElementById('endChancen').innerHTML = t + '</table>';
 }
 
-/* ---------- Speichern / Export ---------- */
+/* ==========================================================
+   SPEICHERN
+   ----------------------------------------------------------
+   Zwei Wege, bewusst in dieser Reihenfolge:
+
+   1. localStorage - IMMER, sofort, ohne Netz. Wer ohne
+      Verbindung eine Figur baut, verliert nichts.
+   2. Firebase unter figuren/{spielerId} - damit die
+      Spielleitung die Figur ueberhaupt zu sehen bekommt.
+      Frueher lagen die Boegen nur im Browser des jeweiligen
+      Spielers, und die SL musste jeden Wert von Hand
+      abtippen (siehe Arena, CLAUDE.md 2026-08-23).
+
+   Der Firebase-Schreibzugriff ist entprellt: waehrend jemand
+   an einem Stepper klickt, feuert speichern() im Sekundentakt -
+   das muss nicht jedes Mal durchs Netz.
+   ========================================================== */
+let db = null, syncBereit = false, syncTimer = null;
+
+function setzeSync(txt, farbe) {
+  const el = document.getElementById('syncBadge');
+  if (!el) return;
+  el.textContent = txt;
+  el.style.color = farbe;
+  el.style.borderColor = farbe;
+}
+
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    syncBereit = true;
+    setzeSync('verbunden', 'var(--teal)');
+  } catch (e) {
+    setzeSync('nur lokal', 'var(--gray)');
+  }
+}
+
+// Was die Spielleitung zu sehen bekommt. Bewusst die Rohdaten -
+// Parade, Robustheit und die Chancen rechnet die Uebersicht selbst
+// aus js/regelwerk.js, damit es dafuer nur eine Wahrheit gibt.
+function figurFuerDb() {
+  return {
+    name: (META.name || '').slice(0, 60),
+    spieler: (META.spieler || '').slice(0, 60) || spielerName(),
+    rang: F.rang || 0,
+    steigerungen: F.steigerungen || 0,
+    attr: F.attr, fert: F.fert, tal: F.tal, hnd: F.hnd, brief: F.brief,
+    aktualisiert: Date.now()
+  };
+}
+
+function nachFirebase() {
+  if (!db || !syncBereit) return;
+  db.ref('figuren/' + spielerId()).set(figurFuerDb())
+    .then(function () { setzeSync('gespeichert', '#4caf7d'); })
+    .catch(function (err) {
+      syncBereit = false;
+      setzeSync('nur lokal', 'var(--amber)');
+      console.warn('Figur konnte nicht hochgeladen werden - fehlt der Pfad "figuren" ' +
+        'in den Firebase-Regeln? (' + (err && err.code ? err.code : err) + ')');
+    });
+}
+
 function speichern() {
   try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(nachFirebase, 800);
 }
+
 function laden() {
   try {
     const d = JSON.parse(localStorage.getItem('kors_figur') || 'null');
     if (d && d.F && d.F.attr && d.F.fert) F = Object.assign(leereFigur(), d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
+  if (!META.spieler) META.spieler = spielerName();
 }
 function exportieren() {
   const data = JSON.stringify({ version:'korsaren-sw-2', F:F, META:META }, null, 2);
@@ -665,6 +737,7 @@ function renderAlles() {
 }
 
 laden();
+initFirebase();
 zeige();
 
 if (typeof module !== 'undefined' && module.exports) {

@@ -142,23 +142,38 @@ function rangName(id) { return (RAENGE[id] || RAENGE[0]).name; }
    Spieler zwischen den Sitzungen ueber seine Figur nachdenkt -
    und sie geben der Spielleitung sofort einen Haken zum
    Einhaengen.
+
+   PRAEMISSE (Kanon, SZENEN_REGIE["1.1"] und Bibel 9):
+   Die erste Sitzung spielt in Grimsgate. Im Hafen liegt eine
+   Siedlungsfahrt in die Neue Welt, die halbe Stadt will mit -
+   und die Schiffe sind voll. Uebergeordnetes Ziel der Szene:
+   ueberhaupt an Bord zu gelangen; angeheuert wird "freiwillig
+   oder gepresst".
+
+   Bei der Erschaffung steht die Figur also IN GRIMSGATE, ohne
+   Platz, ohne Schiff und ohne die anderen zu kennen. Deshalb
+   fragt hier nichts nach dem Schiff, nach gemeinsamer
+   Vorgeschichte oder nach der ersten Begegnung der Gruppe -
+   das alles weiss die Figur noch nicht oder es entsteht am
+   Tisch. Jede Frage hier muss zum Zeitpunkt der Erschaffung
+   beantwortbar sein.
    ========================================================== */
 const STECKBRIEF = [
-  { id:'antrieb',    n:'Antrieb',     frage:'Warum bist du an Bord?',
+  { id:'antrieb',   n:'Antrieb',    frage:'Warum willst du in die neue Welt?',
     hilfe:'Ein Satz. Kostet er dich einmal etwas, bekommst du dafür einen Bennie.',
-    beispiel:'Ich suche den Mann, der meinen Bruder hat hängen lassen.' },
-  { id:'band',       n:'Band',        frage:'Mit wem aus der Crew hast du Geschichte?',
-    hilfe:'Ein Name und ein Halbsatz, woher. Die Spielleitung baut darauf auf.',
-    beispiel:'Cormac hat mich aus dem Wasser gezogen. Er redet nicht darüber, ich auch nicht.' },
-  { id:'geheimnis',  n:'Geheimnis',   frage:'Was darf niemand wissen?',
+    beispiel:'Zu Hause bin ich der zweite Sohn und erbe nichts. Drüben fragt danach niemand.' },
+  { id:'ballast',   n:'Ballast',    frage:'Was oder wen lässt du zurück?',
+    hilfe:'Die andere Hälfte deines Antriebs. Was hinter dir liegt, holt Figuren gern wieder ein.',
+    beispiel:'Eine Frau, der ich gesagt habe, ich komme wieder. Ich weiß nicht, ob es stimmt.' },
+  { id:'mittel',    n:'Mittel',     frage:'Womit willst du dir einen Platz verschaffen?',
+    hilfe:'Die Schiffe sind voll und die halbe Stadt will mit. Geld, ein Handwerk, eine Bekanntschaft — oder gar nichts, und du hoffst auf Glück.',
+    beispiel:'Zwei Wochen Lohn, gespart. Das reicht vermutlich nicht, aber es ist alles, was ich habe.' },
+  { id:'geheimnis', n:'Geheimnis',  frage:'Was darf niemand wissen?',
     hilfe:'Etwas, das herauskommen kann. Sag es der Spielleitung, nicht dem Tisch.',
     beispiel:'Das Schiff, auf dem ich vorher fuhr, ist nicht gesunken. Ich habe es verkauft.' },
-  { id:'marke',      n:'Marke',       frage:'Woran erkennt man dich wieder?',
+  { id:'marke',     n:'Marke',      frage:'Woran erkennt man dich wieder?',
     hilfe:'Eine Narbe, ein Tick, ein Gegenstand, den du nie ablegst.',
-    beispiel:'Ein abgegriffener Messingring am kleinen Finger, den ich beim Denken drehe.' },
-  { id:'ersteszene', n:'Erste Szene', frage:'Wie hat die Gruppe dich kennengelernt?',
-    hilfe:'Ein Bild, kein Lebenslauf. Zwei Sätze genügen.',
-    beispiel:'Halb betrunken auf der Kaimauer, dabei, einer Möwe etwas zu erklären.' }
+    beispiel:'Ein abgegriffener Messingring am kleinen Finger, den ich beim Denken drehe.' }
 ];
 
 /* ==========================================================

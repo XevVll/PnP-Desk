@@ -105,6 +105,47 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-06 (Fortsetzung 5) — Figuren gehen zur Spielleitung
+- **Steckbrief auf die Prämisse der ersten Sitzung umgestellt.** Hendriks Korrektur: Die Fragen
+  „Mit wem aus der Crew hast du Geschichte?" und „Wie hat die Gruppe dich kennengelernt?" setzen
+  voraus, was die Figur beim Erschaffen nicht wissen kann — Grimsgate ist das Intro, niemand
+  kennt einander, niemand weiß vom Schiff. Kanon nachgelesen (`SZENEN_REGIE["1.1"]`,
+  Bibel 9): Im Hafen liegt eine **Siedlungsfahrt in die Neue Welt**, die Schiffe sind voll,
+  Szenenziel ist überhaupt an Bord zu kommen, angeheuert wird „freiwillig oder gepresst".
+  - Neu: **Antrieb** (warum in die neue Welt) · **Ballast** (was du zurücklässt) · **Mittel**
+    (womit du dir einen Platz verschaffen willst) · Geheimnis · Marke.
+  - Als Prüfstein im Dateikopf verankert: **Jede Frage muss zum Zeitpunkt der Erschaffung
+    beantwortbar sein.** Zwei Tests sichern das ab (keine Frage darf ein Schiff oder die Gruppe
+    voraussetzen) — ich hatte denselben Fehler zweimal gemacht.
+- **Figuren liegen jetzt in Firebase** (`figuren/{spielerId}`) statt nur im Browser des
+  jeweiligen Spielers. Das behebt ein seit August dokumentiertes Problem: Die SL kam an die Werte
+  nicht heran und musste sie für die Arena von Hand abtippen.
+  - `localStorage` bleibt der Rückfall und wird **immer zuerst** geschrieben — ohne Netz geht
+    nichts verloren. Der Firebase-Schreibzugriff ist um 800 ms entprellt, sonst ginge jeder Klick
+    an einem Stepper durchs Netz. Statusanzeige in der Kopfleiste: verbunden / gespeichert /
+    nur lokal.
+- **Neue `js/identitaet.js`**: Hub und Assistent teilen sich jetzt eine Datei für Name
+  (`korsaren_playername`, derselbe Schlüssel wie `js/dice.js`) und Kennung (`pnp_player_id`).
+  Vorher hatte `index.html` eine eigene Kopie — wäre eine davon abgewichen, hätte derselbe
+  Spieler zwei Kennungen bekommen und seine Figur wäre die eines Fremden gewesen.
+- **Neue `regie_figuren.html`** — Übersicht für die Spielleitung: alle Figuren nebeneinander mit
+  abgeleiteten Werten, Attributen, Fertigkeiten, Talenten, Schwächen und **Steckbrief**.
+  Umschaltbar: Steckbrief aus, alle statt nur gelernte Fertigkeiten. **Nur lesend** — geändert
+  wird eine Figur ausschließlich von ihrem Spieler, sonst gäbe es zwei Quellen für denselben Wert.
+  **Nicht verlinkt**, wie die übrigen SL-Seiten; sie zeigt die Geheimnisse der Figuren.
+- **Neuer Firebase-Pfad `figuren`** in `firebase-rules.json` (jetzt **19 Pfade**), von Hendrik in
+  der Konsole veröffentlicht und per REST gegengeprüft: `figuren` antwortet 200, ein nicht
+  freigegebener Pfad weiterhin 401.
+- **Getestet** (Node, kein Browser): 15 Prüfungen der Übersicht, 26 des Assistenten, 36 des
+  Regelwerks — 0 Fehler. Darunter: eine halb gespeicherte Figur sprengt die Übersicht nicht,
+  Parade und Robustheit stimmen mit dem Regelwerk überein, und keine SL-Seite taucht in
+  `index.html` auf.
+- **[OFFEN]** Zweite Etappe: Die SL klickt in der Übersicht auf einen Wert und fordert damit den
+  Spieler zum Wurf auf. Vorgesehen unter `figuren/{pid}/anfrage`, also ohne weiteren
+  Firebase-Pfad. Dabei fällt ein Nebengewinn an: `js/dice.js` zeigt bewusst nur die rohe Zahl,
+  weil die Einordnung unter W100 mehrdeutig war — mit zwei Würfeln und vier Ausgängen ist sie
+  eindeutig, der Feed kann künftig „Guter Erfolg" melden statt „17".
+
 ### 2026-09-06 (Fortsetzung 4) — Zwölf neue Talente mit Seefahrtsdrall
 - **Anlass:** Hendriks Frage, ob eine neue Figur wirklich nur aus 12 Talenten wählen kann.
   Ja — und die Prüfung deckte einen echten Fehler auf: **Führung und Unheimliches waren für
@@ -125,10 +166,10 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
   keine doppelten IDs *und* keine doppelten Namen, alle Voraussetzungen zeigen auf existierende
   Werte, jedes Talent ist von irgendeiner legalen Figur erreichbar, und keine Kategorie ist für
   Novizen mehr geschlossen.
-- **[OFFEN]** Die zuvor vorgeschlagene Verschiebung von fünf Talenten auf Novize (Kommandostimme,
-  Standhaft, Vorahnung, Beidhändig, Drohende Gegenwart) ist damit **nicht** erledigt — sie würde
-  Führung und Unheimliches von einem auf zwei Einstiege bringen. Hendrik hat sich für neue
-  Talente statt für die Verschiebung entschieden; beides zusammen wäre möglich.
+- **Entschieden (Hendrik):** Die zuvor vorgeschlagene Verschiebung von fünf Talenten auf Novize
+  (Kommandostimme, Standhaft, Vorahnung, Beidhändig, Drohende Gegenwart) findet **nicht** statt.
+  Mit 20 wählbaren Talenten für eine neue Figur ist die Auswahl groß genug; die Rangstaffelung
+  bleibt wie sie ist. Kein offener Punkt mehr.
 
 ### 2026-09-06 (Fortsetzung 3) — Kompletter Schnitt: alles Alte entfernt
 - **Hendriks Ansage, zum dritten Mal:** „Ich möchte das System komplett umstellen. Nicht halb
