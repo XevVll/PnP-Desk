@@ -318,9 +318,27 @@
   <div class="status" id="status">Verbinde mit Firebase…</div>
 </header>
 
+<style>
+/* Links auf andere SL-Seiten - sehen aus wie die Knoepfe daneben,
+   sind aber echte Links (neuer Tab, damit der Admin-Stand bleibt). */
+#toolbarStrip .slLink{
+  display:inline-flex;align-items:center;gap:.3rem;text-decoration:none;
+  font:inherit;font-size:.82rem;padding:.3rem .7rem;border-radius:5px;
+  border:1px solid var(--vgold,#c9a84c);color:var(--vgold,#c9a84c);
+  background:transparent;transition:background .15s;white-space:nowrap;
+}
+#toolbarStrip .slLink:hover{background:rgba(201,168,76,.14)}
+</style>
 <div id="toolbarStrip">
   <button id="toolDrawerToggle" aria-expanded="false">⚙ Werkzeuge <span class="chev">▾</span></button>
   <button id="exportToggle">📤 Export</button>
+  <!-- Links auf die uebrigen Seiten der Spielleitung. Hier unbedenklich:
+       regie.html ist selbst nur ueber die Adresse geschuetzt. In
+       index.html duerfen diese Namen NICHT auftauchen. -->
+  <a class="slLink" href="regie_figuren.html" target="_blank"
+     title="Alle Figuren der Spieler mit Werten und Steckbrief">🧑‍🤝‍🧑 Figuren</a>
+  <a class="slLink" href="arena_admin.html" target="_blank"
+     title="Schlachtfeld für den Endkampf">⚔ Schlachtfeld</a>
   <div id="timerTicker" title="Stoppuhr (Details im Werkzeug-Fach)">
     <span id="timerTickerTime">00:00:00</span>
     <span id="timerTickerAlert" title="Ein Zeit-Merker ist fällig">⏰ Merker fällig</span>
