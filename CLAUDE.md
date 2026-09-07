@@ -105,6 +105,37 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung) — "Wird gesendet ..." blieb stehen
+- **Hendriks Meldung:** Der Knopf „An die Spielleitung senden" hing ewig bei „Wird gesendet …".
+  Erste Frage war, ob eine Firebase-Regel fehlt — **nein.** Per REST gegengeprüft: ein `PUT` auf
+  `figuren/korsaren/_probe` antwortet **200**, Lesen und Löschen ebenso. Aufschlussreicher war,
+  dass `figuren` **`null`** ist: Die Anwendung hat also **noch nie** etwas geschrieben, auch nicht
+  vor der Pfadumstellung. Der Fehler saß im Browser, nicht in den Regeln.
+- **Ursache:** Weder `.then` noch `.catch` liefen — das Versprechen fiel nie. Genau das tut die
+  Realtime Database ohne Verbindung: Sie legt den Schreibvorgang **lokal in die Warteschlange**
+  und meldet sich nie zurück. Ein abgelehnter Zugriff hätte `.catch` ausgelöst, ein kaputter
+  Aufruf hätte geworfen; ein ewiges Warten heißt „keine Verbindung".
+- **Die Anzeige log dabei.** `setzeSync('verbunden')` stand direkt hinter
+  `firebase.initializeApp()` — das baut nur ein Objekt auf und berührt das Netz mit keinem Byte.
+  Die Seite behauptete also „verbunden", ohne es je geprüft zu haben. Jetzt horchen beide Seiten
+  auf **`.info/connected`**, das die Datenbank selbst führt, und melden „verbinde …" → „verbunden"
+  bzw. „offline".
+- **Kein stummes Hängen mehr:** `jetztSenden()` bekommt eine **Frist von 8 Sekunden**. Läuft sie
+  ab, sagt die Seite, was los ist, beruhigt ausdrücklich („liegt sicher in diesem Browser, geht
+  nicht verloren, wird von selbst gesendet") und nennt den wahrscheinlichsten Grund (Werbe-/
+  Skriptblocker). Erfolg und Ablehnung räumen die Frist ab.
+- **Beide Seiten gegen Ausnahmen abgesichert** (Assistent und Heldenbrief): `update()` kann auch
+  **werfen** statt abzulehnen; dann floh die Ausnahme bisher am `.catch` vorbei und fror die
+  Meldung ein. Jetzt umschlossen, mit eigener Meldung für den Fall einer veralteten Fassung aus
+  dem Browser-Cache. Der `catch`-Zweig von `initFirebase()` setzt `syncBereit` wieder auf `false` —
+  vorher blieb es stehen und jeder spätere Aufruf lief in dieselbe Ausnahme.
+- **Getestet:** 14 neue Prüfungen mit einem Versprechen, das absichtlich nie fällt (Anzeige bei
+  offener/geschlossener Verbindung, die Meldung hängt nach der Frist nicht mehr, der Erfolgsfall
+  bleibt heil, eine Ablehnung nennt ihren Grund), dazu die 51 des Heldenbriefs — 0 Fehler.
+- **Merke fürs Projekt:** Ein Firebase-Versprechen, das weder erfüllt noch abgelehnt wird, ist
+  **immer** „keine Verbindung" — nie eine Regelfrage. Und `initializeApp()` ist kein Beleg für
+  irgendetwas; nur `.info/connected` ist es.
+
 ### 2026-09-07 — Charaktersystem fertig: Heldenbrief, Steigerungen, Ausrüstung
 Etappe 1 des Plans „PnP-Desk: von einer Kampagne zur Umgebung". Die Erschaffung stand, aber
 es gab nichts, worauf man die Figur weiterführt.

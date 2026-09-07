@@ -670,6 +670,23 @@ function renderAbschluss() {
    das muss nicht jedes Mal durchs Netz.
    ========================================================== */
 let db = null, syncBereit = false, syncTimer = null;
+let netzOffen = false;
+
+/* Die Realtime Database fuehrt unter ".info/connected" selbst Buch darueber,
+   ob die Verbindung steht. Das ist der einzige ehrliche Weg, den Zustand
+   anzuzeigen - und es erklaert den Fehler, der uns hierher gebracht hat:
+   Ohne Verbindung wird ein Schreibvorgang lokal in die Warteschlange gelegt
+   und sein Versprechen faellt NIE. Weder .then noch .catch laufen, die
+   Meldung bleibt ewig stehen. */
+function beobachteVerbindung() {
+  try {
+    db.ref('.info/connected').on('value', function (s) {
+      netzOffen = s.val() === true;
+      if (netzOffen) setzeSync('verbunden', 'var(--teal)');
+      else setzeSync('offline', 'var(--amber)');
+    });
+  } catch (e) { console.warn('Verbindungsanzeige nicht moeglich:', e); }
+}
 
 function setzeSync(txt, farbe) {
   const el = document.getElementById('syncBadge');
@@ -684,14 +701,24 @@ function initFirebase() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     syncBereit = true;
-    setzeSync('verbunden', 'var(--teal)');
+    // "verbunden" darf hier NICHT stehen: initializeApp() baut nur ein Objekt
+    // auf und beruehrt das Netz mit keinem Byte. Die Datenbank sagt selbst
+    // Bescheid, sobald die Verbindung wirklich steht - bis dahin wissen wir
+    // es schlicht nicht.
+    setzeSync('verbinde …', 'var(--gray)');
+    beobachteVerbindung();
+    // Wirft der erste Schreibversuch (statt abgelehnt zu werden), ist etwas
+    // grundsaetzlich kaputt - dann darf syncBereit nicht stehen bleiben,
+    // sonst laeuft jeder spaetere Aufruf in dieselbe Ausnahme.
     // Einmal beim Start hochschreiben. Ohne das erfaehrt die Spielleitung
     // von einer fertigen Figur nie etwas, solange ihr Spieler nichts mehr
     // anfasst - wer seine Figur fertig baut, den Tab schliesst und spaeter
     // wieder oeffnet, blieb bisher unsichtbar.
     nachFirebase();
   } catch (e) {
+    syncBereit = false;
     setzeSync('nur lokal', 'var(--gray)');
+    console.warn('Firebase nicht erreichbar:', e);
   }
 }
 
@@ -713,16 +740,25 @@ function figurFuerDb() {
   };
 }
 
+// Ein abgelehntes Versprechen ist der eine Fehlerfall, eine geworfene
+// Ausnahme der andere - z.B. wenn der Browser eine halb veraltete Datei aus
+// dem Cache haelt und rundenId() gar nicht kennt. Ohne den try-Block friert
+// die Anzeige dann stumm ein, statt zu sagen, was los ist.
 function nachFirebase() {
   if (!db || !syncBereit) return;
-  db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
-    .then(function () { setzeSync('gespeichert', '#4caf7d'); })
-    .catch(function (err) {
-      syncBereit = false;
-      setzeSync('nur lokal', 'var(--amber)');
-      console.warn('Figur konnte nicht hochgeladen werden - fehlt der Pfad "figuren" ' +
-        'in den Firebase-Regeln? (' + (err && err.code ? err.code : err) + ')');
-    });
+  try {
+    db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
+      .then(function () { setzeSync('gespeichert', '#4caf7d'); })
+      .catch(function (err) {
+        syncBereit = false;
+        setzeSync('nur lokal', 'var(--amber)');
+        console.warn('Figur konnte nicht hochgeladen werden:', err);
+      });
+  } catch (e) {
+    syncBereit = false;
+    setzeSync('Fehler', '#e05555');
+    console.error('Hochladen brach ab:', e);
+  }
 }
 
 function speichern() {
@@ -764,14 +800,43 @@ function jetztSenden() {
   }
   m.style.color = 'var(--gray)';
   m.textContent = 'Wird gesendet…';
-  db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
+  let ref;
+  try {
+    ref = db.ref('figuren/' + rundenId() + '/' + spielerId());
+  } catch (e) {
+    m.style.color = '#e05555';
+    m.textContent = 'Der Browser hält eine veraltete Fassung dieser Seite. ' +
+      'Bitte einmal mit Strg+Shift+R neu laden. (' + e.message + ')';
+    return;
+  }
+  // Frist gegen das ewige Warten: Ohne Verbindung schluckt die Datenbank den
+  // Schreibvorgang klaglos und meldet sich nie zurueck. Lieber nach acht
+  // Sekunden ehrlich sagen, was los ist, als endlos "Wird gesendet ..." zeigen.
+  let erledigt = false;
+  const frist = setTimeout(function () {
+    if (erledigt) return;
+    erledigt = true;
+    m.style.color = 'var(--amber)';
+    m.textContent = 'Keine Verbindung zur Datenbank. Deine Figur liegt sicher in ' +
+      'diesem Browser und geht nicht verloren - sie wird von selbst gesendet, ' +
+      'sobald die Verbindung steht. Bleibt es dabei: blockiert ein Werbe- oder ' +
+      'Skriptblocker die Verbindung?';
+  }, 8000);
+
+  ref.update(figurFuerDb())
     .then(function () {
+      clearTimeout(frist);
+      if (erledigt) return;
+      erledigt = true;
       setzeSync('gespeichert', '#4caf7d');
       m.style.color = '#4caf7d';
       m.textContent = 'Gesendet. Die Spielleitung sieht deine Figur' +
         (META.name ? ' als „' + META.name + '“.' : ' — gib ihr noch einen Namen.');
     })
     .catch(function (err) {
+      clearTimeout(frist);
+      if (erledigt) return;
+      erledigt = true;
       syncBereit = false;
       setzeSync('nur lokal', 'var(--amber)');
       m.style.color = '#e05555';

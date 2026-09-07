@@ -259,6 +259,7 @@ textarea:focus{border-color:var(--gold)}
 let F = leereFigur();
 let META = { name:'', spieler:'' };
 let db = null, syncBereit = false, syncTimer = null;
+let netzOffen = false;
 let tab = 0;
 let stWahl = null, stZiele = [];
 
@@ -272,6 +273,18 @@ function dcls(i) { return ['d0','d1','d2','d3','d4','d5'][i] || 'd0'; }
 /* ==========================================================
    SPEICHERN
    ========================================================== */
+/* Siehe charaktererstellung.html: ohne Verbindung faellt das Versprechen eines
+   Schreibvorgangs nie, deshalb zeigt hier die Datenbank selbst den Zustand an. */
+function beobachteVerbindung() {
+  try {
+    db.ref('.info/connected').on('value', function (s) {
+      netzOffen = s.val() === true;
+      if (netzOffen) setzeSync('verbunden', 'var(--teal)');
+      else setzeSync('offline', 'var(--amber)');
+    });
+  } catch (e) { console.warn('Verbindungsanzeige nicht moeglich:', e); }
+}
+
 function setzeSync(txt, farbe) {
   const el = document.getElementById('bSync');
   el.textContent = txt;
@@ -295,13 +308,19 @@ function bogenFelder() {
 
 function nachFirebase() {
   if (!db || !syncBereit) return;
-  db.ref('figuren/' + rundenId() + '/' + spielerId()).update(bogenFelder())
-    .then(function () { setzeSync('gespeichert', '#4caf7d'); })
-    .catch(function (err) {
-      syncBereit = false;
-      setzeSync('nur lokal', 'var(--amber)');
-      console.warn('Heldenbrief konnte nicht gespeichert werden:', err);
-    });
+  try {
+    db.ref('figuren/' + rundenId() + '/' + spielerId()).update(bogenFelder())
+      .then(function () { setzeSync('gespeichert', '#4caf7d'); })
+      .catch(function (err) {
+        syncBereit = false;
+        setzeSync('nur lokal', 'var(--amber)');
+        console.warn('Heldenbrief konnte nicht gespeichert werden:', err);
+      });
+  } catch (e) {
+    syncBereit = false;
+    setzeSync('Fehler', '#e05555');
+    console.error('Speichern brach ab:', e);
+  }
 }
 
 function speichern() {
@@ -324,7 +343,8 @@ function initFirebase() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     syncBereit = true;
-    setzeSync('verbunden', 'var(--teal)');
+    setzeSync('verbinde …', 'var(--gray)');
+    beobachteVerbindung();
     // Einmal lesen und uebernehmen: die Datenbank ist die Wahrheit, sobald
     // sie erreichbar ist. Ohne Verbindung bleibt der lokale Stand stehen.
     db.ref('figuren/' + rundenId() + '/' + spielerId()).once('value').then(function (s) {
@@ -337,7 +357,9 @@ function initFirebase() {
       }
     }).catch(function () { /* Regeln oder Netz - der lokale Stand traegt weiter */ });
   } catch (e) {
+    syncBereit = false;
     setzeSync('nur lokal', 'var(--gray)');
+    console.warn('Firebase nicht erreichbar:', e);
   }
 }
 
