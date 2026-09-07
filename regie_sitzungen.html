@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Korsaren — Spiele und Sitzungen</title>
+<style>
+:root{
+  --bg:#12232a;--surface:rgba(255,255,255,.05);--border:rgba(201,168,76,.22);
+  --dark:#1a2e35;--teal:#2A9D8F;--gold:#c9a84c;--lgold:rgba(201,168,76,.12);
+  --ink:#fefcf8;--gray:#9a9080;--red:#8b2626;--green:#2D6A4F;--amber:#ca6702;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);padding-bottom:3rem}
+.top{position:sticky;top:0;z-index:50;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
+.topin{max-width:1000px;margin:0 auto;padding:.6rem 1rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.95rem;letter-spacing:.13em}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.12rem .6rem}
+.badge.on{border-color:var(--teal);color:var(--teal)}
+.wrap{max-width:1000px;margin:0 auto;padding:1rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;overflow:hidden}
+.card-hdr{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.14em;color:var(--gold);padding:.5rem .95rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.card-body{padding:.85rem .95rem}
+.hint{font-size:.78rem;color:var(--gray);line-height:1.6;font-style:italic}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem}
+input,select{background:var(--dark);border:1px solid var(--border);border-radius:5px;color:var(--ink);padding:.4rem .6rem;font-family:inherit;font-size:.85rem;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+input[type=text]{min-width:190px}
+button{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;padding:.42rem .85rem;border-radius:5px;border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;transition:background .15s}
+button:hover:not(:disabled){background:var(--lgold)}
+button:disabled{opacity:.35;cursor:default}
+button.klein{font-size:.62rem;padding:.25rem .55rem}
+button.warn{border-color:var(--amber);color:var(--amber)}
+button.gefahr{border-color:#c05555;color:#c05555}
+.liste{display:flex;flex-direction:column;gap:.5rem}
+.eintrag{border:1px solid var(--border);border-radius:6px;padding:.6rem .75rem;background:rgba(255,255,255,.03)}
+.eintrag.aktiv{border-color:var(--teal);background:rgba(42,157,143,.1)}
+.eintrag.beendet{opacity:.5}
+.e-kopf{display:flex;justify-content:space-between;gap:.6rem;align-items:center;flex-wrap:wrap}
+.e-name{font-family:'Cinzel',serif;font-size:.95rem;color:var(--gold)}
+.e-sub{font-size:.72rem;color:var(--gray);margin-top:.15rem}
+.e-tat{display:flex;gap:.35rem;flex-wrap:wrap}
+.pill{font-size:.6rem;font-family:'Cinzel',serif;letter-spacing:.07em;border:1px solid var(--border);border-radius:10px;padding:.08rem .5rem;color:var(--gray)}
+.pill.jetzt{border-color:var(--teal);color:var(--teal)}
+.spieler{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
+.sp{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--border);border-radius:12px;padding:.12rem .5rem;font-size:.76rem}
+.sp .x{cursor:pointer;color:var(--gray);font-size:.9rem;line-height:1}
+.sp .x:hover{color:#e05555}
+.sp.da{border-color:rgba(42,157,143,.5)}
+.meld{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
+.leer{font-size:.8rem;color:var(--gray);font-style:italic}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="topin">
+  <span class="brand">SPIELE &amp; SITZUNGEN</span>
+  <span class="badge" id="verbindung">verbinde …</span>
+  <span class="badge on" id="aktivBadge">—</span>
+  <span style="flex:1"></span>
+  <a href="regie.html" style="color:var(--gold);font-size:.8rem">← Regie</a>
+</div></div>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="card-hdr">Spiele</div>
+    <div class="card-body">
+      <p class="hint">Ein Spiel ist das Abenteuer selbst — der Inhalt. Eine Sitzung ist eine
+        Gruppe, die es spielt. Dasselbe Spiel kann mehrfach laufen, mit verschiedenen Leuten.</p>
+      <div class="row" style="margin-top:.7rem">
+        <input type="text" id="spielName" placeholder="Name des Spiels" maxlength="60">
+        <button onclick="spielAnlegen()">+ Spiel anlegen</button>
+      </div>
+      <div class="liste" id="spielListe"></div>
+      <div class="meld" id="spielMeld"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Sitzungen</div>
+    <div class="card-body">
+      <div class="row">
+        <input type="text" id="sitzName" placeholder="Name der Sitzung" maxlength="60">
+        <select id="sitzSpiel"></select>
+        <input type="text" id="sitzPw" placeholder="Passwort (optional)" maxlength="40">
+        <button onclick="sitzungAnlegen()">+ Sitzung anlegen</button>
+      </div>
+      <p class="hint">Das Passwort schützt später die Spielleiter-Rechte dieser Sitzung. Es wird
+        in einem Ast abgelegt, den kein Client lesen kann — aber es ist kein echtes Konto,
+        und der Schutz greift erst mit der anonymen Anmeldung im nächsten Schritt.</p>
+      <div class="liste" id="sitzListe" style="margin-top:.8rem"></div>
+      <div class="meld" id="sitzMeld"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">Bestehender Spielstand</div>
+    <div class="card-body" id="altBox"></div>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
+<script>
+/* ==========================================================
+   SPIELE UND SITZUNGEN — die Verwaltung der Spielleitung
+   ----------------------------------------------------------
+   Diese Seite arbeitet BEWUSST auf der echten Datenbank, nicht
+   auf der Sitzungs-Huelle aus js/sitzung.js: Sie verwaltet ja
+   gerade die Sitzungen und muss deshalb ueber ihnen stehen.
+
+   Nicht verlinkt in index.html, wie alle Seiten der
+   Spielleitung - sie kann Sitzungen beenden und Spielstaende
+   loeschen.
+   ========================================================== */
+let db = null, spiele = {}, sitzungen = {}, aktiv = null, altStand = null;
+
+function el(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+  });
+}
+function meld(id, text, farbe) {
+  const n = el(id); n.textContent = text; n.style.color = farbe || 'var(--gray)';
+}
+/* Aus einem Namen eine brauchbare Firebase-Kennung machen. Punkt,
+   Doppelkreuz, Dollar, Klammer und Schraegstrich sind dort verboten. */
+function kennung(name) {
+  const roh = String(name || '').toLowerCase()
+    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return roh || ('s' + Date.now().toString(36));
+}
+function freieKennung(basis, vorhanden) {
+  let k = kennung(basis), n = 2;
+  while (vorhanden[k]) { k = kennung(basis) + '-' + n; n++; }
+  return k;
+}
+function datum(ms) {
+  if (!ms) return '';
+  const d = new Date(ms);
+  return d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+/* ---------- Anlegen ---------- */
+function spielAnlegen() {
+  const name = el('spielName').value.trim();
+  if (!name) { meld('spielMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
+  const id = freieKennung(name, spiele);
+  db.ref('spiele/' + id).set({ name: name, angelegt: Date.now() })
+    .then(function () { el('spielName').value = ''; meld('spielMeld', 'Angelegt: ' + name, '#4caf7d'); })
+    .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+}
+
+function sitzungAnlegen() {
+  const name = el('sitzName').value.trim();
+  const spiel = el('sitzSpiel').value;
+  const pw = el('sitzPw').value.trim();
+  if (!name)  { meld('sitzMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
+  if (!spiel) { meld('sitzMeld', 'Lege zuerst ein Spiel an.', 'var(--amber)'); return; }
+  const id = freieKennung(name, sitzungen);
+  const paket = {};
+  paket['sitzungen/' + id + '/meta'] = { name: name, spiel: spiel, angelegt: Date.now() };
+  if (pw) paket['geheimnisse/' + id + '/pw'] = pw;
+  db.ref().update(paket)
+    .then(function () {
+      el('sitzName').value = ''; el('sitzPw').value = '';
+      meld('sitzMeld', 'Angelegt: ' + name + (pw ? ' (mit Passwort)' : ''), '#4caf7d');
+    })
+    .catch(function (e) { meld('sitzMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+}
+
+/* ---------- Steuern ---------- */
+function starten(id) {
+  db.ref('aktiveSitzung').set(id)
+    .then(function () { meld('sitzMeld', 'Läuft jetzt: ' + (sitzungen[id] && sitzungen[id].meta ? sitzungen[id].meta.name : id), '#4caf7d'); })
+    .catch(function (e) { meld('sitzMeld', 'Ging nicht: ' + e, '#e05555'); });
+}
+function beenden(id) {
+  const paket = {};
+  paket['sitzungen/' + id + '/meta/beendet'] = Date.now();
+  if (aktiv === id) paket['aktiveSitzung'] = null;
+  db.ref().update(paket);
+}
+function fortsetzen(id) {
+  db.ref('sitzungen/' + id + '/meta/beendet').remove();
+}
+function umbenennen(id) {
+  const alt = (sitzungen[id] && sitzungen[id].meta && sitzungen[id].meta.name) || id;
+  const neu = prompt('Neuer Name der Sitzung:', alt);
+  if (neu && neu.trim()) db.ref('sitzungen/' + id + '/meta/name').set(neu.trim().slice(0, 60));
+}
+function loeschen(id) {
+  const s = sitzungen[id] || {};
+  const anzahl = Object.keys((s.stand && s.stand.figuren) || {}).length;
+  if (!confirm('Sitzung "' + ((s.meta && s.meta.name) || id) + '" mit allem Spielstand löschen?' +
+      (anzahl ? '\n\nDarin liegen ' + anzahl + ' Figur(en). Das ist nicht rückgängig zu machen.' : ''))) return;
+  const paket = {};
+  paket['sitzungen/' + id] = null;
+  paket['geheimnisse/' + id] = null;
+  if (aktiv === id) paket['aktiveSitzung'] = null;
+  db.ref().update(paket);
+}
+
+/* ---------- Spieler ---------- */
+function spielerHinzu(id) {
+  const name = prompt('Name des Spielers:');
+  if (!name || !name.trim()) return;
+  const s = sitzungen[id] || {};
+  const k = freieKennung(name, s.spieler || {});
+  db.ref('sitzungen/' + id + '/spieler/' + k).set({ name: name.trim().slice(0, 40), dazu: Date.now() });
+}
+function spielerWeg(id, k) {
+  const s = sitzungen[id] || {};
+  const n = (s.spieler && s.spieler[k] && s.spieler[k].name) || k;
+  if (!confirm('"' + n + '" aus der Sitzung nehmen? Die Figur bleibt erhalten.')) return;
+  db.ref('sitzungen/' + id + '/spieler/' + k).remove();
+}
+
+/* ---------- Bestehenden Spielstand uebernehmen ----------
+   Der alte Spielstand liegt flach in der Wurzel (currentScene,
+   arenaState, figuren ...). Er wird NICHT automatisch verschoben:
+   Das ist die gespielte Kampagne, und ein Verschieben waere nicht
+   ohne Weiteres rueckgaengig zu machen. Die Spielleitung entscheidet. */
+function altUebernehmen(ziel) {
+  if (!altStand || !Object.keys(altStand).length) return;
+  const namen = Object.keys(altStand);
+  if (!confirm('Den bestehenden Spielstand (' + namen.join(', ') + ') in "' +
+      ((sitzungen[ziel] && sitzungen[ziel].meta && sitzungen[ziel].meta.name) || ziel) +
+      '" übernehmen?\n\nDie Wurzel bleibt dabei unangetastet — es wird kopiert, nicht verschoben.')) return;
+  const paket = {};
+  namen.forEach(function (k) { paket['sitzungen/' + ziel + '/stand/' + k] = altStand[k]; });
+  db.ref().update(paket)
+    .then(function () { alert('Übernommen. Der alte Stand liegt unverändert weiter in der Wurzel.'); })
+    .catch(function (e) { alert('Ging nicht: ' + e); });
+}
+
+/* ---------- Darstellung ---------- */
+function zeichneSpiele() {
+  const ids = Object.keys(spiele);
+  el('spielListe').innerHTML = ids.length ? ids.map(function (id) {
+    const s = spiele[id] || {};
+    const genutzt = Object.keys(sitzungen).filter(function (sid) {
+      return sitzungen[sid].meta && sitzungen[sid].meta.spiel === id;
+    }).length;
+    return '<div class="eintrag"><div class="e-kopf"><div>' +
+      '<div class="e-name">' + esc(s.name || id) + '</div>' +
+      '<div class="e-sub">' + esc(id) + ' · ' +
+        (genutzt ? genutzt + ' Sitzung' + (genutzt > 1 ? 'en' : '') : 'noch keine Sitzung') + '</div>' +
+      '</div></div></div>';
+  }).join('') : '<div class="leer">Noch kein Spiel angelegt.</div>';
+
+  const w = el('sitzSpiel');
+  const vorher = w.value;
+  w.innerHTML = ids.length
+    ? ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(spiele[id].name || id) + '</option>'; }).join('')
+    : '<option value="">— erst ein Spiel anlegen —</option>';
+  if (vorher && ids.indexOf(vorher) >= 0) w.value = vorher;
+}
+
+function zeichneSitzungen() {
+  const ids = Object.keys(sitzungen);
+  el('aktivBadge').textContent = aktiv
+    ? ((sitzungen[aktiv] && sitzungen[aktiv].meta && sitzungen[aktiv].meta.name) || aktiv)
+    : 'keine Sitzung läuft';
+
+  el('sitzListe').innerHTML = ids.length ? ids.map(function (id) {
+    const s = sitzungen[id] || {}, m = s.meta || {};
+    const istAktiv = (id === aktiv), beendet = !!m.beendet;
+    const figuren = (s.stand && s.stand.figuren) || {};
+    const spieler = s.spieler || {};
+
+    const chips = Object.keys(spieler).map(function (k) {
+      const sp = spieler[k] || {};
+      const hatFigur = Object.keys(figuren).some(function (pid) {
+        return (figuren[pid].spieler || '').toLowerCase() === String(sp.name || '').toLowerCase();
+      });
+      return '<span class="sp' + (hatFigur ? ' da' : '') + '" title="' +
+        (hatFigur ? 'hat eine Figur angelegt' : 'noch keine Figur') + '">' +
+        esc(sp.name || k) + (hatFigur ? ' ●' : '') +
+        '<span class="x" onclick="spielerWeg(\'' + id + '\',\'' + k + '\')" title="entfernen">×</span></span>';
+    }).join('');
+
+    return '<div class="eintrag' + (istAktiv ? ' aktiv' : '') + (beendet ? ' beendet' : '') + '">' +
+      '<div class="e-kopf"><div>' +
+        '<div class="e-name">' + esc(m.name || id) +
+          (istAktiv ? ' <span class="pill jetzt">läuft</span>' : '') +
+          (beendet ? ' <span class="pill">beendet</span>' : '') + '</div>' +
+        '<div class="e-sub">' +
+          esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
+          ' · angelegt ' + datum(m.angelegt) +
+          ' · ' + Object.keys(figuren).length + ' Figur(en)' +
+        '</div>' +
+      '</div><div class="e-tat">' +
+        (beendet
+          ? '<button class="klein" onclick="fortsetzen(\'' + id + '\')">fortsetzen</button>'
+          : (istAktiv
+              ? '<button class="klein warn" onclick="beenden(\'' + id + '\')">beenden</button>'
+              : '<button class="klein" onclick="starten(\'' + id + '\')">starten</button>')) +
+        '<button class="klein" onclick="spielerHinzu(\'' + id + '\')">+ Spieler</button>' +
+        '<button class="klein" onclick="umbenennen(\'' + id + '\')">umbenennen</button>' +
+        '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
+      '</div></div>' +
+      '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
+      '</div>';
+  }).join('') : '<div class="leer">Noch keine Sitzung angelegt.</div>';
+
+  zeichneAlt();
+}
+
+function zeichneAlt() {
+  const box = el('altBox');
+  const namen = altStand ? Object.keys(altStand) : [];
+  if (!namen.length) {
+    box.innerHTML = '<p class="hint">In der Wurzel liegt kein alter Spielstand mehr. ' +
+      'Alles hängt unter seiner Sitzung.</p>';
+    return;
+  }
+  const ids = Object.keys(sitzungen);
+  box.innerHTML = '<p class="hint">Aus der Zeit vor den Sitzungen liegt noch ein Spielstand ' +
+    'flach in der Wurzel: <b>' + esc(namen.join(', ')) + '</b>. Das ist die gespielte Kampagne. ' +
+    'Er wird <b>kopiert, nicht verschoben</b> — die Wurzel bleibt unangetastet, bis du sie ' +
+    'selbst aufräumst.</p>' +
+    (ids.length
+      ? '<div class="row" style="margin-top:.7rem"><select id="altZiel">' +
+          ids.map(function (id) {
+            return '<option value="' + esc(id) + '">' +
+              esc((sitzungen[id].meta && sitzungen[id].meta.name) || id) + '</option>';
+          }).join('') +
+        '</select><button onclick="altUebernehmen(document.getElementById(\'altZiel\').value)">' +
+        'in diese Sitzung übernehmen</button></div>'
+      : '<p class="hint" style="margin-top:.6rem">Lege zuerst eine Sitzung an.</p>');
+}
+
+/* ---------- Firebase ---------- */
+function start() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+  } catch (e) {
+    el('verbindung').textContent = 'keine Datenbank';
+    el('verbindung').style.color = 'var(--amber)';
+    return;
+  }
+  db.ref('.info/connected').on('value', function (s) {
+    const an = s.val() === true;
+    el('verbindung').textContent = an ? 'verbunden' : 'offline';
+    el('verbindung').style.color = an ? 'var(--teal)' : 'var(--amber)';
+  });
+  db.ref('spiele').on('value', function (s) { spiele = s.val() || {}; zeichneSpiele(); zeichneSitzungen(); });
+  db.ref('sitzungen').on('value', function (s) { sitzungen = s.val() || {}; zeichneSpiele(); zeichneSitzungen(); });
+  db.ref('aktiveSitzung').on('value', function (s) { aktiv = s.val() || null; zeichneSitzungen(); });
+
+  // Was liegt noch flach in der Wurzel? Genau die Pfade, die
+  // js/sitzung.js als Spielstand kennt.
+  SITZUNGS_PFADE.forEach(function (p) {
+    db.ref(p).once('value').then(function (s) {
+      if (s.val() === null) return;
+      altStand = altStand || {};
+      altStand[p] = s.val();
+      zeichneAlt();
+    }).catch(function () {});
+  });
+}
+start();
+</script>
+</body>
+</html>

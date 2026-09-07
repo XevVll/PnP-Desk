@@ -78,7 +78,7 @@ const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.
 // ---------- Firebase-Verbindung ----------
 try {
   firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
+  db = sitzungsDbJetzt(firebase.database());
   initDiceRoller(db, { allowPrivate: true });
 
   db.ref('currentScene').on('value', function (snapshot) {

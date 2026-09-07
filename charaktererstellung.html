@@ -297,6 +297,7 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
 <script>
@@ -699,7 +700,7 @@ function setzeSync(txt, farbe) {
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
+    db = sitzungsDbJetzt(firebase.database());
     syncBereit = true;
     // "verbunden" darf hier NICHT stehen: initializeApp() baut nur ein Objekt
     // auf und beruehrt das Netz mit keinem Byte. Die Datenbank sagt selbst
@@ -742,12 +743,12 @@ function figurFuerDb() {
 
 // Ein abgelehntes Versprechen ist der eine Fehlerfall, eine geworfene
 // Ausnahme der andere - z.B. wenn der Browser eine halb veraltete Datei aus
-// dem Cache haelt und rundenId() gar nicht kennt. Ohne den try-Block friert
+// dem Cache haelt. Ohne den try-Block friert
 // die Anzeige dann stumm ein, statt zu sagen, was los ist.
 function nachFirebase() {
   if (!db || !syncBereit) return;
   try {
-    db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
+    db.ref('figuren/' + spielerId()).update(figurFuerDb())
       .then(function () { setzeSync('gespeichert', '#4caf7d'); })
       .catch(function (err) {
         syncBereit = false;
@@ -802,7 +803,7 @@ function jetztSenden() {
   m.textContent = 'Wird gesendet…';
   let ref;
   try {
-    ref = db.ref('figuren/' + rundenId() + '/' + spielerId());
+    ref = db.ref('figuren/' + spielerId());
   } catch (e) {
     m.style.color = '#e05555';
     m.textContent = 'Der Browser hält eine veraltete Fassung dieser Seite. ' +

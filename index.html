@@ -191,6 +191,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
 <script>
 /* ==========================================================
@@ -275,7 +276,7 @@ function zaehle(datum, i) {
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
+    db = sitzungsDbJetzt(firebase.database());
   } catch (e) { zeigeOffline('Keine Verbindung zur Datenbank — Termine sind gerade nicht abrufbar.'); return; }
 
   db.ref('termine/config').on('value', function (s) {
@@ -318,6 +319,21 @@ function zeigeOffline(txt) {
 function anmeldenBeiDb() {
   if (!db || !meinName) return;
   db.ref('termine/spieler/' + meinePid).set({ name: meinName, zuletzt: Date.now() });
+  // Sich selbst in die laufende Sitzung eintragen. Ohne das bliebe die
+  // Spielerliste der Spielleitung eine Karteileiche: Sie kann Namen
+  // vormerken, aber wer tatsaechlich da ist, weiss nur der Browser des
+  // Spielers. "sitzungen" ist kein Spielstands-Pfad und geht deshalb
+  // ungefiltert durch die Huelle - die Sitzung muss hier selbst dran.
+  if (db.sitzung) {
+    const k = String(meinName).toLowerCase()
+      .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+    if (k) {
+      db.ref('sitzungen/' + db.sitzung + '/spieler/' + k)
+        .update({ name: meinName, pid: meinePid, zuletzt: Date.now() })
+        .catch(function () { /* die Anmeldung gilt auch ohne diesen Eintrag */ });
+    }
+  }
 }
 
 function schreibeTag(datum, bits) {

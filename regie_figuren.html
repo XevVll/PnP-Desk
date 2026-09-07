@@ -75,6 +75,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
 <script>
@@ -109,8 +110,8 @@ function esc(s) {
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    db.ref('figuren/' + rundenId()).on('value', function (s) {
+    const db = sitzungsDbJetzt(firebase.database());
+    db.ref('figuren').on('value', function (s) {
       figuren = s.val() || {};
       render();
     }, function (err) {

@@ -8,8 +8,8 @@
   "//6": "Nach diesem Datum verweigert die Datenbank JEDEN Zugriff - Karte und Adminpanel",
   "//7": "waeren dann tot. Die Regeln unten haben KEIN Ablaufdatum.",
   "//8": "",
-  "//9": "PRINZIP: Die Wurzel ist gesperrt, freigegeben sind nur die 19 Pfade, die die",
-  "//10": "Anwendung tatsaechlich benutzt. Das verhindert, dass Fremde beliebige neue",
+  "//9": "PRINZIP: Die Wurzel ist gesperrt. Freigegeben sind die Sitzungsverwaltung und",
+  "//10": "die Pfade, die die Anwendung benutzt. Das verhindert, dass Fremde beliebige neue",
   "//11": "Aeste in die Datenbank schreiben, und begrenzt den Schaden bei Missbrauch.",
   "//12": "Es ersetzt KEINE Anmeldung: Wer die URL aus js/firebase-config.js kennt (das",
   "//13": "Repo ist oeffentlich), kann diese Pfade weiterhin lesen und schreiben. Fuer",
@@ -20,6 +20,35 @@
   "rules": {
     ".read": false,
     ".write": false,
+
+    "//v": "----- global, gehoert keiner Sitzung -----",
+
+    "aktiveSitzung": { ".read": true, ".write": true },
+    "spiele":        { ".read": true, ".write": true },
+
+    "//w": "----- die Sitzungen selbst -----",
+    "//w1": "Alles, was frueher flach in der Wurzel lag, haengt jetzt unter",
+    "//w2": "sitzungen/{id}/stand/. Damit koennen zwei Gruppen nebeneinander",
+    "//w3": "spielen, ohne sich die Szene umzuschalten.",
+
+    "sitzungen": { ".read": true, ".write": true },
+
+    "//x": "----- Passwoerter -----",
+    "//x1": "BEWUSST ein eigener Ast und NICHT unter sitzungen/: In Firebase",
+    "//x2": "kaskadiert \".read\": true nach unten und laesst sich tiefer nicht",
+    "//x3": "mehr zuruecknehmen. Ein Passwort unterhalb des lesbaren Sitzungs-",
+    "//x4": "knotens waere fuer jeden lesbar. Hier ist es fuer KEINEN Client",
+    "//x5": "lesbar - Regeln duerfen es trotzdem vergleichen.",
+    "//x6": "OFFEN: Schreiben ist noch frei. Der Schutz greift erst mit der",
+    "//x7": "anonymen Anmeldung im naechsten Schritt (siehe CLAUDE.md).",
+
+    "geheimnisse": { ".read": false, ".write": true },
+    "anspruch":    { ".read": true,  ".write": true },
+
+    "//y": "----- die alten Wurzelpfade -----",
+    "//y1": "Bleiben vorerst offen, damit ein noch nicht uebernommener",
+    "//y2": "Spielstand lesbar ist. Nach der Uebernahme in eine Sitzung",
+    "//y3": "koennen sie ersatzlos entfallen.",
 
     "currentScene":      { ".read": true, ".write": true },
     "sceneAudioFile":    { ".read": true, ".write": true },

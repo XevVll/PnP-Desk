@@ -37,18 +37,12 @@ function setzeSpielerName(v) {
 }
 function loescheSpielerName() { try { localStorage.removeItem(ID_NAME_KEY); } catch (e) {} }
 
-/* ---------- Runde ----------
-   Alle Daten einer Spielrunde haengen unter dieser Kennung. Vorerst eine
-   Konstante: es gibt genau eine Runde. In der naechsten Etappe wird daraus
-   ein Lesezugriff auf den Zeiger "aktiveRunde", den die Adminseite setzt -
-   die Aufrufer bleiben dann unveraendert, weil sie ohnehin schon durch
-   rundenId() gehen.
-
-   Der Umweg lohnt sich jetzt schon: ohne ihn liegt jede Figur unter
-   figuren/{spielerId}, und eine Person koennte nur EINE Figur haben -
-   bei einer zweiten Runde kollidiert das sofort. */
-const RUNDE_VORGABE = 'korsaren';
-function rundenId() { return RUNDE_VORGABE; }
+/* Die Runde/Sitzung steht NICHT mehr hier. Sie kommt aus
+   js/sitzung.js, das dem gesamten Spielstand ein Praefix
+   voranstellt - jeder Pfad wandert damit automatisch mit,
+   ohne dass ein Aufrufer davon wissen muss. Frueher trug
+   figuren/{runde}/{spieler} die Runde selbst im Pfad; das
+   waere jetzt doppelt gemoppelt. */
 
 function spielerId() {
   let p = idLies(ID_PID_KEY);
@@ -60,6 +54,6 @@ function spielerId() {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { ID_NAME_KEY, ID_PID_KEY, RUNDE_VORGABE, rundenId,
+  module.exports = { ID_NAME_KEY, ID_PID_KEY,
     spielerName, setzeSpielerName, loescheSpielerName, spielerId };
 }

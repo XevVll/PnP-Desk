@@ -105,6 +105,59 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 4) — Etappe 2: Spiele, Sitzungen, Spieler
+Das Gerüst für mehrere Runden. Bisher lag der gesamte Spielstand flach in der Wurzel — es gab
+also genau EINE Runde, und zwei Gruppen hätten sich gegenseitig die Szene umgeschaltet.
+
+- **Neue `js/sitzung.js`.** Aller Spielstand hängt jetzt unter `sitzungen/{sid}/stand/…`, ein
+  einziger Zeiger `aktiveSitzung` sagt, welche läuft.
+  - **Der entscheidende Kniff: eine Hülle statt 84 Änderungen.** Im Projekt stehen 84 Aufrufe der
+    Form `db.ref('currentScene')`. Die einzeln umzuschreiben wären 84 Gelegenheiten, eine zu
+    vergessen — und eine vergessene schreibt still in die Wurzel zurück, wo sie niemand sucht.
+    Stattdessen wird **das `db`-Objekt selbst ausgetauscht**: gleiche Form, aber es stellt jedem
+    bekannten Spielstands-Pfad das Präfix voran. **Jeder Aufrufer bleibt wörtlich, wie er ist**;
+    geändert wurde eine Zeile je Seite.
+  - Die Wurzel-Sammel-Updates (`db.ref().update(paket)`, 3 Stellen) hängen **jeden Schlüssel
+    einzeln** um — sonst schriebe ein einziger Aufruf den halben Spielstand zurück in die Wurzel.
+  - **Der Zeiger kommt aus dem localStorage**, nicht aus einem Firebase-Lesezugriff. Sonst hätte
+    in sieben Dateien der Ablauf von synchron auf asynchron umgebaut werden müssen. Weicht der
+    Cache ab, lädt die Seite neu — ein Sitzungswechsel ist ohnehin ein Einschnitt.
+- **Neue `regie_sitzungen.html`** (SL-Seite, **nicht** im Hub verlinkt): Spiele anlegen ·
+  Sitzungen anlegen, starten, beenden, fortsetzen, umbenennen, löschen · Spieler je Sitzung.
+  Arbeitet bewusst auf der **echten** Datenbank, nicht auf der Hülle — sie verwaltet ja die
+  Sitzungen und muss über ihnen stehen.
+  - **Spiel und Sitzung sind zwei Ebenen:** Ein Spiel ist das Abenteuer (der Inhalt), eine
+    Sitzung eine Gruppe, die es spielt. Dasselbe Spiel kann mehrfach laufen.
+  - Spieler tragen sich beim Anmelden im Hub **selbst** in die laufende Sitzung ein. Ohne das
+    wäre die Liste eine Karteileiche: Die SL kann Namen vormerken, aber wer da ist, weiß nur der
+    Browser des Spielers. Ein Punkt am Namen zeigt, wer schon eine Figur hat.
+- **Passwort je Sitzung liegt in einem eigenen Ast `geheimnisse/{sid}/pw`, NICHT unter
+  `sitzungen/`.** Grund: In Firebase **kaskadiert `".read": true` nach unten und lässt sich tiefer
+  nicht mehr zurücknehmen** — ein Passwort unterhalb des lesbaren Sitzungsknotens wäre für jeden
+  Client lesbar gewesen. So ist es für keinen lesbar, Regeln dürfen es trotzdem vergleichen.
+- **`rundenId()` ist entfallen** (`js/identitaet.js`). Der Pfad `figuren/{runde}/{pid}` trug die
+  Runde selbst; mit der Hülle wäre das doppelt gemoppelt. Jetzt `figuren/{pid}` unter der Sitzung.
+- **`firebase-rules.json` auf 24 Pfade** (`aktiveSitzung`, `spiele`, `sitzungen`, `geheimnisse`,
+  `anspruch` neu). **⚠ Muss in der Konsole veröffentlicht werden**, sonst schlägt jeder
+  Schreibzugriff auf die neuen Pfade still fehl.
+- **Bestehender Spielstand wird NICHT automatisch verschoben.** Die Verwaltungsseite erkennt, was
+  noch flach in der Wurzel liegt, und bietet an, es in eine Sitzung zu **kopieren** — die Wurzel
+  bleibt unangetastet. Das ist die gespielte Kampagne; ein Verschieben wäre nicht ohne Weiteres
+  rückgängig zu machen und ist Hendriks Entscheidung, nicht meine.
+- **Getestet: 267 Prüfungen über sechs Skripte, 0 Fehler.** Die tragende Prüfung zieht die
+  benutzten Pfade **aus dem echten Code** statt aus meiner Erinnerung und stellt sicher, dass die
+  Hülle jeden einzelnen kennt — und dass kein toter Eintrag in der Liste steht. Dazu: ein
+  Sammel-Update hängt jeden Schlüssel um, zwei Sitzungen überschneiden sich nirgends, das
+  Passwort landet nachweislich nicht unter `sitzungen/`, und die Übernahme löscht nichts.
+  - **Zwei Bestandstests brachen** (Heldenbrief, Senden) — beide, weil ihr vm-Kontext
+    `js/sitzung.js` nicht lud. Die Seiten selbst fingen das sauber ab („nur lokal" statt Absturz),
+    was den im September gebauten Schutz bestätigt. Beide Skripte prüfen jetzt zusätzlich, dass
+    die Schreibvorgänge einer echten Seite unter `sitzungen/korsaren/stand/…` landen.
+- **[OFFEN] Anonyme Anmeldung und der Passwort-Anspruch fehlen noch.** Bewusst getrennt: Eine
+  Struktur-Migration und eine Rechte-Umstellung gleichzeitig zu machen heißt, bei einem Fehler
+  nicht mehr sagen zu können, welche der beiden schuld war. `geheimnisse` ist heute schon
+  unlesbar, aber noch frei beschreibbar.
+
 ### 2026-09-07 (Fortsetzung 3) — Hausregel gestrichen, Savage Worlds pur
 - **Nachtrag: Der Wurf zeigt jetzt, WELCHER Würfel gezählt hat.** Hendriks Frage nach dem
   Screenshot — „Was ist der Wild Die? Den braucht es doch gar nicht mehr" — war berechtigt gegen
