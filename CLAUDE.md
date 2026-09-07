@@ -141,8 +141,11 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
     Spielstand, die nackte Datenbank für Beitritt und Zeiger, die außerhalb jeder Sitzung liegen.
     Dafür prüft der Test jetzt zusätzlich, dass über die nackte Datenbank **kein** Spielstand
     geschrieben wird.
-- **[OFFEN]** Die Sitzungs-ID ist kein Geheimnis: Wer sie errät, kommt hinein. Eine echte Hürde
-  wäre das Sitzungspasswort beim Beitritt — das setzt die anonyme Anmeldung voraus.
+- **Entschieden (Hendrik): Das ist so in Ordnung.** Die Sitzungs-ID ist kein Geheimnis — wer sie
+  errät, kommt hinein. Für eine Runde eingeladener Freunde reicht das; dasselbe Schutzniveau wie
+  bei den SL-Seiten, die allein durch ihre unbekannte Adresse geschützt sind. Kein offener Punkt.
+  Eine echte Hürde (Sitzungspasswort beim Beitritt) bliebe möglich, sobald die anonyme Anmeldung
+  steht — sie ist dann eine Erweiterung, kein Nachholen.
 
 ### 2026-09-07 (Fortsetzung 6) — Regie-Hub: erst die Sitzung, dann hinein
 - **Nachtrag: `spielerKennung()` entdoppelt.** Die Umwandlung eines Namens in einen
