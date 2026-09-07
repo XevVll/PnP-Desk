@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Korsaren — Spiele und Sitzungen</title>
+<title>Korsaren — Regie</title>
 <style>
 :root{
   --bg:#12232a;--surface:rgba(255,255,255,.05);--border:rgba(201,168,76,.22);
@@ -34,6 +34,14 @@ button.warn{border-color:var(--amber);color:var(--amber)}
 button.gefahr{border-color:#c05555;color:#c05555}
 .liste{display:flex;flex-direction:column;gap:.5rem}
 .eintrag{border:1px solid var(--border);border-radius:6px;padding:.6rem .75rem;background:rgba(255,255,255,.03)}
+.eintrag.klickbar{cursor:pointer;transition:border-color .15s,background .15s}
+.eintrag.klickbar:hover{border-color:var(--gold);background:var(--lgold)}
+.werkzeuge{display:flex;gap:.5rem;flex-wrap:wrap}
+.wz{display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;font-family:'Cinzel',serif;
+  font-size:.72rem;letter-spacing:.06em;padding:.45rem .8rem;border-radius:5px;
+  border:1px solid var(--border);color:var(--gray);transition:all .15s}
+.wz:hover{border-color:var(--gold);color:var(--gold);background:var(--lgold)}
+.oeffnen{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;color:var(--teal);margin-top:.25rem}
 .eintrag.aktiv{border-color:var(--teal);background:rgba(42,157,143,.1)}
 .eintrag.beendet{opacity:.5}
 .e-kopf{display:flex;justify-content:space-between;gap:.6rem;align-items:center;flex-wrap:wrap}
@@ -54,14 +62,30 @@ button.gefahr{border-color:#c05555;color:#c05555}
 <body>
 
 <div class="top"><div class="topin">
-  <span class="brand">SPIELE &amp; SITZUNGEN</span>
+  <span class="brand">REGIE</span>
   <span class="badge" id="verbindung">verbinde …</span>
   <span class="badge on" id="aktivBadge">—</span>
   <span style="flex:1"></span>
-  <a href="regie.html" style="color:var(--gold);font-size:.8rem">← Regie</a>
 </div></div>
 
 <div class="wrap">
+
+  <div class="card">
+    <div class="card-hdr">Werkzeuge</div>
+    <div class="card-body">
+      <p class="hint">Alle Seiten der Spielleitung. Sie zeigen immer die Sitzung, die du
+        zuletzt geöffnet hast.</p>
+      <div class="werkzeuge" style="margin-top:.6rem">
+        <a class="wz" href="regie.html" target="_blank">🎬 Regie</a>
+        <a class="wz" href="regie_figuren.html" target="_blank">🧑‍🤝‍🧑 Figuren</a>
+        <a class="wz" href="arena_admin.html" target="_blank">⚔ Schlachtfeld</a>
+        <a class="wz" href="graph_editor.html" target="_blank">🧭 Graph-Editor</a>
+        <a class="wz" href="besatzung.html" target="_blank">⚓ Besatzung</a>
+        <a class="wz" href="codex.html" target="_blank">📖 Codex</a>
+        <a class="wz" href="karte.html" target="_blank">🗺️ Spieleransicht</a>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-hdr">Spiele</div>
@@ -176,9 +200,19 @@ function sitzungAnlegen() {
 }
 
 /* ---------- Steuern ---------- */
+/* Eine Sitzung OEFFNEN heisst: nur dieser Browser schaut hinein. Der
+   Zeiger aktiveSitzung bleibt, wo er ist - die Spieler merken nichts.
+   Ohne diese Trennung koennte die Spielleitung nicht in eine ruhende
+   Sitzung sehen, ohne die ganze Gruppe mitzunehmen. */
+function regieOeffnen(id) {
+  location.href = 'regie.html?sitzung=' + encodeURIComponent(id);
+}
+
+/* Eine Sitzung STARTEN heisst: der Zeiger wandert, alle Spieler wechseln
+   mit - und die Spielleitung geht gleich mit hinein. */
 function starten(id) {
   db.ref('aktiveSitzung').set(id)
-    .then(function () { meld('sitzMeld', 'Läuft jetzt: ' + (sitzungen[id] && sitzungen[id].meta ? sitzungen[id].meta.name : id), '#4caf7d'); })
+    .then(function () { regieOeffnen(id); })
     .catch(function (e) { meld('sitzMeld', 'Ging nicht: ' + e, '#e05555'); });
 }
 function beenden(id) {
@@ -286,7 +320,8 @@ function zeichneSitzungen() {
         '<span class="x" onclick="spielerWeg(\'' + id + '\',\'' + k + '\')" title="entfernen">×</span></span>';
     }).join('');
 
-    return '<div class="eintrag' + (istAktiv ? ' aktiv' : '') + (beendet ? ' beendet' : '') + '">' +
+    return '<div class="eintrag klickbar' + (istAktiv ? ' aktiv' : '') + (beendet ? ' beendet' : '') + '"' +
+      ' onclick="regieOeffnen(\'' + id + '\')" title="Regie dieser Sitzung öffnen">' +
       '<div class="e-kopf"><div>' +
         '<div class="e-name">' + esc(m.name || id) +
           (istAktiv ? ' <span class="pill jetzt">läuft</span>' : '') +
@@ -296,12 +331,13 @@ function zeichneSitzungen() {
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
         '</div>' +
-      '</div><div class="e-tat">' +
+        '<div class="oeffnen">▶ Regie öffnen</div>' +
+      '</div><div class="e-tat" onclick="event.stopPropagation()">' +
         (beendet
           ? '<button class="klein" onclick="fortsetzen(\'' + id + '\')">fortsetzen</button>'
           : (istAktiv
-              ? '<button class="klein warn" onclick="beenden(\'' + id + '\')">beenden</button>'
-              : '<button class="klein" onclick="starten(\'' + id + '\')">starten</button>')) +
+              ? '<button class="klein warn" onclick="beenden(\'' + id + '\')">für Spieler beenden</button>'
+              : '<button class="klein" onclick="starten(\'' + id + '\')">für Spieler starten</button>')) +
         '<button class="klein" onclick="spielerHinzu(\'' + id + '\')">+ Spieler</button>' +
         '<button class="klein" onclick="umbenennen(\'' + id + '\')">umbenennen</button>' +
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +

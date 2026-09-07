@@ -105,6 +105,38 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 6) — Regie-Hub: erst die Sitzung, dann hinein
+- **Hendriks Einwand: „Irgendwie stimmt der Aufbau noch nicht."** Zu Recht — er war verkehrt
+  herum. Man landete in `regie.html`, einer **Szenenansicht**, und verwaltete Sitzungen in einem
+  Unterpunkt davon. Richtig ist die Reihenfolge des Spieler-Hubs: erst wählen, dann hinein.
+- **`regie_sitzungen.html` → `regie_hub.html`**, zum Einstieg der Spielleitung ausgebaut:
+  Werkzeuge (Regie, Figuren, Schlachtfeld, Graph-Editor, Besatzung, Codex, Spieleransicht) ·
+  Spiele · Sitzungen mit Spielern · der alte Wurzel-Spielstand. **Ein Klick auf eine Sitzung
+  führt direkt in ihre Regie** (`regie.html?sitzung=…`).
+- **Die tragende Unterscheidung, die vorher fehlte:**
+  - **Öffnen** (Klick auf die Sitzung) — nur *dieser* Browser schaut hinein. Schreibt **nichts**
+    in die Datenbank, die Spieler merken nichts.
+  - **Für Spieler starten** — der Zeiger `aktiveSitzung` wandert, alle Spieler wechseln mit, und
+    die Spielleitung geht gleich mit hinein.
+  Ohne diese Trennung hätte ein Blick in eine ruhende Runde die ganze Gruppe mitgezogen — und
+  das wäre erst aufgefallen, wenn die Spieler nichts mehr sehen.
+- **Dafür neu in `js/sitzung.js`:** `pnp_sitzung_fest` als **bewusste Wahl dieses Browsers**, die
+  den globalen Zeiger schlägt und ihm nicht mehr folgt. Dazu `?sitzung=…` in der Adresse — so
+  kommt man aus dem Hub in die richtige Ansicht, und später ein eingeladener Spieler per
+  Beitrittslink.
+- **`regie.html` zeigt jetzt ihre Sitzung** in der Kopfleiste und **warnt in Orange, wenn diese
+  nicht die laufende ist.** Ohne das wäre von außen nicht zu unterscheiden, ob man in der aktiven
+  Runde sitzt oder in einer alten — ein Szenenwechsel in der falschen Sitzung fällt sonst erst
+  auf, wenn die Spieler nichts sehen.
+- **Getestet: 45 neue Prüfungen, 0 Fehler** (354 über acht Skripte). Darunter: Öffnen schreibt
+  nachweislich nichts, eine Festlegung beobachtet den Zeiger **nicht** mehr (die SL wird nicht
+  herausgerissen), ohne Festlegung lädt ein Zeigerwechsel weiterhin neu, die Knöpfe im
+  Sitzungseintrag schlucken den Klick, und der Spieler-Hub nennt weiterhin keine SL-Seite.
+  - **Wieder die Heredoc-Falle, zweimal** — Backslashes in einem Python-Skript per Bash-Heredoc
+    zerlegten die Suchmuster. Beim zweiten Mal endlich den dokumentierten Weg genommen: Skript
+    mit dem Write-Werkzeug schreiben und Backslashes über `chr(92)` bauen. Die Datei blieb beide
+    Male unversehrt, weil der Schreibvorgang am Ende steht.
+
 ### 2026-09-07 (Fortsetzung 5) — Die Figur bekommt eine eigene Adresse
 - **Hendriks Vorschlag:** „Man könnte den Charakter mit einer ID versehen, die man einfach laden
   kann." Damit fällt der Haken weg, den ich zuvor nennen musste: Ohne Konten galt **ein Browser =

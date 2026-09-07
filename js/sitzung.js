@@ -96,6 +96,39 @@ function sitzungsDatenbank(echteDb, sid) {
   return huelle;
 }
 
+/* ---------- Der Zeiger, und die bewusste Wahl ----------
+   Zwei verschiedene Dinge, die vorher eins waren:
+
+   aktiveSitzung  - der globale Zeiger. Ihm folgen die SPIELER.
+                    Setzt die Spielleitung ihn um, wechseln alle mit.
+   pnp_sitzung_fest - eine bewusste Wahl DIESES Browsers. Sie schlaegt
+                    den Zeiger und folgt ihm nicht mehr.
+
+   Ohne diese Trennung koennte die Spielleitung nicht in eine Sitzung
+   hineinschauen, ohne die ganze Gruppe dorthin mitzunehmen. */
+var SITZUNG_FEST_KEY = 'pnp_sitzung_fest';
+
+function sitzungFest() {
+  try { return localStorage.getItem(SITZUNG_FEST_KEY) || ''; } catch (e) { return ''; }
+}
+function setzeSitzungFest(sid) {
+  try { localStorage.setItem(SITZUNG_FEST_KEY, sid); } catch (e) {}
+  return sid;
+}
+function loeseSitzung() {
+  try { localStorage.removeItem(SITZUNG_FEST_KEY); } catch (e) {}
+}
+
+/* Eine Sitzung laesst sich auch per Adresse mitgeben: ...?sitzung=xyz
+   Genau so kommt man aus dem Regie-Hub direkt in die richtige Ansicht -
+   und spaeter ein eingeladener Spieler per Beitrittslink. */
+function sitzungAusAdresse() {
+  try {
+    var t = (location.search || '').match(/[?&]sitzung=([^&#]+)/);
+    return t ? decodeURIComponent(t[1]) : '';
+  } catch (e) { return ''; }
+}
+
 /* ---------- Der Zeiger ---------- */
 function sitzungAusCache() {
   try { return localStorage.getItem(SITZUNG_CACHE_KEY) || SITZUNG_VORGABE; }
@@ -109,8 +142,19 @@ function sitzungInCache(sid) {
 /* Bequemer Einstieg fuer die Seiten: liefert sofort eine benutzbare
    Datenbank und korrigiert sich selbst, falls der Cache veraltet ist. */
 function sitzungsDbJetzt(echteDb, beiWechsel) {
-  var sid = sitzungAusCache();
+  // Eine Sitzung in der Adresse ist eine bewusste Wahl und wird gemerkt.
+  var ausAdresse = sitzungAusAdresse();
+  if (ausAdresse) setzeSitzungFest(ausAdresse);
+
+  var fest = sitzungFest();
+  var sid  = fest || sitzungAusCache();
   var huelle = sitzungsDatenbank(echteDb, sid);
+
+  // Wer sich festgelegt hat, folgt dem Zeiger NICHT mehr. Sonst wuerde
+  // die Spielleitung beim Blick in eine ruhende Sitzung sofort wieder
+  // in die laufende zurueckgerissen.
+  if (fest) return huelle;
+
   try {
     echteDb.ref(SITZUNG_ZEIGER).on('value', function (s) {
       var echt = s.val() || SITZUNG_VORGABE;
@@ -207,7 +251,8 @@ function freienFigurCode(db, fertig) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     SITZUNG_VORGABE, SITZUNG_ZEIGER, SITZUNG_WURZEL, SPIEL_WURZEL,
-    SITZUNG_CACHE_KEY, SITZUNGS_PFADE,
+    SITZUNG_CACHE_KEY, SITZUNG_FEST_KEY, SITZUNGS_PFADE,
+    sitzungFest, setzeSitzungFest, loeseSitzung, sitzungAusAdresse,
     istSitzungsPfad, sitzungsPfad, sitzungsDatenbank,
     FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
     figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
