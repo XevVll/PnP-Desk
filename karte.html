@@ -2187,6 +2187,12 @@
     // ?preview=1) umgeht die Sperren bewusst: Sie schaut in ihre eigene
     // Sitzung, auch wenn die noch gar nicht gestartet ist.
     const istVorschau = /[?&]preview=1/.test(location.search);
+    /* Gekapselt, weil hier mit "return" abgebrochen wird: Dieser
+       <script>-Block laeuft auf oberster Ebene, und dort ist return im
+       Browser ein Syntaxfehler, der die GANZE Datei lahmlegt - die Karte
+       verbindet dann gar nicht mehr. "db" bleibt bewusst draussen, es
+       wird weiter unten noch gebraucht. */
+    (function verbinde() {
     try {
       if (!istVorschau && !hatSitzung()) {
         sitzungsSperre('Noch keine Sitzung',
@@ -2232,6 +2238,7 @@
       attachSceneAudioListener(getFallbackDefaultScene());
       renderCharacterRail(getFallbackDefaultScene());
     }
+    })();
   </script>
 
 </body>

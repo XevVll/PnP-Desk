@@ -105,6 +105,32 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 9) — Fehler: Spielerkarte verband nicht mehr
+- **Hendriks Meldung:** „Die Session läuft aber die Spielerkarte verbindet nicht."
+- **Ursache, mein Fehler:** Die Sitzungssperre, die ich am selben Tag in `karte.html` eingebaut
+  hatte, bricht mit `return` ab. Der Hauptskriptblock dieser Datei ist aber **kein IIFE**, sondern
+  Code auf oberster Ebene — und dort ist `return` im Browser ein **Syntaxfehler**. Nicht die
+  Sperre schlug fehl: **die gesamte Datei wurde nicht ausgeführt.** Deshalb kam nicht einmal eine
+  Fehlermeldung, die Karte hing schlicht auf „verbinde".
+- **Behoben:** Der Verbindungsaufbau ist jetzt in `(function verbinde() { … })()` gekapselt.
+  `let db` bleibt bewusst außerhalb — es wird weiter unten noch gebraucht.
+- **Der eigentliche Skandal war meine Prüfung.** Sie hätte das finden müssen und konnte es aus
+  zwei Gründen prinzipiell nicht:
+  1. **`node --check` prüft als CommonJS-Modul**, und das ist in eine Funktion gewickelt. Ein
+     `return` auf oberster Ebene ist dort **erlaubt**. Diese Fehlerklasse ist damit für
+     `node --check` grundsätzlich unsichtbar.
+  2. Mein `awk`-Muster `/^<script>$/` traf den **eingerückten** Tag `  <script>` von `karte.html`
+     nicht und extrahierte **null Zeilen**. Die Prüfung lief also über eine leere Datei und
+     meldete zuverlässig „OK" — bei jedem einzelnen Lauf der letzten Tage.
+- **Neues Testskript `t_syntax.js`**, das prüft, wie der Browser parst: `new vm.Script(...)` über
+  **jeden** Inline-Block jeder HTML-Seite (11 Blöcke) und **jede** `.js`-Datei (23) — als Skript,
+  nicht als Modul, denn genau so lädt eine Seite sie per `<script src=…>`. Eine Selbstprobe
+  stellt sicher, dass die Prüfung ein top-level `return` auch wirklich meldet.
+- **Getestet: 38 Prüfungen im neuen Skript, 0 Fehler** (453 über zehn Skripte).
+- **Merke fürs Projekt:** `node --check` reicht für dieses Repo **nicht**. Es ist blind für
+  top-level `return`, und jedes Extraktionsmuster, das nichts findet, meldet stillschweigend
+  Erfolg. Ein Test, der bei leerer Eingabe „OK" sagt, ist schlimmer als keiner.
+
 ### 2026-09-07 (Fortsetzung 8) — Fehler: gelöschte Sitzung kam bei jedem Refresh zurück
 - **Hendriks Meldung:** „Es öffnet sich jetzt jedes Mal, wenn ich den Spielerhub refreshe, eine
   Testsitzung."
