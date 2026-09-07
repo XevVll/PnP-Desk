@@ -76,6 +76,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wurf-b.miss{color:#b7b0a4}.wurf-b.patzer{color:#e05555}
 .wurf-d{font-size:.78rem;color:#cfc8ba;line-height:1.6}
 .wurf-d em{font-style:normal;color:var(--gold);font-family:'Cinzel',serif}
+.wurf-z{color:#cfc8ba}
+.wurf-z.aus{opacity:.45}
+.wurf-z .zaehlt{color:var(--teal);font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.06em}
 
 .tags{display:flex;flex-wrap:wrap;gap:.25rem}
 .tag{font-size:.7rem;border:1px solid var(--border);border-radius:11px;padding:.08rem .5rem;cursor:help}
@@ -467,10 +470,18 @@ function renderWerte() {
    Hinweis, sie muesse "Zeile fuer Zeile" zur Wahrscheinlichkeits-
    rechnung passen - eine Einladung an zwei Fassungen, auseinander
    zu laufen. */
-function wuerfelBild(w, seiten) {
-  if (!w) return '—';
+/* Welcher der beiden Wuerfel gezaehlt hat, muss man sehen. Sonst wirkt
+   der Wild Die wie Beiwerk - dabei ist er das Einzige, was eine
+   Spielerfigur von einem Statisten unterscheidet: Er hebt die
+   Erfolgsquote (auf d4 um 37,5 Punkte) und drueckt die Patzerquote
+   auf ein Sechstel. */
+function wuerfelZeile(titel, w, seiten, zaehlt) {
+  if (!w) return '<div class="wurf-z aus">' + titel + ': —</div>';
   const kette = w.teile.length > 1 ? w.teile.join(' + ') + ' = ' + w.summe : String(w.summe);
-  return 'd' + seiten + ' <em>' + kette + '</em>' + (w.teile.length > 1 ? ' explodiert!' : '');
+  return '<div class="wurf-z' + (zaehlt ? '' : ' aus') + '">' +
+    titel + ': d' + seiten + ' <em>' + kette + '</em>' +
+    (w.teile.length > 1 ? ' explodiert!' : '') +
+    (zaehlt ? ' <span class="zaehlt">— zählt</span>' : '') + '</div>';
 }
 
 function wuerfle(name, stufe) {
@@ -479,8 +490,8 @@ function wuerfle(name, stufe) {
 
   const probe = name + ' ' + (stufe >= 1 ? DLBL[stufe] : 'ungelernt');
   const zeilen = [
-    'Wert: '     + wuerfelBild(r.wert, r.seiten),
-    'Wild Die: ' + wuerfelBild(r.wildWurf, r.wildSeiten)
+    wuerfelZeile('Wert',     r.wert,     r.seiten,     r.zaehlt === 'wert'),
+    wuerfelZeile('Wild Die', r.wildWurf, r.wildSeiten, r.zaehlt === 'wild')
   ];
   const deutung = {
     steigerung: r.steigerungen > 1
@@ -496,7 +507,8 @@ function wuerfle(name, stufe) {
   box.innerHTML = '<div class="wurf-k">' + esc(probe) +
       (r.mod !== 0 ? ' · ' + (r.mod > 0 ? '+' : '') + r.mod : '') + '</div>' +
     '<div class="wurf-b ' + r.band + '">' + BAND_NAMEN[r.band] + '</div>' +
-    '<div class="wurf-d">' + zeilen.join('<br>') + '<br>' + deutung + '</div>';
+    '<div class="wurf-d">' + zeilen.join('') +
+      '<div style="margin-top:.3rem">' + deutung + '</div></div>';
 
   meldeWurf(probe, r.band, r.ergebnis, r.steigerungen);
 }

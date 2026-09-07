@@ -106,6 +106,16 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 ## Changelog
 
 ### 2026-09-07 (Fortsetzung 3) — Hausregel gestrichen, Savage Worlds pur
+- **Nachtrag: Der Wurf zeigt jetzt, WELCHER Würfel gezählt hat.** Hendriks Frage nach dem
+  Screenshot — „Was ist der Wild Die? Den braucht es doch gar nicht mehr" — war berechtigt gegen
+  die Anzeige, nicht gegen die Regel: Beide Würfel standen gleichberechtigt untereinander, ohne
+  Hinweis, dass der höhere zählt. Der zählende Würfel ist jetzt markiert, der andere abgeblendet.
+  Ausgerechnet in dem Screenshot trug der Wild Die alles: Wert-Würfel 6 (Erfolg ohne Steigerung),
+  Wild Die auf 16 explodiert (drei Steigerungen).
+  - **Der Wild Die ist nach dem Wechsel wichtiger, nicht unwichtiger** — er ist das Einzige, was
+    eine Spielerfigur von einem Statisten trennt. Gelingt/Patzer mit ihm gegen ohne: d4
+    62,5 %/4,2 % gegen 25 %/25 % · d8 81,3 %/2,1 % gegen 62,5 %/12,5 % · d12 87,5 %/1,4 % gegen
+    75 %/8,3 %. Auf d8 wird fast jeder fünfte Wurf allein von ihm gerettet.
 - **Hendriks Entscheidung:** „Schlechte Erfolge zu spielen macht keinen Spaß." Die vier Bänder
   fliegen raus, das Original wird komplett übernommen, kein eigenes Süppchen mehr.
 - **Was die Messung vorher zeigte** (sie hat die Entscheidung getragen): Weil der Wild Die ein
