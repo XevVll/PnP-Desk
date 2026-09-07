@@ -318,6 +318,29 @@ function figurCodeLesbar(code) {
 /* Welchen Code haelt dieser Browser fuer diese Sitzung? Bewusst je
    Sitzung: Dieselbe Person spielt in zwei Runden zwei Figuren. */
 function figurCodeKey(sid) { return 'pnp_figur_' + (sid || SITZUNG_VORGABE); }
+
+/* Der lokale Rueckfall MUSS ebenso je Sitzung liegen. Lag er unter
+   einem festen Schluessel, sah ein Spieler in Sitzung B die Figur aus
+   Sitzung A - und sobald er etwas anfasste, wurde sie dort unter dem
+   Code von B gespeichert. Daten waeren zwischen Sitzungen ausgelaufen. */
+function figurCacheKey(sid) { return 'kors_figur_' + (sid || SITZUNG_VORGABE); }
+
+/* Einmalige Uebernahme: Bis September 2026 lag der lokale Stand unter
+   dem festen Schluessel "kors_figur". Wer gerade mitten in einer Figur
+   steckt, soll sie nicht verlieren, nur weil der Schluessel wandert.
+   Firebase bleibt die Wahrheit - das hier rettet nur den Zwischenstand
+   dessen, der offline weitergebaut hat. */
+function figurCacheUebernehmen(sid) {
+  try {
+    var neu = figurCacheKey(sid);
+    if (localStorage.getItem(neu)) return false;
+    var alt = localStorage.getItem('kors_figur');
+    if (!alt) return false;
+    localStorage.setItem(neu, alt);
+    localStorage.removeItem('kors_figur');
+    return true;
+  } catch (e) { return false; }
+}
 function figurCode(sid) {
   try { return localStorage.getItem(figurCodeKey(sid)) || ''; } catch (e) { return ''; }
 }
@@ -357,6 +380,7 @@ if (typeof module !== 'undefined' && module.exports) {
     FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
     figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
     setzeFigurCode, vergissFigurCode, freienFigurCode, spielerKennung,
+    figurCacheKey, figurCacheUebernehmen,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };
 }

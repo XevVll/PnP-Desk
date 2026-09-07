@@ -105,6 +105,26 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 10) — Figuren hingen doch nicht ganz an der Sitzung
+- **Anlass war Hendriks Frage:** „Die Charaktere sind jetzt auch in die Sitzung gebunden oder?"
+  Firebase-seitig ja — `sitzungen/{sid}/stand/figuren/{code}`, und der Figurencode liegt unter
+  `pnp_figur_{sid}`. **Der lokale Rückfall aber nicht:** `kors_figur` war ein fester Schlüssel
+  für alle Sitzungen.
+- **Das war keine Schönheitsfrage, sondern ein Datenleck zwischen Sitzungen.** Der Ablauf:
+  Ein Spieler baut in Sitzung A eine Figur. Er wechselt nach B. `ausLokal()` lädt A's Figur aus
+  dem festen Schlüssel. Firebase findet unter B's Code noch nichts, überschreibt also nichts —
+  **A's Figur bleibt stehen, als wäre sie B's.** Der nächste Klick löst `speichern()` aus, und
+  damit landet A's Figur unter B's Code in der fremden Sitzung.
+- **Behoben:** `figurCacheKey(sid)` in `js/sitzung.js`, benutzt von Assistent und Heldenbrief.
+  Damit hängen jetzt **alle drei** Teile an der Sitzung — Firebase-Pfad, Figurencode und lokaler
+  Rückfall.
+- **Einmalige Übernahme** (`figurCacheUebernehmen`): Wer gerade offline an einer Figur baut,
+  soll sie nicht verlieren, nur weil der Schlüssel wandert. Der alte Stand zieht beim ersten
+  Öffnen in die aktuelle Sitzung um; ein zweiter Lauf tut nichts, und **keine andere Sitzung
+  erbt etwas**.
+- **Getestet: 9 neue Prüfungen, 0 Fehler** (462 über zehn Skripte). Darunter, dass keine Seite
+  den festen Schlüssel mehr benutzt, und der komplette Umzug samt Wiederholungslauf.
+
 ### 2026-09-07 (Fortsetzung 9) — Fehler: Spielerkarte verband nicht mehr
 - **Hendriks Meldung:** „Die Session läuft aber die Spielerkarte verbindet nicht."
 - **Ursache, mein Fehler:** Die Sitzungssperre, die ich am selben Tag in `karte.html` eingebaut

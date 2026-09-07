@@ -807,14 +807,17 @@ function nachFirebase() {
 }
 
 function speichern() {
-  try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  try { localStorage.setItem(figurCacheKey(sitzungFest()), JSON.stringify({ F:F, META:META })); } catch (e) {}
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(nachFirebase, 800);
 }
 
 function laden() {
+  // Bis September 2026 lag der Stand unter einem festen Schluessel,
+  // fuer alle Sitzungen derselbe. Einmal uebernehmen, dann nie wieder.
+  figurCacheUebernehmen(sitzungFest());
   try {
-    const d = JSON.parse(localStorage.getItem('kors_figur') || 'null');
+    const d = JSON.parse(localStorage.getItem(figurCacheKey(sitzungFest())) || 'null');
     if (d && d.F && d.F.attr && d.F.fert) F = Object.assign(leereFigur(), d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
@@ -837,7 +840,7 @@ function drucken() { window.print(); }
 // jeder stellt, und eine Seite ohne sichtbare Antwort darauf ist unfertig.
 function jetztSenden() {
   const m = document.getElementById('endMsg');
-  try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  try { localStorage.setItem(figurCacheKey(sitzungFest()), JSON.stringify({ F:F, META:META })); } catch (e) {}
   if (!db || !syncBereit) {
     m.style.color = 'var(--amber)';
     m.textContent = 'Im Browser gespeichert, aber keine Verbindung zur Spielleitung.';

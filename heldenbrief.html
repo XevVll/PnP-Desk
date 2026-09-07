@@ -344,14 +344,14 @@ function nachFirebase() {
 }
 
 function speichern() {
-  try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  try { localStorage.setItem(figurCacheKey(sitzungFest()), JSON.stringify({ F:F, META:META })); } catch (e) {}
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(nachFirebase, 600);
 }
 
 function ausLokal() {
   try {
-    const d = JSON.parse(localStorage.getItem('kors_figur') || 'null');
+    const d = JSON.parse(localStorage.getItem(figurCacheKey(sitzungFest())) || 'null');
     if (d && d.F && d.F.attr) F = alsFigur(d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
@@ -786,6 +786,7 @@ function renderAlles() {
   }
 }
 
+figurCacheUebernehmen(sitzungFest());
 ausLokal();
 renderAlles();
 initFirebase();
