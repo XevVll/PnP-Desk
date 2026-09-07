@@ -326,6 +326,11 @@ function zeichneSitzungen() {
   el('sitzListe').innerHTML = ids.length ? ids.map(function (id) {
     const s = sitzungen[id] || {}, m = s.meta || {};
     const istAktiv = (id === aktiv), beendet = !!m.beendet;
+    // Ohne meta ist das keine angelegte Sitzung, sondern ein Rest:
+    // Firebase legt Knoten beim Schreiben an, und ein Spielerbrowser,
+    // der noch auf eine geloeschte Sitzung zeigte, hat sie so wieder
+    // erzeugt. Sichtbar machen, damit sie wegraeumbar ist.
+    const geist = !m.angelegt;
     const figuren = (s.stand && s.stand.figuren) || {};
     const spieler = s.spieler || {};
 
@@ -345,8 +350,11 @@ function zeichneSitzungen() {
       '<div class="e-kopf"><div>' +
         '<div class="e-name">' + esc(m.name || id) +
           (istAktiv ? ' <span class="pill jetzt">läuft</span>' : '') +
-          (beendet ? ' <span class="pill">beendet</span>' : '') + '</div>' +
+          (beendet ? ' <span class="pill">beendet</span>' : '') +
+          (geist ? ' <span class="pill" style="border-color:#ca6702;color:#ca6702">Rest</span>' : '') + '</div>' +
         '<div class="e-sub">' +
+          (geist ? 'Kein Eintrag — vermutlich ein Rest einer gelöschten Sitzung. Kann weg. · '
+                 : '') +
           esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +

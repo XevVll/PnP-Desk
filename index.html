@@ -305,6 +305,30 @@ function zaehle(datum, i) {
 /* ==========================================================
    FIREBASE
    ========================================================== */
+/* ==========================================================
+   ERST PRUEFEN, DANN SCHREIBEN
+   ----------------------------------------------------------
+   Firebase legt fehlende Knoten beim Schreiben an. Diese Seite
+   schreibt bei JEDEM Laden (anmeldenBeiDb, Termine) - zeigt der
+   Browser also auf eine Sitzung, die es nicht mehr gibt, legt er
+   sie bei jedem Neuladen wieder an. Eine geloeschte Sitzung stand
+   dadurch Sekunden spaeter wieder in der Liste der Spielleitung,
+   ohne meta, als Geist.
+
+   Deshalb: erst nachsehen, ob die Sitzung existiert. Kein
+   Schreibzugriff und kein Lauscher vorher. */
+function sitzungVerloren(name) {
+  loeseSitzung();
+  db = null;
+  zeigeSeite();
+  const m = document.getElementById('sitzungMeld');
+  if (m) {
+    m.style.color = 'var(--amber)';
+    m.textContent = 'Die Sitzung „' + name + '" gibt es nicht mehr. ' +
+      'Frag deine Spielleitung nach der aktuellen Sitzungs-ID.';
+  }
+}
+
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -312,13 +336,32 @@ function initFirebase() {
     // Die Huelle braucht eine Sitzung. Ohne Beitritt gibt es keine -
     // dann traegt diese Seite nur das Beitrittsformular, sonst nichts.
     if (!hatSitzung()) { zeigeSeite(); return; }
-    db = sitzungsDbJetzt(echteDb);
   } catch (e) { zeigeOffline('Keine Verbindung zur Datenbank — Termine sind gerade nicht abrufbar.'); return; }
+
+  const gemerkt = sitzungFest();
+  echteDb.ref('sitzungen/' + gemerkt + '/meta').once('value').then(function (s) {
+    if (!s.val()) { sitzungVerloren(gemerkt); return; }
+    sitzungStarten();
+  }).catch(function () {
+    // Regeln oder Netz - hier NICHT einfach weitermachen: Ein
+    // Schreibzugriff wuerde die Sitzung sonst blind neu anlegen.
+    zeigeOffline('Die Sitzung lässt sich gerade nicht prüfen — versuch es später noch einmal.');
+  });
+}
+
+function sitzungStarten() {
+  db = sitzungsDbJetzt(echteDb);
+  zeigeSeite();
 
   beobachteStart();
   echteDb.ref('sitzungen/' + db.sitzung + '/meta/name').on('value', function (s) {
     const n = document.getElementById('sitzungName');
     if (n) n.textContent = s.val() || db.sitzung;
+  });
+  // Wird die Sitzung waehrend des Spielens geloescht, faellt der
+  // Spieler sauber zurueck, statt sie weiterzuschreiben.
+  echteDb.ref('sitzungen/' + db.sitzung + '/meta').on('value', function (s) {
+    if (!s.val()) sitzungVerloren(sitzungFest() || 'diese Sitzung');
   });
 
   db.ref('termine/config').on('value', function (s) {
@@ -343,7 +386,7 @@ function initFirebase() {
   }, fbFehler);
 
   online = true;
-  if (meinName) anmeldenBeiDb();
+  if (meinName) anmeldenBeiDb();   // erst hier: die Sitzung ist geprueft
 }
 
 function fbFehler(err) {

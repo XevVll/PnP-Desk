@@ -105,6 +105,30 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 8) — Fehler: gelöschte Sitzung kam bei jedem Refresh zurück
+- **Hendriks Meldung:** „Es öffnet sich jetzt jedes Mal, wenn ich den Spielerhub refreshe, eine
+  Testsitzung."
+- **Ursache, und sie ist lehrreich:** **Firebase legt fehlende Knoten beim Schreiben einfach an.**
+  Der Spieler-Hub schreibt bei *jedem* Laden — `anmeldenBeiDb()` in Zeile 346 und die
+  Termin-Lauscher. Zeigte der Browser also auf eine Sitzung, die es nicht (mehr) gibt, **legte er
+  sie bei jedem Neuladen wieder an.** Eine in der Verwaltung gelöschte Sitzung stand Sekunden
+  später wieder in der Liste — ohne `meta`, als Rest.
+  - Niemand prüfte, ob die beigetretene Sitzung überhaupt existiert. Der Beitritt tat es, das
+    spätere Laden nicht.
+- **Behoben: erst prüfen, dann schreiben.** `initFirebase()` liest jetzt zuerst
+  `sitzungen/{id}/meta`. Fehlt es, wird die Festlegung gelöst und der Spieler landet mit einer
+  klaren Meldung wieder beim Beitritt („Die Sitzung … gibt es nicht mehr"). **Kein Schreibzugriff
+  und kein Lauscher vorher** — alles Weitere liegt in der neuen `sitzungStarten()`.
+  - **Bei einem Prüf-Fehler wird bewusst NICHT weitergemacht**, sondern offline gemeldet. Blind
+    weiterzuschreiben würde die Sitzung genau wieder anlegen.
+  - Ein zweiter Lauscher fängt den Fall, dass die Sitzung **während** des Spielens gelöscht wird.
+- **Die Spielleitung sieht solche Reste jetzt**: Ein Sitzungsknoten ohne `angelegt` bekommt im
+  Regie-Hub das Abzeichen **„Rest"** und den Hinweis „Kann weg." — die schon entstandenen lassen
+  sich damit aufräumen.
+- **Getestet: 9 neue Prüfungen, 0 Fehler** (415 über neun Skripte). Darunter der Nachweis über
+  die Position im Quelltext, dass die Prüfung **vor** dem ersten Schreibzugriff steht, und dass
+  `anmeldenBeiDb()` in `sitzungStarten()` gewandert ist statt in `initFirebase()` zu bleiben.
+
 ### 2026-09-07 (Fortsetzung 7) — Beitritt per Sitzungs-ID, Karte erst nach dem Start
 - **Hendriks Vorgabe:** Ein Spieler ist nicht mehr automatisch dabei, nur weil er die Adresse
   kennt. Er trägt eine **Sitzungs-ID** ein, die die Spielleitung ihm schickt. Und: *„Erst wenn
