@@ -106,6 +106,7 @@ const TALENT_KOSTEN  = 2;
 const MAX_SCHWER = 1, MAX_LEICHT = 2;
 const BENNIES  = 3;
 const BEWEGUNG = 6;
+const MAX_WUNDEN = 3;      // die vierte nimmt die Figur aus dem Spiel
 
 /* ==========================================================
    RAENGE UND STEIGERUNGEN
@@ -371,6 +372,106 @@ function talenteDerKategorie(kat) { return TALENTE.filter(function (t) { return 
 const CREW_STEPS = ['Unbekannt','Bemerkt','Respektiert','Vertraut','Unverzichtbar'];
 
 /* ==========================================================
+   AUSRUESTUNG
+   ----------------------------------------------------------
+   "schaden" ist eine Wuerfelstufe wie jeder andere Wert
+   (1..5 = d4..d12) - in diesem System wird nichts addiert,
+   eine Waffe bringt also ihren eigenen Wuerfel mit statt einen
+   Bonus auf einen anderen.
+
+   "ruest" hebt die Robustheit. "gew" ist Gewicht gegen die
+   Traglast, die an der Staerke haengt.
+
+   Preise in Muenzen. Die Zahlen sind ein Aufschlag und als
+   Stellschraube gedacht - was ein Saebel 1720 in der Karibik
+   gekostet hat, weiss niemand genau, und fuers Spiel zaehlt
+   nur das Verhaeltnis zueinander.
+   ========================================================== */
+const AUSR_ARTEN = ['Nahkampf', 'Fernkampf', 'Schutz', 'Gerät'];
+const STARTGELD = 500;
+
+const AUSRUESTUNG = [
+  /* ---- Nahkampf ---- */
+  { id:'faust',      n:'Bloße Fäuste',      art:'Nahkampf', schaden:1, gew:0,  preis:0,
+    d:'Hast du immer dabei. Reicht selten.' },
+  { id:'messer',     n:'Messer',            art:'Nahkampf', schaden:1, gew:1,  preis:25,
+    d:'Unauffällig, überall dabei, im Ernstfall zu kurz.' },
+  { id:'belegnagel', n:'Belegnagel',        art:'Nahkampf', schaden:1, gew:2,  preis:10,
+    d:'Liegt an jeder Reling. Keiner nimmt dir übel, dass du ihn in der Hand hast.' },
+  { id:'entermesser',n:'Entermesser',       art:'Nahkampf', schaden:2, gew:4,  preis:200,
+    d:'Kurz, schwer, für den engen Raum unter Deck gemacht.' },
+  { id:'saebel',     n:'Säbel',             art:'Nahkampf', schaden:2, gew:3,  preis:250,
+    d:'Die Waffe dessen, der fechten gelernt hat — oder so tun will.' },
+  { id:'enteraxt',   n:'Enteraxt',          art:'Nahkampf', schaden:2, gew:5,  preis:150,
+    d:'Öffnet Türen, Luken und Menschen. Nicht elegant.' },
+  { id:'pike',       n:'Pike',              art:'Nahkampf', schaden:2, gew:8,  preis:100,
+    d:'Hält den Gegner auf Abstand — an Deck oft im Weg.' },
+
+  /* ---- Fernkampf ---- */
+  { id:'wurfmesser', n:'Wurfmesser',        art:'Fernkampf', schaden:1, gew:1, preis:30,  reichweite:3,
+    d:'Leise. Danach hat es der andere.' },
+  { id:'pistole',    n:'Steinschlosspistole',art:'Fernkampf',schaden:2, gew:3, preis:350, reichweite:5,
+    d:'Ein Schuss. Danach ist sie ein schlechter Knüppel — Nachladen dauert eine Runde.' },
+  { id:'tromblon',   n:'Donnerbüchse',      art:'Fernkampf', schaden:2, gew:6, preis:400, reichweite:3,
+    d:'Streut breit, trifft alles vor der Mündung. Nachladen dauert zwei Runden.' },
+  { id:'muskete',    n:'Muskete',           art:'Fernkampf', schaden:3, gew:8, preis:500, reichweite:12,
+    d:'Auf Entfernung tödlich, an Deck unhandlich. Nachladen dauert zwei Runden.' },
+
+  /* ---- Schutz ---- */
+  { id:'lederwams',  n:'Lederwams',         art:'Schutz', ruest:1, gew:5,  preis:200,
+    d:'Robustheit +1. Fällt an Bord niemandem auf.' },
+  { id:'kettenhemd', n:'Kettenhemd',        art:'Schutz', ruest:2, gew:12, preis:800,
+    d:'Robustheit +2. Wer damit über Bord geht, geht unter.' },
+  { id:'harnisch',   n:'Brustharnisch',     art:'Schutz', ruest:3, gew:20, preis:2000,
+    d:'Robustheit +3. Spanische Soldatenware. Man sieht dich kommen und hören kann man dich auch.' },
+
+  /* ---- Gerät ---- */
+  { id:'enterhaken', n:'Enterhaken mit Tau',art:'Gerät', gew:6, preis:80,
+    d:'Der kürzeste Weg auf ein fremdes Deck.' },
+  { id:'fernrohr',   n:'Fernrohr',          art:'Gerät', gew:2, preis:400,
+    d:'Sieht, was andere erst später sehen.' },
+  { id:'kompass',    n:'Kompass',           art:'Gerät', gew:1, preis:300,
+    d:'Bei Nebel und Nacht der Unterschied zwischen Kurs und Raten.' },
+  { id:'laterne',    n:'Laterne',           art:'Gerät', gew:3, preis:60,
+    d:'Licht, das dich auch verrät.' },
+  { id:'dietriche',  n:'Dietriche',         art:'Gerät', gew:1, preis:120,
+    d:'Wer sie bei dir findet, hat schon eine Meinung über dich.' },
+  { id:'verband',    n:'Verbandszeug',      art:'Gerät', gew:2, preis:90,
+    d:'Nadel, Faden, Leinen, Branntwein. Reicht für drei Männer.' },
+  { id:'seil',       n:'Seil, zwanzig Schritt', art:'Gerät', gew:5, preis:40,
+    d:'Man braucht es immer dann, wenn man es nicht hat.' },
+  { id:'proviant',   n:'Proviant für drei Tage', art:'Gerät', gew:4, preis:30,
+    d:'Zwieback, Pökelfleisch, Wasser. Schmeckt nach nichts.' },
+  { id:'rum',        n:'Flasche Rum',       art:'Gerät', gew:2, preis:50,
+    d:'Betäubungsmittel, Desinfektion, Zahlungsmittel, Freundschaftsangebot.' },
+  { id:'schreibzeug',n:'Schreibzeug',       art:'Gerät', gew:2, preis:150,
+    d:'Feder, Tinte, Papier. Wer schreiben kann, gilt schon als halber Herr.' }
+];
+
+const AUSR_BY_ID = {}; AUSRUESTUNG.forEach(function (a) { AUSR_BY_ID[a.id] = a; });
+function ausruestungDerArt(art) { return AUSRUESTUNG.filter(function (a) { return a.art === art; }); }
+
+/* Traglast haengt an der Staerke: doppelte Seitenzahl des Wuerfels.
+   d4 = 8 · d6 = 12 · d8 = 16 · d10 = 20 · d12 = 24 */
+function traglast(figur) { return SIDES[figur.attr['Stärke'] || 1] * 2; }
+function getragen(figur) {
+  let g = 0;
+  (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) g += a.gew || 0; });
+  return g;
+}
+function ueberladen(figur) { return getragen(figur) > traglast(figur); }
+function ruestbonus(figur) {
+  let r = 0;
+  (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a && a.ruest) r += a.ruest; });
+  return r;
+}
+function ausgabenMuenzen(figur) {
+  let m = 0;
+  (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) m += a.preis || 0; });
+  return m;
+}
+
+/* ==========================================================
    FIGUR
    ========================================================== */
 // Eine Figur beginnt leer. Es gibt bewusst KEINE Startpakete: die
@@ -378,10 +479,52 @@ const CREW_STEPS = ['Unbekannt','Bemerkt','Respektiert','Vertraut','Unverzichtba
 // Attribute und Fertigkeiten vorab fuellt, wuerde genau diesen Weg
 // ueberspringen.
 function leereFigur() {
-  const f = { rang:0, steigerungen:0, attr:{}, fert:{}, tal:[], hnd:[], brief:{} };
+  const f = {
+    rang:0, steigerungen:0,
+    attributImRang:false,          // "Attribut nur einmal je Rang" braucht einen Merker
+    attr:{}, fert:{}, tal:[], hnd:[], brief:{},
+    ausr:[], muenzen:STARTGELD,    // Ausruestung als Liste von IDs
+    angeschlagen:false, wunden:0,  // Zustand im Spiel
+    benniesUebrig:null,            // null = noch nicht angefasst, dann gilt bennies(figur)
+    notizen:''
+  };
   ATTR_NAMEN.forEach(function (a) { f.attr[a] = 1; });                       // alles d4
   FERTIGKEITEN.forEach(function (s) { f.fert[s.name] = s.kern ? 1 : UNGELERNT; });
   STECKBRIEF.forEach(function (b) { f.brief[b.id] = ''; });
+  return f;
+}
+
+/* Baut aus rohen Firebase-Daten eine vollstaendige Figur. Fehlende Felder
+   werden aufgefuellt, damit eine halb gespeicherte Figur keine Seite sprengt.
+   Stand hier vorher doppelt in regie_figuren.html - eine Wahrheit genuegt. */
+function alsFigur(roh) {
+  roh = roh || {};
+  const f = leereFigur();
+  ATTR_NAMEN.forEach(function (a) {
+    if (roh.attr && roh.attr[a]) f.attr[a] = roh.attr[a];
+  });
+  FERTIGKEITEN.forEach(function (s) {
+    if (roh.fert && roh.fert[s.name] != null) f.fert[s.name] = roh.fert[s.name];
+  });
+  // Firebase macht aus einem Array mit Luecken ein Objekt mit Zahlenschluesseln -
+  // deshalb beide Formen annehmen, sonst faellt eine Liste stillschweigend weg.
+  function alsListe(v) {
+    if (Array.isArray(v)) return v.filter(function (x) { return x != null; });
+    if (v && typeof v === 'object') return Object.keys(v).map(function (k) { return v[k]; });
+    return [];
+  }
+  f.tal  = alsListe(roh.tal);
+  f.hnd  = alsListe(roh.hnd);
+  f.ausr = alsListe(roh.ausr);
+  f.brief = roh.brief || {};
+  f.rang = roh.rang || 0;
+  f.steigerungen = roh.steigerungen || 0;
+  f.attributImRang = !!roh.attributImRang;
+  f.muenzen = (roh.muenzen == null) ? STARTGELD : roh.muenzen;
+  f.angeschlagen = !!roh.angeschlagen;
+  f.wunden = Math.max(0, Math.min(MAX_WUNDEN, roh.wunden || 0));
+  f.benniesUebrig = (roh.benniesUebrig == null) ? null : roh.benniesUebrig;
+  f.notizen = roh.notizen || '';
   return f;
 }
 
@@ -421,9 +564,165 @@ function zaehleLeicht(figur) { return figur.hnd.filter(function (i) { return HND
 /* ---------- Abgeleitete Werte ---------- */
 function halbe(stufe) { return stufe >= 1 ? SIDES[stufe] / 2 : 2; }
 function parade(figur)     { return 2 + halbe(figur.fert['Kämpfen'] || 0); }
-function robustheit(figur) { return 2 + halbe(figur.attr['Konstitution'] || 1) + (figur.tal.indexOf('grob') >= 0 ? 1 : 0); }
+function robustheit(figur) {
+  return 2 + halbe(figur.attr['Konstitution'] || 1)
+           + (figur.tal.indexOf('grob') >= 0 ? 1 : 0)
+           + ruestbonus(figur);
+}
 function bennies(figur)    { return BENNIES + (figur.tal.indexOf('glueck') >= 0 ? 1 : 0); }
 function bewegung()        { return BEWEGUNG; }
+
+/* ---------- Zustand ----------
+   Jede Wunde senkt ALLE Wuerfel um eine Stufe. Ueberladung kommt
+   obendrauf. "Angeschlagen" kostet die naechste Handlung und wirkt
+   deshalb nicht auf die Wuerfel - das ist eine Zeitstrafe, keine
+   Werteinbusse. */
+function wundenAbzug(figur) {
+  return Math.min(MAX_WUNDEN, figur.wunden || 0) + (ueberladen(figur) ? 1 : 0);
+}
+function ausserGefecht(figur) { return (figur.wunden || 0) > MAX_WUNDEN; }
+function benniesStand(figur) {
+  return (figur.benniesUebrig == null) ? bennies(figur) : figur.benniesUebrig;
+}
+
+/* ==========================================================
+   STEIGERUNGEN
+   ----------------------------------------------------------
+   Eine Steigerung erlaubt genau EINE der fuenf Arten. Die Regel
+   stand bisher nur als Kommentar am Kopf dieser Datei - hier ist
+   sie ausgefuehrt.
+
+   Die Bremse "Attribut nur einmal je Rang" haelt die Attribute im
+   Spiel: wer breit aufsteigen will, muss irgendwann das Attribut
+   nachziehen, kann das aber nicht in jeder Sitzung tun.
+   ========================================================== */
+const STEIGERUNG_ARTEN = [
+  { id:'attribut', n:'Ein Attribut eine Stufe höher',
+    d:'Nur einmal je Rang — danach ist dieser Weg bis zum nächsten Rang zu.' },
+  { id:'talent',   n:'Ein neues Talent',
+    d:'Rang und Mindestwerte müssen erfüllt sein.' },
+  { id:'zweiFert', n:'Zwei Fertigkeiten je eine Stufe',
+    d:'Nur solange beide danach ihr Attribut nicht übersteigen.' },
+  { id:'eineFert', n:'Eine Fertigkeit über ihrem Attribut',
+    d:'Kostet die ganze Steigerung — dafür geht es dort weiter, wo es sonst nicht weitergeht.' },
+  { id:'neueFert', n:'Eine neue Fertigkeit auf d4',
+    d:'Etwas, das du bisher gar nicht konntest.' }
+];
+
+// Steht die Fertigkeit AKTUELL auf oder unter ihrem Attribut?
+// Gemessen wird der Stand VOR dem Anheben, wie im Original ("at or below").
+// Zaehlte man den Stand danach, koennte eine frische Figur die guenstige
+// Steigerung nie nutzen - alle Kernfertigkeiten stehen ja schon auf ihrem
+// Attribut, und genau dann braucht man sie am dringendsten.
+function fertAufOderUnterAttribut(figur, name) {
+  const def = FERT_BY_NAME[name];
+  if (!def) return false;
+  return (figur.fert[name] || 0) <= (figur.attr[def.attr] || 1);
+}
+function kannAttributSteigern(figur) {
+  if (figur.attributImRang) return false;
+  return ATTR_NAMEN.some(function (a) { return (figur.attr[a] || 1) < MAXD; });
+}
+
+/* Welche Arten stehen gerade offen? Liefert je Art { ok, grund }. */
+function steigerungArten(figur) {
+  const guenstige = FERTIGKEITEN.filter(function (s) {
+    return (figur.fert[s.name] || 0) > 0 && (figur.fert[s.name] || 0) < MAXD
+        && fertAufOderUnterAttribut(figur, s.name);
+  });
+  const teure = FERTIGKEITEN.filter(function (s) {
+    return (figur.fert[s.name] || 0) > 0 && (figur.fert[s.name] || 0) < MAXD
+        && !fertAufOderUnterAttribut(figur, s.name);
+  });
+  const neue = FERTIGKEITEN.filter(function (s) { return (figur.fert[s.name] || 0) === 0; });
+  const talente = TALENTE.filter(function (t) {
+    return figur.tal.indexOf(t.id) < 0 && talentVerfuegbar(figur, t).ok;
+  });
+
+  return STEIGERUNG_ARTEN.map(function (a) {
+    let ok = true, grund = '';
+    if (a.id === 'attribut') {
+      ok = kannAttributSteigern(figur);
+      grund = figur.attributImRang
+        ? 'In diesem Rang schon genutzt'
+        : (ok ? '' : 'Alle Attribute stehen auf d12');
+    } else if (a.id === 'talent') {
+      ok = talente.length > 0;
+      grund = ok ? '' : 'Kein Talent erfüllt gerade Rang und Mindestwerte';
+    } else if (a.id === 'zweiFert') {
+      ok = guenstige.length >= 2;
+      grund = ok ? '' : 'Dafür braucht es zwei Fertigkeiten unter ihrem Attribut';
+    } else if (a.id === 'eineFert') {
+      ok = teure.length > 0;
+      grund = ok ? '' : 'Keine Fertigkeit liegt über ihrem Attribut';
+    } else if (a.id === 'neueFert') {
+      ok = neue.length > 0;
+      grund = ok ? '' : 'Du hast jede Fertigkeit mindestens angefangen';
+    }
+    return { id:a.id, n:a.n, d:a.d, ok:ok, grund:grund,
+             auswahl:{ guenstige:guenstige, teure:teure, neue:neue, talente:talente } };
+  });
+}
+
+/* Wendet eine Steigerung an. "ziele" ist je nach Art ein Name oder
+   ein Array von Namen. Liefert { ok, fehler } und aendert die Figur nur
+   im Erfolgsfall - eine halb angewandte Steigerung waere schlimmer als
+   gar keine. */
+function steigerungAnwenden(figur, artId, ziele) {
+  const z = Array.isArray(ziele) ? ziele : [ziele];
+  const vorherRang = rangVon(figur.steigerungen || 0).id;
+
+  if (artId === 'attribut') {
+    if (!kannAttributSteigern(figur)) return { ok:false, fehler:'In diesem Rang schon genutzt' };
+    const a = z[0];
+    if (!istAttribut(a)) return { ok:false, fehler:'Kein Attribut: ' + a };
+    if ((figur.attr[a] || 1) >= MAXD) return { ok:false, fehler:a + ' steht schon auf d12' };
+    figur.attr[a]++;
+    figur.attributImRang = true;
+
+  } else if (artId === 'talent') {
+    const t = TAL_BY_ID[z[0]];
+    if (!t) return { ok:false, fehler:'Unbekanntes Talent' };
+    if (figur.tal.indexOf(t.id) >= 0) return { ok:false, fehler:'Talent schon vorhanden' };
+    const p = talentVerfuegbar(figur, t);
+    if (!p.ok) return { ok:false, fehler:p.gruende.join(' · ') };
+    figur.tal.push(t.id);
+
+  } else if (artId === 'zweiFert') {
+    if (z.length !== 2 || z[0] === z[1]) return { ok:false, fehler:'Genau zwei verschiedene Fertigkeiten' };
+    for (const n of z) {
+      if (!FERT_BY_NAME[n]) return { ok:false, fehler:'Unbekannte Fertigkeit: ' + n };
+      if ((figur.fert[n] || 0) === 0) return { ok:false, fehler:n + ' ist ungelernt — dafür gibt es „neue Fertigkeit"' };
+      if ((figur.fert[n] || 0) >= MAXD) return { ok:false, fehler:n + ' steht schon auf d12' };
+      if (!fertAufOderUnterAttribut(figur, n)) return { ok:false, fehler:n + ' liegt schon über seinem Attribut' };
+    }
+    z.forEach(function (n) { figur.fert[n]++; });
+
+  } else if (artId === 'eineFert') {
+    const n = z[0];
+    if (!FERT_BY_NAME[n]) return { ok:false, fehler:'Unbekannte Fertigkeit' };
+    if ((figur.fert[n] || 0) === 0) return { ok:false, fehler:n + ' ist ungelernt' };
+    if ((figur.fert[n] || 0) >= MAXD) return { ok:false, fehler:n + ' steht schon auf d12' };
+    figur.fert[n]++;
+
+  } else if (artId === 'neueFert') {
+    const n = z[0];
+    if (!FERT_BY_NAME[n]) return { ok:false, fehler:'Unbekannte Fertigkeit' };
+    if ((figur.fert[n] || 0) !== 0) return { ok:false, fehler:n + ' ist bereits gelernt' };
+    figur.fert[n] = 1;
+
+  } else {
+    return { ok:false, fehler:'Unbekannte Art: ' + artId };
+  }
+
+  figur.steigerungen = (figur.steigerungen || 0) + 1;
+  const neuerRang = rangVon(figur.steigerungen).id;
+  figur.rang = neuerRang;
+  // Neuer Rang: das Attribut-Kontingent lebt wieder auf.
+  if (neuerRang > vorherRang) figur.attributImRang = false;
+
+  return { ok:true, fehler:'', rangGestiegen: neuerRang > vorherRang, rang: neuerRang };
+}
 
 /* ---------- Voraussetzungen ---------- */
 function wertVon(figur, name) {
@@ -511,7 +810,12 @@ function pruefeFigur(figur) {
     const t = TAL_BY_ID[id];
     if (t && !talentVerfuegbar(figur, t).ok) p.push(t.n + ': Voraussetzung fehlt');
   });
-  return { ok:p.length === 0, probleme:p, attrOffen:aOffen, fertOffen:fOffen, talentOffen:tOffen };
+  // Startgeld. Ueberladung ist bewusst KEIN Problem, sondern erlaubt -
+  // sie kostet eine Wuerfelstufe (siehe wundenAbzug), und das ist die Strafe.
+  const mOffen = STARTGELD - ausgabenMuenzen(figur);
+  if (mOffen < 0) p.push('Startgeld überzogen');
+  return { ok:p.length === 0, probleme:p,
+           attrOffen:aOffen, fertOffen:fOffen, talentOffen:tOffen, muenzenOffen:mOffen };
 }
 
 /* ==========================================================
@@ -559,11 +863,16 @@ if (typeof module !== 'undefined' && module.exports) {
     ATTRIBUTE, ATTR_NAMEN, FERTIGKEITEN, FERT_NAMEN, FERT_BY_NAME, ATTR_BY_NAME,
     fertigkeitenVon, istAttribut,
     ATTR_PUNKTE, FERT_PUNKTE, GRATIS_TALENTE, TALENT_KOSTEN, MAX_SCHWER, MAX_LEICHT,
-    BENNIES, BEWEGUNG, RAENGE, rangVon, rangName, STECKBRIEF, CREW_STEPS,
+    BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, STECKBRIEF, CREW_STEPS,
     TALENT_KATEGORIEN, TALENTE, HANDICAPS, TAL_BY_ID, HND_BY_ID, talenteDerKategorie,
-    leereFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
+    AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, ausruestungDerArt,
+    traglast, getragen, ueberladen, ruestbonus, ausgabenMuenzen,
+    leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,
     parade, robustheit, bennies, bewegung, wertVon, talentVerfuegbar, pruefeFigur,
+    wundenAbzug, ausserGefecht, benniesStand,
+    STEIGERUNG_ARTEN, steigerungArten, steigerungAnwenden, kannAttributSteigern,
+    fertAufOderUnterAttribut,
     talentWaehlbar, verlangtVon, offeneVoraussetzungen,
     pTrifft, chancen, BAENDER, BAND_NAMEN
   };

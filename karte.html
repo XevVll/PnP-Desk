@@ -2040,10 +2040,9 @@
     // iframe-src wird erst beim ersten Öffnen gesetzt (lazy), damit die
     // Seite nicht bei jedem Kartenaufruf mitgeladen wird.
     //
-    // Zeigt seit dem Systemwechsel charaktererstellung.html. Der alte
-    // W100-Bogen ist ersatzlos entfallen; ein eigener Bogen fuer das neue
-    // System steht noch aus - bis dahin traegt der Assistent selbst die
-    // Uebersicht am Ende.
+    // Zeigt den Heldenbrief - das ist das Blatt, das man am Tisch braucht
+    // (Wunden, Bennies, Wuerfeln). Die Erschaffung ist von dort aus einen
+    // Klick entfernt und gehoert nicht ins Fach neben der Karte.
     (function () {
       const handle = document.getElementById('charSheetHandle');
       const backdrop = document.getElementById('charSheetBackdrop');
@@ -2052,7 +2051,7 @@
       let loaded = false;
 
       function openDrawer() {
-        if (!loaded) { iframe.src = 'charaktererstellung.html'; loaded = true; }
+        if (!loaded) { iframe.src = 'heldenbrief.html'; loaded = true; }
         drawer.classList.add('open');
         backdrop.classList.add('open');
       }

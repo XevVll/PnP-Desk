@@ -244,6 +244,7 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
     <div class="card">
       <div class="card-hdr">Übersicht</div>
       <div class="card-body">
+        <div id="endName"></div>
         <div class="derived" id="endDerived"></div>
         <div class="sum">
           <div>
@@ -268,12 +269,17 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr">Sichern</div>
+      <div class="card-hdr">Speichern <span class="card-hdr-sub">läuft automatisch — der Knopf ist nur zur Sicherheit</span></div>
       <div class="card-body">
-        <button class="btn btn-gold" onclick="exportieren()">Als Datei sichern</button>
+        <div class="hint" style="margin:0 0 .6rem">
+          Deine Figur wird bei <b>jeder Änderung</b> gespeichert: sofort in diesem Browser und,
+          sobald eine Verbindung besteht, bei der Spielleitung. Einen Speichern-Knopf brauchst du
+          also nicht — die Anzeige oben rechts sagt dir jederzeit, was gerade gilt.
+        </div>
+        <button class="btn btn-gold" onclick="jetztSenden()">An die Spielleitung senden</button>
+        <button class="btn" onclick="exportieren()">Als Datei sichern</button>
         <button class="btn" onclick="drucken()">Drucken</button>
         <div class="ok-msg" id="endMsg"></div>
-        <div class="hint">Die Figur liegt automatisch im Speicher dieses Browsers und wird zur Spielleitung übertragen, sobald eine Verbindung besteht — die Anzeige oben rechts sagt, was gerade gilt.</div>
       </div>
     </div>
   </div>
@@ -597,6 +603,16 @@ function renderAbschluss() {
             ? 'Es sind noch Punkte übrig (' + p.attrOffen + ' Attribute, ' + p.fertOffen + ' Fertigkeiten) — du kannst sie liegen lassen oder zurückgehen.'
             : 'Die Figur ist fertig und regelkonform.'));
 
+  // Name zuerst - die Spielleitung unterscheidet die Figuren daran.
+  document.getElementById('endName').innerHTML = META.name
+    ? '<div style="font-family:\'Cinzel\',serif;font-size:1.15rem;color:var(--gold);letter-spacing:.04em">' +
+      esc(META.name) + '</div><div class="hint" style="margin:0 0 .7rem">' +
+      (META.spieler ? 'gespielt von ' + esc(META.spieler) : 'kein Spielername eingetragen') + '</div>'
+    : '<div class="ziele" style="border-color:rgba(202,103,2,.5);background:rgba(202,103,2,.1)">' +
+      '<div class="ziele-h" style="color:var(--amber)">Ohne Namen</div>' +
+      '<div class="ziel">Deine Figur hat noch keinen Namen — bei der Spielleitung steht sie dann als ' +
+      '„ohne Namen" zwischen den anderen. <span class="von">Schritt 1, ganz oben.</span></div></div>';
+
   document.getElementById('endDerived').innerHTML =
     '<div class="dv"><div class="dv-l">Parade</div><div class="dv-v">' + parade(F) + '</div></div>' +
     '<div class="dv"><div class="dv-l">Robustheit</div><div class="dv-v">' + robustheit(F) + '</div></div>' +
@@ -669,6 +685,11 @@ function initFirebase() {
     db = firebase.database();
     syncBereit = true;
     setzeSync('verbunden', 'var(--teal)');
+    // Einmal beim Start hochschreiben. Ohne das erfaehrt die Spielleitung
+    // von einer fertigen Figur nie etwas, solange ihr Spieler nichts mehr
+    // anfasst - wer seine Figur fertig baut, den Tab schliesst und spaeter
+    // wieder oeffnet, blieb bisher unsichtbar.
+    nachFirebase();
   } catch (e) {
     setzeSync('nur lokal', 'var(--gray)');
   }
@@ -677,6 +698,10 @@ function initFirebase() {
 // Was die Spielleitung zu sehen bekommt. Bewusst die Rohdaten -
 // Parade, Robustheit und die Chancen rechnet die Uebersicht selbst
 // aus js/regelwerk.js, damit es dafuer nur eine Wahrheit gibt.
+// Geschrieben wird mit update(), NICHT mit set(): der Heldenbrief legt unter
+// demselben Knoten Wunden, Bennies, Ausruestung und Notizen ab. Ein set()
+// wuerde all das beim naechsten Oeffnen des Assistenten stillschweigend
+// loeschen - der Assistent kennt diese Felder ja gar nicht.
 function figurFuerDb() {
   return {
     name: (META.name || '').slice(0, 60),
@@ -690,7 +715,7 @@ function figurFuerDb() {
 
 function nachFirebase() {
   if (!db || !syncBereit) return;
-  db.ref('figuren/' + spielerId()).set(figurFuerDb())
+  db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
     .then(function () { setzeSync('gespeichert', '#4caf7d'); })
     .catch(function (err) {
       syncBereit = false;
@@ -725,6 +750,34 @@ function exportieren() {
   m.style.color = '#4caf7d'; m.textContent = 'Datei erzeugt.';
 }
 function drucken() { window.print(); }
+
+// Ausdruecklich senden. Fachlich nicht noetig - speichern() tut das ohnehin
+// bei jeder Aenderung -, aber "wie speichere ich?" ist die erste Frage, die
+// jeder stellt, und eine Seite ohne sichtbare Antwort darauf ist unfertig.
+function jetztSenden() {
+  const m = document.getElementById('endMsg');
+  try { localStorage.setItem('kors_figur', JSON.stringify({ F:F, META:META })); } catch (e) {}
+  if (!db || !syncBereit) {
+    m.style.color = 'var(--amber)';
+    m.textContent = 'Im Browser gespeichert, aber keine Verbindung zur Spielleitung.';
+    return;
+  }
+  m.style.color = 'var(--gray)';
+  m.textContent = 'Wird gesendet…';
+  db.ref('figuren/' + rundenId() + '/' + spielerId()).update(figurFuerDb())
+    .then(function () {
+      setzeSync('gespeichert', '#4caf7d');
+      m.style.color = '#4caf7d';
+      m.textContent = 'Gesendet. Die Spielleitung sieht deine Figur' +
+        (META.name ? ' als „' + META.name + '“.' : ' — gib ihr noch einen Namen.');
+    })
+    .catch(function (err) {
+      syncBereit = false;
+      setzeSync('nur lokal', 'var(--amber)');
+      m.style.color = '#e05555';
+      m.textContent = 'Konnte nicht gesendet werden: ' + (err && err.code ? err.code : err);
+    });
+}
 
 /* ---------- Start ---------- */
 function renderAlles() {

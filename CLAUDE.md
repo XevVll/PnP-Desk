@@ -105,6 +105,75 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 — Charaktersystem fertig: Heldenbrief, Steigerungen, Ausrüstung
+Etappe 1 des Plans „PnP-Desk: von einer Kampagne zur Umgebung". Die Erschaffung stand, aber
+es gab nichts, worauf man die Figur weiterführt.
+
+- **Neue `heldenbrief.html`** — ein Blatt zum Führen, kein Assistent zum Durchklicken. Drei
+  Reiter: Bogen · Steigerung · Ausrüstung.
+  - **Zustand**: Angeschlagen + 3 Wunden + außer Gefecht. Jede Wunde senkt alle Würfel eine
+    Stufe (`wundenAbzug()`); die Werteliste zeigt den gedrückten Würfel direkt an („d8 → d6").
+    Angeschlagen kostet bewusst **keine** Würfelstufe — das ist eine Zeitstrafe, keine
+    Werteinbuße.
+  - **Bennies** zum Ausgeben, Zurücknehmen und Auffüllen (`benniesUebrig`, `null` = unangetastet).
+  - **Würfeln per Klick auf jeden Wert.** Wert-Würfel und Wild Die getrennt gelesen, Ergebnis
+    eingeordnet und gedeutet („Nur der Wild Die. Du hattest Glück, nicht Können."). 400
+    Testwürfe auf d8 treffen die exakte Erwartung aus `chancen()`.
+  - Steckbrief und freie Notizen.
+- **Steigerungen gebaut** (`STEIGERUNG_ARTEN`, `steigerungArten()`, `steigerungAnwenden()`).
+  Die Regel stand seit dem Systemwechsel nur als Kommentar in `js/regelwerk.js`. Alle fünf
+  Arten, nur die gerade erlaubten anklickbar, mit Begründung bei den gesperrten. Neues Feld
+  `attributImRang` trägt die Bremse „Attribut nur einmal je Rang"; beim Rangaufstieg lebt das
+  Kontingent wieder auf. `steigerungAnwenden()` ändert die Figur **nur im Erfolgsfall** — eine
+  halb angewandte Steigerung wäre schlimmer als gar keine.
+  - **Echter Regelfehler dabei gefunden:** Ich hatte geprüft, ob eine Fertigkeit *nach* dem
+    Anheben noch unter ihrem Attribut liegt. Savage Worlds prüft den *aktuellen* Stand („at or
+    below"). Mit meiner Fassung hätte eine frische Figur die günstige Doppel-Steigerung **nie**
+    nutzen können — alle Kernfertigkeiten stehen ja schon auf ihrem Attribut, und genau dann
+    braucht man sie am dringendsten. Behoben, umbenannt zu `fertAufOderUnterAttribut()`.
+- **Ausrüstung** (`AUSRUESTUNG`, 23 Gegenstände in vier Arten). Waffen bringen einen **eigenen
+  Schadenswürfel** mit statt eines Bonus — in diesem System wird nichts addiert. Rüstung hebt
+  die Robustheit, Traglast hängt an der Stärke (doppelte Seitenzahl). **Überladung kostet eine
+  Würfelstufe** und läuft deshalb durch dieselbe Funktion wie Wunden. Kaufen und Ablegen im
+  Bogen, halber Preis beim Verkauf; Startgeld 500 Münzen.
+- **Figurenpfad vorwärtskompatibel**: `figuren/{spielerId}` → **`figuren/{rundenId}/{spielerId}`**.
+  Neue `rundenId()` in `js/identitaet.js`, vorerst eine Konstante — in Etappe 2 wird daraus ein
+  Lesezugriff auf `aktiveRunde`, ohne dass ein Aufrufer sich ändert. **Keine Regeländerung
+  nötig**: `figuren` gibt den ganzen Teilbaum frei, per REST gegengeprüft (`figuren/korsaren/…`
+  antwortet 200, ein nicht freigegebener Pfad weiterhin 401).
+- **Datenverlust-Fehler behoben, bevor er auftrat:** Der Assistent schrieb mit `set()`. Sobald
+  der Heldenbrief unter demselben Knoten Wunden, Bennies, Ausrüstung und Notizen ablegt, hätte
+  das nächste Öffnen des Assistenten all das stillschweigend gelöscht — er kennt diese Felder
+  gar nicht. Beide Seiten schreiben jetzt mit `update()` und fassen nur ihre eigenen Felder an;
+  `bogenFelder()` und `figurFuerDb()` überschneiden sich bewusst nicht (per Test abgesichert:
+  der Bogen fasst Handicaps, Steckbrief und Namen **nicht** an).
+- **`alsFigur()` entdoppelt**: stand als eigene Kopie in `regie_figuren.html`, liegt jetzt in
+  `js/regelwerk.js` und wird von Übersicht **und** Bogen genutzt. Nimmt zusätzlich Firebase-
+  Objekte statt Arrays entgegen — Firebase macht aus einem lückenhaften Array ein Objekt mit
+  Zahlenschlüsseln, sonst wäre eine Liste stillschweigend verschwunden.
+- **Würfel-Feed ordnet jetzt ein** (`js/dice.js`, `formatRollText`): Trägt ein Wurf `probe` und
+  `band`, meldet der Feed „Anna — Kämpfen d8: Guter Erfolg (7 / Wild 3)" statt einer rohen Zahl.
+  Der Kopf der Datei dokumentierte die alte Kapitulation („zeigt bewusst NUR die rohe Zahl") —
+  die galt fürs W100-System, wo die Einordnung mehrdeutig war. Freie Würfe aus der Leiste laufen
+  unverändert.
+- **SL-Übersicht zeigt den Spielzustand**: Wunden, Angeschlagen, Überladung, der resultierende
+  Würfelabzug und die getragene Ausrüstung. Bennies als **Stand**, nicht als Maximum. Eine
+  unversehrte Figur bekommt bewusst keine Zustandszeile.
+- **Verdrahtung**: Hub verlinkt den Heldenbrief; `karte.html` zeigt im Charakter-Fach jetzt den
+  Bogen statt des Assistenten — das ist das Blatt, das man am Tisch braucht.
+- **Getestet** (Node, kein Browser): **201 Prüfungen, 0 Fehler** über fünf Testskripte
+  (Regelwerk 36 + 59, Assistent 34, Übersicht 21, Heldenbrief 51).
+  - **Zwei Testfehler, beide durch echte Änderungen ausgelöst:** Der Assistenten-Test stubbte
+    nur `set()` und lud `js/identitaet.js` nicht — nach der Umstellung auf `update()` und den
+    Rundenpfad lief er ins Leere. Und erneut die dokumentierte Heredoc-Falle: ein Testskript
+    mit Backslashes ließ sich nicht per Bash-Heredoc schreiben, es musste über das Write-Werkzeug.
+- **[OFFEN]** Die **Würfelaufforderung** (SL klickt in der Übersicht auf einen Wert → Spieler
+  wird zum Wurf aufgefordert) ist weiterhin offen. Der Feed kann die Einordnung jetzt anzeigen,
+  die Anfrage selbst (`figuren/{rid}/{pid}/anfrage`) fehlt noch.
+- **[OFFEN]** Der Assistent hat keinen Ausrüstungsschritt — gekauft wird im Bogen. Das ist
+  bewusst so (erst Geld, dann einkaufen), weicht aber vom Plan ab, der Startgeld bei der
+  Erschaffung vorsah.
+
 ### 2026-09-06 (Fortsetzung 5) — Figuren gehen zur Spielleitung
 - **Steckbrief auf die Prämisse der ersten Sitzung umgestellt.** Hendriks Korrektur: Die Fragen
   „Mit wem aus der Crew hast du Geschichte?" und „Wie hat die Gruppe dich kennengelernt?" setzen

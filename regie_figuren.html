@@ -47,6 +47,10 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .tag{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.05rem .45rem}
 .tag.pos{border-color:rgba(42,157,143,.55);color:#8fe0d6}
 .tag.neg{border-color:rgba(202,103,2,.55);color:#e0a86a}
+.zst{font-size:.66rem;border-radius:10px;padding:.05rem .45rem;border:1px solid}
+.zst.ang{border-color:rgba(202,103,2,.7);color:#e0a86a}
+.zst.wnd{border-color:rgba(139,38,38,.9);color:#e08080}
+.zst.aus{border-color:#e05555;color:#fff;background:rgba(139,38,38,.7)}
 .brief b{display:block;font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-top:.45rem}
 .brief span{font-size:.75rem;color:#cfc8ba;line-height:1.55}
 .brief .fehlt{color:var(--gray);font-style:italic}
@@ -71,6 +75,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
 <script>
 /* ==========================================================
@@ -105,7 +110,7 @@ function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    db.ref('figuren').on('value', function (s) {
+    db.ref('figuren/' + rundenId()).on('value', function (s) {
       figuren = s.val() || {};
       render();
     }, function (err) {
@@ -123,19 +128,9 @@ function warnung(t) {
   n.textContent = '⚠ ' + t;
 }
 
-/* Baut aus den rohen Firebase-Daten eine Figur, wie js/regelwerk.js sie
-   erwartet - fehlende Felder aufgefuellt, damit eine halb gespeicherte
-   Figur die Seite nicht sprengt. */
-function alsFigur(roh) {
-  const f = leereFigur();
-  ATTR_NAMEN.forEach(function (a) { if (roh.attr && roh.attr[a]) f.attr[a] = roh.attr[a]; });
-  FERTIGKEITEN.forEach(function (s) { if (roh.fert && roh.fert[s.name] != null) f.fert[s.name] = roh.fert[s.name]; });
-  f.tal = Array.isArray(roh.tal) ? roh.tal : [];
-  f.hnd = Array.isArray(roh.hnd) ? roh.hnd : [];
-  f.brief = roh.brief || {};
-  f.rang = roh.rang || 0;
-  return f;
-}
+/* alsFigur() stand hier frueher als eigene Kopie. Sie ist nach
+   js/regelwerk.js gewandert, weil der Heldenbrief dieselbe
+   Normalisierung braucht - zwei Kopien waeren zwei Wahrheiten. */
 
 function wertChip(name, stufe) {
   return '<span class="w d' + stufe + '">' + esc(name) + ' <b>' + DLBL[stufe] + '</b></span>';
@@ -178,6 +173,26 @@ function render() {
     const hnd = f.hnd.map(function (i) {
       return '<span class="tag neg">' + esc(HND_BY_ID[i] ? HND_BY_ID[i].n : i) + '</span>'; }).join('');
 
+    /* Zustand ist fuer die SL am Tisch das Wichtigste ueberhaupt: wer haelt
+       noch, wer nicht. Nur zeigen, wenn es etwas zu zeigen gibt - eine
+       unversehrte Figur braucht dafuer keine Zeile. */
+    const zTeile = [];
+    if (f.angeschlagen) zTeile.push('<span class="zst ang">angeschlagen</span>');
+    if (f.wunden > 0) zTeile.push('<span class="zst wnd">' + f.wunden + ' Wunde' + (f.wunden > 1 ? 'n' : '') + '</span>');
+    if (ueberladen(f)) zTeile.push('<span class="zst ang">überladen</span>');
+    if (ausserGefecht(f)) zTeile.push('<span class="zst aus">außer Gefecht</span>');
+    const abzug = wundenAbzug(f);
+    if (abzug > 0) zTeile.push('<span class="zst wnd">alle Würfel −' + abzug + '</span>');
+    const zustand = zTeile.length
+      ? '<div class="sl">Zustand</div><div class="tags">' + zTeile.join('') + '</div>' : '';
+
+    const traegt = (f.ausr || []).map(function (id) {
+      const a = AUSR_BY_ID[id];
+      if (!a) return '';
+      const zus = a.schaden ? ' ' + DLBL[a.schaden] : (a.ruest ? ' +' + a.ruest : '');
+      return '<span class="tag">' + esc(a.n) + zus + '</span>';
+    }).join('');
+
     const brief = zeigeBrief ? '<div class="sl">Steckbrief</div><div class="brief">' +
       STECKBRIEF.map(function (b) {
         const v = (f.brief[b.id] || '').trim();
@@ -195,12 +210,15 @@ function render() {
         '<div class="dv-row">' +
           '<div class="dv"><div class="dv-l">Parade</div><div class="dv-v">' + parade(f) + '</div></div>' +
           '<div class="dv"><div class="dv-l">Robust.</div><div class="dv-v">' + robustheit(f) + '</div></div>' +
-          '<div class="dv"><div class="dv-l">Bennies</div><div class="dv-v">' + bennies(f) + '</div></div>' +
+          '<div class="dv"><div class="dv-l">Bennies</div><div class="dv-v">' + benniesStand(f) +
+            '<span style="font-size:.6rem;color:var(--gray)"> / ' + bennies(f) + '</span></div></div>' +
           '<div class="dv"><div class="dv-l">Bewegung</div><div class="dv-v">' + bewegung() + '</div></div>' +
         '</div>' +
+        zustand +
         '<div class="sl">Attribute</div><div class="werte">' + attr + '</div>' +
         '<div class="sl">Fertigkeiten</div><div class="werte">' + fert + '</div>' +
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
+        (traegt ? '<div class="sl">Trägt</div><div class="tags">' + traegt + '</div>' : '') +
         brief +
         '<div class="alt">' + alterText(roh.aktualisiert) + '</div>' +
       '</div>' +
