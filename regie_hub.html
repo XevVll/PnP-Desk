@@ -154,11 +154,11 @@ function meld(id, text, farbe) {
 }
 /* Aus einem Namen eine brauchbare Firebase-Kennung machen. Punkt,
    Doppelkreuz, Dollar, Klammer und Schraegstrich sind dort verboten. */
+/* Die Umwandlung selbst steht in js/sitzung.js - der Spieler-Hub
+   benutzt dieselbe, wenn ein Spieler sich anmeldet. Zwei Kopien
+   davon wuerden denselben Menschen zweimal in die Liste schreiben. */
 function kennung(name) {
-  const roh = String(name || '').toLowerCase()
-    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
-  return roh || ('s' + Date.now().toString(36));
+  return spielerKennung(name) || ('s' + Date.now().toString(36));
 }
 function freieKennung(basis, vorhanden) {
   let k = kennung(basis), n = 2;

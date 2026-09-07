@@ -168,6 +168,27 @@ function sitzungsDbJetzt(echteDb, beiWechsel) {
 }
 
 /* ==========================================================
+   SPIELERKENNUNG — aus einem Namen einen Schluessel machen
+   ----------------------------------------------------------
+   Bewusst HIER und nicht je Seite: Die Spielleitung kann einen
+   Namen vormerken, und derselbe Spieler traegt sich beim
+   Anmelden selbst ein. Beide muessen zwingend denselben
+   Schluessel erzeugen - sonst steht ein Mensch doppelt in der
+   Liste, einmal vorgemerkt und einmal anwesend, und niemand
+   sieht, dass es dieselbe Person ist.
+
+   Punkt, Doppelkreuz, Dollar, Klammern und Schraegstrich sind
+   in Firebase-Schluesseln verboten; Umlaute werden umgeschrieben,
+   damit aus "Jörg" nicht "j-rg" wird. */
+function spielerKennung(name) {
+  var roh = String(name == null ? '' : name).toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return roh;
+}
+
+/* ==========================================================
    FIGURENCODE — die Figur bekommt eine eigene Adresse
    ----------------------------------------------------------
    Vorher hing eine Figur am Browser: Ihr Pfad war
@@ -256,7 +277,7 @@ if (typeof module !== 'undefined' && module.exports) {
     istSitzungsPfad, sitzungsPfad, sitzungsDatenbank,
     FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
     figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
-    setzeFigurCode, vergissFigurCode, freienFigurCode,
+    setzeFigurCode, vergissFigurCode, freienFigurCode, spielerKennung,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };
 }

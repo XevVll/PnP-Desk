@@ -325,9 +325,9 @@ function anmeldenBeiDb() {
   // Spielers. "sitzungen" ist kein Spielstands-Pfad und geht deshalb
   // ungefiltert durch die Huelle - die Sitzung muss hier selbst dran.
   if (db.sitzung) {
-    const k = String(meinName).toLowerCase()
-      .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
-      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+    // Dieselbe Umwandlung wie in der Sitzungsverwaltung (js/sitzung.js).
+    // Nur so trifft ein vorgemerkter Name auf denselben Schluessel.
+    const k = spielerKennung(meinName);
     if (k) {
       db.ref('sitzungen/' + db.sitzung + '/spieler/' + k)
         .update({ name: meinName, pid: meinePid, zuletzt: Date.now() })

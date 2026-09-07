@@ -106,6 +106,12 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 ## Changelog
 
 ### 2026-09-07 (Fortsetzung 6) — Regie-Hub: erst die Sitzung, dann hinein
+- **Nachtrag: `spielerKennung()` entdoppelt.** Die Umwandlung eines Namens in einen
+  Firebase-Schlüssel stand zweimal da — einmal in der Verwaltung (vorgemerkter Name), einmal im
+  Spieler-Hub (Selbstanmeldung). Heute identisch, aber genau so laufen zwei Fassungen
+  auseinander: Driftet eine, erzeugt derselbe Mensch zwei Schlüssel und steht doppelt in der
+  Liste — einmal vorgemerkt, einmal anwesend, ohne dass jemand sieht, dass es dieselbe Person
+  ist. Liegt jetzt in `js/sitzung.js`, beide Seiten rufen sie auf. 12 Prüfungen sichern das ab.
 - **Hendriks Einwand: „Irgendwie stimmt der Aufbau noch nicht."** Zu Recht — er war verkehrt
   herum. Man landete in `regie.html`, einer **Szenenansicht**, und verwaltete Sitzungen in einem
   Unterpunkt davon. Richtig ist die Reihenfolge des Spieler-Hubs: erst wählen, dann hinein.
