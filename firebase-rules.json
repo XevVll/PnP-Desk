@@ -3,71 +3,137 @@
   "//1": "sie wird nicht automatisch deployt. Einspielen in der Firebase-Konsole unter",
   "//2": "Realtime Database -> Regeln -> Inhalt einfuegen -> Veroeffentlichen.",
   "//3": "",
-  "//4": "ANLASS: Die Standard-Testmodus-Regeln enthalten ein Ablaufdatum der Form",
-  "//5": "  \".read\": \"now < 1234567890000\"",
-  "//6": "Nach diesem Datum verweigert die Datenbank JEDEN Zugriff - Karte und Adminpanel",
-  "//7": "waeren dann tot. Die Regeln unten haben KEIN Ablaufdatum.",
+  "//4": "ACHTUNG BEIM BEARBEITEN: Innerhalb von \"rules\" ist JEDER Schluessel ohne",
+  "//5": "fuehrenden Punkt ein PFADNAME. Kommentare duerfen deshalb nur hier oben",
+  "//6": "stehen, niemals im Regelblock - dort wuerde Firebase sie als Pfad mit einem",
+  "//7": "Text als Wert lesen und das Veroeffentlichen ablehnen.",
   "//8": "",
-  "//9": "PRINZIP: Die Wurzel ist gesperrt. Freigegeben sind die Sitzungsverwaltung und",
-  "//10": "die Pfade, die die Anwendung benutzt. Das verhindert, dass Fremde beliebige neue",
+  "//9": "PRINZIP: Die Wurzel ist gesperrt. Freigegeben sind nur die Pfade, die die",
+  "//10": "Anwendung tatsaechlich benutzt. Das verhindert, dass Fremde beliebige neue",
   "//11": "Aeste in die Datenbank schreiben, und begrenzt den Schaden bei Missbrauch.",
   "//12": "Es ersetzt KEINE Anmeldung: Wer die URL aus js/firebase-config.js kennt (das",
-  "//13": "Repo ist oeffentlich), kann diese Pfade weiterhin lesen und schreiben. Fuer",
-  "//14": "echten Schutz waere anonyme Firebase-Anmeldung noetig, siehe ARENA-ENDKAMPF.md.",
-  "//15": "",
-  "//16": "NEUER PFAD? Hier eintragen, sonst schlaegt der Schreibzugriff still fehl.",
-
+  "//13": "Repo ist oeffentlich), kann diese Pfade weiterhin lesen und schreiben.",
+  "//14": "",
+  "//15": "AUFBAU SEIT DEN SITZUNGEN (09/2026):",
+  "//16": "  aktiveSitzung        - Zeiger auf die laufende Sitzung",
+  "//17": "  spiele/{id}          - die Abenteuer",
+  "//18": "  sitzungen/{id}/meta  - Name, Spiel, angelegt/beendet",
+  "//19": "  sitzungen/{id}/spieler - wer mitspielt",
+  "//20": "  sitzungen/{id}/stand/... - der gesamte Spielstand dieser Sitzung",
+  "//21": "  geheimnisse/{id}/pw  - Sitzungspasswort, fuer KEINEN Client lesbar",
+  "//22": "  anspruch/{id}/{uid}  - wer die Spielleitung dieser Sitzung fuehrt",
+  "//23": "",
+  "//24": "WARUM DAS PASSWORT NICHT UNTER sitzungen/ LIEGT: In Firebase kaskadiert",
+  "//25": "\".read\": true nach unten und laesst sich tiefer NICHT mehr zuruecknehmen.",
+  "//26": "Unter dem lesbaren Sitzungsknoten waere es fuer jeden Client lesbar.",
+  "//27": "",
+  "//28": "OFFEN: Schreiben auf geheimnisse/ und anspruch/ ist noch frei. Der Schutz",
+  "//29": "greift erst mit der anonymen Anmeldung (naechster Schritt, siehe CLAUDE.md).",
+  "//30": "",
+  "//31": "DIE ALTEN WURZELPFADE (currentScene, arenaState, figuren ...) bleiben vorerst",
+  "//32": "offen, damit ein noch nicht uebernommener Spielstand lesbar ist. Nach der",
+  "//33": "Uebernahme in eine Sitzung koennen sie ersatzlos entfallen.",
+  "//34": "",
+  "//35": "NEUER TOP-LEVEL-PFAD? Hier eintragen UND in js/sitzung.js (SITZUNGS_PFADE),",
+  "//36": "sonst schlaegt der Schreibzugriff still fehl.",
   "rules": {
     ".read": false,
     ".write": false,
-
-    "//v": "----- global, gehoert keiner Sitzung -----",
-
-    "aktiveSitzung": { ".read": true, ".write": true },
-    "spiele":        { ".read": true, ".write": true },
-
-    "//w": "----- die Sitzungen selbst -----",
-    "//w1": "Alles, was frueher flach in der Wurzel lag, haengt jetzt unter",
-    "//w2": "sitzungen/{id}/stand/. Damit koennen zwei Gruppen nebeneinander",
-    "//w3": "spielen, ohne sich die Szene umzuschalten.",
-
-    "sitzungen": { ".read": true, ".write": true },
-
-    "//x": "----- Passwoerter -----",
-    "//x1": "BEWUSST ein eigener Ast und NICHT unter sitzungen/: In Firebase",
-    "//x2": "kaskadiert \".read\": true nach unten und laesst sich tiefer nicht",
-    "//x3": "mehr zuruecknehmen. Ein Passwort unterhalb des lesbaren Sitzungs-",
-    "//x4": "knotens waere fuer jeden lesbar. Hier ist es fuer KEINEN Client",
-    "//x5": "lesbar - Regeln duerfen es trotzdem vergleichen.",
-    "//x6": "OFFEN: Schreiben ist noch frei. Der Schutz greift erst mit der",
-    "//x7": "anonymen Anmeldung im naechsten Schritt (siehe CLAUDE.md).",
-
-    "geheimnisse": { ".read": false, ".write": true },
-    "anspruch":    { ".read": true,  ".write": true },
-
-    "//y": "----- die alten Wurzelpfade -----",
-    "//y1": "Bleiben vorerst offen, damit ein noch nicht uebernommener",
-    "//y2": "Spielstand lesbar ist. Nach der Uebernahme in eine Sitzung",
-    "//y3": "koennen sie ersatzlos entfallen.",
-
-    "currentScene":      { ".read": true, ".write": true },
-    "sceneAudioFile":    { ".read": true, ".write": true },
-    "sceneCharacters":   { ".read": true, ".write": true },
-    "charStatus":        { ".read": true, ".write": true },
-    "hiddenMarkersLive": { ".read": true, ".write": true },
-    "markerVariant":     { ".read": true, ".write": true },
-    "openMarkers":       { ".read": true, ".write": true },
-    "diceRolls":         { ".read": true, ".write": true },
-    "gmTimer":           { ".read": true, ".write": true },
-    "players":           { ".read": true, ".write": true },
-    "pcRuf":             { ".read": true, ".write": true },
-    "questDone":         { ".read": true, ".write": true },
-    "extraNpcs":         { ".read": true, ".write": true },
-    "extraGhosts":       { ".read": true, ".write": true },
-    "regie":             { ".read": true, ".write": true },
-    "graphState":        { ".read": true, ".write": true },
-    "arenaState":        { ".read": true, ".write": true },
-    "termine":           { ".read": true, ".write": true },
-    "figuren":           { ".read": true, ".write": true }
+    "aktiveSitzung": {
+      ".read": true,
+      ".write": true
+    },
+    "spiele": {
+      ".read": true,
+      ".write": true
+    },
+    "sitzungen": {
+      ".read": true,
+      ".write": true
+    },
+    "geheimnisse": {
+      ".read": false,
+      ".write": true
+    },
+    "anspruch": {
+      ".read": true,
+      ".write": true
+    },
+    "currentScene": {
+      ".read": true,
+      ".write": true
+    },
+    "sceneAudioFile": {
+      ".read": true,
+      ".write": true
+    },
+    "sceneCharacters": {
+      ".read": true,
+      ".write": true
+    },
+    "charStatus": {
+      ".read": true,
+      ".write": true
+    },
+    "hiddenMarkersLive": {
+      ".read": true,
+      ".write": true
+    },
+    "markerVariant": {
+      ".read": true,
+      ".write": true
+    },
+    "openMarkers": {
+      ".read": true,
+      ".write": true
+    },
+    "diceRolls": {
+      ".read": true,
+      ".write": true
+    },
+    "gmTimer": {
+      ".read": true,
+      ".write": true
+    },
+    "players": {
+      ".read": true,
+      ".write": true
+    },
+    "pcRuf": {
+      ".read": true,
+      ".write": true
+    },
+    "questDone": {
+      ".read": true,
+      ".write": true
+    },
+    "extraNpcs": {
+      ".read": true,
+      ".write": true
+    },
+    "extraGhosts": {
+      ".read": true,
+      ".write": true
+    },
+    "regie": {
+      ".read": true,
+      ".write": true
+    },
+    "graphState": {
+      ".read": true,
+      ".write": true
+    },
+    "arenaState": {
+      ".read": true,
+      ".write": true
+    },
+    "termine": {
+      ".read": true,
+      ".write": true
+    },
+    "figuren": {
+      ".read": true,
+      ".write": true
+    }
   }
 }
