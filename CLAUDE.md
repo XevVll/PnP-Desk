@@ -105,6 +105,19 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 2) — Besatzung und Codex aus dem Spieler-Hub
+- **Hendriks Anweisung:** Beide Kacheln raus aus der Übersicht. Spieler dürfen die Seiten nicht
+  sehen — dort stehen die Hintergründe im Detail.
+- **`index.html`** verlinkt jetzt nur noch **Karte · Heldenbrief · Figur erschaffen**. Die
+  Dateinamen stehen auch **nicht** im Quelltext der Seite, wie bei allen SL-Seiten — der Hub ist
+  für jeden Spieler über „Seitenquelltext anzeigen" lesbar.
+- **`regie.html`** verlinkt beide in der Kopfleiste, neben Figuren und Schlachtfeld.
+- **Getestet:** 22 Prüfungen, 0 Fehler — keine der sechs SL-Seiten taucht in `index.html` auf,
+  die Regie erreicht alle vier verlinkten, die drei Spielerkacheln stehen, und jeder verlinkte
+  Pfad existiert.
+- **Rest:** `crew_manifest.html` ist eine alte Weiterleitung und nennt `besatzung.html` im
+  Klartext. Nirgends verlinkt; Löschen bleibt Hendriks Entscheidung.
+
 ### 2026-09-07 (Fortsetzung) — "Wird gesendet ..." blieb stehen
 - **Hendriks Meldung:** Der Knopf „An die Spielleitung senden" hing ewig bei „Wird gesendet …".
   Erste Frage war, ob eine Firebase-Regel fehlt — **nein.** Per REST gegengeprüft: ein `PUT` auf
