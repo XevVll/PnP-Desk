@@ -105,6 +105,45 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 7) — Beitritt per Sitzungs-ID, Karte erst nach dem Start
+- **Hendriks Vorgabe:** Ein Spieler ist nicht mehr automatisch dabei, nur weil er die Adresse
+  kennt. Er trägt eine **Sitzungs-ID** ein, die die Spielleitung ihm schickt. Und: *„Erst wenn
+  sie Teil einer Sitzung sind, können sie auch erst einen Charakter erstellen, da wir sonst ja
+  noch gar nicht wissen um welches Spiel es geht."* Genau so gebaut — die Begründung ist der
+  Grund, nicht die Ordnung: Regeln und Inhalt hängen am Spiel, nicht am Browser.
+- **Der Spieler-Hub hat jetzt DREI Zustände** statt zwei:
+  1. kein Name → Anmeldung
+  2. **keine Sitzung → „Noch kein Spiel offen", Sitzungs-ID eintragen**
+  3. Sitzung da → Hub
+- **Zwei Stufen, bewusst getrennt** (`js/sitzung.js`):
+  - **Beigetreten** — der Spieler gehört zur Sitzung, kann eine Figur bauen und führen.
+  - **Freigegeben** — die Spielleitung hat gestartet (`aktiveSitzung` zeigt darauf). **Erst
+    jetzt öffnet die Karte.** Vorher gäbe es dort nichts zu sehen, und die Szene stünde auf dem
+    Stand einer fremden Runde.
+  - Die Kachel im Hub und die Karte selbst **gehen von selbst auf**, sobald gestartet wird — der
+    Lauscher bleibt hängen, niemand muss neu laden.
+- **`sitzungBeitreten()` prüft gegen die Datenbank.** Ein Tippfehler soll nicht in einer Sitzung
+  enden, die es gar nicht gibt. Nimmt die reine ID, Groß-/Kleinschreibung, Leerraum — und einen
+  **ganzen Link**, den man einfach hineinkopiert.
+- **Sperren auf drei Seiten** (`karte.html`, `charaktererstellung.html`, `heldenbrief.html`),
+  jede **vor** `initializeApp` und alle mit demselben Hinweis (`sitzungsSperre()` in
+  `js/sitzung.js`, einmal geschrieben statt dreimal). **Die Vorschau der Spielleitung
+  (`karte.html?preview=1`) ist ausgenommen** — sie schaut in ihre eigene Sitzung, auch wenn die
+  noch nicht läuft.
+- **Die Sitzungs-ID steht jetzt an jedem Eintrag im Regie-Hub** und lässt sich anklicken zum
+  Kopieren. Ohne sie kommt niemand in die Sitzung, und sie stand vorher nirgends.
+- **Getestet: 39 neue Prüfungen, 0 Fehler** (406 über neun Skripte). Darunter: ein Tippfehler
+  wird abgelehnt **und nicht gemerkt**, eine *andere* laufende Sitzung gibt nicht frei, die
+  Sperren stehen nachweislich **vor** `initializeApp`, und der Freigabe-Lauscher bleibt hängen.
+  - **Drei Bestandstests brachen**, alle mit veralteten Erwartungen statt echten Fehlern: Die
+    beiden Figurenseiten steigen jetzt korrekt früh aus, wenn keine Sitzung gesetzt ist (die
+    Tests setzen jetzt eine). Und `index.html` braucht bewusst **beides** — die Hülle für den
+    Spielstand, die nackte Datenbank für Beitritt und Zeiger, die außerhalb jeder Sitzung liegen.
+    Dafür prüft der Test jetzt zusätzlich, dass über die nackte Datenbank **kein** Spielstand
+    geschrieben wird.
+- **[OFFEN]** Die Sitzungs-ID ist kein Geheimnis: Wer sie errät, kommt hinein. Eine echte Hürde
+  wäre das Sitzungspasswort beim Beitritt — das setzt die anonyme Anmeldung voraus.
+
 ### 2026-09-07 (Fortsetzung 6) — Regie-Hub: erst die Sitzung, dann hinein
 - **Nachtrag: `spielerKennung()` entdoppelt.** Die Umwandlung eines Namens in einen
   Firebase-Schlüssel stand zweimal da — einmal in der Verwaltung (vorgemerkter Name), einmal im

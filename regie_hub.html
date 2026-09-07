@@ -41,6 +41,11 @@ button.gefahr{border-color:#c05555;color:#c05555}
   font-size:.72rem;letter-spacing:.06em;padding:.45rem .8rem;border-radius:5px;
   border:1px solid var(--border);color:var(--gray);transition:all .15s}
 .wz:hover{border-color:var(--gold);color:var(--gold);background:var(--lgold)}
+.sid{display:inline-flex;align-items:center;gap:.4rem;margin-top:.35rem;
+  font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;color:var(--gold);
+  border:1px dashed var(--border);border-radius:5px;padding:.15rem .5rem;cursor:pointer}
+.sid:hover{border-color:var(--gold);background:var(--lgold)}
+.sid .lbl{font-family:'Libre Baskerville',serif;font-size:.62rem;letter-spacing:0;color:var(--gray);font-style:italic}
 .oeffnen{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.08em;color:var(--teal);margin-top:.25rem}
 .eintrag.aktiv{border-color:var(--teal);background:rgba(42,157,143,.1)}
 .eintrag.beendet{opacity:.5}
@@ -110,6 +115,9 @@ button.gefahr{border-color:#c05555;color:#c05555}
         <input type="text" id="sitzPw" placeholder="Passwort (optional)" maxlength="40">
         <button onclick="sitzungAnlegen()">+ Sitzung anlegen</button>
       </div>
+      <p class="hint">Aus dem Namen entsteht die <b>Sitzungs-ID</b> — die schickst du deinen
+        Spielern, damit sie beitreten können. Sie steht danach an jedem Eintrag und lässt sich
+        dort anklicken zum Kopieren.</p>
       <p class="hint">Das Passwort schützt später die Spielleiter-Rechte dieser Sitzung. Es wird
         in einem Ast abgelegt, den kein Client lesen kann — aber es ist kein echtes Konto,
         und der Schutz greift erst mit der anonymen Anmeldung im nächsten Schritt.</p>
@@ -204,6 +212,18 @@ function sitzungAnlegen() {
    Zeiger aktiveSitzung bleibt, wo er ist - die Spieler merken nichts.
    Ohne diese Trennung koennte die Spielleitung nicht in eine ruhende
    Sitzung sehen, ohne die ganze Gruppe mitzunehmen. */
+/* Die Sitzungs-ID ist das, was die Spielleitung ihren Spielern schickt.
+   Sie im Eintrag anzuzeigen ist nicht Zierde: Ohne sie kommt niemand
+   in die Sitzung, und sie steht sonst nirgends. */
+function idKopieren(id) {
+  var fertig = function () { meld('sitzMeld', 'Kopiert: ' + id + ' — das schickst du deinen Spielern.', '#4caf7d'); };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(id).then(fertig, function () { prompt('Sitzungs-ID:', id); });
+    } else { prompt('Sitzungs-ID:', id); }
+  } catch (e) { prompt('Sitzungs-ID:', id); }
+}
+
 function regieOeffnen(id) {
   location.href = 'regie.html?sitzung=' + encodeURIComponent(id);
 }
@@ -331,6 +351,9 @@ function zeichneSitzungen() {
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
         '</div>' +
+        '<div class="sid" onclick="event.stopPropagation();idKopieren(\'' + id + '\')"' +
+          ' title="Anklicken zum Kopieren — diese ID schickst du deinen Spielern">' +
+          '<span class="lbl">Sitzungs-ID:</span> ' + esc(id) + ' ⧉</div>' +
         '<div class="oeffnen">▶ Regie öffnen</div>' +
       '</div><div class="e-tat" onclick="event.stopPropagation()">' +
         (beendet

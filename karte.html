@@ -2183,9 +2183,34 @@
     // FIREBASE: live, ohne dass Spieler aktualisieren müssen
     // ==========================================================
     let db = null;
+    // Die Vorschau der Spielleitung (regie.html laedt diese Seite als
+    // ?preview=1) umgeht die Sperren bewusst: Sie schaut in ihre eigene
+    // Sitzung, auch wenn die noch gar nicht gestartet ist.
+    const istVorschau = /[?&]preview=1/.test(location.search);
     try {
+      if (!istVorschau && !hatSitzung()) {
+        sitzungsSperre('Noch keine Sitzung',
+          'Du bist noch in keiner Sitzung. Die Sitzungs-ID bekommst du von deiner Spielleitung.',
+          'Zum Hub', 'index.html');
+        return;
+      }
       firebase.initializeApp(firebaseConfig);
       db = sitzungsDbJetzt(firebase.database());
+      // Die Karte oeffnet erst, wenn die Spielleitung gestartet hat -
+      // vorher gaebe es nichts zu sehen, und die Szene stuende auf dem
+      // Stand einer fremden Runde.
+      if (!istVorschau) {
+        let gesperrt = false;
+        beobachteFreigabe(db, function (frei) {
+          if (frei) { if (gesperrt) location.reload(); return; }
+          if (gesperrt) return;
+          gesperrt = true;
+          sitzungsSperre('Die Sitzung läuft noch nicht',
+            'Deine Spielleitung hat die Sitzung noch nicht gestartet. ' +
+            'Sobald es losgeht, öffnet sich die Karte von selbst.',
+            'Zum Hub', 'index.html');
+        });
+      }
       initDiceRoller(db);
 
       db.ref('currentScene').on('value', function (snapshot) {

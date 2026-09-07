@@ -360,6 +360,15 @@ function ausLokal() {
 
 function initFirebase() {
   try {
+    // Ohne Sitzung wissen wir nicht, fuer WELCHES Spiel das hier gilt -
+    // Regeln und Inhalt haengen am Spiel, nicht am Browser.
+    if (!hatSitzung()) {
+      sitzungsSperre('Noch keine Sitzung',
+        'Um deinen Heldenbrief zu öffnen, musst du erst einer Sitzung beitreten. '
+        + 'Die Sitzungs-ID bekommst du von deiner Spielleitung.',
+        'Zum Hub', 'index.html');
+      return;
+    }
     firebase.initializeApp(firebaseConfig);
     db = sitzungsDbJetzt(firebase.database());
     syncBereit = true;

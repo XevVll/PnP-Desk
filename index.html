@@ -113,16 +113,47 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   </div></div>
 </div>
 
+<!-- ══════════ SITZUNG EINTRAGEN ══════════
+     Ohne Sitzung geht nichts weiter - und das ist kein Formalismus:
+     Die Charaktererschaffung wuesste sonst nicht, fuer WELCHES Spiel
+     sie eine Figur baut. Regeln und Inhalt haengen am Spiel. -->
+<div id="sitzungGate" class="wrap" style="display:none">
+  <div class="card"><div class="card-body gate">
+    <h1>Noch kein Spiel offen</h1>
+    <p>Trag die Sitzungs-ID ein, die du von deiner Spielleitung bekommen hast.</p>
+    <form class="gate-form" onsubmit="sitzungEintragen(event)">
+      <input id="sitzungEingabe" type="text" maxlength="80" placeholder="z. B. donnerstagsrunde" autocomplete="off">
+      <button type="submit" class="btn btn-gold">Beitreten</button>
+    </form>
+    <div id="sitzungMeld" style="min-height:1.2em;margin-top:.7rem;font-size:.85rem"></div>
+    <div class="hint" style="max-width:460px;margin:.6rem auto 0">
+      Ein ganzer Link funktioniert auch — du kannst ihn einfach hineinkopieren.
+      Erst wenn du in einer Sitzung bist, kannst du eine Figur erschaffen.
+    </div>
+  </div></div>
+</div>
+
 <!-- ══════════ HUB ══════════ -->
 <div id="hub" class="wrap" style="display:none">
 
   <div class="fbnote" id="fbNote"></div>
 
   <div class="card">
+    <div class="card-hdr">
+      <span id="sitzungName">…</span>
+      <span class="card-hdr-sub" id="sitzungStatus"></span>
+    </div>
+    <div class="card-body">
+      <div id="sitzungHinweis" class="hint"></div>
+      <button class="btn btn-sm" onclick="sitzungVerlassen()" style="margin-top:.6rem">Sitzung wechseln</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-hdr">An Bord</div>
     <div class="card-body">
       <div class="tiles">
-        <a class="tile" href="karte.html">
+        <a class="tile" id="kachelKarte" href="karte.html">
           <div class="tile-i">🗺️</div>
           <div class="tile-n">Die Karte</div>
           <div class="tile-d">Die Spieleransicht: Orte, Bilder, Würfel und alles, was die Spielleitung freigibt.</div>
@@ -229,6 +260,7 @@ let spieler = {};        // pid -> { name }
 let verfuegbar = {};     // pid -> { datum -> bitstring }
 let gewaehlt = null;     // { datum, slot }
 let db = null, online = false;
+let echteDb = null;   // ohne Sitzungs-Praefix, fuer Beitritt und Zeiger
 
 const SLOT_MIN = 30;
 function slotAnzahl() { return Math.max(1, (cfg.bisStunde - cfg.vonStunde) * (60 / SLOT_MIN)); }
@@ -276,8 +308,18 @@ function zaehle(datum, i) {
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
-    db = sitzungsDbJetzt(firebase.database());
+    echteDb = firebase.database();
+    // Die Huelle braucht eine Sitzung. Ohne Beitritt gibt es keine -
+    // dann traegt diese Seite nur das Beitrittsformular, sonst nichts.
+    if (!hatSitzung()) { zeigeSeite(); return; }
+    db = sitzungsDbJetzt(echteDb);
   } catch (e) { zeigeOffline('Keine Verbindung zur Datenbank — Termine sind gerade nicht abrufbar.'); return; }
+
+  beobachteStart();
+  echteDb.ref('sitzungen/' + db.sitzung + '/meta/name').on('value', function (s) {
+    const n = document.getElementById('sitzungName');
+    if (n) n.textContent = s.val() || db.sitzung;
+  });
 
   db.ref('termine/config').on('value', function (s) {
     const v = s.val();
@@ -368,17 +410,89 @@ function umbenennen() {
   anmeldenBeiDb(); zeigeSeite();
 }
 
+/* ==========================================================
+   DREI ZUSTAENDE, NICHT ZWEI
+   ----------------------------------------------------------
+   1. kein Name      -> Anmeldung
+   2. keine Sitzung  -> Sitzungs-ID eintragen
+   3. Sitzung da     -> Hub. Die Karte bleibt aber gesperrt,
+                        solange die Spielleitung nicht gestartet
+                        hat: vorher gaebe es dort nichts zu sehen,
+                        und die Szene stuende auf fremdem Stand.
+   ========================================================== */
+function sitzungEintragen(ev) {
+  ev.preventDefault();
+  const feld = document.getElementById('sitzungEingabe');
+  const m = document.getElementById('sitzungMeld');
+  m.style.color = 'var(--gray)';
+  m.textContent = 'Wird gesucht …';
+  sitzungBeitreten(echteDb, feld.value, function (r) {
+    if (r.ok) {
+      m.style.color = '#4caf7d';
+      m.textContent = 'Willkommen in „' + (r.meta.name || r.sid) + '".';
+      setTimeout(function () { location.reload(); }, 700);
+      return;
+    }
+    m.style.color = '#e05555';
+    m.textContent = {
+      leer:      'Bitte eine Sitzungs-ID eintragen.',
+      offline:   'Keine Verbindung zur Datenbank — versuch es gleich noch einmal.',
+      unbekannt: 'Unter „' + (r.sid || '') + '" gibt es keine Sitzung. Vertippt?',
+      fehler:    'Das hat nicht geklappt: ' + (r.fehler && r.fehler.code ? r.fehler.code : r.fehler)
+    }[r.grund] || 'Das hat nicht geklappt.';
+  });
+}
+
+function sitzungVerlassen() {
+  if (!confirm('Sitzung wechseln? Deine Figur bleibt in der alten Sitzung erhalten — ' +
+               'mit ihrem Figurencode holst du sie jederzeit zurück.')) return;
+  loeseSitzung();
+  location.reload();
+}
+
+/* Die Karte ist erst offen, wenn die Spielleitung gestartet hat.
+   Der Lauscher bleibt haengen, damit die Kachel von selbst aufgeht,
+   sobald es losgeht - ohne dass jemand neu laden muss. */
+function beobachteStart() {
+  if (!db) return;
+  beobachteFreigabe(db, function (frei) {
+    const kachel = document.getElementById('kachelKarte');
+    const status = document.getElementById('sitzungStatus');
+    const hinweis = document.getElementById('sitzungHinweis');
+    if (!kachel) return;
+    if (frei) {
+      kachel.style.opacity = ''; kachel.style.pointerEvents = '';
+      kachel.removeAttribute('title');
+      kachel.setAttribute('href', 'karte.html');
+      if (status) { status.textContent = 'läuft'; status.style.color = 'var(--teal)'; }
+      if (hinweis) hinweis.textContent = 'Die Sitzung läuft — die Karte ist offen.';
+    } else {
+      kachel.style.opacity = '.4'; kachel.style.pointerEvents = 'none';
+      kachel.setAttribute('title', 'Die Spielleitung hat die Sitzung noch nicht gestartet.');
+      kachel.removeAttribute('href');
+      if (status) { status.textContent = 'noch nicht gestartet'; status.style.color = 'var(--amber)'; }
+      if (hinweis) hinweis.textContent = 'Du bist dabei. Die Karte öffnet sich von selbst, ' +
+        'sobald die Spielleitung die Sitzung startet. Deine Figur kannst du schon jetzt bauen.';
+    }
+  });
+}
+
 function zeigeSeite() {
   const an = !!meinName;
+  const inSitzung = hatSitzung();
   document.getElementById('gate').style.display = an ? 'none' : 'block';
-  document.getElementById('hub').style.display  = an ? 'block' : 'none';
+  document.getElementById('sitzungGate').style.display = (an && !inSitzung) ? 'block' : 'none';
+  document.getElementById('hub').style.display  = (an && inSitzung) ? 'block' : 'none';
   document.getElementById('whoBar').innerHTML = an
     ? '<span class="who-n">' + esc(meinName) + '</span>' +
       '<button class="btn btn-sm" onclick="umbenennen()">Name</button>' +
       '<button class="btn btn-sm" onclick="abmelden()">Abmelden</button>'
     : '';
-  if (an) { renderKalender(); renderErgebnis(); renderWhoList(); renderChosen(); }
-  else setTimeout(function () { const f = document.getElementById('gateName'); if (f) f.focus(); }, 60);
+  if (an && inSitzung) { renderKalender(); renderErgebnis(); renderWhoList(); renderChosen(); }
+  else setTimeout(function () {
+    const f = document.getElementById(an ? 'sitzungEingabe' : 'gateName');
+    if (f && f.focus) f.focus();
+  }, 60);
 }
 
 function esc(s) {

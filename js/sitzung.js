@@ -168,6 +168,84 @@ function sitzungsDbJetzt(echteDb, beiWechsel) {
 }
 
 /* ==========================================================
+   BEITRITT UND FREIGABE
+   ----------------------------------------------------------
+   Ein Spieler ist NICHT automatisch dabei, nur weil er die
+   Adresse kennt. Er traegt eine Sitzungs-ID ein; die
+   Spielleitung schickt sie ihm.
+
+   Das hat einen sachlichen Grund und ist nicht nur Ordnung:
+   Ohne Sitzung weiss die Charaktererschaffung gar nicht, fuer
+   WELCHES Spiel sie eine Figur baut - Regeln und Inhalt haengen
+   am Spiel, nicht am Browser.
+
+   Zwei Stufen, bewusst getrennt:
+     BEIGETRETEN - der Spieler gehoert zur Sitzung. Er kann eine
+                   Figur bauen und fuehren.
+     FREIGEGEBEN - die Spielleitung hat die Sitzung gestartet
+                   (aktiveSitzung zeigt darauf). Erst jetzt fuehrt
+                   die Karte irgendwohin; vorher gaebe es nichts
+                   zu sehen und die Szene stuende auf einem
+                   fremden Stand.
+   ========================================================== */
+
+function hatSitzung() { return !!sitzungFest(); }
+
+/* Einer Sitzung beitreten. Geprueft wird gegen die Datenbank -
+   ein Tippfehler soll nicht in einer leeren Sitzung enden, die
+   es gar nicht gibt. */
+function sitzungBeitreten(echteDb, eingabe, fertig) {
+  var sid = String(eingabe == null ? '' : eingabe).trim().toLowerCase()
+              .replace(/^.*[?&]sitzung=/, '')      // ein ganzer Link geht auch
+              .replace(/[^a-z0-9-]/g, '');
+  if (!sid) { fertig({ ok: false, grund: 'leer' }); return; }
+  if (!echteDb) { fertig({ ok: false, grund: 'offline' }); return; }
+  echteDb.ref(SITZUNG_WURZEL + '/' + sid + '/meta').once('value').then(function (s) {
+    var meta = s.val();
+    if (!meta) { fertig({ ok: false, grund: 'unbekannt', sid: sid }); return; }
+    setzeSitzungFest(sid);
+    sitzungInCache(sid);
+    fertig({ ok: true, sid: sid, meta: meta });
+  }).catch(function (e) { fertig({ ok: false, grund: 'fehler', fehler: e }); });
+}
+
+/* Laeuft meine Sitzung gerade? Ruft cb bei jeder Aenderung erneut,
+   damit eine wartende Seite von selbst aufgeht, sobald die
+   Spielleitung startet - ohne dass jemand neu laden muss. */
+function beobachteFreigabe(db, cb) {
+  if (!db || !db.echt) { cb(false); return; }
+  try {
+    db.echt.ref(SITZUNG_ZEIGER).on('value', function (s) {
+      cb((s.val() || '') === db.sitzung, s.val() || '');
+    });
+  } catch (e) { cb(false); }
+}
+
+/* Ein vollflaechiger Hinweis, der die Seite anhaelt. Einmal hier,
+   statt dreimal in den Seiten - und damit sagt jede Sperre
+   dasselbe. */
+function sitzungsSperre(titel, text, knopfText, knopfZiel) {
+  try {
+    var d = document.createElement('div');
+    d.setAttribute('style',
+      'position:fixed;inset:0;z-index:99999;background:#12232a;color:#fefcf8;' +
+      'display:flex;align-items:center;justify-content:center;padding:2rem;' +
+      "font-family:'Libre Baskerville',Georgia,serif;text-align:center");
+    d.innerHTML =
+      '<div style="max-width:30rem">' +
+      '<div style="font-family:' + "'Cinzel',serif" + ';font-size:1.5rem;color:#c9a84c;' +
+        'letter-spacing:.06em;margin-bottom:.9rem">' + titel + '</div>' +
+      '<p style="font-size:.92rem;line-height:1.7;color:#cfc8ba">' + text + '</p>' +
+      (knopfText ? '<a href="' + knopfZiel + '" style="display:inline-block;margin-top:1.4rem;' +
+        'font-family:' + "'Cinzel',serif" + ';font-size:.75rem;letter-spacing:.08em;' +
+        'padding:.5rem 1.1rem;border:1px solid #c9a84c;color:#c9a84c;border-radius:5px;' +
+        'text-decoration:none">' + knopfText + '</a>' : '') +
+      '</div>';
+    document.body.appendChild(d);
+  } catch (e) {}
+}
+
+/* ==========================================================
    SPIELERKENNUNG — aus einem Namen einen Schluessel machen
    ----------------------------------------------------------
    Bewusst HIER und nicht je Seite: Die Spielleitung kann einen
@@ -274,6 +352,7 @@ if (typeof module !== 'undefined' && module.exports) {
     SITZUNG_VORGABE, SITZUNG_ZEIGER, SITZUNG_WURZEL, SPIEL_WURZEL,
     SITZUNG_CACHE_KEY, SITZUNG_FEST_KEY, SITZUNGS_PFADE,
     sitzungFest, setzeSitzungFest, loeseSitzung, sitzungAusAdresse,
+    hatSitzung, sitzungBeitreten, beobachteFreigabe, sitzungsSperre,
     istSitzungsPfad, sitzungsPfad, sitzungsDatenbank,
     FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
     figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
