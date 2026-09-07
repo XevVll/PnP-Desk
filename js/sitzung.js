@@ -123,11 +123,95 @@ function sitzungsDbJetzt(echteDb, beiWechsel) {
   return huelle;
 }
 
+/* ==========================================================
+   FIGURENCODE — die Figur bekommt eine eigene Adresse
+   ----------------------------------------------------------
+   Vorher hing eine Figur am Browser: Ihr Pfad war
+   figuren/{pnp_player_id}, und diese Kennung entsteht im
+   localStorage. Wer am Laptop baute und am Handy oeffnete, war
+   fuer das System ein anderer Mensch ohne Figur.
+
+   Jetzt traegt die Figur einen kurzen Code, den man abschreiben
+   und eintippen kann. Er IST ihr Pfad:
+       sitzungen/{sid}/stand/figuren/{code}
+
+   Alphabet ist Crockford-Base32: ohne I, L, O und U. Damit gibt
+   es die klassischen Verwechslungen beim Vorlesen nicht - und
+   was doch als I oder O eingetippt wird, laesst sich eindeutig
+   auf 1 und 0 zurueckfuehren.
+
+   Der Code ist KEIN Passwort. Wer ihn hat, kann die Figur laden
+   und aendern. In einer Runde eingeladener Freunde ist das genau
+   richtig - am Tisch sagt man ihn sich ohnehin laut. */
+var FIGUR_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+var FIGUR_LAENGE   = 6;
+
+function neuerFigurCode() {
+  var c = '';
+  for (var i = 0; i < FIGUR_LAENGE; i++) {
+    c += FIGUR_ALPHABET.charAt(Math.floor(Math.random() * FIGUR_ALPHABET.length));
+  }
+  return c;
+}
+
+/* Alles annehmen, was ein Mensch eintippt: Kleinbuchstaben,
+   Bindestriche, Leerzeichen, und die vier verwechselten Zeichen. */
+function figurCodeNormal(eingabe) {
+  return String(eingabe == null ? '' : eingabe).toUpperCase()
+    .replace(/[IL]/g, '1').replace(/[OU]/g, '0')
+    .replace(/[^0-9A-Z]/g, '')
+    .split('').filter(function (z) { return FIGUR_ALPHABET.indexOf(z) >= 0; })
+    .join('').slice(0, FIGUR_LAENGE);
+}
+function figurCodeGueltig(code) {
+  return figurCodeNormal(code).length === FIGUR_LAENGE;
+}
+/* Zum Anzeigen und Vorlesen in zwei Dreiergruppen. */
+function figurCodeLesbar(code) {
+  var c = String(code || '');
+  return c.length === FIGUR_LAENGE ? c.slice(0, 3) + '-' + c.slice(3) : c;
+}
+
+/* Welchen Code haelt dieser Browser fuer diese Sitzung? Bewusst je
+   Sitzung: Dieselbe Person spielt in zwei Runden zwei Figuren. */
+function figurCodeKey(sid) { return 'pnp_figur_' + (sid || SITZUNG_VORGABE); }
+function figurCode(sid) {
+  try { return localStorage.getItem(figurCodeKey(sid)) || ''; } catch (e) { return ''; }
+}
+function setzeFigurCode(sid, code) {
+  var c = figurCodeNormal(code) || String(code || '');
+  try { localStorage.setItem(figurCodeKey(sid), c); } catch (e) {}
+  return c;
+}
+function vergissFigurCode(sid) {
+  try { localStorage.removeItem(figurCodeKey(sid)); } catch (e) {}
+}
+
+/* Einen Code besorgen, der in dieser Sitzung noch frei ist.
+   Der Kollisionstest laeuft gegen die Datenbank, weil nur sie
+   weiss, was es schon gibt. Ohne Verbindung wird schlicht einer
+   erzeugt - bei 32^6 Moeglichkeiten ist das vertretbar. */
+function freienFigurCode(db, fertig) {
+  var versuche = 0;
+  function probier() {
+    var c = neuerFigurCode();
+    if (!db || versuche >= 5) { fertig(c); return; }
+    versuche++;
+    db.ref('figuren/' + c).once('value').then(function (s) {
+      if (s.val() === null) fertig(c); else probier();
+    }).catch(function () { fertig(c); });
+  }
+  probier();
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     SITZUNG_VORGABE, SITZUNG_ZEIGER, SITZUNG_WURZEL, SPIEL_WURZEL,
     SITZUNG_CACHE_KEY, SITZUNGS_PFADE,
     istSitzungsPfad, sitzungsPfad, sitzungsDatenbank,
+    FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
+    figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
+    setzeFigurCode, vergissFigurCode, freienFigurCode,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };
 }

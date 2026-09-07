@@ -105,6 +105,36 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 5) — Die Figur bekommt eine eigene Adresse
+- **Hendriks Vorschlag:** „Man könnte den Charakter mit einer ID versehen, die man einfach laden
+  kann." Damit fällt der Haken weg, den ich zuvor nennen musste: Ohne Konten galt **ein Browser =
+  ein Spieler**. Wer am Laptop baute und am Handy öffnete, stand vor einem leeren Bogen.
+- **Der Code IST der Pfad der Figur:** `sitzungen/{sid}/stand/figuren/{code}`. Vorher stand dort
+  `pnp_player_id`, eine Kennung, die im localStorage entsteht und den Browser nie verlässt.
+- **Sechs Zeichen im Crockford-Base32-Alphabet** (ohne I, L, O, U), angezeigt als `K7M-3QP`.
+  Der Code wird am Tisch vorgelesen und abgetippt — deshalb liegt das Gewicht auf dem, was
+  Menschen falsch machen: Klein-/Großschreibung, Bindestriche, Leerzeichen und vor allem die
+  vier klassischen Verwechslungen werden beim Eintippen **eindeutig zurückgeführt** (I und L → 1,
+  O und U → 0). 32^6 ≈ 1,07 Milliarden Möglichkeiten, dazu ein Kollisionstest gegen die Datenbank.
+- **Je Sitzung ein eigener Code** (`pnp_figur_{sid}`) — dieselbe Person spielt in zwei Runden
+  zwei Figuren, und die Sitzung steckt ohnehin schon im Pfad.
+- **Wo er auftaucht:** Der Assistent zeigt ihn am Ende groß mit der Bitte, ihn aufzuschreiben.
+  Der Heldenbrief trägt ihn in der Kopfleiste und hat einen Knopf **„Figur laden"**. Die
+  SL-Übersicht zeigt ihn je Figur, damit die Spielleitung ihn vorlesen kann, wenn ihn jemand
+  verlegt hat.
+- **Der Code ist ausdrücklich KEIN Passwort.** Wer ihn hat, kann die Figur öffnen und ändern. In
+  einer Runde eingeladener Freunde ist das richtig — am Tisch sagt man ihn sich ohnehin laut.
+- **Alte Figuren gehen nicht verloren:** Liegt für die Sitzung kein Code vor, aber unter der alten
+  Spielerkennung eine Figur, gilt diese Kennung weiter als Code.
+- **Getestet: 36 neue Prüfungen, 0 Fehler** (309 über sieben Skripte insgesamt). Darunter alle
+  vier Verwechslungen, 20.000 erzeugte Codes ohne Dublette, und dass ein Code Anzeige und
+  Rückgabe unverändert übersteht.
+  - **Drei eigene Fehler beim Bauen, alle vom Prüfen gefunden:** (1) Ich verwies in der
+    SL-Übersicht auf `id`, während die Schleife `pid` heißt — das hätte zur Laufzeit die ganze
+    Übersicht lahmgelegt. (2) und (3) **zweimal die dokumentierte Heredoc-Falle**: Backslashes in
+    einem Python-Skript per Bash-Heredoc zerlegten erst einen String, dann ein Style-Attribut.
+    Beim zweiten Mal die Anführungszeichen ganz vermieden und eine CSS-Klasse genommen.
+
 ### 2026-09-07 (Fortsetzung 4) — Etappe 2: Spiele, Sitzungen, Spieler
 Das Gerüst für mehrere Runden. Bisher lag der gesamte Spielstand flach in der Wurzel — es gab
 also genau EINE Runde, und zwei Gruppen hätten sich gegenseitig die Szene umgeschaltet.

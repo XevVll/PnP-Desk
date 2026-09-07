@@ -134,6 +134,8 @@ textarea:focus{border-color:var(--gold)}
     <span class="brand">⚓ HELDENBRIEF</span>
     <span class="badge gold" id="bRang">Novize</span>
     <span class="badge" id="bSync">…</span>
+    <span class="badge" id="bCode" title="Der Code deiner Figur — damit holst du sie auf jedem Gerät">—</span>
+    <button class="btn" onclick="figurLaden()" title="Eine Figur über ihren Code öffnen">Figur laden</button>
     <span style="flex:1"></span>
     <a class="btn" href="charaktererstellung.html">Figur ändern</a>
     <a class="btn" href="index.html">Hub</a>
@@ -264,6 +266,20 @@ let F = leereFigur();
 let META = { name:'', spieler:'' };
 let db = null, syncBereit = false, syncTimer = null;
 let netzOffen = false;
+/* Die Adresse dieser Figur - sie IST ihr Pfad. Steht sie im Browser,
+   wird sie benutzt; sonst gilt die alte Spielerkennung weiter, damit
+   Figuren aus der Zeit vor den Codes nicht verschwinden. */
+let meinCode = '';
+function codeJetzt() {
+  if (meinCode) return meinCode;
+  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
+  meinCode = figurCode(sid) || spielerId();
+  return meinCode;
+}
+function zeigeCode() {
+  const n = document.getElementById('bCode');
+  if (n) n.textContent = figurCodeLesbar(codeJetzt());
+}
 let tab = 0;
 let stWahl = null, stZiele = [];
 
@@ -313,7 +329,7 @@ function bogenFelder() {
 function nachFirebase() {
   if (!db || !syncBereit) return;
   try {
-    db.ref('figuren/' + spielerId()).update(bogenFelder())
+    db.ref('figuren/' + codeJetzt()).update(bogenFelder())
       .then(function () { setzeSync('gespeichert', '#4caf7d'); })
       .catch(function (err) {
         syncBereit = false;
@@ -351,7 +367,8 @@ function initFirebase() {
     beobachteVerbindung();
     // Einmal lesen und uebernehmen: die Datenbank ist die Wahrheit, sobald
     // sie erreichbar ist. Ohne Verbindung bleibt der lokale Stand stehen.
-    db.ref('figuren/' + spielerId()).once('value').then(function (s) {
+    zeigeCode();
+    db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
       const roh = s.val();
       if (roh) {
         F = alsFigur(roh);
@@ -515,6 +532,32 @@ function wuerfle(name, stufe) {
 }
 
 // Ab in den gemeinsamen Feed, damit die Spielleitung es mitbekommt.
+/* ---------- Figur ueber ihren Code holen ----------
+   Das ist der Ausweg aus dem Browser: Vorher lag die Figur unter der
+   Kennung DIESES Browsers, wer am Handy oeffnete, stand vor einem
+   leeren Bogen. Jetzt tippt man den Code ein. */
+function figurLaden() {
+  if (!db || !syncBereit) { alert('Dafür braucht es eine Verbindung zur Datenbank.'); return; }
+  const eingabe = prompt('Figurencode eingeben (z. B. K7M-3QP):', '');
+  if (eingabe === null) return;
+  const code = figurCodeNormal(eingabe);
+  if (!figurCodeGueltig(code)) {
+    alert('Das sind nicht ' + FIGUR_LAENGE + ' gültige Zeichen. Buchstaben und Ziffern, ohne I, L, O und U.');
+    return;
+  }
+  db.ref('figuren/' + code).once('value').then(function (s) {
+    const roh = s.val();
+    if (!roh) { alert('Unter ' + figurCodeLesbar(code) + ' liegt in dieser Sitzung keine Figur.'); return; }
+    const wer = roh.name || roh.spieler || 'ohne Namen';
+    if (!confirm('Gefunden: „' + wer + '“. Diesen Bogen darauf umstellen?')) return;
+    meinCode = setzeFigurCode((db && db.sitzung) || SITZUNG_VORGABE, code);
+    F = alsFigur(roh);
+    META.name = roh.name || '';
+    META.spieler = roh.spieler || '';
+    speichern(); zeigeCode(); renderAlles();
+  }).catch(function (e) { alert('Ging nicht: ' + (e && e.code ? e.code : e)); });
+}
+
 function meldeWurf(probe, band, ergebnis, steigerungen) {
   if (!db || !syncBereit) return;
   db.ref('diceRolls').push({

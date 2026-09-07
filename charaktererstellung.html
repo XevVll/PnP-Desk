@@ -277,6 +277,14 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
           also nicht — die Anzeige oben rechts sagt dir jederzeit, was gerade gilt.
         </div>
         <button class="btn btn-gold" onclick="jetztSenden()">An die Spielleitung senden</button>
+      </div>
+      <div class="card" style="margin-top:.9rem">
+        <div class="card-hdr">Dein Figurencode</div>
+        <div class="card-body">
+          <div style="font-family:'Cinzel',serif;font-size:2rem;letter-spacing:.22em;color:var(--gold);text-align:center;padding:.4rem 0" id="endCode">—</div>
+          <p class="hint" style="text-align:center">Schreib ihn dir auf. Mit ihm holst du deine Figur
+            auf jedem Gerät wieder — im Heldenbrief unter „Figur laden“. Er ist kein Passwort:
+            Wer ihn hat, kann die Figur öffnen.</p>
         <button class="btn" onclick="exportieren()">Als Datei sichern</button>
         <button class="btn" onclick="drucken()">Drucken</button>
         <div class="ok-msg" id="endMsg"></div>
@@ -672,6 +680,9 @@ function renderAbschluss() {
    ========================================================== */
 let db = null, syncBereit = false, syncTimer = null;
 let netzOffen = false;
+/* Die Adresse dieser Figur. Sie entsteht beim ersten Speichern und
+   bleibt dann stehen - sie IST der Pfad, unter dem die Figur liegt. */
+let meinCode = '';
 
 /* Die Realtime Database fuehrt unter ".info/connected" selbst Buch darueber,
    ob die Verbindung steht. Das ist der einzige ehrliche Weg, den Zustand
@@ -730,6 +741,28 @@ function initFirebase() {
 // demselben Knoten Wunden, Bennies, Ausruestung und Notizen ab. Ein set()
 // wuerde all das beim naechsten Oeffnen des Assistenten stillschweigend
 // loeschen - der Assistent kennt diese Felder ja gar nicht.
+/* Einen Code besorgen und danach weiterarbeiten. Beim allerersten Mal
+   wird einer erzeugt, sonst steht er schon im Browser. Fuer Figuren aus
+   der Zeit vor den Codes gilt die alte Spielerkennung als Code weiter -
+   so verliert niemand seine Figur. */
+function mitCode(fertig) {
+  if (meinCode) { fertig(meinCode); return; }
+  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
+  const gemerkt = figurCode(sid);
+  if (gemerkt) { meinCode = gemerkt; fertig(meinCode); return; }
+  db.ref('figuren/' + spielerId()).once('value').then(function (s) {
+    if (s.val() !== null) { meinCode = setzeFigurCode(sid, spielerId()); fertig(meinCode); return; }
+    freienFigurCode(db, function (c) { meinCode = setzeFigurCode(sid, c); zeigeCode(); fertig(meinCode); });
+  }).catch(function () {
+    freienFigurCode(db, function (c) { meinCode = setzeFigurCode(sid, c); zeigeCode(); fertig(meinCode); });
+  });
+}
+
+function zeigeCode() {
+  const n = document.getElementById('endCode');
+  if (n) n.textContent = meinCode ? figurCodeLesbar(meinCode) : '—';
+}
+
 function figurFuerDb() {
   return {
     name: (META.name || '').slice(0, 60),
@@ -748,13 +781,15 @@ function figurFuerDb() {
 function nachFirebase() {
   if (!db || !syncBereit) return;
   try {
-    db.ref('figuren/' + spielerId()).update(figurFuerDb())
+    mitCode(function (code) {
+    db.ref('figuren/' + code).update(figurFuerDb())
       .then(function () { setzeSync('gespeichert', '#4caf7d'); })
       .catch(function (err) {
         syncBereit = false;
         setzeSync('nur lokal', 'var(--amber)');
         console.warn('Figur konnte nicht hochgeladen werden:', err);
       });
+    });
   } catch (e) {
     syncBereit = false;
     setzeSync('Fehler', '#e05555');
@@ -803,7 +838,7 @@ function jetztSenden() {
   m.textContent = 'Wird gesendet…';
   let ref;
   try {
-    ref = db.ref('figuren/' + spielerId());
+    ref = db.ref('figuren/' + (meinCode || spielerId()));
   } catch (e) {
     m.style.color = '#e05555';
     m.textContent = 'Der Browser hält eine veraltete Fassung dieser Seite. ' +
@@ -832,7 +867,8 @@ function jetztSenden() {
       setzeSync('gespeichert', '#4caf7d');
       m.style.color = '#4caf7d';
       m.textContent = 'Gesendet. Die Spielleitung sieht deine Figur' +
-        (META.name ? ' als „' + META.name + '“.' : ' — gib ihr noch einen Namen.');
+        (META.name ? ' als „' + META.name + '“.' : ' — gib ihr noch einen Namen.') +
+        ' Dein Figurencode: ' + figurCodeLesbar(meinCode || spielerId());
     })
     .catch(function (err) {
       clearTimeout(frist);

@@ -31,6 +31,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .fig-h{background:var(--lgold);border-bottom:1px solid var(--border);padding:.55rem .8rem}
 .fig-n{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:.04em}
 .fig-s{font-size:.68rem;color:var(--gray);font-style:italic;display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-top:.1rem}
+.fig-code{font-family:'Cinzel',serif;letter-spacing:.12em;color:var(--gold)}
 .fig-b{padding:.6rem .8rem}
 
 .dv-row{display:flex;gap:.35rem;margin-bottom:.6rem}
@@ -205,7 +206,11 @@ function render() {
       '<div class="fig-h">' +
         '<div class="fig-n">' + (esc(roh.name) || '<span style="color:var(--gray)">ohne Namen</span>') + '</div>' +
         '<div class="fig-s"><span>' + (esc(roh.spieler) || '—') + '</span>' +
-          '<span>' + rangName(f.rang) + '</span></div>' +
+          '<span>' + rangName(f.rang) + '</span>' +
+          // Der Schluessel IST der Figurencode. Hier steht er, damit die
+          // Spielleitung ihn einem Spieler vorlesen kann, der ihn verlegt hat.
+          '<span class="fig-code" title="Figurencode - damit holt der Spieler seine Figur auf jedem Geraet">' + esc(figurCodeLesbar(pid)) + '</span>' +
+          '</div>' +
       '</div>' +
       '<div class="fig-b">' +
         '<div class="dv-row">' +
