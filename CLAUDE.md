@@ -105,6 +105,43 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-09-07 (Fortsetzung 3) — Hausregel gestrichen, Savage Worlds pur
+- **Hendriks Entscheidung:** „Schlechte Erfolge zu spielen macht keinen Spaß." Die vier Bänder
+  fliegen raus, das Original wird komplett übernommen, kein eigenes Süppchen mehr.
+- **Was die Messung vorher zeigte** (sie hat die Entscheidung getragen): Weil der Wild Die ein
+  fester d6 ist, waren **genau 50 % aller gelungenen Proben ein „guter Erfolg" — auf jeder
+  Würfelstufe.** Steigern erhöhte nur, wie oft man trifft, nie wie gut. Und der „schlechte
+  Erfolg" war auf d4 mit 37,5 % der häufigste Ausgang überhaupt, traf also frische Figuren am
+  härtesten.
+- **`js/regelwerk.js` auf das Original umgebaut:** explodierende Würfel, der **höhere** der
+  beiden zählt (nicht die Summe), Ziel 4, je volle 4 darüber eine Steigerung, kritischer Patzer
+  bei zwei natürlichen Einsen. Ungelernt ist **d4 mit −2** statt gar kein Würfel — vorher konnte
+  eine ungelernte Probe **überhaupt nie** gelingen (0 %), jetzt zu 32,3 %. Erschwernisse sind
+  flache Zahlen statt Würfelstufen; Wunden ziehen flach ab, statt die Stufe zu senken.
+- **Bänder neu:** `steigerung` · `erfolg` · `miss` · `patzer`.
+- **Der Wurf liegt jetzt im Regelwerk** (`wurf()`), nicht mehr in `heldenbrief.html`. Die Seite
+  hatte die Logik nachgebaut, mit dem Kommentar, sie müsse „Zeile für Zeile" zur
+  Wahrscheinlichkeitsrechnung passen — eine Einladung an zwei Fassungen, auseinanderzulaufen.
+- **Gegen die veröffentlichten Werte geprüft**, das ist der eigentliche Prüfstein: d4 schafft 4+
+  zu 25 %, d6 zu 50 %, d8 zu 62,5 %, d10 zu 70 %, d12 zu 75 %; d4 erreicht 8+ zu 6,25 %; eine
+  Spielerfigur mit d4 plus Wild Die gelingt zu 62,5 %. Alle exakt getroffen.
+- **Neue Erfolgsquoten** (Steigerung / Erfolg / Miss / Patzer): ungelernt 12,6–19,7–63,5–4,2 ·
+  d4 19,3–43,2–33,3–4,2 · d6 25,9–49,2–22,2–2,8 · d8 24,7–56,6–16,7–2,1 · d12 49,8–37,7–11,1–1,4.
+- **Eine echte Eigenheit des Originals, die am Tisch auffallen wird:** **d6 holt öfter eine
+  Steigerung als d8** (13,9 % zu 12,5 %), weil ein d6 häufiger explodiert. Per Simulation
+  gegengeprüft — das steht so im Regelwerk und ist kein Fehler im Code. Im Dateikopf vermerkt.
+- **Getestet:** 45 Prüfungen des neuen Kerns, 0 Fehler — darunter 600.000 echte Würfe gegen die
+  exakte Rechnung (Abweichung < 0,6 Prozentpunkte), „der höhere zählt, nie die Summe", Patzer
+  ausschließlich bei zwei natürlichen Einsen, und dass kein „schlechter Erfolg" mehr existiert.
+  Dazu die Bestandstests (Heldenbrief 51, Senden 14, Hub 22).
+- **[OFFEN] Der Abenteuertext ist noch nicht umgehängt.** In `js/regie.js` stehen 38 „Guter
+  Erfolg", 25 „Normaler Erfolg", 104 „Misserfolg" — die lesen sich unverändert als Steigerung /
+  Erfolg / Misserfolg. Aber **24 × „Schlechter Erfolg" haben kein Band mehr.** Das ist der
+  bereits vorgesehene, eigene Schritt („erst das Charaktersystem, dann das Abenteuer").
+- **[OFFEN] `js/arena.js` rechnet weiter nach W100** (`arenaSchwellen`/`arenaBand`) und kennt die
+  vier alten Bänder — sichtbar in `karte.html:1708`, `arena_admin.html:298`. Der Abstand zum
+  Charaktersystem ist damit größer geworden, nicht kleiner.
+
 ### 2026-09-07 (Fortsetzung 2) — Besatzung und Codex aus dem Spieler-Hub
 - **Hendriks Anweisung:** Beide Kacheln raus aus der Übersicht. Spieler dürfen die Seiten nicht
   sehen — dort stehen die Hintergründe im Detail.

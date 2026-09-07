@@ -1,5 +1,5 @@
 /* ==========================================================
-   REGELWERK — Savage Worlds mit unserer Zwei-Würfel-Lesart
+   REGELWERK — Savage Worlds, unveraendert
    ----------------------------------------------------------
    Eigenstaendig. Haengt an NICHTS aus der laufenden Kampagne -
    nicht an js/regie.js, nicht an den Szenendateien, nicht an
@@ -9,25 +9,43 @@
 
    Das alte W100-Wertegeruest (vier Grundwerte "Koerper/INT/
    Auftreten/Wahrnehmung" ueber vierzehn Fertigkeiten) ist
-   vollstaendig entfallen. Ebenso die frueher hier stehende
-   Umschaltung zwischen zwei Regelsaetzen - es gibt genau ein
-   System.
+   vollstaendig entfallen.
 
-   ---- Der Kern in vier Zeilen ----
+   ---- Kein eigenes Sueppchen mehr ----
+   Bis September 2026 stand hier eine Hausregel: Wert-Wuerfel
+   und Wild Die wurden GETRENNT gelesen, woraus sich vier
+   Baender ergaben - guter / normaler / schlechter Erfolg und
+   Misserfolg. Der "schlechte Erfolg" (es gelingt, aber nur
+   durch Glueck) hat am Tisch keine Freude gemacht: Die
+   Spielleitung musste jedes Mal einen halben Erfolg erzaehlen,
+   den niemand wollte, und ausgerechnet frische Figuren landeten
+   dort am haeufigsten (37,5 % auf d4). Hendriks Entscheidung:
+   ganz weg, und das Original uebernehmen.
+
+   ---- Der Kern ----
    Jeder Wert ist ein Wuerfel: d4 · d6 · d8 · d10 · d12.
-   Zielzahl ist immer 4. Nichts wird addiert.
-   Spielerfiguren werfen ihren Wert-Wuerfel UND den Wild Die
-   (d6). Gelesen wird, WELCHER der beiden getroffen hat:
+   Spielerfiguren werfen ihren Wert-Wuerfel UND den Wild Die (d6).
+   Beide explodieren. Der HOEHERE der beiden zaehlt.
 
-     beide >= 4          -> Guter Erfolg
-     nur der Wert        -> Erfolg              (du konntest es)
-     nur der Wild Die    -> Schlechter Erfolg   (du hattest Glueck)
-     keiner              -> Misserfolg
+     unter 4                   -> Misserfolg
+     4 und mehr                -> Erfolg
+     8 / 12 / ...              -> Erfolg mit 1 / 2 / ... Steigerungen
+     beide zeigen eine 1       -> Kritischer Patzer
 
-   Daraus ergibt sich von selbst das Gefaelle, um das es geht:
-   der Anfaenger schafft die Dinge ueberwiegend mit Glueck,
-   der Meister ueberwiegend mit Koennen - dieselbe Handlung,
-   eine andere Geschichte.
+   Ungelernt ist d4 mit -2 - moeglich, nur schlecht. (Unter der
+   alten Hausregel konnte ungelernt UEBERHAUPT NIE gelingen.)
+   Erschwernisse sind flache Zahlen, keine Wuerfelstufen.
+   Wunden ziehen flach ab, statt den Wuerfel zu senken.
+
+   Der Rechenkern (chancen/pMind) ist gegen die veroeffentlichten
+   Werte des Regelwerks geprueft: d4 schafft 4+ zu 25 %, d8 zu
+   62,5 %, d12 zu 75 %, d4 erreicht 8+ zu 6,25 %, und eine
+   Spielerfigur mit d4 plus Wild Die gelingt zu 62,5 %.
+
+   Eine echte Eigenheit des Originals, die am Tisch auffallen
+   wird: d6 holt etwas OEFTER eine Steigerung als d8 (13,9 % zu
+   12,5 %), weil ein d6 haeufiger explodiert. Das ist so gewollt
+   im Regelwerk und kein Fehler dieser Datei.
    ========================================================== */
 
 /* ---------- Wuerfelstufen ----------
@@ -577,6 +595,9 @@ function bewegung()        { return BEWEGUNG; }
    obendrauf. "Angeschlagen" kostet die naechste Handlung und wirkt
    deshalb nicht auf die Wuerfel - das ist eine Zeitstrafe, keine
    Werteinbusse. */
+/* Flacher Abzug auf jede Probe - wie im Regelwerk. Frueher senkte
+   jede Wunde eine WUERFELSTUFE; das war die Hausregel und ist mit
+   dem Systemwechsel entfallen. Je Wunde -1, Ueberladung -1. */
 function wundenAbzug(figur) {
   return Math.min(MAX_WUNDEN, figur.wunden || 0) + (ueberladen(figur) ? 1 : 0);
 }
@@ -828,38 +849,156 @@ function pruefeFigur(figur) {
    der Wild Die, es kann also hoechstens ein schlechter Erfolg
    herauskommen. "Du hast kein Handwerk, nur Glueck."
    ========================================================== */
-function pTrifft(seiten) { return Math.max(0, seiten - ZIELZAHL + 1) / seiten; }
+/* ==========================================================
+   DER WURF - Savage Worlds, unveraendert uebernommen
+   ----------------------------------------------------------
+   Kein eigenes Sueppchen mehr. Die frueheren vier Baender
+   (guter / normaler / schlechter Erfolg / Misserfolg) sind weg.
+   Der "schlechte Erfolg" hat am Tisch keine Freude gemacht: Er
+   zwang die Spielleitung, einen halben Erfolg zu erzaehlen, den
+   niemand wollte - und er war ausgerechnet bei frischen Figuren
+   der haeufigste Ausgang (37,5 % auf d4).
 
+   Der Wurf, wie er im Regelwerk steht:
+     1. Wert-Wuerfel + Wild Die (d6). Nur Spielerfiguren bekommen
+        den Wild Die - er IST das Kennzeichen einer Heldenfigur.
+        Statisten werfen ohne ihn.
+     2. Beide Wuerfel EXPLODIEREN: faellt die hoechste Zahl, wird
+        erneut geworfen und dazugezaehlt, beliebig oft.
+     3. Der HOEHERE der beiden Wuerfe zaehlt - nicht die Summe.
+     4. Ziel ist 4. Je volle 4 darueber eine Steigerung (8, 12, ...).
+     5. Zeigen BEIDE Wuerfel eine natuerliche 1, ist es ein
+        kritischer Patzer.
+     6. Ungelernt: d4 mit 2 Abzug. Es geht also, nur schlecht -
+        vorher konnte man ungelernt ueberhaupt nie gelingen.
+     7. Erschwernisse sind flache Zahlen (-2 fuer schwierig),
+        keine Wuerfelstufen mehr.
+   ========================================================== */
+const UNGELERNT_WUERFEL  = 4;   // d4 ...
+const UNGELERNT_ABZUG    = 2;   // ... mit -2
+const STEIGERUNG_SCHRITT = 4;   // je 4 ueber dem Ziel eine Steigerung
+const PATZER_GRENZE      = 50;  // Sicherung: so oft darf ein Wuerfel hoechstens explodieren
+
+/* Wahrscheinlichkeit, dass ein EXPLODIERENDER Wuerfel mindestens
+   "ziel" erreicht. Exakt gerechnet, nicht simuliert: Die Flaechen
+   1..seiten-1 bleiben stehen, die hoechste Flaeche wirft erneut -
+   daher der Rueckgriff auf sich selbst mit einem um "seiten"
+   gesenkten Ziel. Die Rekursion endet, weil ziel dabei faellt. */
+function pMind(seiten, ziel) {
+  if (seiten < 2) return ziel <= 1 ? 1 : 0;
+  if (ziel <= 1) return 1;
+  let halten = 0;
+  for (let v = 1; v < seiten; v++) if (v >= ziel) halten++;
+  return halten / seiten + (1 / seiten) * pMind(seiten, ziel - seiten);
+}
+
+function wuerfelSeiten(stufe) {
+  const st = Math.max(0, Math.min(MAXD, stufe || 0));
+  return st < 1 ? UNGELERNT_WUERFEL : SIDES[st];
+}
+/* Ungelernt schlaegt als Abzug zu Buche, nicht als fehlender Wuerfel. */
+function ungelerntAbzug(stufe) {
+  return (Math.max(0, stufe || 0) < 1) ? UNGELERNT_ABZUG : 0;
+}
+function gesamtMod(stufe, opts) {
+  return ((opts && opts.mod) || 0) - ungelerntAbzug(stufe);
+}
+
+/* Die exakten Aussichten einer Probe. opts.mod ist eine flache Zahl
+   (negativ = schwerer), opts.wild=false fuer Statisten. */
 function chancen(stufe, opts) {
   opts = opts || {};
-  const wild = (opts.wild === undefined) ? true : !!opts.wild;   // Statisten werfen ohne Wild Die
-  const eff = Math.max(0, (stufe || 0) - Math.max(0, opts.erschwernis || 0));
-  const leer = { gut:0, normal:0, schlecht:0, miss:0 };
+  const wild = (opts.wild === undefined) ? true : !!opts.wild;
+  const mod  = gesamtMod(stufe, opts);
+  const sT   = wuerfelSeiten(stufe);
+  const zielErfolg = ZIELZAHL - mod;
+  const zielSteig  = ZIELZAHL + STEIGERUNG_SCHRITT - mod;
 
-  if (!wild) {
-    if (eff < 1) return Object.assign({}, leer, { miss:1 });
-    const p = pTrifft(SIDES[eff]);
-    return Object.assign({}, leer, { normal:p, miss:1 - p });
+  const pTe = pMind(sT, zielErfolg), pTs = pMind(sT, zielSteig);
+  let pGelingt, pSteigert, pPatzerRoh;
+  if (wild) {
+    const pWe = pMind(WILD_DIE, zielErfolg), pWs = pMind(WILD_DIE, zielSteig);
+    // Der hoehere zaehlt: gelingt, sobald WENIGSTENS EINER das Ziel erreicht.
+    pGelingt   = 1 - (1 - pTe) * (1 - pWe);
+    pSteigert  = 1 - (1 - pTs) * (1 - pWs);
+    pPatzerRoh = 1 / (sT * WILD_DIE);        // beide natuerlich 1
+  } else {
+    pGelingt   = pTe;
+    pSteigert  = pTs;
+    pPatzerRoh = 1 / sT;                     // Statisten: eine natuerliche 1
   }
-
-  const pW = pTrifft(WILD_DIE);
-  if (eff < 1) return Object.assign({}, leer, { schlecht:pW, miss:1 - pW, ungelernt:true });
-
-  const pT = pTrifft(SIDES[eff]);
+  const patzer = Math.min(pPatzerRoh, Math.max(0, 1 - pGelingt));
   return {
-    gut:      pT * pW,
-    normal:   pT * (1 - pW),
-    schlecht: (1 - pT) * pW,
-    miss:     (1 - pT) * (1 - pW)
+    steigerung: pSteigert,
+    erfolg:     Math.max(0, pGelingt - pSteigert),
+    miss:       Math.max(0, 1 - pGelingt - patzer),
+    patzer:     patzer,
+    gelingt:    pGelingt,
+    ungelernt:  ungelerntAbzug(stufe) > 0
   };
 }
 
-const BAENDER = ['gut', 'normal', 'schlecht', 'miss'];
-const BAND_NAMEN = { gut:'Guter Erfolg', normal:'Erfolg', schlecht:'Schlechter Erfolg', miss:'Misserfolg' };
+/* Ein explodierender Wuerfel. Liefert die Summe UND die erste
+   geworfene Zahl - die natuerliche 1 entscheidet ueber den Patzer
+   und darf deshalb nicht in der Summe untergehen. */
+function wuerfelWurf(seiten) {
+  if (seiten < 2) return { summe: 1, erste: 1, teile: [1] };
+  const teile = [];
+  let teil;
+  do {
+    teil = 1 + Math.floor(Math.random() * seiten);
+    teile.push(teil);
+  } while (teil === seiten && teile.length < PATZER_GRENZE);
+  return { summe: teile.reduce(function (a, b) { return a + b; }, 0),
+           erste: teile[0], teile: teile };
+}
+
+/* Der tatsaechliche Wurf. Bewusst HIER und nicht in der Seite:
+   Der Heldenbrief hatte die Logik nachgebaut, mit dem Hinweis, sie
+   muesse "Zeile fuer Zeile" zu chancen() passen - genau so laufen
+   zwei Fassungen auseinander. Jetzt gibt es nur eine. */
+function wurf(stufe, opts) {
+  opts = opts || {};
+  const wild = (opts.wild === undefined) ? true : !!opts.wild;
+  const mod  = gesamtMod(stufe, opts);
+  const sT   = wuerfelSeiten(stufe);
+
+  const wWert = wuerfelWurf(sT);
+  const wWild = wild ? wuerfelWurf(WILD_DIE) : null;
+  const summeWert = wWert.summe + mod;
+  const summeWild = wWild ? wWild.summe + mod : null;
+  const ergebnis  = (summeWild === null) ? summeWert : Math.max(summeWert, summeWild);
+
+  const istPatzer = wild ? (wWert.erste === 1 && wWild.erste === 1)
+                         : (wWert.erste === 1);
+  let band, steigerungen = 0;
+  if (istPatzer) band = 'patzer';
+  else if (ergebnis >= ZIELZAHL) {
+    steigerungen = Math.floor((ergebnis - ZIELZAHL) / STEIGERUNG_SCHRITT);
+    band = steigerungen > 0 ? 'steigerung' : 'erfolg';
+  } else band = 'miss';
+
+  return {
+    band: band, ergebnis: ergebnis, steigerungen: steigerungen, mod: mod,
+    seiten: sT, wildSeiten: wild ? WILD_DIE : null,
+    wert: wWert, wildWurf: wWild,
+    zaehlt: (summeWild !== null && summeWild > summeWert) ? 'wild' : 'wert'
+  };
+}
+
+const BAENDER = ['steigerung', 'erfolg', 'miss', 'patzer'];
+const BAND_NAMEN = {
+  steigerung: 'Erfolg mit Steigerung',
+  erfolg:     'Erfolg',
+  miss:       'Misserfolg',
+  patzer:     'Kritischer Patzer'
+};
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     SIDES, DLBL, MAXD, UNGELERNT, WILD_DIE, ZIELZAHL,
+    UNGELERNT_WUERFEL, UNGELERNT_ABZUG, STEIGERUNG_SCHRITT,
+    pMind, wurf, wuerfelWurf, wuerfelSeiten, gesamtMod,
     ATTRIBUTE, ATTR_NAMEN, FERTIGKEITEN, FERT_NAMEN, FERT_BY_NAME, ATTR_BY_NAME,
     fertigkeitenVon, istAttribut,
     ATTR_PUNKTE, FERT_PUNKTE, GRATIS_TALENTE, TALENT_KOSTEN, MAX_SCHWER, MAX_LEICHT,
@@ -874,6 +1013,6 @@ if (typeof module !== 'undefined' && module.exports) {
     STEIGERUNG_ARTEN, steigerungArten, steigerungAnwenden, kannAttributSteigern,
     fertAufOderUnterAttribut,
     talentWaehlbar, verlangtVon, offeneVoraussetzungen,
-    pTrifft, chancen, BAENDER, BAND_NAMEN
+    chancen, BAENDER, BAND_NAMEN
   };
 }

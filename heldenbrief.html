@@ -72,8 +72,8 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wurf.on{display:block}
 .wurf-k{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase}
 .wurf-b{font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:.03em;margin:.1rem 0 .25rem}
-.wurf-b.gut{color:#e0c060}.wurf-b.normal{color:var(--teal)}
-.wurf-b.schlecht{color:var(--amber)}.wurf-b.miss{color:#e05555}
+.wurf-b.steigerung{color:#e0c060}.wurf-b.erfolg{color:var(--teal)}
+.wurf-b.miss{color:#b7b0a4}.wurf-b.patzer{color:#e05555}
 .wurf-d{font-size:.78rem;color:#cfc8ba;line-height:1.6}
 .wurf-d em{font-style:normal;color:var(--gold);font-family:'Cinzel',serif}
 
@@ -426,7 +426,7 @@ function renderZustand() {
   if ((F.wunden || 0) > 0) teile.push(F.wunden + ' Wunde' + (F.wunden > 1 ? 'n' : ''));
   if (ueberladen(F)) teile.push('überladen');
   if (abzug > 0) {
-    teile.push('alle Würfel ' + abzug + ' Stufe' + (abzug > 1 ? 'n' : '') + ' niedriger');
+    teile.push('−' + abzug + ' auf jede Probe');
     n.className = 'zust-note warn';
   } else {
     n.className = 'zust-note';
@@ -443,8 +443,9 @@ function setWunden(n) {
 function renderWerte() {
   const abzug = wundenAbzug(F);
   function chip(name, stufe) {
-    const eff = Math.max(0, stufe - abzug);
-    const marke = (abzug > 0 && stufe > 0) ? ' <span class="eff">→ ' + DLBL[eff] + '</span>' : '';
+    // Der Wuerfel selbst bleibt jetzt stehen - Wunden ziehen flach vom
+    // Ergebnis ab, statt die Stufe zu senken (Savage Worlds).
+    const marke = abzug > 0 ? ' <span class="eff">−' + abzug + '</span>' : '';
     return '<span class="w ' + dcls(stufe) + '" onclick="wuerfle(\'' + name.replace(/'/g, "\\'") + '\',' + stufe + ')" ' +
       'title="Würfeln">' + esc(name) + ' <b>' + DLBL[stufe] + '</b>' + marke + '</span>';
   }
@@ -461,57 +462,55 @@ function renderWerte() {
 }
 
 /* ---------- Würfeln ----------
-   Wert-Wuerfel und Wild Die getrennt gelesen. Die Einordnung muss
-   Zeile fuer Zeile zu chancen() in js/regelwerk.js passen - sonst
-   wuerde der Bogen etwas anderes auswerfen als die Tabelle
-   verspricht, die derselben Figur bei der Erschaffung gezeigt wurde. */
+   Gewuerfelt wird in js/regelwerk.js (wurf()), nicht hier. Diese
+   Seite stellt nur dar. Vorher stand die Logik doppelt da, mit dem
+   Hinweis, sie muesse "Zeile fuer Zeile" zur Wahrscheinlichkeits-
+   rechnung passen - eine Einladung an zwei Fassungen, auseinander
+   zu laufen. */
+function wuerfelBild(w, seiten) {
+  if (!w) return '—';
+  const kette = w.teile.length > 1 ? w.teile.join(' + ') + ' = ' + w.summe : String(w.summe);
+  return 'd' + seiten + ' <em>' + kette + '</em>' + (w.teile.length > 1 ? ' explodiert!' : '');
+}
+
 function wuerfle(name, stufe) {
   const abzug = wundenAbzug(F);
-  const eff = Math.max(0, stufe - abzug);
-  const wert = eff >= 1 ? (1 + Math.floor(Math.random() * SIDES[eff])) : null;
-  const wild = 1 + Math.floor(Math.random() * WILD_DIE);
-  const wertOk = wert !== null && wert >= ZIELZAHL;
-  const wildOk = wild >= ZIELZAHL;
+  const r = wurf(stufe, { mod: -abzug });
 
-  let band;
-  if (wertOk && wildOk) band = 'gut';
-  else if (wertOk)      band = 'normal';
-  else if (wildOk)      band = 'schlecht';
-  else                  band = 'miss';
-
-  const probe = name + (eff >= 1 ? ' ' + DLBL[eff] : ' ungelernt');
-  const erg = (wert === null)
-    ? 'nur der Wild Die: <em>' + wild + '</em>'
-    : 'Wert <em>' + wert + '</em> · Wild Die <em>' + wild + '</em>';
+  const probe = name + ' ' + (stufe >= 1 ? DLBL[stufe] : 'ungelernt');
+  const zeilen = [
+    'Wert: '     + wuerfelBild(r.wert, r.seiten),
+    'Wild Die: ' + wuerfelBild(r.wildWurf, r.wildSeiten)
+  ];
   const deutung = {
-    gut:     'Beide haben getroffen — du kannst es, und es lief.',
-    normal:  'Dein Wert hat getroffen. Gekonnt.',
-    schlecht:'Nur der Wild Die. Du hattest Glück, nicht Können.',
-    miss:    'Keiner der beiden. Das ging daneben.'
-  }[band];
+    steigerung: r.steigerungen > 1
+        ? 'Ergebnis ' + r.ergebnis + ' — ' + r.steigerungen + ' Steigerungen. Herausragend.'
+        : 'Ergebnis ' + r.ergebnis + ' — mit Steigerung. Deutlich besser als nötig.',
+    erfolg: 'Ergebnis ' + r.ergebnis + ' — es gelingt.',
+    miss:   'Ergebnis ' + r.ergebnis + ' — das reicht nicht (nötig: ' + ZIELZAHL + ').',
+    patzer: 'Zwei Einsen. Es geht nicht nur schief, es geht schief.'
+  }[r.band];
 
   const box = document.getElementById('wurfBox');
   box.className = 'wurf on';
   box.innerHTML = '<div class="wurf-k">' + esc(probe) +
-      (abzug > 0 ? ' · ' + abzug + ' Stufe' + (abzug > 1 ? 'n' : '') + ' Abzug' : '') + '</div>' +
-    '<div class="wurf-b ' + band + '">' + BAND_NAMEN[band] + '</div>' +
-    '<div class="wurf-d">' + erg + ' — ' + deutung + '</div>';
+      (r.mod !== 0 ? ' · ' + (r.mod > 0 ? '+' : '') + r.mod : '') + '</div>' +
+    '<div class="wurf-b ' + r.band + '">' + BAND_NAMEN[r.band] + '</div>' +
+    '<div class="wurf-d">' + zeilen.join('<br>') + '<br>' + deutung + '</div>';
 
-  meldeWurf(probe, band, wert, wild);
+  meldeWurf(probe, r.band, r.ergebnis, r.steigerungen);
 }
 
 // Ab in den gemeinsamen Feed, damit die Spielleitung es mitbekommt.
-function meldeWurf(probe, band, wert, wild) {
+function meldeWurf(probe, band, ergebnis, steigerungen) {
   if (!db || !syncBereit) return;
-  const ergebnisse = (wert === null) ? [wild] : [wert, wild];
   db.ref('diceRolls').push({
     name: META.name || spielerName() || 'Jemand',
     probe: probe,
     band: BAND_NAMEN[band],
-    count: ergebnisse.length,
-    sides: WILD_DIE,
-    results: ergebnisse,
-    total: Math.max.apply(null, ergebnisse),
+    ergebnis: ergebnis,
+    steigerungen: steigerungen || 0,
+    total: ergebnis,
     ts: firebase.database.ServerValue.TIMESTAMP
   }).catch(function () { /* Feed ist Beiwerk - ein Wurf gilt auch ohne ihn */ });
 }

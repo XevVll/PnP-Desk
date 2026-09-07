@@ -182,7 +182,7 @@ function render() {
     if (ueberladen(f)) zTeile.push('<span class="zst ang">überladen</span>');
     if (ausserGefecht(f)) zTeile.push('<span class="zst aus">außer Gefecht</span>');
     const abzug = wundenAbzug(f);
-    if (abzug > 0) zTeile.push('<span class="zst wnd">alle Würfel −' + abzug + '</span>');
+    if (abzug > 0) zTeile.push('<span class="zst wnd">−' + abzug + ' auf jede Probe</span>');
     const zustand = zTeile.length
       ? '<div class="sl">Zustand</div><div class="tags">' + zTeile.join('') + '</div>' : '';
 

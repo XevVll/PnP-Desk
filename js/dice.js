@@ -147,16 +147,15 @@ function initDiceRoller(db, options) {
   const toastNodes = {};
 
   function formatRollText(roll) {
-    // Probenwurf aus dem Heldenbrief: Wert-Wuerfel und Wild Die werden
-    // getrennt gelesen, das Ergebnis ist damit eindeutig einzuordnen.
+    // Probenwurf aus dem Heldenbrief: Der hoehere der beiden Wuerfe
+    // gegen Ziel 4, je volle 4 darueber eine Steigerung.
     // Der Kopf dieser Datei sagt noch, der Feed zeige "bewusst NUR die rohe
     // Zahl" - das galt fuers alte W100-System, wo die Einordnung mehrdeutig
     // war. Freie Wuerfe aus der Leiste laufen weiter ueber den Zweig darunter.
     if (roll.probe && roll.band) {
-      const paar = (roll.results && roll.results.length === 2)
-        ? ' (' + roll.results[0] + ' / Wild ' + roll.results[1] + ')'
-        : (roll.results && roll.results.length === 1 ? ' (nur Wild ' + roll.results[0] + ')' : '');
-      return roll.name + ' — ' + roll.probe + ': ' + roll.band + paar;
+      const zahl = (roll.ergebnis === undefined || roll.ergebnis === null)
+        ? '' : ' (' + roll.ergebnis + ')';
+      return roll.name + ' — ' + roll.probe + ': ' + roll.band + zahl;
     }
     const diceLabel = roll.count + '×' + roll.sides;
     const detail = (roll.results && roll.results.length > 1)
