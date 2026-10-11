@@ -289,26 +289,10 @@ function spielerKennung(name) {
 var FIGUR_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 var FIGUR_LAENGE   = 6;
 
-function neuerFigurCode() {
-  var c = '';
-  for (var i = 0; i < FIGUR_LAENGE; i++) {
-    c += FIGUR_ALPHABET.charAt(Math.floor(Math.random() * FIGUR_ALPHABET.length));
-  }
-  return c;
-}
 
-/* Alles annehmen, was ein Mensch eintippt: Kleinbuchstaben,
-   Bindestriche, Leerzeichen, und die vier verwechselten Zeichen. */
-function figurCodeNormal(eingabe) {
-  return String(eingabe == null ? '' : eingabe).toUpperCase()
-    .replace(/[IL]/g, '1').replace(/[OU]/g, '0')
-    .replace(/[^0-9A-Z]/g, '')
-    .split('').filter(function (z) { return FIGUR_ALPHABET.indexOf(z) >= 0; })
-    .join('').slice(0, FIGUR_LAENGE);
-}
-function figurCodeGueltig(code) {
-  return figurCodeNormal(code).length === FIGUR_LAENGE;
-}
+
+
+
 /* Zum Anzeigen und Vorlesen in zwei Dreiergruppen. */
 function figurCodeLesbar(code) {
   var c = String(code || '');
@@ -344,8 +328,12 @@ function figurCacheUebernehmen(sid) {
 function figurCode(sid) {
   try { return localStorage.getItem(figurCodeKey(sid)) || ''; } catch (e) { return ''; }
 }
+/* Haelt fest, welche Figur dieser Browser bearbeitet. Seit der
+   Schluessel der Spielername ist, wird hier nichts mehr normalisiert -
+   der Wert ist entweder ein Schluessel oder ein alter Zufallscode,
+   und beides soll unveraendert durchgehen. */
 function setzeFigurCode(sid, code) {
-  var c = figurCodeNormal(code) || String(code || '');
+  var c = String(code || '');
   try { localStorage.setItem(figurCodeKey(sid), c); } catch (e) {}
   return c;
 }
@@ -381,57 +369,101 @@ function vergissFigurCode(sid) {
    So kommt die Regel ohne Regeländerung aus, und die Figur
    sagt von sich aus, wem sie gehoert.
    ========================================================== */
-function figurVonBesitzer(figuren, kennung) {
-  if (!figuren || !kennung) return '';
-  var treffer = Object.keys(figuren).filter(function (code) {
-    var f = figuren[code];
-    return f && f.besitzer === kennung;
-  });
-  // Aeltester Eintrag gewinnt: Gibt es durch einen frueheren Lauf
-  // doch zwei, soll nicht bei jedem Oeffnen eine andere "die"
-  // Figur sein. "angelegt" fehlt bei Figuren aus der Zeit davor.
-  treffer.sort(function (a, b) {
-    var fa = figuren[a].angelegt || figuren[a].aktualisiert || 0;
-    var fb = figuren[b].angelegt || figuren[b].aktualisiert || 0;
-    if (fa !== fb) return fa - fb;
-    return a < b ? -1 : 1;
-  });
-  return treffer[0] || '';
+/* ==========================================================
+   DER SCHLUESSEL IST NAME + SITZUNG
+   ----------------------------------------------------------
+   Seit Oktober 2026 liegt eine Figur unter
+       sitzungen/{sid}/stand/figuren/{spielerKennung(name)}
+
+   Damit ist "hoechstens eine Figur je Spieler und Sitzung"
+   nicht mehr eine Regel, die der Code einhalten muss, sondern
+   eine Eigenschaft des Pfades: An derselben Stelle kann keine
+   zweite Figur liegen. Vorher war der Schluessel ein
+   Zufallscode, und die Zuordnung zum Menschen hing am
+   localStorage - auf einem zweiten Geraet entstand eine zweite
+   Figur, und niemand merkte es.
+
+   WELCHER Name: der Anmeldename aus dem Hub
+   (localStorage.korsaren_playername, siehe js/identitaet.js) -
+   NICHT das Feld "Spieler" im Assistenten. Das ist editierbar,
+   und ein Tippfehler darin wuerde genau die zweite Figur
+   erzeugen, die hier verhindert werden soll.
+
+   Ohne Namen gibt es keinen Schluessel. Die Figurenseiten
+   muessen diesen Fall abfangen, statt unter '' zu schreiben.
+   ========================================================== */
+function figurSchluessel(name) {
+  return spielerKennung(name);
 }
 
-/* Alle Besitzer mit mehr als einer Figur - fuer die Spielleitung.
-   Liefert { kennung: [code, ...] }. Figuren ohne Besitzer (aus der
-   Zeit vor dieser Regel) bleiben draussen: Sie sind kein Hinweis
-   auf ein Problem, nur auf ihr Alter. */
-function figurenDoppelt(figuren) {
-  var nach = {}, out = {};
-  Object.keys(figuren || {}).forEach(function (code) {
-    var f = figuren[code];
-    if (!f || !f.besitzer) return;
-    (nach[f.besitzer] = nach[f.besitzer] || []).push(code);
-  });
-  Object.keys(nach).forEach(function (k) {
-    if (nach[k].length > 1) out[k] = nach[k];
-  });
-  return out;
-}
-
-/* Einen Code besorgen, der in dieser Sitzung noch frei ist.
-   Der Kollisionstest laeuft gegen die Datenbank, weil nur sie
-   weiss, was es schon gibt. Ohne Verbindung wird schlicht einer
-   erzeugt - bei 32^6 Moeglichkeiten ist das vertretbar. */
-function freienFigurCode(db, fertig) {
-  var versuche = 0;
-  function probier() {
-    var c = neuerFigurCode();
-    if (!db || versuche >= 5) { fertig(c); return; }
-    versuche++;
-    db.ref('figuren/' + c).once('value').then(function (s) {
-      if (s.val() === null) fertig(c); else probier();
-    }).catch(function () { fertig(c); });
+/* Liegt die Figur unter einem Schluessel, der kein Spielername
+   ist, stammt sie aus der Zeit der Zufallscodes. Die
+   Spielleitung soll sie zuordnen oder wegraeumen koennen -
+   stillschweigend verschwinden darf sie nicht. */
+function istAltSchluessel(schluessel) {
+  var s = String(schluessel || '');
+  if (!s) return false;
+  // Ein Zufallscode ist genau FIGUR_LAENGE Zeichen aus dem
+  // Crockford-Alphabet und enthaelt keinen Bindestrich.
+  if (s.length !== FIGUR_LAENGE) return false;
+  for (var i = 0; i < s.length; i++) {
+    if (FIGUR_ALPHABET.indexOf(s.charAt(i)) < 0) return false;
   }
-  probier();
+  return true;
 }
+
+
+
+
+
+/* ==========================================================
+   UMZUG EINER ALTEN FIGUR
+   ----------------------------------------------------------
+   Bis Oktober 2026 lag eine Figur unter einem Zufallscode, den
+   nur der Browser kannte. Dieser Code ist der einzige Faden zu
+   ihr - geht er verloren, ist die Figur fuer ihren Spieler weg.
+   Deshalb zieht sie beim ersten Oeffnen unter den Namen um.
+
+   Reihenfolge ist Absicht: ERST schreiben, DANN loeschen.
+   Bricht es dazwischen ab, steht die Figur zweimal da - sichtbar,
+   und die Spielleitung kann aufraeumen. Andersherum waere sie weg.
+
+   Liegt unter dem Namen schon etwas, wird NICHTS angefasst: Die
+   Figur am Namen ist die gueltige, und sie zu ueberschreiben
+   waere genau der Datenverlust, den wir vermeiden wollen.
+
+   Haengt hier, weil Assistent UND Heldenbrief sie brauchen -
+   zwei Kopien dieser Reihenfolge wuerden auseinanderlaufen, und
+   ein Fehler darin kostet eine Figur.
+   ========================================================== */
+function figurUmzug(db, sid, schluessel, fertig) {
+  fertig = fertig || function () {};
+  var alt = figurCode(sid);
+  if (!db || !schluessel || !alt || alt === schluessel) { fertig(null); return; }
+
+  db.ref('figuren/' + schluessel).once('value').then(function (s) {
+    if (s.val()) { vergissFigurCode(sid); fertig(null); return; }
+    return db.ref('figuren/' + alt).once('value').then(function (a) {
+      var roh = a.val();
+      if (!roh) { vergissFigurCode(sid); fertig(null); return; }
+      var kopie = {};
+      Object.keys(roh).forEach(function (k) { kopie[k] = roh[k]; });
+      kopie.umgezogenVon = alt;
+      return db.ref('figuren/' + schluessel).update(kopie).then(function () {
+        // Erst jetzt, wo die Figur sicher unter dem Namen liegt.
+        return db.ref('figuren/' + alt).remove().catch(function () {
+          // Bleibt sie stehen, ist das unschoen, aber nicht schlimm:
+          // die Regie zeigt sie als alte Figur an.
+        });
+      }).then(function () {
+        vergissFigurCode(sid);
+        fertig(roh);
+      });
+    });
+  }).catch(function () { fertig(null); });
+}
+
+
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -440,10 +472,10 @@ if (typeof module !== 'undefined' && module.exports) {
     sitzungFest, setzeSitzungFest, loeseSitzung, sitzungAusAdresse,
     hatSitzung, sitzungBeitreten, beobachteFreigabe, sitzungsSperre,
     istSitzungsPfad, sitzungsPfad, sitzungsDatenbank,
-    FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
-    figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
-    setzeFigurCode, vergissFigurCode, freienFigurCode, spielerKennung,
-    figurVonBesitzer, figurenDoppelt,
+    FIGUR_ALPHABET, FIGUR_LAENGE,
+    figurCodeLesbar, figurCodeKey, figurCode,
+    setzeFigurCode, vergissFigurCode, spielerKennung,
+    figurSchluessel, istAltSchluessel, figurUmzug,
     figurCacheKey, figurCacheUebernehmen,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };

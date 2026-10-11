@@ -175,7 +175,8 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
     <div class="card"><div class="card-body">
       <div class="f">
         <label>Name der Figur<input id="fName" maxlength="40" placeholder="…" oninput="setName()"></label>
-        <label>Spieler<input id="fSpieler" maxlength="40" placeholder="…" oninput="setName()"></label>
+        <label>Spieler<input id="fSpieler" maxlength="40" readonly
+          title="Dein Anmeldename aus dem Hub. Daran hängt deine Figur — ändern geht dort."></label>
       </div>
     </div></div>
     <div class="card">
@@ -285,12 +286,12 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
         <button class="btn btn-gold" onclick="jetztSenden()">An die Spielleitung senden</button>
       </div>
       <div class="card" style="margin-top:.9rem">
-        <div class="card-hdr">Dein Figurencode</div>
+        <div class="card-hdr">Deine Figur</div>
         <div class="card-body">
-          <div style="font-family:'Cinzel',serif;font-size:2rem;letter-spacing:.22em;color:var(--gold);text-align:center;padding:.4rem 0" id="endCode">—</div>
-          <p class="hint" style="text-align:center">Schreib ihn dir auf. Mit ihm holst du deine Figur
-            auf jedem Gerät wieder — im Heldenbrief unter „Figur laden“. Er ist kein Passwort:
-            Wer ihn hat, kann die Figur öffnen.</p>
+          <div style="font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:.1em;color:var(--gold);text-align:center;padding:.4rem 0" id="endCode">—</div>
+          <p class="hint" style="text-align:center">Deine Figur hängt an deinem Namen und dieser
+            Sitzung. Du brauchst dir nichts aufzuschreiben: Melde dich auf einem anderen Gerät mit
+            demselben Namen an, und sie ist da. Je Name und Sitzung gibt es genau eine Figur.</p>
         <button class="btn" onclick="exportieren()">Als Datei sichern</button>
         <button class="btn" onclick="drucken()">Drucken</button>
         <div class="ok-msg" id="endMsg"></div>
@@ -369,7 +370,10 @@ function zeige() {
 /* ---------- Schritt 0: Konzept ---------- */
 function setName() {
   META.name = document.getElementById('fName').value;
-  META.spieler = document.getElementById('fSpieler').value;
+  // META.spieler kommt NICHT aus dem Feld: Die Figur haengt am
+  // Anmeldenamen, und ein Tippfehler hier wuerde einen Namen anzeigen,
+  // der nicht zu dem Pfad passt, unter dem sie liegt.
+  META.spieler = spielerName();
   speichern();
 }
 function renderRang() {
@@ -731,6 +735,16 @@ function initFirebase() {
         'Zum Hub', 'index.html');
       return;
     }
+    // Ohne Anmeldenamen gibt es keinen Schluessel - die Figur haengt
+    // an Name UND Sitzung. Unter '' zu schreiben waere eine Figur,
+    // die allen gehoert und niemandem.
+    if (!figurSchluessel(spielerName())) {
+      sitzungsSperre('Noch kein Name',
+        'Deine Figur hängt an deinem Namen und dieser Sitzung — es gibt je Name und Sitzung '
+        + 'genau eine. Melde dich dafür einmal im Hub mit deinem Namen an.',
+        'Zum Hub', 'index.html');
+      return;
+    }
     firebase.initializeApp(firebaseConfig);
     db = sitzungsDbJetzt(firebase.database());
     syncBereit = true;
@@ -766,56 +780,21 @@ function initFirebase() {
    wird einer erzeugt, sonst steht er schon im Browser. Fuer Figuren aus
    der Zeit vor den Codes gilt die alte Spielerkennung als Code weiter -
    so verliert niemand seine Figur. */
-/* Reihenfolge, und sie ist der ganze Punkt:
-     1. schon in dieser Sitzung geladen   -> den
-     2. dieser Browser kennt einen Code   -> den
-     3. in der Datenbank liegt eine Figur
-        mit meinem Namen als Besitzer     -> DIE  (neu)
-     4. Figur aus der Zeit vor den Codes  -> alte Spielerkennung
-     5. sonst                             -> neuen Code anlegen
-
-   Schritt 3 ist neu und schliesst die Luecke: Ohne ihn erzeugte
-   ein zweites Geraet einen neuen Code, und derselbe Spieler hatte
-   zwei Figuren in derselben Sitzung. Jetzt findet er seine eigene
-   wieder, ohne den Code zu kennen. */
+/* Der Schluessel ist der Anmeldename. Es gibt nichts zu suchen
+   und nichts zu erzeugen: Entweder liegt dort eine Figur, dann
+   ist es deine, oder es liegt keine, dann baust du sie gerade.
+   Eine zweite kann an derselben Stelle nicht entstehen. */
 function mitCode(fertig) {
   if (meinCode) { fertig(meinCode); return; }
-  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
-  const gemerkt = figurCode(sid);
-  if (gemerkt) { meinCode = gemerkt; fertig(meinCode); return; }
-
-  const kennung = spielerKennung(META.spieler || spielerName());
-  const neuAnlegen = function () {
-    freienFigurCode(db, function (c) {
-      meinCode = setzeFigurCode(sid, c);
-      istNeueFigur = true;
-      zeigeCode(); fertig(meinCode);
-    });
-  };
-
-  db.ref('figuren').once('value').then(function (s) {
-    const alle = s.val() || {};
-    // Hoechstens eine Figur je Spieler: Gibt es meine schon, uebernimm sie.
-    const meine = figurVonBesitzer(alle, kennung);
-    if (meine) {
-      meinCode = setzeFigurCode(sid, meine);
-      uebernommen = meine;
-      zeigeCode(); fertig(meinCode);
-      return;
-    }
-    // Figuren aus der Zeit vor den Codes lagen unter der Spielerkennung.
-    if (alle[spielerId()]) {
-      meinCode = setzeFigurCode(sid, spielerId());
-      zeigeCode(); fertig(meinCode);
-      return;
-    }
-    neuAnlegen();
-  }).catch(neuAnlegen);
+  meinCode = figurSchluessel(spielerName());
+  fertig(meinCode);
 }
 
 function zeigeCode() {
   const n = document.getElementById('endCode');
-  if (n) n.textContent = meinCode ? figurCodeLesbar(meinCode) : '—';
+  if (!n) return;
+  const nm = spielerName();
+  n.textContent = nm ? nm + ' · ' + (sitzungFest() || SITZUNG_VORGABE) : '—';
 }
 
 function figurFuerDb() {
@@ -825,14 +804,10 @@ function figurFuerDb() {
     rang: F.rang || 0,
     steigerungen: F.steigerungen || 0,
     attr: F.attr, fert: F.fert, tal: F.tal, hnd: F.hnd, brief: F.brief,
-    // Wem gehoert sie? Daran haengt "hoechstens eine Figur je Spieler
-    // und Sitzung" - der Assistent findet sie darueber auf jedem Geraet
-    // wieder. Normalisierter Name, weil der ueber Geraete stabil ist.
-    besitzer: spielerKennung((META.spieler || '').slice(0, 60) || spielerName()),
     aktualisiert: Date.now()
   };
-  // Nur beim Anlegen setzen. Spaeter wuerde es den Stichtag verschieben,
-  // nach dem sich im Zweifel entscheidet, welche Figur "die" ist.
+  // Es gibt kein "besitzer"-Feld mehr: Der PFAD sagt, wem die Figur
+  // gehoert. Ein zweites Feld daneben koennte ihm widersprechen.
   if (istNeueFigur) { d.angelegt = Date.now(); istNeueFigur = false; }
   return d;
 }
@@ -893,42 +868,55 @@ function startUebernahme() {
   // Haengt die Datenbank, soll die Seite nicht fuer immer stumm sein.
   const frist = setTimeout(weiter, 8000);
 
+  const schluessel = figurSchluessel(spielerName());
+  meinCode = schluessel;
+
+  const uebernimm = function (roh) {
+    if (!roh || !(roh.attr || roh.fert || roh.name)) return false;
+    F = alsFigur(roh);
+    META.name = roh.name || META.name;
+    META.spieler = roh.spieler || META.spieler;
+    try { localStorage.setItem(figurCacheKey(sitzungFest()),
+      JSON.stringify({ F: F, META: META })); } catch (e) {}
+    return true;
+  };
+
   try {
-    mitCode(function (code) {
-      if (!uebernommen) { clearTimeout(frist); weiter(); return; }
-      // Wir haben eine fremde (= uns unbekannte) Figur gefunden: laden.
-      db.ref('figuren/' + code).once('value').then(function (s) {
-        const roh = s.val();
+    db.ref('figuren/' + schluessel).once('value').then(function (s) {
+      const roh = s.val();
+      if (roh) {
         clearTimeout(frist);
-        if (roh && (roh.attr || roh.fert || roh.name)) {
-          F = alsFigur(roh);
-          META.name = roh.name || META.name;
-          META.spieler = roh.spieler || META.spieler;
-          try { localStorage.setItem(figurCacheKey(sitzungFest()),
-            JSON.stringify({ F: F, META: META })); } catch (e) {}
-          zeigeUebernahme(roh);
-          zeige();
-        }
+        if (uebernimm(roh)) { zeigeUebernahme(roh); zeige(); }
         weiter();
-      }).catch(function () { clearTimeout(frist); weiter(); });
-    });
+        return;
+      }
+      // Nichts unter dem Namen: Steckt noch eine Figur aus der Zeit der
+      // Zufallscodes in diesem Browser? Dann zieht sie jetzt um.
+      figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, schluessel, function (alt) {
+        clearTimeout(frist);
+        if (alt && uebernimm(alt)) { zeigeUebernahme(alt); zeige(); }
+        weiter();
+      });
+    }).catch(function () { clearTimeout(frist); weiter(); });
   } catch (e) {
     clearTimeout(frist);
     weiter();
   }
 }
 
-/* Stillschweigend eine andere Figur zu laden waere unheimlich -
-   der Spieler hat gerade "Figur erschaffen" angeklickt und
-   bekommt etwas Fertiges. Also sagen, was passiert ist. */
+/* Der Umzug alter Figuren liegt in js/sitzung.js - Assistent UND
+   Heldenbrief brauchen ihn, und zwei Kopien dieser Reihenfolge
+   (erst schreiben, dann loeschen) wuerden auseinanderlaufen. Ein
+   Fehler darin kostet eine Figur. */
+
 function zeigeUebernahme(roh) {
   const n = document.getElementById('uebernahmeNote');
   if (!n) return;
   n.hidden = false;
   n.textContent = 'Du hast in dieser Sitzung schon eine Figur' +
     (roh.name ? ' („' + roh.name + '")' : '') + ' — sie ist geladen. ' +
-    'Jeder Spieler hat je Sitzung höchstens eine; Änderungen gehen in diese Figur. ' +
-    'Code: ' + figurCodeLesbar(meinCode);
+    'Es gibt je Name und Sitzung genau eine; Änderungen gehen in diese Figur. ' +
+    'Eine zweite kannst du nicht anlegen.';
 }
 
 function speichern() {
@@ -946,7 +934,9 @@ function laden() {
     if (d && d.F && d.F.attr && d.F.fert) F = Object.assign(leereFigur(), d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
-  if (!META.spieler) META.spieler = spielerName();
+  // Der Anmeldename gewinnt: Er bestimmt den Pfad, also soll er auch
+  // angezeigt werden - auch wenn im Speicher noch ein alter Wert steht.
+  META.spieler = spielerName() || META.spieler;
 }
 function exportieren() {
   const data = JSON.stringify({ version:'korsaren-sw-2', F:F, META:META }, null, 2);
@@ -1024,12 +1014,13 @@ function renderAlles() {
   renderAttr(); renderFert(); renderBrief(); renderBudget();
   const n = document.getElementById('fName'), s = document.getElementById('fSpieler');
   if (n && document.activeElement !== n) n.value = META.name || '';
-  if (s && document.activeElement !== s) s.value = META.spieler || '';
+  if (s) s.value = spielerName() || META.spieler || '';
   if (schritt === SCHRITTE.length - 1) renderAbschluss();
 }
 
 laden();
 initFirebase();
+zeigeCode();
 zeige();
 
 if (typeof module !== 'undefined' && module.exports) {

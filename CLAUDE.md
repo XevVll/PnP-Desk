@@ -105,6 +105,78 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 (Fortsetzung 3) — Der Figurencode ist weg: Name + Sitzung IST der Schlüssel
+- **Hendriks Vorgabe:** „Wir sollten irgendwie verhindern, dass man überhaupt mehr erstellen kann.
+  Es reicht, wenn Charakter einfach auf Name und Session verbunden sind." Genau so gebaut — und
+  damit ist der Vormittags-Umbau (Besitzer-Feld als Index) wieder abgelöst. **Der Unterschied ist
+  grundsätzlich:** Vorher war „höchstens eine Figur" eine Regel, die der Code einhalten musste;
+  jetzt ist es eine Eigenschaft des Pfades. Eine zweite Figur kann nicht entstehen, weil es
+  dieselbe Stelle wäre.
+
+      sitzungen/{sid}/stand/figuren/{spielerKennung(name)}
+
+- **Welcher Name — das war die eine Stelle, an der es hätte scheitern können.** Das Feld
+  „Spieler" im Assistenten ist **editierbar**. Hätte der Schlüssel daran gehangen, wäre ein
+  Tippfehler genau die zweite Figur gewesen, die hier verhindert werden soll. Der Schlüssel kommt
+  deshalb aus dem **Anmeldenamen** (`localStorage.korsaren_playername`, `js/identitaet.js`), und
+  das Feld ist jetzt `readonly` — es zeigt den Anmeldenamen, mit dem Hinweis, dass er im Hub
+  geändert wird. Es ist dieselbe normalisierte Form, unter der ein Spieler schon in
+  `sitzungen/{sid}/spieler/{k}` steht.
+- **Ohne Namen kein Schlüssel.** Assistent und Heldenbrief sperren jetzt mit dem Hinweis, sich
+  einmal im Hub anzumelden — unter `''` zu schreiben wäre eine Figur, die allen gehört und
+  niemandem. Die Sperre steht per Test nachweislich **vor** `initializeApp`.
+- **Entfallen, bewusst vollständig** (Hendriks „nicht halb halb" vom September):
+  - **Der Figurencode selbst.** Niemand muss sich mehr etwas aufschreiben: derselbe Name auf einem
+    anderen Gerät öffnet dieselbe Figur. Die Karte am Ende des Assistenten zeigt jetzt
+    „Name · Sitzung" statt `K7M-3QP`.
+  - **„Figur laden" im Heldenbrief.** Es war der Weg, eine Figur per Code zu holen — und zugleich
+    der Weg, eine **fremde** zu öffnen und zu ändern. Beides fällt weg. Will die Spielleitung eine
+    Figur einsehen, tut sie das in `regie_figuren.html`, dort nur lesend.
+  - **Das `besitzer`-Feld** vom Vormittag. Der Pfad sagt, wem die Figur gehört; ein zweites Feld
+    daneben könnte ihm widersprechen.
+  - **Sechs tote Funktionen** aus `js/sitzung.js` (`neuerFigurCode`, `figurCodeNormal`,
+    `figurCodeGueltig`, `freienFigurCode`, `figurVonBesitzer`, `figurenDoppelt`).
+- **Alte Figuren gehen nicht verloren.** Neue `figurUmzug()` in `js/sitzung.js`: Liegt unter dem
+  Namen nichts, kennt der Browser aber noch einen Zufallscode, zieht die Figur beim ersten Öffnen
+  um. **Erst schreiben, dann löschen** — bricht es dazwischen ab, steht sie zweimal da statt
+  nirgends. Und **niemals über eine bestehende Figur am Namen**: die ist die gültige.
+  - Liegt in `js/sitzung.js` und nicht in den Seiten, weil Assistent **und** Heldenbrief sie
+    brauchen. Zwei Kopien dieser Reihenfolge würden auseinanderlaufen, und ein Fehler darin kostet
+    eine Figur.
+- **Die Regie räumt auf, was niemand mehr kennt.** `zeichneAltfiguren()` zeigt Figuren, die noch
+  unter einem Zufallscode liegen (erkannt über `istAltSchluessel()`), mit Namen, Datum und zwei
+  Knöpfen: **zuordnen** (Spieler aus der Sitzung wählen; schreibt erst, löscht dann, und weigert
+  sich, wenn der Spieler schon eine Figur hat) oder **löschen** mit Rückfrage. Der Sitzungseintrag
+  trägt bei Bedarf „· ohne Spieler". Automatisch wird nichts angefasst.
+- **Zwei Fallen, die ich mir beim Bauen selbst gestellt und gefunden habe:**
+  1. **Ein Wettlauf im Heldenbrief.** Ich hatte Umzug und Lesen gleichzeitig gestartet. Das Lesen
+     konnte vor dem Umzug ankommen, der Bogen wäre leer geblieben — **und der nächste
+     Schreibzugriff hätte ihn so gespeichert.** Jetzt steht das Lesen im Callback des Umzugs, und
+     ein Test prüft genau diese Reihenfolge. Dazu eine Ladesperre (`ladeBereit`), damit vor dem
+     ersten Lesen überhaupt nicht geschrieben wird — dieselbe Vorsichtsmaßnahme wie
+     `startBereit` im Assistenten.
+  2. **Zwei hängende Referenzen beim Entfernen des toten Codes:** `setzeFigurCode` rief die
+     gelöschte `figurCodeNormal`, und der Export nannte `figurCodeGueltig`. **Die Syntaxprüfung sah
+     beides nicht** — die Dateien waren ja heil. Im Browser hätte es zur Laufzeit geknallt.
+- **`tests/t_syntax.js` prüft deshalb jetzt auch hängende Referenzen:** Es lädt die vier
+  Node-fähigen Module per `require()` (das führt den Export-Block aus, ein unbekannter Name wirft
+  sofort) und verlangt, dass kein Export `undefined` ist. **Mit einem absichtlich eingebauten
+  Fehler gegengeprüft** — die Prüfung meldet ihn.
+- **Getestet: 196 Prüfungen über drei Skripte, 0 Fehler.** Der tragende Nachweis ist ein
+  durchgespielter Ablauf über **drei Geräte mit demselben Anmeldenamen** (Laptop baut, Handy leer,
+  Tablet mit „  ANNA  " anders geschrieben) plus einen zweiten Spieler:
+
+      Laptop: anna          (Kämpfen=3)
+      Handy:  anna          geladen="Mara Quint" Kämpfen=3
+      Tablet: anna          geladen="Mara Quint"
+      Bert:   anna,bert
+
+  Also **eine** Figur für Anna, unversehrt, und Bert hat seine eigene. Dazu der Umzug in vier
+  Varianten: er zieht um und vermerkt die Herkunft, er schreibt **erst** und löscht **dann**, er
+  fasst eine bestehende Figur am Namen **nicht** an (und schreibt dabei gar nichts), und ein Code,
+  der auf nichts zeigt, räumt sich auf.
+
+
 ### 2026-10-11 (Fortsetzung 2) — Höchstens eine Figur je Spieler und Sitzung
 - **Anlass war Hendriks Frage** „Wie sind die Charaktere erstellt? Jeder Spieler in jeder Session
   kann maximal einen Charakter haben oder eben keinen" — gedacht war es so, **erzwungen war es

@@ -65,5 +65,39 @@ for (const f of jss) check('js/' + f, fs.readFileSync(path.join(jsdir, f), 'utf8
 
 console.log('Inline-Blocks: ' + blocks + ' aus ' + htmls.length + ' HTML-Seiten · ' +
             '.js-Dateien: ' + jss.length);
+
+/* ==========================================================
+   HAENGENDE REFERENZEN
+   ----------------------------------------------------------
+   Syntaktisch heile Dateien koennen auf Dinge zeigen, die es
+   nicht gibt. Beim Aufraeumen des Figurencode-Modells im
+   Oktober 2026 blieben zwei solche Stellen stehen: ein Aufruf
+   einer geloeschten Funktion und ein Export, der sie nannte.
+   Beides haette im Browser zur Laufzeit geknallt - die
+   Syntaxpruefung oben sah nichts.
+
+   Ein require() loest genau das aus: Der Export-Block wird
+   ausgefuehrt, und ein unbekannter Name wirft sofort. Geprueft
+   werden die Module, die ohne Browser laden koennen.
+   ========================================================== */
+const MODULE = ['regelwerk', 'sitzung', 'termine', 'arena'];
+let mOk = 0;
+for (const name of MODULE) {
+  const p = path.join(jsdir, name + '.js');
+  if (!fs.existsSync(p)) { bad++; console.log('FEHLER: js/' + name + '.js fehlt'); continue; }
+  try {
+    delete require.cache[require.resolve(p)];
+    const mod = require(p);
+    const leer = Object.keys(mod).filter(k => mod[k] === undefined);
+    if (leer.length) {
+      bad++;
+      console.log('FEHLER js/' + name + '.js: Export ohne Wert: ' + leer.join(', '));
+    } else { ok++; mOk++; }
+  } catch (e) {
+    bad++;
+    console.log('FEHLER js/' + name + '.js laedt nicht: ' + e.message);
+  }
+}
+console.log('Module geladen und Exporte geprueft: ' + mOk + '/' + MODULE.length);
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);

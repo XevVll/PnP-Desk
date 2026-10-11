@@ -209,7 +209,15 @@ function render() {
           '<span>' + rangName(f.rang) + '</span>' +
           // Der Schluessel IST der Figurencode. Hier steht er, damit die
           // Spielleitung ihn einem Spieler vorlesen kann, der ihn verlegt hat.
-          '<span class="fig-code" title="Figurencode - damit holt der Spieler seine Figur auf jedem Geraet">' + esc(figurCodeLesbar(pid)) + '</span>' +
+          // Seit Oktober 2026 IST der Schluessel der Spielername - es gibt
+          // keinen Code mehr zum Vorlesen. Eine Figur, die noch unter einem
+          // Zufallscode liegt, wird als solche gekennzeichnet: Sie gehoert
+          // noch niemandem und laesst sich im Regie-Hub zuordnen.
+          '<span class="fig-code" title="' +
+            (istAltSchluessel(pid)
+              ? 'Alte Figur ohne Spieler - im Regie-Hub zuordnen oder loeschen'
+              : 'Schluessel dieser Figur: Spielername + Sitzung') + '">' +
+            esc(istAltSchluessel(pid) ? figurCodeLesbar(pid) + ' · ohne Spieler' : pid) + '</span>' +
           '</div>' +
       '</div>' +
       '<div class="fig-b">' +

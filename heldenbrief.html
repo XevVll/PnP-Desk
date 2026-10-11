@@ -135,7 +135,7 @@ textarea:focus{border-color:var(--gold)}
     <span class="badge gold" id="bRang">Novize</span>
     <span class="badge" id="bSync">…</span>
     <span class="badge" id="bCode" title="Der Code deiner Figur — damit holst du sie auf jedem Gerät">—</span>
-    <button class="btn" onclick="figurLaden()" title="Eine Figur über ihren Code öffnen">Figur laden</button>
+
     <span style="flex:1"></span>
     <a class="btn" href="charaktererstellung.html">Figur ändern</a>
     <a class="btn" href="index.html">Hub</a>
@@ -270,15 +270,22 @@ let netzOffen = false;
    wird sie benutzt; sonst gilt die alte Spielerkennung weiter, damit
    Figuren aus der Zeit vor den Codes nicht verschwinden. */
 let meinCode = '';
+/* Erst wenn der Bogen aus der Datenbank gelesen ist, darf geschrieben
+   werden. Sonst koennte ein frischer Browser seinen leeren Stand ueber
+   die echte Figur schreiben, bevor sie angekommen ist. */
+let ladeBereit = false;
+/* Der Schluessel ist der Anmeldename. Seit Oktober 2026 liegt eine
+   Figur unter sitzungen/{sid}/stand/figuren/{spielerKennung(name)} -
+   je Name und Sitzung genau eine, und zwar weil der PFAD es so
+   bestimmt, nicht weil der Code aufpasst. */
 function codeJetzt() {
   if (meinCode) return meinCode;
-  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
-  meinCode = figurCode(sid) || spielerId();
+  meinCode = figurSchluessel(spielerName());
   return meinCode;
 }
 function zeigeCode() {
   const n = document.getElementById('bCode');
-  if (n) n.textContent = figurCodeLesbar(codeJetzt());
+  if (n) n.textContent = (spielerName() || '—') + ' · ' + (sitzungFest() || SITZUNG_VORGABE);
 }
 let tab = 0;
 let stWahl = null, stZiele = [];
@@ -328,6 +335,8 @@ function bogenFelder() {
 
 function nachFirebase() {
   if (!db || !syncBereit) return;
+  // Nicht schreiben, solange der Bogen noch nicht gelesen ist.
+  if (!ladeBereit) return;
   try {
     db.ref('figuren/' + codeJetzt()).update(bogenFelder())
       .then(function () { setzeSync('gespeichert', '#4caf7d'); })
@@ -355,7 +364,7 @@ function ausLokal() {
     if (d && d.F && d.F.attr) F = alsFigur(d.F);
     if (d && d.META) META = Object.assign(META, d.META);
   } catch (e) {}
-  if (!META.spieler) META.spieler = spielerName();
+  META.spieler = spielerName() || META.spieler;
 }
 
 function initFirebase() {
@@ -369,6 +378,16 @@ function initFirebase() {
         'Zum Hub', 'index.html');
       return;
     }
+    // Ohne Anmeldenamen gibt es keinen Schluessel - die Figur haengt
+    // an Name UND Sitzung. Unter '' zu schreiben waere ein Bogen,
+    // der allen gehoert und niemandem.
+    if (!figurSchluessel(spielerName())) {
+      sitzungsSperre('Noch kein Name',
+        'Dein Heldenbrief hängt an deinem Namen und dieser Sitzung. '
+        + 'Melde dich dafür einmal im Hub mit deinem Namen an.',
+        'Zum Hub', 'index.html');
+      return;
+    }
     firebase.initializeApp(firebaseConfig);
     db = sitzungsDbJetzt(firebase.database());
     syncBereit = true;
@@ -377,15 +396,28 @@ function initFirebase() {
     // Einmal lesen und uebernehmen: die Datenbank ist die Wahrheit, sobald
     // sie erreichbar ist. Ohne Verbindung bleibt der lokale Stand stehen.
     zeigeCode();
-    db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
-      const roh = s.val();
-      if (roh) {
-        F = alsFigur(roh);
-        if (roh.name) META.name = roh.name;
-        if (roh.spieler) META.spieler = roh.spieler;
-        renderAlles();
-      }
-    }).catch(function () { /* Regeln oder Netz - der lokale Stand traegt weiter */ });
+    // Liegt nichts unter dem Namen, aber dieser Browser kennt noch einen
+    // alten Zufallscode? Dann zieht die Figur jetzt um - sonst waere sie
+    // fuer ihren Spieler verschwunden.
+    //
+    // ERST der Umzug, DANN lesen. Beides gleichzeitig zu starten waere ein
+    // Wettlauf: Das Lesen koennte vor dem Umzug ankommen, der Bogen bliebe
+    // leer - und der naechste Schreibzugriff haette ihn so gespeichert.
+    // Haengt die Datenbank, soll der Bogen nicht fuer immer stumm bleiben:
+    // nach acht Sekunden wird geschrieben, was der Spieler aendert.
+    setTimeout(function () { ladeBereit = true; }, 8000);
+    figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, codeJetzt(), function () {
+      db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
+        const roh = s.val();
+        if (roh) {
+          F = alsFigur(roh);
+          if (roh.name) META.name = roh.name;
+          if (roh.spieler) META.spieler = roh.spieler;
+          renderAlles();
+        }
+        ladeBereit = true;
+      }).catch(function () { ladeBereit = true; });
+    });
   } catch (e) {
     syncBereit = false;
     setzeSync('nur lokal', 'var(--gray)');
@@ -545,27 +577,18 @@ function wuerfle(name, stufe) {
    Das ist der Ausweg aus dem Browser: Vorher lag die Figur unter der
    Kennung DIESES Browsers, wer am Handy oeffnete, stand vor einem
    leeren Bogen. Jetzt tippt man den Code ein. */
-function figurLaden() {
-  if (!db || !syncBereit) { alert('Dafür braucht es eine Verbindung zur Datenbank.'); return; }
-  const eingabe = prompt('Figurencode eingeben (z. B. K7M-3QP):', '');
-  if (eingabe === null) return;
-  const code = figurCodeNormal(eingabe);
-  if (!figurCodeGueltig(code)) {
-    alert('Das sind nicht ' + FIGUR_LAENGE + ' gültige Zeichen. Buchstaben und Ziffern, ohne I, L, O und U.');
-    return;
-  }
-  db.ref('figuren/' + code).once('value').then(function (s) {
-    const roh = s.val();
-    if (!roh) { alert('Unter ' + figurCodeLesbar(code) + ' liegt in dieser Sitzung keine Figur.'); return; }
-    const wer = roh.name || roh.spieler || 'ohne Namen';
-    if (!confirm('Gefunden: „' + wer + '“. Diesen Bogen darauf umstellen?')) return;
-    meinCode = setzeFigurCode((db && db.sitzung) || SITZUNG_VORGABE, code);
-    F = alsFigur(roh);
-    META.name = roh.name || '';
-    META.spieler = roh.spieler || '';
-    speichern(); zeigeCode(); renderAlles();
-  }).catch(function (e) { alert('Ging nicht: ' + (e && e.code ? e.code : e)); });
-}
+/* figurLaden() ist im Oktober 2026 entfallen.
+   ----------------------------------------------------------
+   Es holte eine Figur ueber ihren Zufallscode. Den gibt es nicht
+   mehr: Eine Figur liegt unter Name + Sitzung, und damit braucht
+   niemand mehr etwas abzuschreiben - derselbe Name auf einem
+   anderen Geraet oeffnet dieselbe Figur.
+
+   Die Funktion war zugleich der Weg, eine FREMDE Figur zu
+   oeffnen. Auch das faellt weg, und zwar mit Absicht: Solange es
+   sie gab, konnte jeder, der einen Code kannte, die Figur eines
+   anderen aendern. Will die Spielleitung eine Figur einsehen,
+   tut sie das in regie_figuren.html - dort nur lesend. */
 
 function meldeWurf(probe, band, ergebnis, steigerungen) {
   if (!db || !syncBereit) return;

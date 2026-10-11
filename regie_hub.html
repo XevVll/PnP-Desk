@@ -413,52 +413,102 @@ function terminGesetztText(st) {
 }
 
 /* ==========================================================
-   DOPPELTE FIGUREN
+   ALTE FIGUREN
    ----------------------------------------------------------
-   Seit Oktober 2026 gilt: hoechstens eine Figur je Spieler und
-   Sitzung. Vorher konnte ein zweites Geraet eine zweite Figur
-   anlegen, weil die Zuordnung nur im localStorage stand. Was
-   dabei entstanden ist, bleibt liegen - geloescht wird NICHTS
-   von selbst. Die Spielleitung sieht es und entscheidet.
+   Seit Oktober 2026 liegt eine Figur unter
+   figuren/{spielerKennung(name)}. Zwei Figuren fuer denselben
+   Spieler kann es damit nicht mehr geben - nicht, weil der Code
+   aufpasst, sondern weil es derselbe Pfad waere.
+
+   Was es noch geben kann, sind Figuren aus der Zeit der
+   Zufallscodes. Ihr Spieler zieht sie beim naechsten Oeffnen von
+   selbst um (figurUmzug in js/sitzung.js). Uebrig bleiben die,
+   deren Code kein Browser mehr kennt - die waeren sonst
+   unsichtbar und fuer immer verwaist. Deshalb stehen sie hier,
+   mit zwei Moeglichkeiten: einem Spieler zuordnen, oder weg.
    ========================================================== */
-function figurWeg(id, code, wer) {
-  if (!confirm('Figur ' + figurCodeLesbar(code) + ' von „' + wer + '" endgültig löschen?\n\n' +
+function figurWeg(id, schluessel, wer) {
+  if (!confirm('Figur „' + wer + '" (' + schluessel + ') endgültig löschen?\n\n' +
                'Das lässt sich nicht zurücknehmen.')) return;
-  db.ref('sitzungen/' + id + '/stand/figuren/' + code).remove()
-    .then(function () { meld('sitzMeld', 'Figur ' + figurCodeLesbar(code) + ' gelöscht.', 'var(--teal)'); })
+  db.ref('sitzungen/' + id + '/stand/figuren/' + schluessel).remove()
+    .then(function () { meld('sitzMeld', 'Figur gelöscht.', 'var(--teal)'); })
     .catch(function (e) {
       meld('sitzMeld', 'Löschen ging nicht: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
     });
 }
 
-function zeichneDoppelte(id) {
-  const s = sitzungen[id] || {};
-  const figuren = (s.stand && s.stand.figuren) || {};
-  const dopp = figurenDoppelt(figuren);
-  const kennungen = Object.keys(dopp);
-  if (!kennungen.length) return '';
+/* Eine alte Figur einem Spieler geben. Erst schreiben, dann loeschen -
+   bricht es dazwischen ab, steht sie zweimal da statt nirgends. Und
+   niemals ueber eine bestehende Figur: Die am Namen ist die gueltige. */
+function figurZuordnen(id, schluessel) {
+  const sit = sitzungen[id] || {};
+  const figuren = (sit.stand && sit.stand.figuren) || {};
+  const namen = Object.keys(sit.spieler || {}).map(function (k) {
+    return (sit.spieler[k] && sit.spieler[k].name) || k;
+  });
+  if (!namen.length) {
+    meld('sitzMeld', 'In dieser Sitzung ist noch kein Spieler eingetragen.', 'var(--amber)');
+    return;
+  }
+  const wahl = prompt('Welchem Spieler gehört diese Figur?\n\n' +
+    namen.map(function (n, i) { return (i + 1) + ') ' + n; }).join('\n') +
+    '\n\nNummer oder Name eingeben:', '');
+  if (wahl === null) return;
+  let name = '';
+  const nr = parseInt(wahl, 10);
+  if (nr >= 1 && nr <= namen.length && String(nr) === String(wahl).trim()) name = namen[nr - 1];
+  else {
+    name = namen.filter(function (n) {
+      return n.toLowerCase() === String(wahl).trim().toLowerCase();
+    })[0] || '';
+  }
+  if (!name) { meld('sitzMeld', 'Kein Spieler mit dieser Nummer oder diesem Namen.', 'var(--amber)'); return; }
+
+  const ziel = figurSchluessel(name);
+  if (!ziel) { meld('sitzMeld', 'Aus diesem Namen lässt sich kein Schlüssel bilden.', 'var(--amber)'); return; }
+  if (figuren[ziel]) {
+    meld('sitzMeld', '„' + name + '" hat schon eine Figur. Je Name und Sitzung gibt es genau eine — ' +
+      'lösch zuerst die eine, die weg soll.', 'var(--amber)');
+    return;
+  }
+  const daten = Object.assign({}, figuren[schluessel] || {});
+  daten.spieler = name;
+  daten.umgezogenVon = schluessel;
+  db.ref('sitzungen/' + id + '/stand/figuren/' + ziel).update(daten).then(function () {
+    return db.ref('sitzungen/' + id + '/stand/figuren/' + schluessel).remove();
+  }).then(function () {
+    meld('sitzMeld', 'Figur gehört jetzt „' + name + '".', 'var(--teal)');
+  }).catch(function (e) {
+    meld('sitzMeld', 'Zuordnen ging nicht: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+  });
+}
+
+function zeichneAltfiguren(id) {
+  const sit = sitzungen[id] || {};
+  const figuren = (sit.stand && sit.stand.figuren) || {};
+  const alte = Object.keys(figuren).filter(function (k) {
+    return figuren[k] && istAltSchluessel(k);
+  });
+  if (!alte.length) return '';
 
   return '<div class="dopp" onclick="event.stopPropagation()">' +
-    '<div class="dopp-k">⚠ Mehr als eine Figur je Spieler</div>' +
-    kennungen.map(function (k) {
-      const codes = dopp[k];
-      const wer = (figuren[codes[0]] && figuren[codes[0]].spieler) || k;
-      return '<div class="dopp-z"><span class="dopp-n">' + esc(wer) + '</span>' +
-        codes.map(function (c, i) {
-          const f = figuren[c] || {};
-          const wann = f.angelegt ? datum(f.angelegt) : (f.aktualisiert ? datum(f.aktualisiert) : '—');
-          return '<span class="dopp-f' + (i === 0 ? ' behalten' : '') + '">' +
-            esc(figurCodeLesbar(c)) + ' · ' + esc(f.name || 'ohne Namen') + ' · ' + wann +
-            (i === 0 ? ' <b>(gilt)</b>' : '') +
-            '<button class="klein gefahr" onclick="figurWeg(\'' + id + '\',\'' + c + '\',\'' +
-              esc(String(wer).replace(/'/g, '')) + '\')">löschen</button>' +
-          '</span>';
-        }).join('') +
+    '<div class="dopp-k">⚠ ' + alte.length + ' Figur(en) ohne Spieler</div>' +
+    alte.map(function (k) {
+      const f = figuren[k] || {};
+      const wann = f.angelegt ? datum(f.angelegt) : (f.aktualisiert ? datum(f.aktualisiert) : '—');
+      const wer = f.spieler || 'ohne Spielernamen';
+      return '<div class="dopp-z">' +
+        '<span class="dopp-n">' + esc(f.name || 'ohne Namen') + '</span>' +
+        '<span class="dopp-f">' + esc(figurCodeLesbar(k)) + ' · ' + esc(wer) + ' · ' + wann +
+          '<button class="klein" onclick="figurZuordnen(\'' + id + '\',\'' + k + '\')">zuordnen</button>' +
+          '<button class="klein gefahr" onclick="figurWeg(\'' + id + '\',\'' + k + '\',\'' +
+            esc(String(f.name || wer).replace(/'/g, '')) + '\')">löschen</button>' +
+        '</span>' +
       '</div>';
     }).join('') +
-    '<div class="hint">Als „gilt" zählt die älteste — der Assistent lädt bei diesem Spieler ' +
-    'genau diese. Die anderen stammen meist von einem zweiten Gerät. Prüf vorher, ob in der ' +
-    'falschen nicht doch der neuere Stand steckt.</div>' +
+    '<div class="hint">Diese Figuren stammen aus der Zeit der Figurencodes. Wer sie noch im ' +
+    'Browser hat, zieht sie beim nächsten Öffnen selbst um — was hier stehen bleibt, kennt ' +
+    'niemand mehr. Ordne sie einem Spieler zu oder lösch sie.</div>' +
   '</div>';
 }
 
@@ -619,8 +669,8 @@ function zeichneSitzungen() {
           esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
-          (Object.keys(figurenDoppelt(figuren)).length
-            ? ' · <span style="color:#ca6702">doppelt vergeben</span>' : '') +
+          (Object.keys(figuren).filter(function (k) { return istAltSchluessel(k); }).length
+            ? ' · <span style="color:#ca6702">ohne Spieler</span>' : '') +
         '</div>' +
         '<div class="sid" onclick="event.stopPropagation();idKopieren(\'' + id + '\')"' +
           ' title="Anklicken zum Kopieren — diese ID schickst du deinen Spielern">' +
@@ -637,7 +687,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
-      zeichneDoppelte(id) +
+      zeichneAltfiguren(id) +
       zeichneTermine(id) +
       '</div>';
   }).join('') : '<div class="leer">Noch keine Sitzung angelegt.</div>';
