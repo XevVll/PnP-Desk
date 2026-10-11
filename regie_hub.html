@@ -61,6 +61,38 @@ button.gefahr{border-color:#c05555;color:#c05555}
 .sp .x:hover{color:#e05555}
 .sp.da{border-color:rgba(42,157,143,.5)}
 .meld{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
+.termine{margin-top:.7rem;border-top:1px solid var(--border);padding-top:.6rem}
+.t-kopf{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.t-titel{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.t-gesetzt{font-size:.82rem;color:var(--teal);font-weight:600}
+.t-gesetzt.keiner{color:var(--gray);font-weight:400}
+.t-zeig{font-size:.76rem;color:var(--gray);border:1px solid var(--border);
+  border-radius:4px;padding:.12rem .45rem;cursor:pointer;background:none}
+.t-zeig:hover{color:var(--ink);border-color:var(--gold)}
+.t-body{margin-top:.6rem}
+.t-fenster{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;align-items:center;
+  padding:.35rem .5rem;border:1px solid var(--border);border-radius:5px;margin-bottom:.35rem;
+  background:var(--surface)}
+.t-fenster.top{border-color:var(--gold);background:var(--lgold)}
+.t-fenster.ist{border-color:var(--teal)}
+.t-wann{font-size:.9rem;font-weight:600}
+.t-wer{font-size:.76rem;color:var(--gray);margin-top:.15rem}
+.t-wer .ja{color:var(--ink)}
+.t-wer .nein{color:var(--gray);text-decoration:line-through;opacity:.65}
+.t-zahl{font-size:.8rem;color:var(--gold);white-space:nowrap}
+.t-cfg{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem;
+  padding:.35rem .5rem;border:1px dashed var(--border);border-radius:5px}
+.t-cfg-l{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.t-cfg label{font-size:.76rem;color:var(--gray);display:flex;align-items:center;gap:.25rem}
+.t-cfg select{font-size:.76rem;padding:.1rem .25rem;background:var(--dark);color:var(--ink);
+  border:1px solid var(--border);border-radius:4px}
+.t-plan{margin-top:.7rem;font-size:.8rem}
+.t-zeile{display:grid;grid-template-columns:8.5rem 1fr;gap:.5rem;padding:.2rem 0;
+  border-bottom:1px solid rgba(201,168,76,.08)}
+.t-name{color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.t-tage{color:var(--gray)}
+.t-tage b{color:var(--ink);font-weight:600}
+.t-stumm{color:var(--amber)}
 .leer{font-size:.8rem;color:var(--gray);font-style:italic}
 </style>
 </head>
@@ -137,6 +169,7 @@ button.gefahr{border-color:#c05555;color:#c05555}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/sitzung.js"></script>
+<script src="js/termine.js"></script>
 <script>
 /* ==========================================================
    SPIELE UND SITZUNGEN — die Verwaltung der Spielleitung
@@ -150,6 +183,11 @@ button.gefahr{border-color:#c05555;color:#c05555}
    loeschen.
    ========================================================== */
 let db = null, spiele = {}, sitzungen = {}, aktiv = null, altStand = null;
+
+// Welche Sitzungen haben ihre Terminansicht offen? Bewusst nur im
+// Speicher: Das ist eine Ansichtssache dieses Browsers und gehoert
+// nicht in die Datenbank.
+let termineOffen = {};
 
 function el(id) { return document.getElementById(id); }
 function esc(s) {
@@ -295,6 +333,169 @@ function altUebernehmen(ziel) {
 }
 
 /* ---------- Darstellung ---------- */
+/* ==========================================================
+   TERMINE JE SITZUNG
+   ----------------------------------------------------------
+   Die Zeiten liegen pro Sitzung unter
+   sitzungen/{sid}/stand/termine - zwei Spielrunden haben also
+   getrennte Kalender, und genau deshalb muss die Anzeige hier
+   je Sitzung stehen und nicht global.
+
+   Gerechnet wird NICHT hier, sondern in js/termine.js, aus dem
+   auch der Spieler-Hub seine Fenster bezieht. Zwei Fassungen
+   derselben Rechnung wuerden auseinanderlaufen, und dann wuerde
+   die Spielleitung einen Termin veroeffentlichen, den der Hub
+   der Spieler gar nicht als den besten ansieht.
+   ========================================================== */
+function termineUmschalten(id) {
+  termineOffen[id] = !termineOffen[id];
+  zeichneSitzungen();
+}
+
+/* Der veroeffentlichte Termin. Schreibt genau dorthin, wo der
+   Spieler-Hub ihn liest - "Naechste Sitzung" erscheint damit
+   sofort bei allen, ohne dass jemand neu laedt. */
+function terminSetzen(id, datum, slot) {
+  const st = terminStand(id);
+  const ist = st.gewaehlt && st.gewaehlt.datum === datum && st.gewaehlt.slot === slot;
+  const wert = ist ? null : { datum: datum, slot: slot, von: 'Spielleitung', am: Date.now() };
+  db.ref('sitzungen/' + id + '/stand/termine/gewaehlt').set(wert)
+    .then(function () {
+      meld('sitzMeld', ist ? 'Termin zurückgenommen.' : 'Termin veröffentlicht — die Spieler sehen ihn sofort.', 'var(--teal)');
+    })
+    .catch(function (e) {
+      meld('sitzMeld', 'Termin ließ sich nicht setzen: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+    });
+}
+
+/* Das Raster der Sitzung: angezeigter Zeitraum und Fensterdauer.
+   Liegt bei der Regie, weil es keine "eigene Zeit" eines Spielers
+   ist - und weil die Dauer bestimmt, welche Fenster hier oben zum
+   Veroeffentlichen erscheinen. */
+function cfgSetzen(id, feld, wert) {
+  const st = terminStand(id);
+  const neu = {};
+  ['vonStunde', 'bisStunde', 'dauerMin'].forEach(function (k) { neu[k] = st.cfg[k]; });
+  neu.tage = st.cfg.tage;
+  neu[feld] = +wert;
+  // Ein Zeitraum, der hinten vor vorne liegt, macht das Raster unbrauchbar.
+  if (neu.bisStunde <= neu.vonStunde) {
+    meld('sitzMeld', 'Das Ende muss nach dem Anfang liegen.', 'var(--amber)');
+    zeichneSitzungen();
+    return;
+  }
+  db.ref('sitzungen/' + id + '/stand/termine/config').set(neu)
+    .then(function () { meld('sitzMeld', 'Raster geändert — die Spieler sehen es sofort.', 'var(--teal)'); })
+    .catch(function (e) {
+      meld('sitzMeld', 'Ließ sich nicht ändern: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+    });
+}
+
+function terminStand(id) {
+  const s = sitzungen[id] || {};
+  return TERMINE.ausKnoten((s.stand && s.stand.termine) || null);
+}
+
+function terminGesetztText(st) {
+  if (!st.gewaehlt) return '<span class="t-gesetzt keiner">noch kein Termin veröffentlicht</span>';
+  return '<span class="t-gesetzt">▶ ' +
+    esc(TERMINE.fensterText(st.cfg, st.gewaehlt)) + '</span>';
+}
+
+function zeichneTermine(id) {
+  const st = terminStand(id);
+  const wieViele = Object.keys(st.spieler).length;
+  const offen = !!termineOffen[id];
+
+  let h = '<div class="termine" onclick="event.stopPropagation()">' +
+    '<div class="t-kopf">' +
+      '<span class="t-titel">Termine</span>' +
+      terminGesetztText(st) +
+      '<button class="t-zeig" onclick="termineUmschalten(\'' + id + '\')">' +
+        (offen ? 'zuklappen' : (wieViele ? 'Zeiten zeigen' : 'Zeiten zeigen (noch niemand)')) +
+      '</button>' +
+    '</div>';
+
+  if (!offen) return h + '</div>';
+
+  if (!wieViele) {
+    h += '<div class="t-body"><span class="leer">Noch kein Spieler in dieser Sitzung angemeldet. ' +
+         'Die Spieler tragen ihre Zeiten selbst im Spieler-Hub ein, sobald sie der Sitzung ' +
+         'beigetreten sind.</span></div></div>';
+    return h;
+  }
+
+  h += '<div class="t-body">';
+
+  /* ---- das Raster, das fuer alle gilt ---- */
+  let vonOpt = '', bisOpt = '';
+  for (let u = 0; u <= 23; u++) {
+    vonOpt += '<option value="' + u + '"' + (u === st.cfg.vonStunde ? ' selected' : '') + '>' +
+      String(u).padStart(2, '0') + ':00</option>';
+  }
+  for (let u = 1; u <= 24; u++) {
+    bisOpt += '<option value="' + u + '"' + (u === st.cfg.bisStunde ? ' selected' : '') + '>' +
+      String(u).padStart(2, '0') + ':00</option>';
+  }
+  const dauern = [[120, '2 h'], [180, '3 h'], [210, '3,5 h'], [240, '4 h'], [300, '5 h']];
+  const dauerOpt = dauern.map(function (d) {
+    return '<option value="' + d[0] + '"' + (d[0] === st.cfg.dauerMin ? ' selected' : '') +
+      '>' + d[1] + '</option>';
+  }).join('');
+
+  h += '<div class="t-cfg">' +
+    '<span class="t-cfg-l">Raster</span>' +
+    '<label>ab <select onchange="cfgSetzen(\'' + id + '\',\'vonStunde\',this.value)">' + vonOpt + '</select></label>' +
+    '<label>bis <select onchange="cfgSetzen(\'' + id + '\',\'bisStunde\',this.value)">' + bisOpt + '</select></label>' +
+    '<label>Sitzung <select onchange="cfgSetzen(\'' + id + '\',\'dauerMin\',this.value)">' + dauerOpt + '</select></label>' +
+  '</div>';
+
+  /* ---- beste Fenster, jedes veroeffentlichbar ---- */
+  const res = TERMINE.besteFenster(st);
+  if (!res.length) {
+    h += '<span class="leer">Noch kein Fenster, in dem jemand ' +
+         (st.cfg.dauerMin / 60).toFixed(1).replace('.', ',') +
+         ' Stunden durchgehend Zeit hat.</span>';
+  } else {
+    const pids = Object.keys(st.spieler);
+    h += res.map(function (r, idx) {
+      const kann = r.wer.map(function (p) {
+        return '<span class="ja">' + esc(st.spieler[p].name || p) + '</span>';
+      }).join(', ');
+      const nicht = pids.filter(function (p) { return r.wer.indexOf(p) < 0; })
+        .map(function (p) { return '<span class="nein">' + esc(st.spieler[p].name || p) + '</span>'; })
+        .join(', ');
+      const ist = st.gewaehlt && st.gewaehlt.datum === r.datum && st.gewaehlt.slot === r.slot;
+      return '<div class="t-fenster' + (idx === 0 ? ' top' : '') + (ist ? ' ist' : '') + '">' +
+        '<div><div class="t-wann">' + esc(TERMINE.fensterText(st.cfg, r)) + '</div>' +
+          '<div class="t-wer">' + kann + (nicht ? ' · ' + nicht : '') + '</div></div>' +
+        '<div class="t-zahl">' + r.wer.length + '/' + pids.length + '</div>' +
+        '<button class="klein' + (ist ? ' warn' : '') + '" onclick="terminSetzen(\'' + id +
+          '\',\'' + r.datum + '\',' + r.slot + ')">' +
+          (ist ? 'zurücknehmen' : 'veröffentlichen') + '</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ---- Klartext je Spieler ---- */
+  const ub = TERMINE.uebersicht(st);
+  h += '<div class="t-plan">' + ub.map(function (p) {
+    const tage = p.eingetragen
+      ? p.tage.map(function (d) {
+          return '<b>' + esc(TERMINE.langDatum(d.datum)) + '</b> ' + esc(d.text);
+        }).join(' · ')
+      : '<span class="t-stumm">nichts eingetragen — zählt als „kann nicht"</span>';
+    return '<div class="t-zeile"><div class="t-name">' + esc(p.name) + '</div>' +
+      '<div class="t-tage">' + tage + '</div></div>';
+  }).join('') + '</div>';
+
+  h += '<div class="hint" style="margin-top:.5rem">Je Tag steht nur das beste Fenster. ' +
+       'Fehlende Eintragung gilt als „kann nicht“, nicht als „weiß noch nicht“ — ' +
+       'ein Kalender, der Schweigen als Zustimmung deutet, schlägt Termine vor, an denen niemand kann.</div>';
+
+  return h + '</div></div>';
+}
+
 function zeichneSpiele() {
   const ids = Object.keys(spiele);
   el('spielListe').innerHTML = ids.length ? ids.map(function (id) {
@@ -374,6 +575,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
+      zeichneTermine(id) +
       '</div>';
   }).join('') : '<div class="leer">Noch keine Sitzung angelegt.</div>';
 

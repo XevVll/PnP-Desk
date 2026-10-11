@@ -86,6 +86,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .chip{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.08rem .5rem;color:var(--gray)}
 .chip.on{border-color:var(--teal);color:#8fe0d6}
 .chip.me{border-color:var(--gold);color:var(--gold)}
+.rw.ist{border-color:var(--teal)}
+.rw-s{font-size:.78rem;color:var(--teal);white-space:nowrap;font-weight:600}
+.cfgzeig{font-size:.8rem;color:var(--gold);letter-spacing:.04em;white-space:nowrap}
 .hint{font-size:.71rem;color:var(--gray);font-style:italic;line-height:1.55;margin-top:.5rem}
 .empty{color:var(--gray);font-style:italic;font-size:.8rem;padding:.6rem 0}
 </style>
@@ -191,12 +194,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
       <div class="calbar">
         <span style="font-family:'Cinzel',serif;letter-spacing:.06em;color:var(--gray)">Trag ein, wann du kannst:</span>
-        <label>ab <select id="cfgVon" onchange="cfgAendern()"></select></label>
-        <label>bis <select id="cfgBis" onchange="cfgAendern()"></select></label>
-        <label>Dauer <select id="cfgDauer" onchange="cfgAendern()">
-          <option value="120">2 h</option><option value="180">3 h</option>
-          <option value="210" selected>3,5 h</option><option value="240">4 h</option>
-          <option value="300">5 h</option></select></label>
+        <span class="cfgzeig" id="cfgZeig" title="Stellt die Spielleitung ein"></span>
         <button class="btn btn-sm" onclick="meineLeeren()">Meine Zeiten löschen</button>
       </div>
 
@@ -224,6 +222,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="js/firebase-config.js"></script>
 <script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
+<script src="js/termine.js"></script>
 <script>
 /* ==========================================================
    PnP-Desk — Hub / Startseite
@@ -254,53 +253,46 @@ let meinName = spielerName();
 let meinePid = spielerId();
 
 /* ---------- Zustand ---------- */
-const STD_CFG = { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 };
-let cfg = Object.assign({}, STD_CFG);
+let cfg = TERMINE.mitCfg(null);
 let spieler = {};        // pid -> { name }
 let verfuegbar = {};     // pid -> { datum -> bitstring }
 let gewaehlt = null;     // { datum, slot }
 let db = null, online = false;
 let echteDb = null;   // ohne Sitzungs-Praefix, fuer Beitritt und Zeiger
 
-const SLOT_MIN = 30;
-function slotAnzahl() { return Math.max(1, (cfg.bisStunde - cfg.vonStunde) * (60 / SLOT_MIN)); }
-function fensterSlots() { return Math.max(1, Math.round(cfg.dauerMin / SLOT_MIN)); }
+/* ==========================================================
+   Die Terminrechnung liegt in js/termine.js
+   ----------------------------------------------------------
+   Sie stand bis Oktober 2026 hier - und nur hier. Der Regie-Hub
+   braucht sie jetzt ebenfalls (die Spielleitung soll die Zeiten
+   je Sitzung sehen und einen Termin veroeffentlichen koennen),
+   und zwei Fassungen derselben Rechnung laufen auseinander. Bei
+   spielerKennung() ist das in diesem Projekt schon passiert.
+   Hier waere die Folge schlimmer: Die Spielleitung wuerde einen
+   Termin setzen, den dieser Hub gar nicht fuer den besten haelt.
+
+   Darunter stehen nur noch Huellen. Sie reichen den Zustand
+   dieser Seite an die gemeinsamen Funktionen weiter, damit
+   jede Aufrufstelle woertlich bleibt, wie sie war.
+   ========================================================== */
+const STD_CFG  = TERMINE.STD_CFG;
+const SLOT_MIN = TERMINE.SLOT_MIN;
+const WT       = TERMINE.WT;
+
+function slotAnzahl()   { return TERMINE.slotAnzahl(cfg); }
+function fensterSlots() { return TERMINE.fensterSlots(cfg); }
 
 /* ---------- Datum ---------- */
-const WT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-function heute0() { const d = new Date(); d.setHours(0,0,0,0); return d; }
-function tagListe() {
-  const out = [], start = heute0();
-  for (let i = 0; i < cfg.tage; i++) {
-    const d = new Date(start); d.setDate(start.getDate() + i);
-    out.push(d);
-  }
-  return out;
-}
-function iso(d) {
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-function slotZeit(i) {
-  const m = cfg.vonStunde * 60 + i * SLOT_MIN;
-  return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-}
-function langDatum(isoStr) {
-  const p = isoStr.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]);
-  return WT[d.getDay()] + '. ' + p[2] + '.' + p[1] + '.';
-}
+function heute0()            { return TERMINE.heute0(); }
+function tagListe()          { return TERMINE.tagListe(cfg); }
+function iso(d)              { return TERMINE.iso(d); }
+function slotZeit(i)         { return TERMINE.slotZeit(cfg, i); }
+function langDatum(isoStr)   { return TERMINE.langDatum(isoStr); }
 
 /* ---------- Bitstrings ---------- */
-function holeTag(pid, datum) {
-  const s = (verfuegbar[pid] && verfuegbar[pid][datum]) || '';
-  const n = slotAnzahl();
-  return (s + '0'.repeat(n)).slice(0, n);
-}
-function kannIch(datum, i) { return holeTag(meinePid, datum)[i] === '1'; }
-function zaehle(datum, i) {
-  let n = 0;
-  Object.keys(spieler).forEach(function (pid) { if (holeTag(pid, datum)[i] === '1') n++; });
-  return n;
-}
+function holeTag(pid, datum)  { return TERMINE.holeTag(verfuegbar, pid, datum, cfg); }
+function kannIch(datum, i)    { return TERMINE.kann(verfuegbar, meinePid, datum, i, cfg); }
+function zaehle(datum, i)     { return TERMINE.zaehle(spieler, verfuegbar, datum, i, cfg); }
 
 /* ==========================================================
    FIREBASE
@@ -366,7 +358,7 @@ function sitzungStarten() {
 
   db.ref('termine/config').on('value', function (s) {
     const v = s.val();
-    if (v) cfg = Object.assign({}, STD_CFG, v);
+    if (v) cfg = TERMINE.mitCfg(v);
     setzeCfgFelder(); renderKalender(); renderErgebnis();
   }, fbFehler);
 
@@ -548,24 +540,28 @@ function esc(s) {
    KONFIGURATION
    ========================================================== */
 function setzeCfgFelder() {
-  const von = document.getElementById('cfgVon'), bis = document.getElementById('cfgBis');
-  if (!von.options.length) {
-    for (let h = 0; h <= 22; h++) von.add(new Option(String(h).padStart(2,'0') + ':00', h));
-    for (let h = 2; h <= 24; h++) bis.add(new Option(String(h).padStart(2,'0') + ':00', h));
-  }
-  von.value = cfg.vonStunde; bis.value = cfg.bisStunde;
-  document.getElementById('cfgDauer').value = cfg.dauerMin;
+  // Nur noch Anzeige: Eingestellt wird im Regie-Hub.
+  const n = document.getElementById('cfgZeig');
+  if (!n) return;
+  n.textContent = String(cfg.vonStunde).padStart(2, '0') + ':00–' +
+    String(cfg.bisStunde).padStart(2, '0') + ':00 · Sitzung ' +
+    (cfg.dauerMin / 60).toFixed(1).replace('.', ',') + ' h';
 }
 
-function cfgAendern() {
-  const von = +document.getElementById('cfgVon').value;
-  const bis = +document.getElementById('cfgBis').value;
-  const dauer = +document.getElementById('cfgDauer').value;
-  if (bis <= von) { setzeCfgFelder(); return; }
-  cfg = Object.assign({}, cfg, { vonStunde: von, bisStunde: bis, dauerMin: dauer });
-  if (db) db.ref('termine/config').set(cfg);
-  setzeCfgFelder(); renderKalender(); renderErgebnis();
-}
+/* cfgAendern() ist im Oktober 2026 entfallen.
+   ----------------------------------------------------------
+   Vorher konnte jeder Spieler den angezeigten Zeitraum UND die
+   Fensterdauer fuer die ganze Sitzung umstellen. Das ist keine
+   eigene Zeit, sondern das Raster, in das alle eintragen - und
+   die Dauer entscheidet mit, welche Fenster die Spielleitung
+   ueberhaupt zum Veroeffentlichen vorgelegt bekommt. Stellt
+   jemand von 3,5 h auf 2 h, sieht die Regie eine andere Liste.
+
+   Eingestellt wird jetzt im Regie-Hub (cfgSetzen() dort),
+   je Sitzung. Diese Seite zeigt die Einstellung nur noch an.
+
+   Damit gilt hier durchgehend: Ein Spieler aendert
+   ausschliesslich SEINE EIGENEN Zeiten. */
 
 function meineLeeren() {
   if (!confirm('Alle deine eingetragenen Zeiten löschen?')) return;
@@ -675,55 +671,14 @@ document.addEventListener('touchend', function () {
    Fuer jeden Tag und jeden moeglichen Start wird gezaehlt,
    wie viele Spieler das GANZE Fenster ueber koennen.
    ========================================================== */
+/* ==========================================================
+   BESTE FENSTER — die Rechnung liegt in js/termine.js
+   ========================================================== */
 function besteFenster() {
-  const pids = Object.keys(spieler);
-  const n = slotAnzahl(), w = fensterSlots(), out = [];
-  if (!pids.length || w > n) return out;
-  const jetzt = new Date();
-
-  tagListe().forEach(function (d) {
-    const ds = iso(d);
-    const tage = {};
-    pids.forEach(function (p) { tage[p] = holeTag(p, ds); });
-    for (let s = 0; s + w <= n; s++) {
-      // Fenster, das heute schon vorbei ist, nicht mehr vorschlagen
-      if (ds === iso(jetzt)) {
-        const ende = new Date(d);
-        ende.setHours(cfg.vonStunde, 0, 0, 0);
-        ende.setMinutes(ende.getMinutes() + (s + w) * SLOT_MIN);
-        if (ende < jetzt) continue;
-      }
-      const wer = pids.filter(function (p) {
-        for (let k = s; k < s + w; k++) if (tage[p][k] !== '1') return false;
-        return true;
-      });
-      if (wer.length) out.push({ datum: ds, slot: s, wer: wer });
-    }
-  });
-
-  // Beste zuerst: mehr Leute schlaegt frueher; danach das frueheste Fenster.
-  out.sort(function (a, b) {
-    if (b.wer.length !== a.wer.length) return b.wer.length - a.wer.length;
-    if (a.datum !== b.datum) return a.datum < b.datum ? -1 : 1;
-    return a.slot - b.slot;
-  });
-
-  // Je Tag nur das jeweils beste Fenster zeigen, sonst stehen dort
-  // 12 sich ueberlappende Varianten desselben Abends.
-  const proTag = {}, gefiltert = [];
-  out.forEach(function (r) {
-    if (proTag[r.datum]) return;
-    proTag[r.datum] = true; gefiltert.push(r);
-  });
-  return gefiltert.slice(0, 6);
+  return TERMINE.besteFenster({ cfg: cfg, spieler: spieler, verfuegbar: verfuegbar });
 }
 
-function fensterText(r) {
-  const bis = r.slot + fensterSlots();
-  const endMin = cfg.vonStunde * 60 + bis * SLOT_MIN;
-  const endTxt = String(Math.floor(endMin/60)).padStart(2,'0') + ':' + String(endMin%60).padStart(2,'0');
-  return langDatum(r.datum) + ' ' + slotZeit(r.slot) + '–' + endTxt;
-}
+function fensterText(r) { return TERMINE.fensterText(cfg, r); }
 
 function renderErgebnis() {
   const box = document.getElementById('results');
@@ -748,16 +703,18 @@ function renderErgebnis() {
     const fehlt = pids.filter(function (p) { return r.wer.indexOf(p) < 0; })
       .map(function (p) { return '<span class="chip">' + esc((spieler[p] && spieler[p].name) || '?') + '</span>'; }).join('');
     const istGewaehlt = gewaehlt && gewaehlt.datum === r.datum && gewaehlt.slot === r.slot;
-    return '<div class="rw' + (idx === 0 ? ' top' : '') + '">' +
+    // Kein Knopf: Festgelegt wird in der Regie. Hier steht nur, WELCHES
+    // Fenster die Spielleitung genommen hat.
+    return '<div class="rw' + (idx === 0 ? ' top' : '') + (istGewaehlt ? ' ist' : '') + '">' +
       '<div class="rw-d">' + fensterText(r) + '</div>' +
       '<div class="rw-c">' + namen + (fehlt ? ' ' + fehlt : '') + '</div>' +
       '<div class="rw-n">' + r.wer.length + '/' + alle + '</div>' +
-      '<button class="btn btn-sm' + (istGewaehlt ? ' btn-gold' : '') + '" onclick="waehle(\'' +
-        r.datum + '\',' + r.slot + ')">' + (istGewaehlt ? 'gesetzt' : 'festlegen') + '</button>' +
+      '<div class="rw-s">' + (istGewaehlt ? '✓ gesetzt' : '') + '</div>' +
     '</div>';
   }).join('') +
   '<div class="hint">Je Tag steht nur das beste Fenster — sonst stünden hier zwölf Varianten desselben Abends. ' +
-  'Wer ausgegraut ist, kann in diesem Fenster nicht durchgehend.</div>';
+  'Wer ausgegraut ist, kann in diesem Fenster nicht durchgehend. ' +
+  'Den Termin legt die Spielleitung fest — trag hier nur ein, wann du kannst.</div>';
 }
 
 function renderWhoList() {
@@ -775,25 +732,34 @@ function renderWhoList() {
     : '';
 }
 
-function waehle(datum, slot) {
-  const ist = gewaehlt && gewaehlt.datum === datum && gewaehlt.slot === slot;
-  gewaehlt = ist ? null : { datum: datum, slot: slot, von: meinName, am: Date.now() };
-  if (db) db.ref('termine/gewaehlt').set(gewaehlt);
-  renderChosen(); renderKalender(); renderErgebnis();
-}
+/* waehle() ist im Oktober 2026 entfallen.
+   ----------------------------------------------------------
+   Vorher konnte JEDER Spieler den Termin der ganzen Gruppe
+   setzen und wieder umwerfen - und zwar still, denn der
+   Schreibzugriff ging direkt nach termine/gewaehlt. Dass dort
+   "von <Name>" stand, war die einzige Spur.
+
+   Festgelegt wird jetzt ausschliesslich im Regie-Hub
+   (terminSetzen() dort, derselbe Knoten). Diese Seite LIEST
+   den Termin nur noch - renderChosen() zeigt ihn, und in der
+   Fensterliste ist das gesetzte Fenster markiert.
+
+   Damit schreibt der Spieler-Hub nur noch, was ihm gehoert:
+   seinen Namen (termine/spieler/{pid}) und seine eigenen
+   Zeiten (termine/verfuegbar/{pid}). */
 
 function renderChosen() {
   const box = document.getElementById('chosenBox');
   if (!box) return;
   if (!gewaehlt) {
     box.innerHTML = '<div class="chosen"><span class="chosen-l">Nächste Sitzung</span>' +
-      '<span class="chosen-none">noch nicht festgelegt</span></div>';
+      '<span class="chosen-none">legt die Spielleitung fest</span></div>';
     return;
   }
   box.innerHTML = '<div class="chosen">' +
     '<span class="chosen-l">Nächste Sitzung</span>' +
     '<span class="chosen-v">' + fensterText(gewaehlt) + '</span>' +
-    (gewaehlt.von ? '<span class="chosen-l">von ' + esc(gewaehlt.von) + '</span>' : '') +
+    '<span class="chosen-l">von der Spielleitung festgelegt</span>' +
   '</div>';
 }
 

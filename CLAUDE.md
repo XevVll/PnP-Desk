@@ -105,6 +105,102 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 — Die Spielleitung sieht die Zeiten je Spielrunde
+- **Hendriks Vorgabe:** Termine gelten pro Spielrunde — zwei Runden haben getrennte Termine —, und
+  **in der Regie** muss je Spielrunde sichtbar sein, was die Spieler eingetragen haben, damit sich
+  von dort ein Termin veröffentlichen lässt. Vorher ging das nicht: `termine` kam im ganzen Repo
+  **ausschließlich** in `index.html` vor. Die SL musste den Spieler-Hub öffnen und sah dort nur
+  den Kalender *ihrer eigenen* festgelegten Sitzung.
+- **Neue `js/termine.js` als gemeinsamer Kern** (ohne DOM, ohne Firebase, ohne globalen Zustand).
+  **Das ist der eigentliche Punkt dieser Änderung, nicht die Ansicht.** Hätte der Regie-Hub die
+  Fenstersuche nachgebaut, wäre genau das passiert, was bei `spielerKennung()` schon passiert ist:
+  zwei Fassungen laufen auseinander. Die Folge wäre hier aber schlimmer als eine doppelte Zeile in
+  einer Liste — **die SL hätte einen Termin veröffentlicht, den der Hub der Spieler gar nicht für
+  den besten hält.** Jetzt gibt es die Rechnung genau einmal.
+- **`index.html` rechnet nicht mehr selbst**, sondern hält nur noch **dünne Hüllen** auf den Kern —
+  dasselbe Vorgehen wie bei der Sitzungs-Hülle, die 84 `db.ref()`-Aufrufe unberührt gelassen hat.
+  Alle **20 Aufrufstellen der Seite bleiben wörtlich**, geändert wurden die Definitionen.
+- **Regie-Hub: Terminansicht je Sitzung** (`zeichneTermine()`), aufklappbar an jedem
+  Sitzungseintrag. Sie zeigt drei Dinge:
+  - die **besten Fenster** mit Namen derer, die können, durchgestrichenen Namen derer, die nicht
+    können, Zähler `3/4` — und je Fenster einen Knopf **„veröffentlichen"**;
+  - die Zeiten **im Klartext je Spieler** („Anna · Di. 13.10. 18:00–24:00 · Fr. 16.10. 16:00–24:00").
+    Das hat der Spieler-Hub überhaupt nicht — dort sind die Zeiten nur eine Dichtekarte, gut zum
+    Finden eines Fensters, unbrauchbar zum Vorlesen;
+  - wer **nichts eingetragen** hat, ausdrücklich benannt. Ohne diese Zeile sieht die SL einen
+    Zähler `3/4` und weiß nicht, ob jemand abgesagt oder nur geschwiegen hat.
+- **Festlegen ist jetzt allein Sache der Regie** (Hendriks Korrektur: „Nicht der Spieler kann
+  einen Tag festlegen, sondern die Regie"). Das war vorher nicht nur unsauber verteilt, sondern
+  ein echtes Loch: **jeder Spieler konnte den Termin der ganzen Gruppe setzen und wieder
+  umwerfen** — der „festlegen"-Knopf stand an jedem Fenster, `waehle()` schrieb direkt nach
+  `termine/gewaehlt`, und die einzige Spur war ein „von <Name>" daneben.
+  - `waehle()` und der Knopf sind **ersatzlos entfernt**. Der Spieler-Hub **liest** den Termin
+    weiter und zeigt ihn an; das von der SL gewählte Fenster ist in der Liste mit „✓ gesetzt"
+    markiert, und wo vorher „noch nicht festgelegt" stand, steht jetzt „legt die Spielleitung
+    fest". Ohne diesen Hinweis wäre das Verschwinden des Knopfs als Fehler lesbar.
+  - Damit schreibt der Spieler-Hub nur noch, **was ihm gehört**: seinen Namen
+    (`termine/spieler/{pid}`) und seine eigenen Zeiten (`termine/verfuegbar/{pid}`).
+  - Per Test abgesichert, nicht nur per Augenschein: kein schreibender Zugriff auf
+    `termine/gewaehlt`, keine Funktion und kein Handler `waehle` mehr, der Lesezugriff aber
+    nachweislich erhalten.
+- **Geschrieben wird genau dorthin, wo der Spieler-Hub liest** (`sitzungen/{sid}/stand/termine/
+  gewaehlt`) — „Nächste Sitzung" erscheint damit sofort bei allen, ohne dass jemand neu lädt.
+  **Keine Regeländerung nötig:** `sitzungen` ist bereits voll beschreibbar, es kommt kein neuer
+  Top-Level-Pfad dazu. Auch kein neuer Lauscher — `db.ref('sitzungen')` lädt den Teilbaum samt
+  `stand.termine` ohnehin schon.
+- **Aufklappen liegt bewusst nur im Speicher** (`termineOffen`), nicht in der Datenbank: Das ist
+  eine Ansichtssache dieses Browsers.
+- **Getestet: 103 Prüfungen über zwei Skripte, 0 Fehler.** Die tragende Prüfung ist der
+  **Regressionsbeweis für den Umbau**: Die alte Rechnung wurde aus dem Backup von `index.html`
+  und die neue aus der umgebauten Seite **im Quelltext geschnitten** (nicht nachgebaut) und auf
+  **90 Zufallsfällen** über fünf Konfigurationen verglichen — `besteFenster`, `fensterText`,
+  `holeTag`, `slotZeit`, `langDatum` **alle identisch, 0 Abweichungen**. Dazu: Regie und
+  Spieler-Hub finden in 40 weiteren Fällen dieselben Fenster, die Ansicht wird wirklich
+  ausgeführt (zugeklappt nennt sie keine Namen, aufgeklappt stimmt der Zähler), Spielernamen
+  werden maskiert, und kaputte oder fehlende Daten brechen sie nicht.
+- **Die Testskripte liegen jetzt im Repo** (`tests/`). **Sie waren vorher nie eingecheckt** —
+  der Changelog nennt für September zehn Skripte mit 462 Prüfungen, `git log --diff-filter=A`
+  zeigt aber keines davon, und das Scratchpad ist seither geleert worden. Damit war unter anderem
+  `t_syntax.js` weg, also genau die Prüfung, die nach dem `karte.html`-Vorfall gebaut wurde, weil
+  `node --check` für dieses Repo nicht reicht (blind für top-level `return`). `tests/t_syntax.js`
+  ist neu geschrieben und **bricht jetzt ab, wenn sie nichts findet** — eine Prüfung, die bei
+  leerer Eingabe „OK" sagt, war der zweite Teil jenes Fehlers.
+- **Dreimal in dieselbe dokumentierte Falle getappt** und erst beim dritten Mal den im Projekt
+  vermerkten Weg genommen: Bash-Heredocs verschlucken hier Backslashes, ein `\\s` im Python-Text
+  wird zu `\s` und das Suchmuster findet stillschweigend nichts. Jetzt ohne Regex gelöst
+  (`indexOf`). Dazu erneut die TDZ-Falle: Der Versuch, `index.html` komplett im `vm` auszuführen,
+  scheitert, **bevor** `let cfg` initialisiert ist — jede Zuweisung von außen ist dann ein
+  TDZ-Fehler. Deshalb werden im Test nur die gebrauchten Funktionen geschnitten.
+- **Auch die Kalender-Einstellung gehört jetzt der Regie** (Hendriks Regel: „Man sollte nur seine
+  eigenen Zeiten ändern können"). `cfgAendern()` ließ vorher **jeden Spieler** den angezeigten
+  Zeitraum und die **Fensterdauer für die ganze Sitzung** umstellen. Das ist keine eigene Zeit —
+  es ist das Raster, in das alle eintragen.
+  - **Das war nicht kosmetisch, sondern wirkte direkt auf die Spielleitung.** Nachgemessen an
+    denselben drei Spielern: bei 2 h schlägt die Rechnung „Di. 19:00–21:00 (3/3)" vor, bei 3,5 h
+    „Di. 19:00–22:30 (3/3)", bei 5 h „Di. 18:00–23:00 (**2/3**)". Ein Spieler am Auswahlfeld
+    hätte also bestimmt, welche Fenster die SL überhaupt zum Veröffentlichen vorgelegt bekommt —
+    und ob jemand darin fehlt.
+  - Im Spieler-Hub ist die Einstellung **nur noch Anzeige** („16:00–24:00 · Sitzung 3,5 h"),
+    im Regie-Hub eine eigene Zeile **Raster** je Sitzung (ab/bis/Sitzungsdauer), die nach
+    `sitzungen/{sid}/stand/termine/config` schreibt. Ein Zeitraum, dessen Ende vor dem Anfang
+    liegt, wird abgelehnt statt gespeichert — er würde das Raster unbrauchbar machen.
+- **Damit gilt die Regel im Spieler-Hub lückenlos:** Die Prüfung erhebt **jeden** schreibenden
+  Zugriff auf `termine/...` aus dem Quelltext und verlangt, dass er unter `meinePid` liegt —
+  als generelle Regel, nicht als Liste bekannter Stellen. Übrig sind genau zwei: der eigene Name
+  und die eigenen Zeiten. Gegengeprüft wurde außerdem, dass `schreibeTag()` fest auf `meinePid`
+  verdrahtet ist, ein Spieler also auch beim Malen nicht an fremde Zeiten kommt.
+- **[OFFEN] Terminfindung vor dem Beitritt.** Seit dem Beitritt per Sitzungs-ID (07.09.) kommt ein
+  Spieler erst **nach** dem Beitritt an den Kalender. Für eine Runde, die noch keine Sitzung hat,
+  geht Terminfindung also nicht — die Sitzung muss zuerst angelegt und die ID verteilt werden.
+  Das war beim Bau des Kalenders (05.09.) noch nicht so; der Beitrittszwang kam später dazu.
+  Bewusst nicht eigenmächtig geändert: Ein Kalender außerhalb jeder Sitzung wäre eine
+  Struktur-Entscheidung, nicht eine Anzeigefrage.
+- **[OFFEN] Die übrigen Testskripte fehlen weiter.** Regelwerk, Heldenbrief, Assistent,
+  SL-Übersicht, Sitzung und Senden sind weiterhin nur als Prüfungen im Changelog beschrieben,
+  nicht als Code. Beim Prüflauf am 15.09. habe ich Regelkern (49), Umgebung (69) und Pfade (15)
+  neu geschrieben und mit 0 Fehlern laufen lassen — auch diese Skripte lagen im Scratchpad und
+  sind weg. Wiederherstellen lohnt, ist aber ein eigener Schritt.
+
 ### 2026-09-07 (Fortsetzung 10) — Figuren hingen doch nicht ganz an der Sitzung
 - **Anlass war Hendriks Frage:** „Die Charaktere sind jetzt auch in die Sitzung gebunden oder?"
   Firebase-seitig ja — `sitzungen/{sid}/stand/figuren/{code}`, und der Figurencode liegt unter
