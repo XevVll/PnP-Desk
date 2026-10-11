@@ -286,6 +286,23 @@ let geloescht = false;
    Figur unter sitzungen/{sid}/stand/figuren/{spielerKennung(name)} -
    je Name und Sitzung genau eine, und zwar weil der PFAD es so
    bestimmt, nicht weil der Code aufpasst. */
+/* Liegt in diesem Browser ein brauchbarer Stand? Entscheidet, ob der
+   Bogen ohne Datenbank-Figur trotzdem aufgeht. "Brauchbar" heisst: mehr
+   als ein leeres Geruest - sonst wuerde ein einmal geoeffneter,
+   nie gefuellter Bogen den Spieler aussperren. */
+function hatLokaleFigur() {
+  try {
+    const d = JSON.parse(localStorage.getItem(figurCacheKey(sitzungFest())) || 'null');
+    if (!d || !d.F) return false;
+    if (d.META && String(d.META.name || '').trim()) return true;
+    const f = d.F;
+    if (f.tal && f.tal.length) return true;
+    if (f.hnd && f.hnd.length) return true;
+    if (f.steigerungen) return true;
+    return false;
+  } catch (e) { return false; }
+}
+
 function codeJetzt() {
   if (meinCode) return meinCode;
   meinCode = figurSchluessel(spielerName());
@@ -472,7 +489,9 @@ function initFirebase() {
     // leer - und der naechste Schreibzugriff haette ihn so gespeichert.
     // Haengt die Datenbank, soll der Bogen nicht fuer immer stumm bleiben:
     // nach acht Sekunden wird geschrieben, was der Spieler aendert.
-    setTimeout(function () { ladeBereit = true; }, 8000);
+    // Die Frist wird abgeraeumt, sobald gelesen ODER gesperrt ist - sonst
+    // gaebe sie das Schreiben nach einer Sperre wieder frei.
+    const ladeFrist = setTimeout(function () { ladeBereit = true; }, 8000);
     figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, codeJetzt(), function () {
       db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
         const roh = s.val();
@@ -481,9 +500,26 @@ function initFirebase() {
           if (roh.name) META.name = roh.name;
           if (roh.spieler) META.spieler = roh.spieler;
           renderAlles();
+          clearTimeout(ladeFrist);
+          ladeBereit = true;
+          return;
         }
-        ladeBereit = true;
-      }).catch(function () { ladeBereit = true; });
+        // Keine Figur. Ein Bogen ohne Figur ist ein leeres Blatt mit
+        // Knoepfen - und schlimmer: Wer darauf etwas anklickt, LEGT damit
+        // eine leere Figur an. Also hier aussteigen und zur Erschaffung
+        // schicken.
+        //
+        // Nur, wenn auch lokal nichts liegt: Ohne Verbindung ist der
+        // Rueckfall die einzige Wahrheit, und der Spieler soll seinen
+        // Bogen dann trotzdem fuehren koennen.
+        if (hatLokaleFigur()) { clearTimeout(ladeFrist); ladeBereit = true; return; }
+        // Gesperrt: Die Frist darf das Schreiben nicht doch noch freigeben.
+        clearTimeout(ladeFrist);
+        sitzungsSperre('Noch keine Figur',
+          'In dieser Sitzung liegt unter deinem Namen keine Figur. '
+          + 'Erschaffe sie zuerst — danach steht dein Heldenbrief bereit.',
+          'Figur erschaffen', 'charaktererstellung.html');
+      }).catch(function () { clearTimeout(ladeFrist); ladeBereit = true; });
     });
   } catch (e) {
     syncBereit = false;

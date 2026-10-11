@@ -105,6 +105,43 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 (Fortsetzung 5) — Heldenbrief nur mit Figur
+- **Hendriks Vorgabe:** Den Heldenbrief soll es nur geben, wenn auch eine Figur da ist —
+  „sonst sollte er halt auch ausgegraut sein wie die Karte". Also genau dasselbe Verhalten wie bei
+  der Kartenkachel, solange die Sitzung nicht gestartet ist: **ausgegraut, nicht versteckt**
+  (Deckkraft .4, nicht klickbar, kein Ziel, Erklärung am Mauszeiger).
+- **Als Lauscher, nicht als einmaliger Blick** (`beobachteFigur()` auf `figuren/{schlüssel}`):
+  Baut der Spieler seine Figur in einem anderen Tab fertig, geht die Kachel **von selbst** auf;
+  löscht er sie, geht sie von selbst zu. Dasselbe Muster wie bei der Freigabe der Karte.
+  - Der Lauscher **hängt beim Namenswechsel um** (`figurRef.off()`): Meldet sich jemand erst nach
+    dem Laden an, lief er sonst weiter auf den leeren Namen, und die Kachel wäre bis zum Neuladen
+    grau geblieben. An- und Abmelden hängen ihn jetzt neu ein.
+  - Vor dem ersten Ergebnis ist die Kachel **zu**. Andernfalls blitzt sie offen auf und geht gleich
+    wieder zu, was wie ein Fehler aussieht.
+  - Die Kachel nennt die Figur beim Namen („Mara Quint" am Tisch führen), sobald es eine gibt.
+- **Die Seite selbst sperrt ebenfalls** — die Adresse kann jeder direkt aufrufen. Liegt unter Name
+  und Sitzung nichts, kommt „Noch keine Figur" mit dem Knopf zur Erschaffung. **Das ist nicht
+  Kosmetik:** Ein Bogen ohne Figur ist nicht nur ein leeres Blatt mit Knöpfen, sondern **wer darauf
+  etwas anklickt, legt damit eine leere Figur an.**
+  - **Nicht gesperrt wird, wenn lokal eine Figur liegt** (`hatLokaleFigur()`): Ohne Verbindung ist
+    der Rückfall die einzige Wahrheit, und der Spieler soll seinen Bogen dann trotzdem führen
+    können. „Brauchbar" heißt dabei mehr als ein leeres Gerüst — sonst sperrte ein einmal
+    geöffneter, nie gefüllter Bogen den Spieler aus.
+  - **Ein Datenbankfehler sperrt nicht**, sondern lässt den Bogen offen; die Seite sagt ohnehin
+    selbst, woran es liegt.
+  - **Die 8-Sekunden-Frist wird bei der Sperre abgeräumt.** Sie gibt das Schreiben frei, wenn die
+    Datenbank hängt — nach einer Sperre hätte sie es doch noch freigegeben.
+- **Nebenbei korrigiert:** Die Beschreibung der Erschaffungs-Kachel versprach noch eine „Regelwahl
+  zwischen Savage Worlds und der Korsaren-Variante". Die Wahl ist im September entfallen, es gibt
+  nur ein System — der Text stand seit vier Wochen falsch auf der Startseite.
+- **Getestet: 269 Prüfungen über drei Skripte, 0 Fehler** (33 neue). Die Umschaltfunktion wird
+  dabei wirklich ausgeführt, nicht nur im Quelltext gesucht: ohne Figur ausgegraut, nicht klickbar,
+  ohne Ziel, mit Erklärung; mit Figur offen, Ziel gesetzt, Erklärung weg, Name im Text; eine Figur
+  **ohne** Namen bricht nicht; und nach dem Löschen geht die Kachel wieder zu. Dazu, dass es ein
+  `on()` und kein `once()` ist, dass An- und Abmelden neu einhängen, und dass dieselben Mittel zum
+  Ausgrauen benutzt werden wie bei der Karte.
+
+
 ### 2026-10-11 (Fortsetzung 4) — Figur löschen
 - **Hendriks Vorgabe:** Man soll seine Figur auch wieder löschen können. Eingebaut an beiden
   Stellen, an denen es Sinn hat: **„Figur löschen"** in der Kopfleiste des Heldenbriefs und

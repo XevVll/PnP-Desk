@@ -164,15 +164,15 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
           <div class="tile-n">Die Karte</div>
           <div class="tile-d">Die Spieleransicht: Orte, Bilder, Würfel und alles, was die Spielleitung freigibt.</div>
         </a>
-        <a class="tile" href="heldenbrief.html">
+        <a class="tile" id="kachelBrief" href="heldenbrief.html">
           <div class="tile-i">📜</div>
-          <div class="tile-n">Heldenbrief<span class="tile-tag">neu</span></div>
-          <div class="tile-d">Deine fertige Figur am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.</div>
+          <div class="tile-n">Heldenbrief</div>
+          <div class="tile-d" id="kachelBriefText">Deine fertige Figur am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.</div>
         </a>
         <a class="tile" href="charaktererstellung.html">
           <div class="tile-i">🧭</div>
           <div class="tile-n">Figur erschaffen</div>
-          <div class="tile-d">Schritt für Schritt zur neuen Figur — mit Regelwahl zwischen Savage Worlds und der Korsaren-Variante.</div>
+          <div class="tile-d" id="kachelNeuText">Schritt für Schritt zur neuen Figur — erst wer du bist, dann was daraus folgt. Je Name und Sitzung gibt es genau eine.</div>
         </a>
         <!-- Hier standen zwei Kacheln auf Nachschlagewerke der Spielleitung.
              Beide nehmen die zentrale Enthuellung der Kampagne vorweg - wie die
@@ -366,6 +366,7 @@ function sitzungStarten() {
   zeigeSeite();
 
   beobachteStart();
+  beobachteFigur();
   echteDb.ref('sitzungen/' + db.sitzung + '/meta/name').on('value', function (s) {
     const n = document.getElementById('sitzungName');
     if (n) n.textContent = s.val() || db.sitzung;
@@ -448,6 +449,7 @@ function anmelden(ev) {
   if (!v) return;
   meinName = setzeSpielerName(v);
   anmeldenBeiDb();
+  beobachteFigur();   // der Lauscher haengt sonst noch am leeren Namen
   zeigeSeite();
 }
 
@@ -455,6 +457,7 @@ function abmelden() {
   if (!confirm('Abmelden? Dein Name wird aus diesem Browser entfernt. Deine eingetragenen Zeiten bleiben bestehen.')) return;
   loescheSpielerName();
   meinName = '';
+  beobachteFigur();   // haengt ab und graut die Kachel wieder aus
   zeigeSeite();
 }
 
@@ -508,6 +511,65 @@ function sitzungVerlassen() {
 /* Die Karte ist erst offen, wenn die Spielleitung gestartet hat.
    Der Lauscher bleibt haengen, damit die Kachel von selbst aufgeht,
    sobald es losgeht - ohne dass jemand neu laden muss. */
+/* ==========================================================
+   HELDENBRIEF ERST, WENN ES EINE FIGUR GIBT
+   ----------------------------------------------------------
+   Ein Bogen ohne Figur ist ein leeres Blatt mit Knoepfen. Die
+   Kachel wird deshalb ausgegraut, solange unter Name + Sitzung
+   nichts liegt - dasselbe Verhalten wie bei der Karte, solange
+   die Sitzung nicht gestartet ist.
+
+   Als LAUSCHER und nicht als einmaliger Blick: Baut der Spieler
+   seine Figur in einem anderen Tab fertig, soll die Kachel von
+   selbst aufgehen. Und loescht er sie, soll sie von selbst
+   zugehen.
+   ========================================================== */
+let figurRef = null;   // damit der Lauscher umhaengen kann
+
+function beobachteFigur() {
+  const kachel = document.getElementById('kachelBrief');
+  if (!kachel || !db) return;
+  // Erst abhaengen: Nach einer Anmeldung laeuft sonst ein zweiter Lauscher
+  // auf einen anderen Namen mit, und welcher zuletzt feuert, entscheidet.
+  if (figurRef) { try { figurRef.off(); } catch (e) {} figurRef = null; }
+  const schluessel = figurSchluessel(meinName);
+  if (!schluessel) { briefKachel(false, ''); return; }
+  figurRef = db.ref('figuren/' + schluessel);
+  figurRef.on('value', function (s) {
+    const roh = s.val();
+    briefKachel(!!roh, roh ? (roh.name || '') : '');
+  }, function () {
+    // Kein Zugriff: dann nicht sperren, sondern offen lassen - die
+    // Seite selbst sagt dem Spieler, woran es liegt.
+    briefKachel(true, '');
+  });
+}
+
+function briefKachel(hatFigur, wie) {
+  const kachel = document.getElementById('kachelBrief');
+  const text = document.getElementById('kachelBriefText');
+  const neuText = document.getElementById('kachelNeuText');
+  if (!kachel) return;
+  if (hatFigur) {
+    kachel.style.opacity = ''; kachel.style.pointerEvents = '';
+    kachel.removeAttribute('title');
+    kachel.setAttribute('href', 'heldenbrief.html');
+    if (text) text.textContent = wie
+      ? '„' + wie + '" am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.'
+      : 'Deine Figur am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.';
+    if (neuText) neuText.textContent = 'Deine Figur ändern oder verwerfen und neu anfangen. ' +
+      'Je Name und Sitzung gibt es genau eine.';
+  } else {
+    kachel.style.opacity = '.4'; kachel.style.pointerEvents = 'none';
+    kachel.setAttribute('title', 'Du hast in dieser Sitzung noch keine Figur.');
+    kachel.removeAttribute('href');
+    if (text) text.textContent = 'Erst wenn du eine Figur hast — erschaffe sie nebenan, ' +
+      'dann geht der Heldenbrief von selbst auf.';
+    if (neuText) neuText.textContent = 'Schritt für Schritt zur neuen Figur — erst wer du bist, ' +
+      'dann was daraus folgt. Je Name und Sitzung gibt es genau eine.';
+  }
+}
+
 function beobachteStart() {
   if (!db) return;
   beobachteFreigabe(db, function (frei) {
@@ -826,6 +888,7 @@ function renderChosen() {
    START
    ========================================================== */
 setzeCfgFelder();
+briefKachel(false, '');
 zeigeSeite();
 initFirebase();
 

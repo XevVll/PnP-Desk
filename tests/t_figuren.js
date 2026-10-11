@@ -406,10 +406,168 @@ function loeschenPruefen() {
         t('ein Datenbankfehler wird durchgereicht', !!f3 && /PERMISSION/.test(f3.message),
           f3 && f3.message);
         t('die Figur ist dann noch da', !!DB.bert);
-        abschluss();
+        kachelPruefen();
       });
     });
   });
+}
+
+function kachelPruefen() {
+  /* ==========================================================
+     DER HELDENBRIEF GIBT ES NUR MIT FIGUR
+     ----------------------------------------------------------
+     Ein Bogen ohne Figur ist ein leeres Blatt mit Knoepfen -
+     und schlimmer: Wer darauf etwas anklickt, LEGT damit eine
+     leere Figur an. Deshalb zwei Schranken: die ausgegraute
+     Kachel im Hub (wie die Karte, solange die Sitzung nicht
+     laeuft) und eine Sperre in der Seite selbst, denn die
+     Adresse kann jeder direkt aufrufen.
+     ========================================================== */
+  const iC = inlineCode('index.html');
+  const iRoh = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const hC2 = inlineCode('heldenbrief.html');
+
+  t('die Kachel hat eine Kennung', iRoh.indexOf('id="kachelBrief"') > 0);
+  t('es gibt eine Umschaltfunktion', iC.indexOf('function briefKachel(') > 0);
+  t('und einen Lauscher auf die eigene Figur', iC.indexOf('function beobachteFigur(') > 0);
+  t('der Lauscher laeuft auf figuren/{schluessel}',
+    iC.indexOf("db.ref('figuren/' + schluessel)") > 0);
+  t('es ist ein Lauscher, kein einmaliger Blick',
+    iC.indexOf('figurRef.on(') > 0 && iC.indexOf("figuren/' + schluessel).once") < 0);
+  t('der Lauscher haengt beim Namenswechsel um', iC.indexOf('figurRef.off()') > 0);
+
+  /* Die Kachel darf nicht offen aufblitzen, bevor etwas bekannt ist. */
+  t('vor dem ersten Ergebnis ist die Kachel zu',
+    iC.indexOf("briefKachel(false, '');\nzeigeSeite();") > 0 ||
+    iC.indexOf("briefKachel(false, '')") < iC.indexOf('zeigeSeite();'));
+
+  /* An- und Abmelden muessen den Lauscher mitnehmen. */
+  (function () {
+    function koerper(code, name) {
+      const i = code.indexOf('function ' + name + '(');
+      if (i < 0) return '';
+      let j = code.indexOf('{', i), tief = 0;
+      for (let k = j; k < code.length; k++) {
+        if (code[k] === '{') tief++;
+        else if (code[k] === '}') { tief--; if (tief === 0) return code.slice(i, k + 1); }
+      }
+      return '';
+    }
+    t('nach dem Anmelden wird neu eingehaengt',
+      koerper(iC, 'anmelden').indexOf('beobachteFigur()') > 0);
+    t('nach dem Abmelden ebenso', koerper(iC, 'abmelden').indexOf('beobachteFigur()') > 0);
+  })();
+
+  /* Das Ausgrauen muss dasselbe Mittel benutzen wie bei der Karte -
+     sonst sieht es anders aus als das, was der Spieler schon kennt. */
+  (function () {
+    const i = iC.indexOf('function briefKachel(');
+    let j = iC.indexOf('{', i), tief = 0, ende = -1;
+    for (let k = j; k < iC.length; k++) {
+      if (iC[k] === '{') tief++;
+      else if (iC[k] === '}') { tief--; if (tief === 0) { ende = k; break; } }
+    }
+    const kb = iC.slice(i, ende);
+    t('ausgegraut wie die Karte: Deckkraft .4',
+      kb.indexOf("opacity = '.4'") > 0);
+    t('nicht klickbar', kb.indexOf("pointerEvents = 'none'") > 0);
+    t('und ohne Ziel', kb.indexOf("removeAttribute('href')") > 0);
+    t('mit Erklaerung am Mauszeiger',
+      kb.indexOf('setAttribute(\'title\'') > 0 && kb.indexOf('noch keine Figur') > 0);
+    t('mit Figur wird alles zurueckgenommen',
+      kb.indexOf("opacity = ''") > 0 && kb.indexOf("pointerEvents = ''") > 0 &&
+      kb.indexOf("setAttribute('href', 'heldenbrief.html')") > 0);
+    t('der Name der Figur steht in der Kachel', kb.indexOf('wie') > 0);
+  })();
+
+  /* Die Seite selbst sperrt bei direktem Aufruf. */
+  t('der Heldenbrief sperrt ohne Figur',
+    hC2.indexOf("sitzungsSperre('Noch keine Figur'") > 0);
+  t('und schickt zur Erschaffung',
+    hC2.indexOf("'Figur erschaffen', 'charaktererstellung.html'") > 0);
+  /* Aber nicht, wenn lokal eine Figur liegt - ohne Verbindung ist der
+     Rueckfall die einzige Wahrheit. */
+  t('eine lokale Figur verhindert die Sperre', hC2.indexOf('if (hatLokaleFigur())') > 0);
+  t('hatLokaleFigur existiert', hC2.indexOf('function hatLokaleFigur(') > 0);
+  (function () {
+    const i = hC2.indexOf('function hatLokaleFigur(');
+    let j = hC2.indexOf('{', i), tief = 0, ende = -1;
+    for (let k = j; k < hC2.length; k++) {
+      if (hC2[k] === '{') tief++;
+      else if (hC2[k] === '}') { tief--; if (tief === 0) { ende = k; break; } }
+    }
+    const fn = hC2.slice(i, ende);
+    t('ein leeres Geruest zaehlt NICHT als Figur',
+      fn.indexOf('return false;') > 0 && fn.indexOf('d.META.name') > 0,
+      'sonst sperrt ein einmal geoeffneter, nie gefuellter Bogen den Spieler aus');
+  })();
+  /* Und ein Fehlschlag der Datenbank darf nicht sperren. */
+  (function () {
+    const i = hC2.indexOf("sitzungsSperre('Noch keine Figur'");
+    const nachher = hC2.slice(i, i + 400);
+    t('ein Datenbankfehler sperrt nicht, sondern laesst den Bogen offen',
+      nachher.indexOf('.catch(') > 0 && nachher.indexOf('ladeBereit = true') > nachher.indexOf('.catch('),
+      nachher.slice(-120).replace(/\s+/g, ' '));
+    t('die Lade-Frist wird bei der Sperre abgeraeumt',
+      nachher.indexOf('clearTimeout(ladeFrist)') >= 0 ||
+      hC2.indexOf('// Gesperrt: Die Frist darf') > 0);
+  })();
+
+  /* ---- briefKachel wirklich ausfuehren ---- */
+  const knoten = {};
+  function el(id) {
+    if (!knoten[id]) knoten[id] = {
+      id: id, style: {}, _attr: {}, textContent: '',
+      setAttribute: function (k, v) { this._attr[k] = v; },
+      removeAttribute: function (k) { delete this._attr[k]; },
+      getAttribute: function (k) { return this._attr[k]; }
+    };
+    return knoten[id];
+  }
+  const ctx = { console, document: { getElementById: el } };
+  vm.createContext(ctx);
+  (function () {
+    const i = iC.indexOf('function briefKachel(');
+    let j = iC.indexOf('{', i), tief = 0, ende = -1;
+    for (let k = j; k < iC.length; k++) {
+      if (iC[k] === '{') tief++;
+      else if (iC[k] === '}') { tief--; if (tief === 0) { ende = k + 1; break; } }
+    }
+    new vm.Script(iC.slice(i, ende), { filename: 'index.html:briefKachel' }).runInContext(ctx);
+  })();
+
+  ctx.briefKachel(false, '');
+  const k = el('kachelBrief');
+  t('ohne Figur: ausgegraut', k.style.opacity === '.4');
+  t('ohne Figur: nicht klickbar', k.style.pointerEvents === 'none');
+  t('ohne Figur: kein Ziel', k.getAttribute('href') === undefined);
+  t('ohne Figur: Erklaerung vorhanden', /noch keine Figur/.test(k.getAttribute('title') || ''));
+  t('ohne Figur: der Text weist auf die Erschaffung hin',
+    /erschaffe/i.test(el('kachelBriefText').textContent), el('kachelBriefText').textContent);
+
+  ctx.briefKachel(true, 'Mara Quint');
+  t('mit Figur: offen', k.style.opacity === '' && k.style.pointerEvents === '');
+  t('mit Figur: Ziel gesetzt', k.getAttribute('href') === 'heldenbrief.html');
+  t('mit Figur: keine Erklaerung mehr', k.getAttribute('title') === undefined);
+  t('mit Figur: der Name steht drin',
+    el('kachelBriefText').textContent.indexOf('Mara Quint') >= 0,
+    el('kachelBriefText').textContent);
+
+  ctx.briefKachel(true, '');
+  t('Figur ohne Namen bricht nicht',
+    el('kachelBriefText').textContent.length > 0 &&
+    el('kachelBriefText').textContent.indexOf('undefined') < 0);
+
+  // Und wieder zu, wenn die Figur geloescht wird.
+  ctx.briefKachel(false, '');
+  t('nach dem Loeschen geht die Kachel wieder zu', k.style.opacity === '.4');
+
+  /* Die Beschreibung der Erschaffungs-Kachel nennt die zwei Regelsaetze
+     nicht mehr - die Wahl ist im September entfallen. */
+  t('keine Rede mehr von zwei Regelsaetzen',
+    iRoh.indexOf('Korsaren-Variante') < 0);
+
+  abschluss();
 }
 
 function abschluss() {
