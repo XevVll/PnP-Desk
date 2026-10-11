@@ -105,6 +105,63 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 (Fortsetzung 2) — Höchstens eine Figur je Spieler und Sitzung
+- **Anlass war Hendriks Frage** „Wie sind die Charaktere erstellt? Jeder Spieler in jeder Session
+  kann maximal einen Charakter haben oder eben keinen" — gedacht war es so, **erzwungen war es
+  nicht.** Der Schlüssel einer Figur ist ihr Code (`figuren/{code}`), die Verbindung „dieser
+  Mensch → diese Figur" lag allein in `localStorage.pnp_figur_{sid}`. Auf einem zweiten Gerät war
+  sie weg: `mitCode()` fand keinen Code, erzeugte einen neuen — **dieselbe Person hatte zwei
+  Figuren in derselben Sitzung**, beide mit ihrem Namen. Der Regie-Hub meldete dann „2 Figur(en)"
+  bei einem Spieler. Dasselbe nach gelöschten Browserdaten oder in einem privaten Fenster.
+- **Die Figur trägt jetzt ihren Besitzer** (`figuren/{code}.besitzer = spielerKennung(name)`).
+  `mitCode()` sucht ihn, bevor es einen neuen Code erzeugt — ein zweites Gerät findet die
+  bestehende Figur also wieder, **ohne dass der Spieler seinen Code kennen muss**.
+  - **Der Name ist der Schlüssel**, weil er über Geräte stabil ist; `pnp_player_id` wäre dafür
+    untauglich, die entsteht je Browser neu. Es ist dieselbe normalisierte Form, unter der ein
+    Spieler schon in `sitzungen/{sid}/spieler/{k}` steht.
+  - **Bewusst am Figurenknoten und NICHT als eigener Pfad `figurVon/{kennung}`:** Ein neuer
+    Top-Level-Pfad müsste in `SITZUNGS_PFADE` **und** in `firebase-rules.json` stehen, und die
+    Regeln müssen von Hand in der Konsole veröffentlicht werden — bis dahin schlägt jeder
+    Schreibzugriff **still** fehl. So kommt die Regel ohne Regeländerung aus.
+- **Der eigentliche Fallstrick war nicht das Finden, sondern was danach geschieht.** Findet der
+  Assistent auf dem Handy die Figur vom Laptop, ist der lokale Stand aber leer — und der erste
+  Schreibzugriff hätte **aus der fertigen Figur eine leere gemacht.** Genau dieselbe Falle wie
+  beim `set()`/`update()`-Fehler im September, nur eine Ebene höher.
+  - Neue `startUebernahme()` läuft einmal **vor** dem ersten Schreibzugriff: Code klären,
+    gefundene Figur **laden**, erst dann schreiben. `nachFirebase()` steigt aus, solange
+    `startBereit` nicht steht; per Test ist belegt, dass die Sperre **vor** dem Schreibzugriff
+    liegt und `initFirebase()` nicht mehr direkt `nachFirebase()` ruft.
+  - Eine Frist von 8 s verhindert, dass die Seite stumm bleibt, wenn die Datenbank hängt.
+  - **Der Spieler erfährt davon:** Ein Hinweis oben sagt, dass schon eine Figur existiert, dass
+    sie geladen ist und dass es je Sitzung nur eine gibt. Stillschweigend etwas Fertiges
+    vorzusetzen, nachdem jemand „Figur erschaffen" geklickt hat, wäre unheimlich.
+  - `angelegt` wird **nur beim Anlegen** gesetzt — sonst verschöbe sich der Stichtag, nach dem im
+    Zweifel entschieden wird, welche Figur „die" ist.
+- **Die Regie sieht, was schon entstanden ist.** `figurenDoppelt()` gruppiert nach Besitzer; der
+  Sitzungseintrag zeigt bei Mehrfachvergabe eine orange Warnung mit beiden Codes, Namen und
+  Datum, markiert die **älteste als „(gilt)"** (genau die lädt der Assistent) und bietet je Figur
+  einen Löschknopf mit Rückfrage. **Automatisch wird nichts gelöscht** — per Test abgesichert,
+  dass der Löschpfad genau einmal vorkommt, im Körper von `figurWeg()` liegt und hinter der
+  Rückfrage steht.
+- **Der Heldenbrief bleibt der bewusste Ausweg:** „Figur laden" per Code ist weiter möglich und
+  **fasst den Besitzer nicht an**. Der Index bindet den Assistenten, nicht den Bogen — so kann die
+  Spielleitung jemandem gezielt eine andere Figur geben.
+- **Getestet: 176 Prüfungen über drei Skripte, 0 Fehler** (neues `tests/t_figuren.js` mit 51).
+  Darunter zwei durchgespielte Abläufe mit gefälschter Datenbank:
+  - **Zweites Gerät:** Anna hat `K7M3QP` („Mara Quint", Kämpfen d8), das Handy ist leer. Ergebnis:
+    **keine zweite Figur**, die bestehende **unversehrt**, und der Assistent zeigt sie an. Der
+    einzige Schreibzugriff ging auf `K7M3QP` mit dem richtigen Inhalt.
+  - **Neuer Spieler:** genau eine Figur, Besitzer gesetzt, `angelegt` gesetzt, Code sechsstellig.
+  - Dazu: bei zwei Figuren gewinnt **immer** die ältere (ohne Zeitstempel entscheidet der Code,
+    nicht die Laune), Figuren **ohne** Besitzer gelten nicht als doppelt (sie sind nur alt, kein
+    Problem), und Figuren- wie Spielernamen werden in der Warnung maskiert.
+- **[OFFEN] Bestehende Figuren tragen noch keinen Besitzer.** Sie bekommen ihn beim nächsten
+  Speichern durch ihren Spieler. Bis dahin greift für sie die alte Logik (Code aus dem Browser),
+  und sie erscheinen nicht in der Doppelt-Warnung. Bewusst keine Migration über alle Sitzungen:
+  Der Besitzer wird aus einem **Namen** abgeleitet, und ob „Anna" in Sitzung A dieselbe Person wie
+  „anna" in Sitzung B ist, kann nur Hendrik entscheiden.
+
+
 ### 2026-10-11 (Fortsetzung) — Kalender blättert unbegrenzt weiter
 - **Hendriks Vorgabe:** Der Kalender soll sich erweitern lassen — Schaltflächen, um in
   Zwei-Wochen-Schritten weiterzugehen, **unbegrenzt**.

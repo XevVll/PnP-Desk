@@ -61,6 +61,16 @@ button.gefahr{border-color:#c05555;color:#c05555}
 .sp .x:hover{color:#e05555}
 .sp.da{border-color:rgba(42,157,143,.5)}
 .meld{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
+.dopp{margin-top:.7rem;border:1px solid #ca6702;border-radius:6px;padding:.55rem .7rem;
+  background:rgba(202,103,2,.08)}
+.dopp-k{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#ca6702;
+  margin-bottom:.4rem}
+.dopp-z{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.2rem 0}
+.dopp-n{font-weight:600;color:var(--ink);min-width:7rem}
+.dopp-f{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;color:var(--gray);
+  border:1px solid var(--border);border-radius:4px;padding:.15rem .4rem}
+.dopp-f.behalten{border-color:var(--teal);color:var(--ink)}
+.dopp-f b{color:var(--teal);font-weight:600}
 .termine{margin-top:.7rem;border-top:1px solid var(--border);padding-top:.6rem}
 .t-kopf{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .t-titel{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
@@ -402,6 +412,56 @@ function terminGesetztText(st) {
     esc(TERMINE.fensterText(st.cfg, st.gewaehlt)) + '</span>';
 }
 
+/* ==========================================================
+   DOPPELTE FIGUREN
+   ----------------------------------------------------------
+   Seit Oktober 2026 gilt: hoechstens eine Figur je Spieler und
+   Sitzung. Vorher konnte ein zweites Geraet eine zweite Figur
+   anlegen, weil die Zuordnung nur im localStorage stand. Was
+   dabei entstanden ist, bleibt liegen - geloescht wird NICHTS
+   von selbst. Die Spielleitung sieht es und entscheidet.
+   ========================================================== */
+function figurWeg(id, code, wer) {
+  if (!confirm('Figur ' + figurCodeLesbar(code) + ' von „' + wer + '" endgültig löschen?\n\n' +
+               'Das lässt sich nicht zurücknehmen.')) return;
+  db.ref('sitzungen/' + id + '/stand/figuren/' + code).remove()
+    .then(function () { meld('sitzMeld', 'Figur ' + figurCodeLesbar(code) + ' gelöscht.', 'var(--teal)'); })
+    .catch(function (e) {
+      meld('sitzMeld', 'Löschen ging nicht: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+    });
+}
+
+function zeichneDoppelte(id) {
+  const s = sitzungen[id] || {};
+  const figuren = (s.stand && s.stand.figuren) || {};
+  const dopp = figurenDoppelt(figuren);
+  const kennungen = Object.keys(dopp);
+  if (!kennungen.length) return '';
+
+  return '<div class="dopp" onclick="event.stopPropagation()">' +
+    '<div class="dopp-k">⚠ Mehr als eine Figur je Spieler</div>' +
+    kennungen.map(function (k) {
+      const codes = dopp[k];
+      const wer = (figuren[codes[0]] && figuren[codes[0]].spieler) || k;
+      return '<div class="dopp-z"><span class="dopp-n">' + esc(wer) + '</span>' +
+        codes.map(function (c, i) {
+          const f = figuren[c] || {};
+          const wann = f.angelegt ? datum(f.angelegt) : (f.aktualisiert ? datum(f.aktualisiert) : '—');
+          return '<span class="dopp-f' + (i === 0 ? ' behalten' : '') + '">' +
+            esc(figurCodeLesbar(c)) + ' · ' + esc(f.name || 'ohne Namen') + ' · ' + wann +
+            (i === 0 ? ' <b>(gilt)</b>' : '') +
+            '<button class="klein gefahr" onclick="figurWeg(\'' + id + '\',\'' + c + '\',\'' +
+              esc(String(wer).replace(/'/g, '')) + '\')">löschen</button>' +
+          '</span>';
+        }).join('') +
+      '</div>';
+    }).join('') +
+    '<div class="hint">Als „gilt" zählt die älteste — der Assistent lädt bei diesem Spieler ' +
+    'genau diese. Die anderen stammen meist von einem zweiten Gerät. Prüf vorher, ob in der ' +
+    'falschen nicht doch der neuere Stand steckt.</div>' +
+  '</div>';
+}
+
 function zeichneTermine(id) {
   const st = terminStand(id);
   const wieViele = Object.keys(st.spieler).length;
@@ -559,6 +619,8 @@ function zeichneSitzungen() {
           esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
+          (Object.keys(figurenDoppelt(figuren)).length
+            ? ' · <span style="color:#ca6702">doppelt vergeben</span>' : '') +
         '</div>' +
         '<div class="sid" onclick="event.stopPropagation();idKopieren(\'' + id + '\')"' +
           ' title="Anklicken zum Kopieren — diese ID schickst du deinen Spielern">' +
@@ -575,6 +637,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
+      zeichneDoppelte(id) +
       zeichneTermine(id) +
       '</div>';
   }).join('') : '<div class="leer">Noch keine Sitzung angelegt.</div>';

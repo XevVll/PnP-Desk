@@ -29,6 +29,8 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
+.uebernahme{border:1px solid var(--gold);background:var(--lgold);border-radius:6px;
+  padding:.6rem .8rem;margin-bottom:1rem;font-size:.84rem;line-height:1.6;color:var(--gold)}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.9rem;overflow:hidden}
 .card-hdr{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.14em;color:var(--gold);padding:.45rem .9rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
@@ -160,6 +162,10 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 </div>
 
 <div class="wrap">
+
+  <!-- Erscheint nur, wenn in dieser Sitzung schon eine Figur dieses
+       Spielers gefunden und geladen wurde. -->
+  <div class="uebernahme" id="uebernahmeNote" hidden></div>
 
   <!-- 0 — KONZEPT -->
   <div class="panel on" id="p0">
@@ -683,6 +689,12 @@ let netzOffen = false;
 /* Die Adresse dieser Figur. Sie entsteht beim ersten Speichern und
    bleibt dann stehen - sie IST der Pfad, unter dem die Figur liegt. */
 let meinCode = '';
+/* Erst wenn geklaert ist, WELCHE Figur dieser Browser bearbeitet,
+   darf geschrieben werden. Vorher wuerde ein frischer Browser
+   seinen leeren Stand ueber eine bestehende Figur schreiben. */
+let startBereit = false;
+let uebernommen = '';     // Code einer Figur, die wir gefunden statt angelegt haben
+let istNeueFigur = false;
 
 /* Die Realtime Database fuehrt unter ".info/connected" selbst Buch darueber,
    ob die Verbindung steht. Das ist der einzige ehrliche Weg, den Zustand
@@ -735,7 +747,7 @@ function initFirebase() {
     // von einer fertigen Figur nie etwas, solange ihr Spieler nichts mehr
     // anfasst - wer seine Figur fertig baut, den Tab schliesst und spaeter
     // wieder oeffnet, blieb bisher unsichtbar.
-    nachFirebase();
+    startUebernahme();
   } catch (e) {
     syncBereit = false;
     setzeSync('nur lokal', 'var(--gray)');
@@ -754,17 +766,51 @@ function initFirebase() {
    wird einer erzeugt, sonst steht er schon im Browser. Fuer Figuren aus
    der Zeit vor den Codes gilt die alte Spielerkennung als Code weiter -
    so verliert niemand seine Figur. */
+/* Reihenfolge, und sie ist der ganze Punkt:
+     1. schon in dieser Sitzung geladen   -> den
+     2. dieser Browser kennt einen Code   -> den
+     3. in der Datenbank liegt eine Figur
+        mit meinem Namen als Besitzer     -> DIE  (neu)
+     4. Figur aus der Zeit vor den Codes  -> alte Spielerkennung
+     5. sonst                             -> neuen Code anlegen
+
+   Schritt 3 ist neu und schliesst die Luecke: Ohne ihn erzeugte
+   ein zweites Geraet einen neuen Code, und derselbe Spieler hatte
+   zwei Figuren in derselben Sitzung. Jetzt findet er seine eigene
+   wieder, ohne den Code zu kennen. */
 function mitCode(fertig) {
   if (meinCode) { fertig(meinCode); return; }
   const sid = (db && db.sitzung) || SITZUNG_VORGABE;
   const gemerkt = figurCode(sid);
   if (gemerkt) { meinCode = gemerkt; fertig(meinCode); return; }
-  db.ref('figuren/' + spielerId()).once('value').then(function (s) {
-    if (s.val() !== null) { meinCode = setzeFigurCode(sid, spielerId()); fertig(meinCode); return; }
-    freienFigurCode(db, function (c) { meinCode = setzeFigurCode(sid, c); zeigeCode(); fertig(meinCode); });
-  }).catch(function () {
-    freienFigurCode(db, function (c) { meinCode = setzeFigurCode(sid, c); zeigeCode(); fertig(meinCode); });
-  });
+
+  const kennung = spielerKennung(META.spieler || spielerName());
+  const neuAnlegen = function () {
+    freienFigurCode(db, function (c) {
+      meinCode = setzeFigurCode(sid, c);
+      istNeueFigur = true;
+      zeigeCode(); fertig(meinCode);
+    });
+  };
+
+  db.ref('figuren').once('value').then(function (s) {
+    const alle = s.val() || {};
+    // Hoechstens eine Figur je Spieler: Gibt es meine schon, uebernimm sie.
+    const meine = figurVonBesitzer(alle, kennung);
+    if (meine) {
+      meinCode = setzeFigurCode(sid, meine);
+      uebernommen = meine;
+      zeigeCode(); fertig(meinCode);
+      return;
+    }
+    // Figuren aus der Zeit vor den Codes lagen unter der Spielerkennung.
+    if (alle[spielerId()]) {
+      meinCode = setzeFigurCode(sid, spielerId());
+      zeigeCode(); fertig(meinCode);
+      return;
+    }
+    neuAnlegen();
+  }).catch(neuAnlegen);
 }
 
 function zeigeCode() {
@@ -773,14 +819,22 @@ function zeigeCode() {
 }
 
 function figurFuerDb() {
-  return {
+  const d = {
     name: (META.name || '').slice(0, 60),
     spieler: (META.spieler || '').slice(0, 60) || spielerName(),
     rang: F.rang || 0,
     steigerungen: F.steigerungen || 0,
     attr: F.attr, fert: F.fert, tal: F.tal, hnd: F.hnd, brief: F.brief,
+    // Wem gehoert sie? Daran haengt "hoechstens eine Figur je Spieler
+    // und Sitzung" - der Assistent findet sie darueber auf jedem Geraet
+    // wieder. Normalisierter Name, weil der ueber Geraete stabil ist.
+    besitzer: spielerKennung((META.spieler || '').slice(0, 60) || spielerName()),
     aktualisiert: Date.now()
   };
+  // Nur beim Anlegen setzen. Spaeter wuerde es den Stichtag verschieben,
+  // nach dem sich im Zweifel entscheidet, welche Figur "die" ist.
+  if (istNeueFigur) { d.angelegt = Date.now(); istNeueFigur = false; }
+  return d;
 }
 
 // Ein abgelehntes Versprechen ist der eine Fehlerfall, eine geworfene
@@ -789,6 +843,11 @@ function figurFuerDb() {
 // die Anzeige dann stumm ein, statt zu sagen, was los ist.
 function nachFirebase() {
   if (!db || !syncBereit) return;
+  // NICHT schreiben, solange die Uebernahme laeuft. Sonst wuerde der
+  // leere Stand eines frischen Browsers die bestehende Figur
+  // ueberschreiben - genau in dem Moment, in dem wir sie gerade
+  // gefunden haben.
+  if (!startBereit) return;
   try {
     mitCode(function (code) {
     db.ref('figuren/' + code).update(figurFuerDb())
@@ -804,6 +863,72 @@ function nachFirebase() {
     setzeSync('Fehler', '#e05555');
     console.error('Hochladen brach ab:', e);
   }
+}
+
+/* ==========================================================
+   UEBERNAHME BEIM START
+   ----------------------------------------------------------
+   Laeuft genau einmal, VOR dem ersten Schreibzugriff, und
+   klaert zwei Dinge:
+
+     a) Welchen Code bearbeitet dieser Browser? (mitCode)
+     b) Liegt unter diesem Code schon eine Figur, die der
+        Browser nicht kennt? Dann wird sie GELADEN.
+
+   (b) ist der eigentliche Grund fuer diese Funktion. Ohne sie
+   waere die neue Regel ein Datenverlust: Der Assistent findet
+   auf dem Handy die Figur vom Laptop, der lokale Stand ist
+   aber leer - und der erste Schreibzugriff machte aus der
+   fertigen Figur eine leere. Genau dieselbe Falle wie beim
+   set()/update()-Fehler im September, nur eine Ebene hoeher.
+   ========================================================== */
+function startUebernahme() {
+  let fertig = false;
+  const weiter = function () {
+    if (fertig) return;
+    fertig = true;
+    startBereit = true;
+    nachFirebase();
+  };
+  // Haengt die Datenbank, soll die Seite nicht fuer immer stumm sein.
+  const frist = setTimeout(weiter, 8000);
+
+  try {
+    mitCode(function (code) {
+      if (!uebernommen) { clearTimeout(frist); weiter(); return; }
+      // Wir haben eine fremde (= uns unbekannte) Figur gefunden: laden.
+      db.ref('figuren/' + code).once('value').then(function (s) {
+        const roh = s.val();
+        clearTimeout(frist);
+        if (roh && (roh.attr || roh.fert || roh.name)) {
+          F = alsFigur(roh);
+          META.name = roh.name || META.name;
+          META.spieler = roh.spieler || META.spieler;
+          try { localStorage.setItem(figurCacheKey(sitzungFest()),
+            JSON.stringify({ F: F, META: META })); } catch (e) {}
+          zeigeUebernahme(roh);
+          zeige();
+        }
+        weiter();
+      }).catch(function () { clearTimeout(frist); weiter(); });
+    });
+  } catch (e) {
+    clearTimeout(frist);
+    weiter();
+  }
+}
+
+/* Stillschweigend eine andere Figur zu laden waere unheimlich -
+   der Spieler hat gerade "Figur erschaffen" angeklickt und
+   bekommt etwas Fertiges. Also sagen, was passiert ist. */
+function zeigeUebernahme(roh) {
+  const n = document.getElementById('uebernahmeNote');
+  if (!n) return;
+  n.hidden = false;
+  n.textContent = 'Du hast in dieser Sitzung schon eine Figur' +
+    (roh.name ? ' („' + roh.name + '")' : '') + ' — sie ist geladen. ' +
+    'Jeder Spieler hat je Sitzung höchstens eine; Änderungen gehen in diese Figur. ' +
+    'Code: ' + figurCodeLesbar(meinCode);
 }
 
 function speichern() {

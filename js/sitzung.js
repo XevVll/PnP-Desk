@@ -353,6 +353,69 @@ function vergissFigurCode(sid) {
   try { localStorage.removeItem(figurCodeKey(sid)); } catch (e) {}
 }
 
+/* ==========================================================
+   HOECHSTENS EINE FIGUR JE SPIELER UND SITZUNG
+   ----------------------------------------------------------
+   Die Verbindung "dieser Mensch -> diese Figur" lag bisher
+   allein im localStorage (pnp_figur_{sid}). Auf einem zweiten
+   Geraet war sie damit weg: Der Assistent fand keinen Code,
+   erzeugte einen neuen - und derselbe Spieler hatte zwei
+   Figuren in derselben Sitzung. Die Spielleitung sah dann
+   "2 Figur(en)" bei einer Person.
+
+   Deshalb traegt jede Figur jetzt ihren Besitzer:
+       figuren/{code}.besitzer = spielerKennung(name)
+
+   Der Name ist der Schluessel, weil er ueber Geraete hinweg
+   stabil ist - der Spieler tippt ihn ja wieder ein. Die
+   Browser-Kennung (pnp_player_id) waere dafuer untauglich,
+   sie entsteht je Browser neu. Es ist dieselbe normalisierte
+   Form, unter der ein Spieler schon in
+   sitzungen/{sid}/spieler/{k} steht.
+
+   BEWUSST am Figurenknoten und NICHT als eigener Pfad
+   figurVon/{kennung}: Ein neuer Top-Level-Pfad muesste in
+   SITZUNGS_PFADE *und* in firebase-rules.json stehen, und die
+   Regeln muessen von Hand in der Konsole veroeffentlicht
+   werden - bis dahin schlaegt jeder Schreibzugriff STILL fehl.
+   So kommt die Regel ohne Regeländerung aus, und die Figur
+   sagt von sich aus, wem sie gehoert.
+   ========================================================== */
+function figurVonBesitzer(figuren, kennung) {
+  if (!figuren || !kennung) return '';
+  var treffer = Object.keys(figuren).filter(function (code) {
+    var f = figuren[code];
+    return f && f.besitzer === kennung;
+  });
+  // Aeltester Eintrag gewinnt: Gibt es durch einen frueheren Lauf
+  // doch zwei, soll nicht bei jedem Oeffnen eine andere "die"
+  // Figur sein. "angelegt" fehlt bei Figuren aus der Zeit davor.
+  treffer.sort(function (a, b) {
+    var fa = figuren[a].angelegt || figuren[a].aktualisiert || 0;
+    var fb = figuren[b].angelegt || figuren[b].aktualisiert || 0;
+    if (fa !== fb) return fa - fb;
+    return a < b ? -1 : 1;
+  });
+  return treffer[0] || '';
+}
+
+/* Alle Besitzer mit mehr als einer Figur - fuer die Spielleitung.
+   Liefert { kennung: [code, ...] }. Figuren ohne Besitzer (aus der
+   Zeit vor dieser Regel) bleiben draussen: Sie sind kein Hinweis
+   auf ein Problem, nur auf ihr Alter. */
+function figurenDoppelt(figuren) {
+  var nach = {}, out = {};
+  Object.keys(figuren || {}).forEach(function (code) {
+    var f = figuren[code];
+    if (!f || !f.besitzer) return;
+    (nach[f.besitzer] = nach[f.besitzer] || []).push(code);
+  });
+  Object.keys(nach).forEach(function (k) {
+    if (nach[k].length > 1) out[k] = nach[k];
+  });
+  return out;
+}
+
 /* Einen Code besorgen, der in dieser Sitzung noch frei ist.
    Der Kollisionstest laeuft gegen die Datenbank, weil nur sie
    weiss, was es schon gibt. Ohne Verbindung wird schlicht einer
@@ -380,6 +443,7 @@ if (typeof module !== 'undefined' && module.exports) {
     FIGUR_ALPHABET, FIGUR_LAENGE, neuerFigurCode, figurCodeNormal,
     figurCodeGueltig, figurCodeLesbar, figurCodeKey, figurCode,
     setzeFigurCode, vergissFigurCode, freienFigurCode, spielerKennung,
+    figurVonBesitzer, figurenDoppelt,
     figurCacheKey, figurCacheUebernehmen,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };
