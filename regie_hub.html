@@ -61,16 +61,17 @@ button.gefahr{border-color:#c05555;color:#c05555}
 .sp .x:hover{color:#e05555}
 .sp.da{border-color:rgba(42,157,143,.5)}
 .meld{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
-.dopp{margin-top:.7rem;border:1px solid #ca6702;border-radius:6px;padding:.55rem .7rem;
-  background:rgba(202,103,2,.08)}
-.dopp-k{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#ca6702;
+.figs{margin-top:.7rem;border:1px solid var(--border);border-radius:6px;padding:.55rem .7rem}
+.figs.warn{border-color:#ca6702;background:rgba(202,103,2,.08)}
+.figs-k{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);
   margin-bottom:.4rem}
-.dopp-z{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.2rem 0}
-.dopp-n{font-weight:600;color:var(--ink);min-width:7rem}
-.dopp-f{display:inline-flex;align-items:center;gap:.4rem;font-size:.76rem;color:var(--gray);
-  border:1px solid var(--border);border-radius:4px;padding:.15rem .4rem}
-.dopp-f.behalten{border-color:var(--teal);color:var(--ink)}
-.dopp-f b{color:var(--teal);font-weight:600}
+.figs.warn .figs-k{color:#ca6702}
+.figs-z{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.22rem 0;
+  border-bottom:1px solid rgba(201,168,76,.08)}
+.figs-n{font-weight:600;color:var(--ink);min-width:9rem}
+.figs-w{font-size:.78rem;color:var(--gray);min-width:8rem}
+.figs-w.alt{color:#ca6702}
+.figs-d{font-size:.74rem;color:var(--gray);min-width:6rem}
 .termine{margin-top:.7rem;border-top:1px solid var(--border);padding-top:.6rem}
 .t-kopf{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .t-titel{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
@@ -483,32 +484,47 @@ function figurZuordnen(id, schluessel) {
   });
 }
 
-function zeichneAltfiguren(id) {
+function zeichneFiguren(id) {
   const sit = sitzungen[id] || {};
   const figuren = (sit.stand && sit.stand.figuren) || {};
-  const alte = Object.keys(figuren).filter(function (k) {
-    return figuren[k] && istAltSchluessel(k);
-  });
-  if (!alte.length) return '';
+  const schluessel = Object.keys(figuren).filter(function (k) { return !!figuren[k]; });
+  if (!schluessel.length) return '';
 
-  return '<div class="dopp" onclick="event.stopPropagation()">' +
-    '<div class="dopp-k">⚠ ' + alte.length + ' Figur(en) ohne Spieler</div>' +
-    alte.map(function (k) {
+  // Verwaiste zuerst: Sie sind das, was Arbeit macht.
+  schluessel.sort(function (a, b) {
+    const aa = istAltSchluessel(a), ab = istAltSchluessel(b);
+    if (aa !== ab) return aa ? -1 : 1;
+    return a < b ? -1 : 1;
+  });
+  const verwaist = schluessel.filter(function (k) { return istAltSchluessel(k); }).length;
+
+  return '<div class="figs' + (verwaist ? ' warn' : '') + '" onclick="event.stopPropagation()">' +
+    '<div class="figs-k">' +
+      (verwaist ? '⚠ ' + verwaist + ' von ' + schluessel.length + ' Figur(en) ohne Spieler'
+                : schluessel.length + ' Figur(en)') +
+    '</div>' +
+    schluessel.map(function (k) {
       const f = figuren[k] || {};
+      const alt = istAltSchluessel(k);
       const wann = f.angelegt ? datum(f.angelegt) : (f.aktualisiert ? datum(f.aktualisiert) : '—');
-      const wer = f.spieler || 'ohne Spielernamen';
-      return '<div class="dopp-z">' +
-        '<span class="dopp-n">' + esc(f.name || 'ohne Namen') + '</span>' +
-        '<span class="dopp-f">' + esc(figurCodeLesbar(k)) + ' · ' + esc(wer) + ' · ' + wann +
-          '<button class="klein" onclick="figurZuordnen(\'' + id + '\',\'' + k + '\')">zuordnen</button>' +
-          '<button class="klein gefahr" onclick="figurWeg(\'' + id + '\',\'' + k + '\',\'' +
-            esc(String(f.name || wer).replace(/'/g, '')) + '\')">löschen</button>' +
-        '</span>' +
+      const wer = alt ? (f.spieler ? f.spieler + ' (nicht zugeordnet)' : 'ohne Spieler')
+                      : (f.spieler || k);
+      const anzeige = String(f.name || 'ohne Namen').replace(/'/g, '');
+      return '<div class="figs-z">' +
+        '<span class="figs-n">' + esc(f.name || 'ohne Namen') + '</span>' +
+        '<span class="figs-w' + (alt ? ' alt' : '') + '">' + esc(wer) + '</span>' +
+        '<span class="figs-d">' + wann + '</span>' +
+        (alt ? '<button class="klein" onclick="figurZuordnen(\'' + id + '\',\'' + k + '\')">zuordnen</button>' : '') +
+        '<button class="klein gefahr" onclick="figurWeg(\'' + id + '\',\'' + k + '\',\'' +
+          esc(anzeige) + '\')">löschen</button>' +
       '</div>';
     }).join('') +
-    '<div class="hint">Diese Figuren stammen aus der Zeit der Figurencodes. Wer sie noch im ' +
-    'Browser hat, zieht sie beim nächsten Öffnen selbst um — was hier stehen bleibt, kennt ' +
-    'niemand mehr. Ordne sie einem Spieler zu oder lösch sie.</div>' +
+    (verwaist
+      ? '<div class="hint">Figuren ohne Spieler stammen aus der Zeit der Figurencodes. Wer sie ' +
+        'noch im Browser hat, zieht sie beim nächsten Öffnen selbst um — was hier stehen bleibt, ' +
+        'kennt niemand mehr.</div>'
+      : '<div class="hint">Je Name und Sitzung gibt es genau eine Figur. Löschen ist endgültig — ' +
+        'normalerweise macht das der Spieler selbst in seinem Heldenbrief.</div>') +
   '</div>';
 }
 
@@ -687,7 +703,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
-      zeichneAltfiguren(id) +
+      zeichneFiguren(id) +
       zeichneTermine(id) +
       '</div>';
   }).join('') : '<div class="leer">Noch keine Sitzung angelegt.</div>';

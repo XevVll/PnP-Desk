@@ -118,6 +118,8 @@ textarea:focus{border-color:var(--gold)}
 .wegbtn{border:none;background:transparent;color:var(--gray);cursor:pointer;font-size:.95rem;padding:0 .25rem;line-height:1}
 .wegbtn:hover{color:#e05555}
 .btn{padding:.34rem .85rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;border:1px solid rgba(201,168,76,.4);cursor:pointer;font-weight:600;background:transparent;color:var(--gold);transition:all .18s;text-decoration:none;display:inline-block}
+.btn.gefahr{border-color:#c05555;color:#c05555}
+.btn.gefahr:hover{background:rgba(192,85,85,.12)}
 .btn:hover:not(:disabled){background:var(--lgold)}
 .btn:disabled{opacity:.3;cursor:default}
 .btn-gold{background:var(--gold);border-color:var(--gold);color:var(--dark)}
@@ -134,10 +136,12 @@ textarea:focus{border-color:var(--gold)}
     <span class="brand">⚓ HELDENBRIEF</span>
     <span class="badge gold" id="bRang">Novize</span>
     <span class="badge" id="bSync">…</span>
-    <span class="badge" id="bCode" title="Der Code deiner Figur — damit holst du sie auf jedem Gerät">—</span>
+    <span class="badge" id="bCode" title="Deine Figur hängt an Name und Sitzung — melde dich auf jedem Gerät mit demselben Namen an">—</span>
 
     <span style="flex:1"></span>
     <a class="btn" href="charaktererstellung.html">Figur ändern</a>
+    <button class="btn gefahr" onclick="figurLoeschenFragen()"
+      title="Diese Figur endgültig löschen">Figur löschen</button>
     <a class="btn" href="index.html">Hub</a>
   </div>
   <div class="tabs">
@@ -274,6 +278,10 @@ let meinCode = '';
    werden. Sonst koennte ein frischer Browser seinen leeren Stand ueber
    die echte Figur schreiben, bevor sie angekommen ist. */
 let ladeBereit = false;
+/* Nach dem Loeschen darf NICHTS mehr geschrieben werden. Ohne diese
+   Flagge wuerde der naechste Schreibzugriff die Figur wieder anlegen -
+   und der Spieler haette keine Ahnung, warum sie zurueck ist. */
+let geloescht = false;
 /* Der Schluessel ist der Anmeldename. Seit Oktober 2026 liegt eine
    Figur unter sitzungen/{sid}/stand/figuren/{spielerKennung(name)} -
    je Name und Sitzung genau eine, und zwar weil der PFAD es so
@@ -321,6 +329,63 @@ function setzeSync(txt, farbe) {
 
 // Nur die Felder, die dieser Seite gehoeren. Alles andere bleibt
 // unberuehrt, damit der Assistent es weiter verwalten kann.
+/* ==========================================================
+   FIGUR LOESCHEN
+   ----------------------------------------------------------
+   Endgueltig, ohne Backup. An einer Figur haengen Attribute,
+   Fertigkeiten, Talente, Schwaechen, Steckbrief, Ausruestung
+   und Notizen - also Stunden Arbeit. Deshalb zwei Schritte:
+   eine Rueckfrage, die die Figur NAMENTLICH nennt, und danach
+   das Abtippen des Namens. Ein Fehlgriff auf den Knopf soll
+   nicht reichen.
+
+   Die eigentliche Falle ist der entprellte Schreibvorgang:
+   speichern() plant nachFirebase() 800 ms spaeter ein. Laeuft
+   so einer noch, als geloescht wird, schreibt er die Figur
+   wieder hoch. Deshalb zuerst syncTimer abraeumen und
+   geloescht setzen - erst dann loeschen.
+   ========================================================== */
+function figurLoeschenFragen() {
+  const wie = (META.name || '').trim();
+  const bezeichnung = wie || 'diese namenlose Figur';
+
+  if (!confirm('„' + bezeichnung + '" endgültig löschen?\n\n' +
+      'Werte, Talente, Schwächen, Steckbrief, Ausrüstung und Notizen sind dann weg. ' +
+      'Das lässt sich nicht zurücknehmen, und es gibt keine Sicherung.')) return;
+
+  const verlangt = wie || 'löschen';
+  const eingabe = prompt('Zur Sicherheit: tipp „' + verlangt + '" ein.', '');
+  if (eingabe === null) return;
+  if (String(eingabe).trim().toLowerCase() !== verlangt.toLowerCase()) {
+    alert('Das stimmt nicht überein — es wurde nichts gelöscht.');
+    return;
+  }
+
+  // ZUERST jeden ausstehenden Schreibvorgang abraeumen, sonst legt er
+  // die Figur gleich wieder an.
+  if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+  geloescht = true;
+  setzeSync('wird gelöscht …', 'var(--amber)');
+
+  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
+  figurLoeschen(db, sid, codeJetzt(), function (fehler) {
+    if (fehler) {
+      // Lokal ist sie schon vergessen, in der Datenbank noch da. Das ehrlich
+      // sagen, statt Erfolg zu melden - sonst wundert sich der Spieler, warum
+      // sie auf einem anderen Geraet noch auftaucht.
+      geloescht = false;
+      setzeSync('nicht gelöscht', '#e05555');
+      alert('Die Figur ließ sich in der Datenbank nicht löschen (' +
+        (fehler.message || 'Fehler') + ').\n\n' +
+        'In diesem Browser ist sie bereits vergessen. Versuch es noch einmal, ' +
+        'sobald die Verbindung steht — oder bitte deine Spielleitung, sie zu entfernen.');
+      return;
+    }
+    alert('Gelöscht. Du kannst jetzt eine neue Figur erschaffen.');
+    location.href = 'charaktererstellung.html';
+  });
+}
+
 function bogenFelder() {
   return {
     ausr: F.ausr, muenzen: F.muenzen,
@@ -337,6 +402,8 @@ function nachFirebase() {
   if (!db || !syncBereit) return;
   // Nicht schreiben, solange der Bogen noch nicht gelesen ist.
   if (!ladeBereit) return;
+  // Und nach dem Loeschen gar nicht mehr.
+  if (geloescht) return;
   try {
     db.ref('figuren/' + codeJetzt()).update(bogenFelder())
       .then(function () { setzeSync('gespeichert', '#4caf7d'); })

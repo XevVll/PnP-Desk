@@ -105,6 +105,55 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 (Fortsetzung 4) — Figur löschen
+- **Hendriks Vorgabe:** Man soll seine Figur auch wieder löschen können. Eingebaut an beiden
+  Stellen, an denen es Sinn hat: **„Figur löschen"** in der Kopfleiste des Heldenbriefs und
+  **„Verwerfen und neu anfangen"** auf dem Abschluss-Schritt des Assistenten — dort ist Löschen ja
+  gleichbedeutend mit „von vorn".
+- **Die Falle war nicht das Löschen, sondern die Wiederauferstehung.** `speichern()` plant den
+  Upload **800 ms später** ein. Ändert ein Spieler etwas und löscht sofort danach, legt der noch
+  laufende Upload die Figur **wieder an** — und niemand versteht, warum sie zurück ist. Deshalb
+  wird zuerst `syncTimer` abgeräumt und eine Flagge `geloescht` gesetzt, die jeden weiteren
+  Schreibzugriff sperrt; **erst dann** wird gelöscht. Per Test ist belegt, dass beides **vor** dem
+  Löschaufruf steht.
+- **Drei Stellen, und das Vergessen EINER macht das Löschen rückgängig** — deshalb liegt
+  `figurLoeschen()` in `js/sitzung.js` und nicht in den Seiten:
+  1. der Knoten in der Datenbank,
+  2. der lokale Rückfall `kors_figur_{sid}`,
+  3. der gemerkte Schlüssel `pnp_figur_{sid}`.
+  Bleibt (2) stehen, liest die Seite beim nächsten Öffnen den alten Stand und **schreibt ihn
+  zurück**. Reihenfolge: **erst lokal, dann die Datenbank** — bricht es dazwischen ab, ist die
+  Figur noch da und nur dieser Browser hat sie vergessen. Das ist der harmlosere halbe Zustand;
+  andersherum wäre sie weg und der Browser schriebe sie aus dem Rückfall wieder hoch.
+- **Zwei Schritte vor dem Löschen**, weil an einer Figur Stunden Arbeit hängen und es **kein
+  Backup** gibt: eine Rückfrage, die die Figur **namentlich** nennt und auflistet, was verloren
+  geht — danach muss der Figurenname **abgetippt** werden. Ein Fehlgriff auf den Knopf reicht
+  nicht. Bei einer namenlosen Figur wird „löschen" bzw. „verwerfen" verlangt.
+- **Ein Fehlschlag wird ehrlich gemeldet, nicht als Erfolg.** Verweigert die Datenbank (keine
+  Verbindung, Regeln), ist die Figur lokal schon vergessen, in der Datenbank aber noch da. Die
+  Seite sagt genau das, nennt den Grund und verweist auf einen erneuten Versuch oder die
+  Spielleitung — und `geloescht` fällt zurück, damit danach wieder geschrieben werden darf.
+- **Die Regie kann jetzt JEDE Figur löschen**, nicht mehr nur verwaiste. Das war eine Folge des
+  eigenen Fehlertexts: Wenn er auf die Spielleitung verweist, muss sie es auch können.
+  `zeichneAltfiguren()` ist zu `zeichneFiguren()` geworden und listet alle Figuren der Sitzung mit
+  Name, Spieler und Datum; verwaiste stehen oben, tragen „zuordnen" und färben die Umrandung
+  orange. Löschen fragt auch hier nach.
+- **Getestet: 236 Prüfungen über drei Skripte, 0 Fehler** (40 neue). Dazu ein durchgespielter
+  Ablauf mit echten Timern über vier Fälle:
+  - **Ändern, dann sofort löschen:** Figur weg, lokaler Rückfall weg, und der geplante Upload hat
+    sie **nicht** wieder angelegt (`REMOVE figuren/anna`, kein `UPLOAD`).
+  - **Rückfrage abgelehnt:** nichts passiert.
+  - **Name falsch abgetippt:** „Das stimmt nicht überein — es wurde nichts gelöscht."
+  - **Datenbank verweigert:** Fehlschlag gemeldet, danach wieder schreibbar.
+  - Dazu auf Funktionsebene: fremde Figuren bleiben unberührt, ohne Schlüssel wird nichts
+    gelöscht, und ein Datenbankfehler wird durchgereicht statt verschluckt.
+- **Eigener Fehler im Prüfaufbau, erst beim zweiten Blick gesehen:** Die Simulation meldete „lokaler
+  Rückfall: STEHT NOCH". Ursache war nicht der Code, sondern dass `js/sitzung.js` als Modul auf das
+  **globale** `localStorage` zugreift, nicht auf den Kontext der Seite — im Browser dasselbe
+  Objekt, in der Simulation zwei. Nach dem Teilen des Speichers: „weg". Die Prüfung in
+  `tests/t_figuren.js` war von Anfang an korrekt, weil sie `global.localStorage` setzt.
+
+
 ### 2026-10-11 (Fortsetzung 3) — Der Figurencode ist weg: Name + Sitzung IST der Schlüssel
 - **Hendriks Vorgabe:** „Wir sollten irgendwie verhindern, dass man überhaupt mehr erstellen kann.
   Es reicht, wenn Charakter einfach auf Name und Session verbunden sind." Genau so gebaut — und

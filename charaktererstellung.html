@@ -119,6 +119,8 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
 .bv{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;line-height:1.1}
 .bv.ok{color:#4caf7d}.bv.zero{color:var(--gold)}.bv.over{color:#e05555}
 .btn{padding:.42rem 1rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;border:1px solid;cursor:pointer;font-weight:600;transition:all .18s;background:transparent;border-color:rgba(201,168,76,.4);color:var(--gold);text-decoration:none;display:inline-block}
+.btn.gefahr{border-color:#c05555;color:#c05555}
+.btn.gefahr:hover{background:rgba(192,85,85,.12)}
 .btn:hover:not(:disabled){background:var(--lgold)}
 .btn:disabled{opacity:.3;cursor:default}
 .btn-gold{background:var(--gold);border-color:var(--gold);color:var(--dark)}
@@ -294,6 +296,8 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
             demselben Namen an, und sie ist da. Je Name und Sitzung gibt es genau eine Figur.</p>
         <button class="btn" onclick="exportieren()">Als Datei sichern</button>
         <button class="btn" onclick="drucken()">Drucken</button>
+        <button class="btn gefahr" onclick="figurVerwerfenFragen()"
+          title="Diese Figur löschen und von vorn beginnen">Verwerfen und neu anfangen</button>
         <div class="ok-msg" id="endMsg"></div>
       </div>
     </div>
@@ -697,6 +701,9 @@ let meinCode = '';
    darf geschrieben werden. Vorher wuerde ein frischer Browser
    seinen leeren Stand ueber eine bestehende Figur schreiben. */
 let startBereit = false;
+/* Nach dem Verwerfen darf NICHTS mehr hochgeschrieben werden, sonst
+   legt der naechste Schreibzugriff die gerade geloeschte Figur neu an. */
+let geloescht = false;
 let uebernommen = '';     // Code einer Figur, die wir gefunden statt angelegt haben
 let istNeueFigur = false;
 
@@ -797,6 +804,65 @@ function zeigeCode() {
   n.textContent = nm ? nm + ' · ' + (sitzungFest() || SITZUNG_VORGABE) : '—';
 }
 
+/* ==========================================================
+   VERWERFEN UND NEU ANFANGEN
+   ----------------------------------------------------------
+   Dasselbe Loeschen wie im Heldenbrief, nur mit dem Ausgang,
+   den man hier erwartet: ein leerer Assistent auf Schritt 1.
+
+   Zwei Schritte, weil es endgueltig ist und kein Backup gibt.
+   Und zuerst der entprellte Schreibvorgang weg (speichern()
+   plant nachFirebase() 800 ms spaeter ein) - sonst legt er die
+   Figur gleich wieder an.
+   ========================================================== */
+function figurVerwerfenFragen() {
+  const wie = (META.name || '').trim();
+  const bezeichnung = wie || 'diese namenlose Figur';
+
+  if (!confirm('„' + bezeichnung + '" verwerfen und von vorn anfangen?\n\n' +
+      'Werte, Talente, Schwächen und Steckbrief sind dann weg. ' +
+      'Das lässt sich nicht zurücknehmen, und es gibt keine Sicherung.')) return;
+
+  const verlangt = wie || 'verwerfen';
+  const eingabe = prompt('Zur Sicherheit: tipp „' + verlangt + '" ein.', '');
+  if (eingabe === null) return;
+  if (String(eingabe).trim().toLowerCase() !== verlangt.toLowerCase()) {
+    alert('Das stimmt nicht überein — es wurde nichts verworfen.');
+    return;
+  }
+
+  if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+  geloescht = true;
+  setzeSync('wird verworfen …', 'var(--amber)');
+
+  const sid = (db && db.sitzung) || SITZUNG_VORGABE;
+  figurLoeschen(db, sid, meinCode || figurSchluessel(spielerName()), function (fehler) {
+    if (fehler) {
+      geloescht = false;
+      setzeSync('nicht gelöscht', '#e05555');
+      alert('Die Figur ließ sich in der Datenbank nicht löschen (' +
+        (fehler.message || 'Fehler') + ').\n\n' +
+        'In diesem Browser ist sie bereits vergessen. Versuch es noch einmal, ' +
+        'sobald die Verbindung steht — oder bitte deine Spielleitung, sie zu entfernen.');
+      return;
+    }
+    // Sauber von vorn: leere Figur, Schritt 1, und wieder schreibbereit.
+    F = leereFigur();
+    META = { name: '', spieler: spielerName() };
+    schritt = 0;
+    geloescht = false;
+    istNeueFigur = true;
+    const note = document.getElementById('uebernahmeNote');
+    if (note) note.hidden = true;
+    const m = document.getElementById('endMsg');
+    if (m) { m.style.color = ''; m.textContent = ''; }
+    setzeSync('verbunden', 'var(--gray)');
+    zeigeCode();
+    zeige();
+    renderAlles();
+  });
+}
+
 function figurFuerDb() {
   const d = {
     name: (META.name || '').slice(0, 60),
@@ -823,6 +889,8 @@ function nachFirebase() {
   // ueberschreiben - genau in dem Moment, in dem wir sie gerade
   // gefunden haben.
   if (!startBereit) return;
+  // Nach dem Verwerfen gar nicht mehr.
+  if (geloescht) return;
   try {
     mitCode(function (code) {
     db.ref('figuren/' + code).update(figurFuerDb())

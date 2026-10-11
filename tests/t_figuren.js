@@ -220,7 +220,7 @@ global.localStorage = {
       S.figurUmzug(db4, 'korsaren', 'anna', function () {
         t('ein Code ohne Figur raeumt sich auf',
           db4.log.filter(function (x) { return x.indexOf('write') === 0; }).length === 0);
-        abschluss();
+        loeschenPruefen();
       });
     }, 60);
   }, 60);
@@ -231,7 +231,7 @@ global.localStorage = {
    ========================================================== */
 function regiePruefen() {
   const rC = inlineCode('regie_hub.html');
-  t('der Regie-Hub zeigt Figuren ohne Spieler', rC.indexOf('function zeichneAltfiguren(') > 0);
+  t('der Regie-Hub listet die Figuren', rC.indexOf('function zeichneFiguren(') > 0);
   t('er kann sie zuordnen', rC.indexOf('function figurZuordnen(') > 0);
   t('und loeschen', rC.indexOf('function figurWeg(') > 0);
   t('Zuordnen schreibt NICHT ueber eine bestehende Figur',
@@ -275,31 +275,141 @@ function regiePruefen() {
     }
   }
   vm.createContext(ctx);
-  new vm.Script([cut('esc'), cut('datum'), cut('zeichneAltfiguren')].join('\n'),
+  new vm.Script([cut('esc'), cut('datum'), cut('zeichneFiguren')].join('\n'),
     { filename: 'regie_hub.html:alt' }).runInContext(ctx);
 
   ctx.sitzungen = { s1: { spieler: { anna: { name: 'Anna' } }, stand: { figuren: {
     anna:   { name: 'Mara', spieler: 'Anna', angelegt: 1000 },
     K7M3QP: { name: 'Verwaist', spieler: 'Bert', angelegt: 2000 }
   } } } };
-  const h = ctx.zeichneAltfiguren('s1');
-  t('nur die verwaiste Figur wird gemeldet', h.indexOf('Verwaist') > 0 && h.indexOf('Mara') < 0);
-  t('die Zahl stimmt', h.indexOf('1 Figur(en) ohne Spieler') > 0, h.slice(0, 120));
-  t('sie laesst sich zuordnen und loeschen',
-    h.indexOf('zuordnen') > 0 && h.indexOf('löschen') > 0);
+  const h = ctx.zeichneFiguren('s1');
+  t('beide Figuren werden gelistet', h.indexOf('Verwaist') > 0 && h.indexOf('Mara') > 0);
+  t('die Verwaisten werden gezaehlt', h.indexOf('1 von 2 Figur(en) ohne Spieler') > 0,
+    h.slice(0, 160).replace(/<[^>]*>/g, ' '));
+  t('nur die verwaiste laesst sich zuordnen',
+    (h.match(/figurZuordnen\(/g) || []).length === 1);
+  t('beide lassen sich loeschen', (h.match(/figurWeg\(/g) || []).length === 2);
+  t('die verwaiste steht oben', h.indexOf('Verwaist') < h.indexOf('Mara'));
 
   ctx.sitzungen.sauber = { stand: { figuren: { anna: { name: 'Mara' } } } };
-  t('bei sauberem Stand erscheint nichts', ctx.zeichneAltfiguren('sauber') === '');
-  t('ohne Figuren erscheint nichts', ctx.zeichneAltfiguren('gibtesnicht') === '');
+  const hs = ctx.zeichneFiguren('sauber');
+  t('bei sauberem Stand keine Warnung', hs.indexOf('ohne Spieler') < 0 && hs.indexOf('1 Figur(en)') > 0,
+    hs.slice(0, 140).replace(/<[^>]*>/g, ' '));
+  t('auch dort kann die SL loeschen', hs.indexOf('figurWeg(') > 0);
+  t('aber nichts zuzuordnen', hs.indexOf('figurZuordnen(') < 0);
+  t('ohne Figuren erscheint nichts', ctx.zeichneFiguren('gibtesnicht') === '');
   ctx.sitzungen.muell = { stand: { figuren: { a: null, K7M3QP: 0 } } };
   t('kaputte Daten brechen die Ansicht nicht', (function () {
-    try { ctx.zeichneAltfiguren('muell'); return true; }
+    try { ctx.zeichneFiguren('muell'); return true; }
     catch (e) { console.log('  ' + e.message); return false; } })());
 
   ctx.sitzungen.xss = { stand: { figuren: {
     AAA111: { name: '<img src=x onerror=boom>', spieler: '<b>X</b>', angelegt: 1 } } } };
-  const hx = ctx.zeichneAltfiguren('xss');
+  const hx = ctx.zeichneFiguren('xss');
   t('Namen werden maskiert', hx.indexOf('<img') < 0 && hx.indexOf('&lt;img') >= 0);
+}
+
+function loeschenPruefen() {
+  /* ==========================================================
+     LOESCHEN
+     ----------------------------------------------------------
+     Die Falle ist nicht das Loeschen, sondern die
+     Wiederauferstehung: speichern() plant nachFirebase() 800 ms
+     spaeter ein. Laeuft so einer noch, als geloescht wird, legt
+     er die Figur wieder an - und der Spieler weiss nicht, warum
+     sie zurueck ist. Deshalb muss der Timer VORHER weg und eine
+     Flagge jeden weiteren Schreibzugriff sperren.
+     ========================================================== */
+  t('figurLoeschen liegt in js/sitzung.js', typeof S.figurLoeschen === 'function');
+
+  const hC = inlineCode('heldenbrief.html');
+  const aC2 = inlineCode('charaktererstellung.html');
+
+  [['heldenbrief.html', hC, 'figurLoeschenFragen'],
+   ['charaktererstellung.html', aC2, 'figurVerwerfenFragen']].forEach(function (p) {
+    const name = p[0], code = p[1], fn = p[2];
+    const i = code.indexOf('function ' + fn + '(');
+    t(name + ': ' + fn + ' existiert', i > 0);
+    if (i < 0) return;
+    let j = code.indexOf('{', i), tief = 0, ende = -1;
+    for (let k = j; k < code.length; k++) {
+      if (code[k] === '{') tief++;
+      else if (code[k] === '}') { tief--; if (tief === 0) { ende = k; break; } }
+    }
+    const koerper = code.slice(i, ende);
+
+    t(name + ': fragt zweimal nach (confirm UND prompt)',
+      koerper.indexOf('confirm(') > 0 && koerper.indexOf('prompt(') > koerper.indexOf('confirm('));
+    t(name + ': der Name muss abgetippt werden',
+      koerper.indexOf('toLowerCase()') > 0 && koerper.indexOf('stimmt nicht') > 0);
+    t(name + ': bricht bei Abbruch ab',
+      koerper.indexOf('=== null) return;') > 0);
+    t(name + ': die Figur wird namentlich genannt', koerper.indexOf('bezeichnung') > 0);
+
+    const iTimer = koerper.indexOf('clearTimeout(syncTimer)');
+    const iFlagge = koerper.indexOf('geloescht = true');
+    const iLoesch = koerper.indexOf('figurLoeschen(db,');
+    t(name + ': der entprellte Schreibvorgang wird abgeraeumt', iTimer > 0);
+    t(name + ': und zwar VOR dem Loeschen', iTimer > 0 && iLoesch > 0 && iTimer < iLoesch,
+      'timer=' + iTimer + ' loesch=' + iLoesch);
+    t(name + ': die Schreibsperre steht vor dem Loeschen',
+      iFlagge > 0 && iLoesch > 0 && iFlagge < iLoesch);
+    t(name + ': ein Fehlschlag wird ehrlich gemeldet',
+      koerper.indexOf('if (fehler)') > 0 && koerper.indexOf('nicht gelöscht') > 0);
+    t(name + ': nach einem Fehlschlag darf wieder geschrieben werden',
+      koerper.indexOf('geloescht = false') > 0);
+
+    // Die Sperre muss im Schreibpfad wirklich gelesen werden.
+    t(name + ': nachFirebase bricht nach dem Loeschen ab',
+      code.indexOf('if (geloescht) return;') > 0);
+  });
+
+  /* Der Assistent soll danach leer auf Schritt 1 stehen. */
+  t('der Assistent fängt danach von vorn an',
+    aC2.indexOf('F = leereFigur();') > 0 && aC2.indexOf('schritt = 0;') > 0);
+  /* Der Heldenbrief fuehrt weiter zur Erschaffung. */
+  t('der Heldenbrief führt danach zur Erschaffung',
+    hC.indexOf("location.href = 'charaktererstellung.html'") > 0);
+
+  /* Knoepfe da, und als Gefahr gekennzeichnet. */
+  const hRoh = fs.readFileSync(path.join(ROOT, 'heldenbrief.html'), 'utf8');
+  const aRoh = fs.readFileSync(path.join(ROOT, 'charaktererstellung.html'), 'utf8');
+  t('der Heldenbrief hat einen Löschknopf', hRoh.indexOf('onclick="figurLoeschenFragen()"') > 0);
+  t('und er ist als Gefahr gekennzeichnet',
+    hRoh.indexOf('class="btn gefahr" onclick="figurLoeschenFragen()"') > 0);
+  t('der Assistent hat einen Verwerfen-Knopf', aRoh.indexOf('onclick="figurVerwerfenFragen()"') > 0);
+
+  /* ---- figurLoeschen wirklich ausfuehren ---- */
+  const DB = { anna: { name: 'Mara' }, bert: { name: 'Finn' } };
+  const log = [];
+  const db = { ref: function (p) { return { remove: function () {
+    log.push(p); delete DB[p.replace('figuren/', '')]; return Promise.resolve(); } }; } };
+  global.localStorage.setItem('kors_figur_korsaren', '{"F":{}}');
+  S.setzeFigurCode('korsaren', 'anna');
+  S.figurLoeschen(db, 'korsaren', 'anna', function (fehler) {
+    t('Loeschen: kein Fehler', !fehler, fehler && fehler.message);
+    t('Loeschen: der Knoten ist weg', !DB.anna, JSON.stringify(Object.keys(DB)));
+    t('Loeschen: fremde Figuren bleiben', !!DB.bert);
+    t('Loeschen: der lokale Rueckfall ist weg',
+      global.localStorage.getItem('kors_figur_korsaren') === null);
+    t('Loeschen: der gemerkte Schluessel ist weg', S.figurCode('korsaren') === '');
+
+    /* Ohne Schluessel darf nichts passieren. */
+    S.figurLoeschen(db, 'korsaren', '', function (f2) {
+      t('ohne Schluessel wird nicht geloescht', !!f2 && log.length === 1, 'log=' + log.length);
+
+      /* Ein Fehler der Datenbank muss durchgereicht werden - sonst meldet
+         die Seite Erfolg, obwohl die Figur noch da ist. */
+      const dbKaputt = { ref: function () { return { remove: function () {
+        return Promise.reject(new Error('PERMISSION_DENIED')); } }; } };
+      S.figurLoeschen(dbKaputt, 'korsaren', 'bert', function (f3) {
+        t('ein Datenbankfehler wird durchgereicht', !!f3 && /PERMISSION/.test(f3.message),
+          f3 && f3.message);
+        t('die Figur ist dann noch da', !!DB.bert);
+        abschluss();
+      });
+    });
+  });
 }
 
 function abschluss() {

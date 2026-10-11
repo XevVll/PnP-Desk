@@ -417,6 +417,42 @@ function istAltSchluessel(schluessel) {
 
 
 /* ==========================================================
+   EINE FIGUR LOESCHEN
+   ----------------------------------------------------------
+   Haengt hier und nicht in den Seiten, weil es drei Stellen
+   sind und das Vergessen EINER davon den Loeschvorgang
+   rueckgaengig macht:
+
+     1. der Knoten in der Datenbank
+     2. der lokale Rueckfall  (kors_figur_{sid})
+     3. der gemerkte Schluessel (pnp_figur_{sid})
+
+   Bleibt (2) stehen, liest die Seite beim naechsten Oeffnen den
+   alten Stand und schreibt ihn zurueck - die Figur waere wieder
+   da, und der Spieler haette keine Ahnung, warum.
+
+   Reihenfolge: ERST lokal, DANN die Datenbank. Bricht es
+   dazwischen ab, ist die Figur in der Datenbank noch da und nur
+   dieser Browser hat sie vergessen. Das ist der harmlosere der
+   beiden halben Zustaende - andersherum waere sie weg und der
+   Browser schriebe sie aus dem Rueckfall wieder hoch.
+
+   Das Loeschen selbst ist NICHT rueckholbar und es gibt kein
+   Backup. Die Rueckfrage gehoert in die Seite, nicht hierher -
+   diese Funktion tut, was man ihr sagt.
+   ========================================================== */
+function figurLoeschen(db, sid, schluessel, fertig) {
+  fertig = fertig || function () {};
+  if (!schluessel) { fertig(new Error('kein Schlüssel')); return; }
+  try { localStorage.removeItem(figurCacheKey(sid)); } catch (e) {}
+  vergissFigurCode(sid);
+  if (!db) { fertig(null); return; }
+  db.ref('figuren/' + schluessel).remove()
+    .then(function () { fertig(null); })
+    .catch(function (e) { fertig(e || new Error('Löschen fehlgeschlagen')); });
+}
+
+/* ==========================================================
    UMZUG EINER ALTEN FIGUR
    ----------------------------------------------------------
    Bis Oktober 2026 lag eine Figur unter einem Zufallscode, den
@@ -475,7 +511,7 @@ if (typeof module !== 'undefined' && module.exports) {
     FIGUR_ALPHABET, FIGUR_LAENGE,
     figurCodeLesbar, figurCodeKey, figurCode,
     setzeFigurCode, vergissFigurCode, spielerKennung,
-    figurSchluessel, istAltSchluessel, figurUmzug,
+    figurSchluessel, istAltSchluessel, figurUmzug, figurLoeschen,
     figurCacheKey, figurCacheUebernehmen,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };
