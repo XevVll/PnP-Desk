@@ -105,6 +105,44 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-11 (Fortsetzung) — Kalender blättert unbegrenzt weiter
+- **Hendriks Vorgabe:** Der Kalender soll sich erweitern lassen — Schaltflächen, um in
+  Zwei-Wochen-Schritten weiterzugehen, **unbegrenzt**.
+- **Der eigentliche Fehler lag nicht in der Anzeige, sondern in der Suche.** `besteFenster()` lief
+  über `tagListe(cfg)`, also über die ersten `cfg.tage` Tage ab heute. Hätte ich nur Knöpfe
+  gebaut, wäre genau das entstanden: Ein Spieler blättert vier Wochen vor, trägt dort ein, es
+  **wird gespeichert — und nie gefunden.** Still, ohne Fehlermeldung, und am Tisch erst dann
+  bemerkt, wenn jemand sagt „ich hatte doch eingetragen".
+- **Neue `datenTage()` in `js/termine.js`:** Gesucht wird jetzt über die Tage, zu denen
+  **tatsächlich etwas eingetragen ist** (vergangene weg, sortiert, ohne Dubletten) statt über
+  einen festen Horizont. Damit ist die Suche von sich aus unbegrenzt und kostet nichts, wenn
+  niemand weit vorausgeplant hat. `cfg.tage` ist dadurch die **Seitengröße**, nicht mehr der
+  Horizont.
+  - `spielerPlan()` läuft ebenfalls darüber — sonst stünde in der Regie nicht, was ein Spieler
+    weiter vorn eingetragen hat.
+- **Blättern im Spieler-Hub** (`blaettern()`, `blaetternHeute()`, `setzePager()`): „‹ 2 Wochen",
+  die angezeigte Spanne, „2 Wochen ›" und ein „heute"-Knopf, der nur erscheint, wenn man nicht
+  auf der ersten Seite steht.
+  - **Nach vorn unbegrenzt, nach hinten bei heute abgeriegelt** (`Math.max(0, …)`). Ein Raster in
+    der Vergangenheit könnte man bemalen, es würde gespeichert und wäre für jede Terminsuche
+    wertlos.
+  - **Der Versatz ist reine Ansichtssache dieses Browsers** und liegt bewusst **nicht** in `cfg`:
+    `cfg` gilt für alle und wird von der Spielleitung gesetzt. Blättert ein Spieler, sieht kein
+    anderer etwas davon.
+  - Die Suche benutzt den Versatz **nicht** — per Test abgesichert, denn ihn dort einzubauen wäre
+    genau der Rückfall in den begrenzten Horizont.
+- **Getestet: 125 Prüfungen über zwei Skripte, 0 Fehler** (22 neue). Darunter: ein Eintrag 30 Tage
+  vorn wird gefunden, einer **400 Tage** vorn auch, der Horizont hängt nachweislich nicht an
+  `cfg.tage` (`tage: 1` findet den Eintrag trotzdem), gestern ergibt kein Fenster, Seiten
+  überschneiden sich nicht, ein negativer Versatz wird auf heute geklemmt, und ein Tag ohne eine
+  einzige `1` zählt nicht als Datentag.
+  - **Die Gleichheit mit der alten Fassung bleibt bewiesen:** derselbe Vergleich über 90
+    Zufallsfälle läuft weiter mit 0 Abweichungen — der Umbau erweitert den Horizont, er ändert
+    innerhalb von 14 Tagen nichts.
+- **Beschriftung über den Jahreswechsel gegengeprüft** (Versatz 70 ergibt „20.12.–02.01."), weil
+  die Spanne aus zwei Datumsangaben ohne Jahr gebaut wird.
+
+
 ### 2026-10-11 — Die Spielleitung sieht die Zeiten je Spielrunde
 - **Hendriks Vorgabe:** Termine gelten pro Spielrunde — zwei Runden haben getrennte Termine —, und
   **in der Regie** muss je Spielrunde sichtbar sein, was die Spieler eingetragen haben, damit sich

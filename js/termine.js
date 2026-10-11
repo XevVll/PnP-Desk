@@ -72,13 +72,49 @@ var TERMINE = (function () {
     d.setHours(0, 0, 0, 0);
     return d;
   }
-  function tagListe(cfg, jetzt) {
+  /* Die Tage EINER SEITE des Rasters. cfg.tage ist damit die
+     Seitengroesse, nicht der Horizont: Mit versatzTage blaettert
+     der Spieler-Hub beliebig weit nach vorn (und bis heute
+     zurueck). Ein Versatz vor heute waere sinnlos - in die
+     Vergangenheit traegt niemand eine Verfuegbarkeit ein. */
+  function tagListe(cfg, jetzt, versatzTage) {
     var out = [], start = heute0(jetzt), i, d;
+    var v = Math.max(0, Math.round(versatzTage || 0));
+    start.setDate(start.getDate() + v);
     for (i = 0; i < cfg.tage; i++) {
       d = new Date(start); d.setDate(start.getDate() + i);
       out.push(d);
     }
     return out;
+  }
+
+  /* ==========================================================
+     ALLE TAGE MIT DATEN
+     ----------------------------------------------------------
+     Der Horizont der Suche darf NICHT an der angezeigten Seite
+     haengen. Sonst entsteht genau der stille Fehler, der beim
+     Blaettern droht: Ein Spieler blaettert vier Wochen vor,
+     traegt dort ein - gespeichert wird es, gefunden nie, weil
+     die Suche nur die ersten 14 Tage ansah.
+
+     Gesucht wird deshalb ueber die Tage, zu denen tatsaechlich
+     etwas eingetragen ist. Damit ist die Suche von sich aus
+     unbegrenzt und kostet trotzdem nichts, wenn niemand weit
+     vorausgeplant hat. Vergangene Tage fallen weg.
+     ========================================================== */
+  function datenTage(st, jetzt) {
+    var verfuegbar = st.verfuegbar || {}, spieler = st.spieler || {};
+    var heuteIso = iso(heute0(jetzt));
+    var gesehen = {};
+    Object.keys(spieler).forEach(function (pid) {
+      var v = verfuegbar[pid];
+      if (!v) return;
+      Object.keys(v).forEach(function (d) {
+        if (d >= heuteIso && String(v[d] || '').indexOf('1') >= 0) gesehen[d] = true;
+      });
+    });
+    // ISO-Datum sortiert sich als Text korrekt.
+    return Object.keys(gesehen).sort();
   }
   function iso(d) {
     return d.getFullYear() + '-' +
@@ -131,10 +167,13 @@ var TERMINE = (function () {
     var n = slotAnzahl(cfg), w = fensterSlots(cfg), out = [];
     if (!pids.length || w > n) return out;
     var nun = jetzt || new Date();
-    var heuteIso = iso(nun);
+    var heuteIso = iso(heute0(nun));
 
-    tagListe(cfg, nun).forEach(function (d) {
-      var ds = iso(d), tage = {};
+    // Ueber alle Tage mit Daten, nicht ueber die angezeigte Seite -
+    // sonst findet die Suche nicht, was weiter vorn eingetragen ist.
+    datenTage(st, nun).forEach(function (ds) {
+      var d = new Date(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10));
+      var tage = {};
       pids.forEach(function (p) { tage[p] = holeTag(verfuegbar, p, ds, cfg); });
       for (var s = 0; s + w <= n; s++) {
         // Ein Fenster, das heute schon vorbei ist, nicht mehr vorschlagen.
@@ -205,10 +244,15 @@ var TERMINE = (function () {
   /* Alle Tage eines Spielers, an denen er ueberhaupt kann.
      Vergangene Tage fallen weg - sie sind fuer eine Terminsuche
      ohne Wert und wuerden die Liste nur lang machen. */
+  /* Alle Tage eines Spielers, an denen er kann - ebenfalls ueber
+     die Daten, nicht ueber die angezeigte Seite. Sonst stuende in
+     der Regie nicht, was ein Spieler weiter vorn eingetragen hat. */
   function spielerPlan(st, pid, jetzt) {
     var cfg = st.cfg, out = [];
-    tagListe(cfg, jetzt).forEach(function (d) {
-      var ds = iso(d), sp = spannen(st.verfuegbar, pid, ds, cfg);
+    var nur = {};
+    nur[pid] = st.spieler && st.spieler[pid] ? st.spieler[pid] : {};
+    datenTage({ spieler: nur, verfuegbar: st.verfuegbar }, jetzt).forEach(function (ds) {
+      var sp = spannen(st.verfuegbar, pid, ds, cfg);
       if (sp.length) out.push({ datum: ds, spannen: sp, text: spannenText(cfg, sp) });
     });
     return out;
@@ -248,7 +292,7 @@ var TERMINE = (function () {
     STD_CFG: STD_CFG, SLOT_MIN: SLOT_MIN, WT: WT,
     mitCfg: mitCfg, ausKnoten: ausKnoten,
     slotAnzahl: slotAnzahl, fensterSlots: fensterSlots,
-    heute0: heute0, tagListe: tagListe, iso: iso,
+    heute0: heute0, tagListe: tagListe, datenTage: datenTage, iso: iso,
     slotZeit: slotZeit, uhr: uhr, minutenVon: minutenVon, langDatum: langDatum,
     holeTag: holeTag, kann: kann, zaehle: zaehle, hatEingetragen: hatEingetragen,
     besteFenster: besteFenster, fensterText: fensterText, fensterUhrzeit: fensterUhrzeit,

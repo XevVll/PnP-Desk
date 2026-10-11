@@ -88,6 +88,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .chip.me{border-color:var(--gold);color:var(--gold)}
 .rw.ist{border-color:var(--teal)}
 .rw-s{font-size:.78rem;color:var(--teal);white-space:nowrap;font-weight:600}
+.pager{display:flex;align-items:center;gap:.35rem}
+.pager-s{font-size:.76rem;color:var(--gray);white-space:nowrap;min-width:9.5rem;text-align:center}
+.pager .btn[disabled]{opacity:.35;cursor:default}
 .cfgzeig{font-size:.8rem;color:var(--gold);letter-spacing:.04em;white-space:nowrap}
 .hint{font-size:.71rem;color:var(--gray);font-style:italic;line-height:1.55;margin-top:.5rem}
 .empty{color:var(--gray);font-style:italic;font-size:.8rem;padding:.6rem 0}
@@ -195,6 +198,15 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
       <div class="calbar">
         <span style="font-family:'Cinzel',serif;letter-spacing:.06em;color:var(--gray)">Trag ein, wann du kannst:</span>
         <span class="cfgzeig" id="cfgZeig" title="Stellt die Spielleitung ein"></span>
+        <span class="pager">
+          <button class="btn btn-sm" id="pagerZurueck" onclick="blaettern(-1)"
+            title="Zwei Wochen zurück">‹ 2 Wochen</button>
+          <span class="pager-s" id="pagerSpanne"></span>
+          <button class="btn btn-sm" onclick="blaettern(1)"
+            title="Zwei Wochen weiter — beliebig weit">2 Wochen ›</button>
+          <button class="btn btn-sm" id="pagerHeute" onclick="blaetternHeute()"
+            title="Zurück zu heute">heute</button>
+        </span>
         <button class="btn btn-sm" onclick="meineLeeren()">Meine Zeiten löschen</button>
       </div>
 
@@ -257,6 +269,14 @@ let cfg = TERMINE.mitCfg(null);
 let spieler = {};        // pid -> { name }
 let verfuegbar = {};     // pid -> { datum -> bitstring }
 let gewaehlt = null;     // { datum, slot }
+/* Um wie viele Tage ist das Raster nach vorn geblaettert? Reine
+   Ansichtssache dieses Browsers, gehoert nicht in die Datenbank -
+   und ausdruecklich NICHT in cfg, denn cfg gilt fuer alle und
+   wird von der Spielleitung gesetzt. Nach vorn unbegrenzt, nach
+   hinten bei heute abgeriegelt: In die Vergangenheit traegt
+   niemand eine Verfuegbarkeit ein. */
+let versatz = 0;
+const SEITE_TAGE = 14;   // Schrittweite der Knoepfe: zwei Wochen
 let db = null, online = false;
 let echteDb = null;   // ohne Sitzungs-Praefix, fuer Beitritt und Zeiger
 
@@ -284,7 +304,7 @@ function fensterSlots() { return TERMINE.fensterSlots(cfg); }
 
 /* ---------- Datum ---------- */
 function heute0()            { return TERMINE.heute0(); }
-function tagListe()          { return TERMINE.tagListe(cfg); }
+function tagListe()          { return TERMINE.tagListe(cfg, null, versatz); }
 function iso(d)              { return TERMINE.iso(d); }
 function slotZeit(i)         { return TERMINE.slotZeit(cfg, i); }
 function langDatum(isoStr)   { return TERMINE.langDatum(isoStr); }
@@ -539,6 +559,44 @@ function esc(s) {
 /* ==========================================================
    KONFIGURATION
    ========================================================== */
+/* ==========================================================
+   BLAETTERN
+   ----------------------------------------------------------
+   Nach vorn ohne Grenze. Nach hinten nur bis heute: Ein Raster
+   in der Vergangenheit koennte man bemalen, es wuerde gespeichert
+   und waere fuer jede Terminsuche wertlos.
+
+   Wichtig: Der Versatz betrifft NUR die Anzeige. Die Fenstersuche
+   laeuft ueber alle Tage, zu denen etwas eingetragen ist
+   (TERMINE.datenTage) - sonst waere alles, was jemand weiter vorn
+   eintraegt, gespeichert, aber unauffindbar.
+   ========================================================== */
+function blaettern(richtung) {
+  versatz = Math.max(0, versatz + richtung * SEITE_TAGE);
+  renderKalender(); renderErgebnis();
+}
+function blaetternHeute() {
+  if (!versatz) return;
+  versatz = 0;
+  renderKalender(); renderErgebnis();
+}
+function setzePager() {
+  const zurueck = document.getElementById('pagerZurueck');
+  const heuteKn = document.getElementById('pagerHeute');
+  const spanne = document.getElementById('pagerSpanne');
+  if (zurueck) zurueck.disabled = (versatz === 0);
+  if (heuteKn) heuteKn.hidden = (versatz === 0);
+  if (spanne) {
+    const tage = TERMINE.tagListe(cfg, null, versatz);
+    const a = tage[0], b = tage[tage.length - 1];
+    const kurz = function (d) {
+      return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.';
+    };
+    spanne.textContent = kurz(a) + '–' + kurz(b) +
+      (versatz === 0 ? '' : ' (+' + (versatz / 7) + ' Wo.)');
+  }
+}
+
 function setzeCfgFelder() {
   // Nur noch Anzeige: Eingestellt wird im Regie-Hub.
   const n = document.getElementById('cfgZeig');
@@ -610,6 +668,7 @@ function renderKalender() {
     });
   }
   el.innerHTML = h;
+  setzePager();
   document.getElementById('planCount').textContent =
     Object.keys(spieler).length + ' angemeldet · nächste ' + cfg.tage + ' Tage';
 }

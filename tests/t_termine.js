@@ -347,5 +347,87 @@ t('Spieler schreibt seine eigenen Zeiten',
 t('Regie-Hub setzt den Termin', hubC.indexOf('function terminSetzen(') > 0);
 t('Regie-Hub kann ihn auch zuruecknehmen', hubC.indexOf('zur') > 0 && hubC.indexOf('cknehmen') > 0);
 
+/* ==========================================================
+   BLAETTERN UND UNBEGRENZTER HORIZONT
+   ----------------------------------------------------------
+   Der gefaehrliche Fehler beim Blaettern ist nicht die Anzeige,
+   sondern die Suche: Blaettert ein Spieler vier Wochen vor und
+   traegt dort ein, wird es gespeichert - und war vorher NIE
+   gefunden worden, weil besteFenster() nur die ersten
+   cfg.tage Tage ansah. Genau das pruefen die naechsten Faelle.
+   ========================================================== */
+function tagInTagen(n) {
+  const d = T.heute0(); d.setDate(d.getDate() + n); return T.iso(d);
+}
+
+/* Seitenweise blaettern. */
+const s0 = T.tagListe(cfg, null, 0).map(T.iso);
+const s14 = T.tagListe(cfg, null, 14).map(T.iso);
+const s28 = T.tagListe(cfg, null, 28).map(T.iso);
+t('eine Seite umfasst cfg.tage Tage', s0.length === cfg.tage);
+t('Seite 2 beginnt, wo Seite 1 endet', s14[0] === tagInTagen(14));
+t('Seiten ueberschneiden sich nicht', s0.indexOf(s14[0]) < 0 && s14.indexOf(s28[0]) < 0);
+t('Versatz 0 beginnt heute', s0[0] === tagInTagen(0));
+t('negativer Versatz wird auf heute geklemmt',
+  T.tagListe(cfg, null, -70).map(T.iso)[0] === tagInTagen(0));
+t('sehr weiter Versatz funktioniert',
+  T.tagListe(cfg, null, 3650).map(T.iso)[0] === tagInTagen(3650));
+
+/* Der tragende Fall: Eintrag weit vorn wird gefunden. */
+const weit = tagInTagen(30);
+const stWeit = { cfg: cfg, spieler: { a: { name: 'A' } }, verfuegbar: { a: { [weit]: voll } } };
+const rWeit = T.besteFenster(stWeit);
+t('ein Eintrag 30 Tage vorn wird GEFUNDEN', rWeit.length === 1 && rWeit[0].datum === weit,
+  JSON.stringify(rWeit.map(x => x.datum)));
+const sehrWeit = tagInTagen(400);
+const rSehr = T.besteFenster({ cfg: cfg, spieler: { a: { name: 'A' } },
+  verfuegbar: { a: { [sehrWeit]: voll } } });
+t('auch 400 Tage vorn wird gefunden', rSehr.length === 1 && rSehr[0].datum === sehrWeit);
+t('der Horizont haengt NICHT an cfg.tage',
+  T.besteFenster({ cfg: T.mitCfg({ tage: 1 }), spieler: { a: { name: 'A' } },
+    verfuegbar: { a: { [weit]: voll } } }).length === 1);
+
+/* Vergangenes bleibt draussen. */
+const gestern2 = tagInTagen(-1);
+t('ein Eintrag von gestern ergibt kein Fenster',
+  T.besteFenster({ cfg: cfg, spieler: { a: { name: 'A' } },
+    verfuegbar: { a: { [gestern2]: voll } } }).length === 0);
+t('datenTage laesst Vergangenes weg',
+  T.datenTage({ spieler: { a: {} }, verfuegbar: { a: { [gestern2]: voll, [weit]: voll } } })
+    .join(',') === weit);
+
+/* datenTage: nur Tage mit echter Eintragung, sortiert, ohne Dubletten. */
+const dt = T.datenTage({ spieler: { a: {}, b: {} }, verfuegbar: {
+  a: { [tagInTagen(5)]: voll, [tagInTagen(2)]: '0'.repeat(N) },
+  b: { [tagInTagen(5)]: voll, [tagInTagen(9)]: voll } } });
+t('datenTage ist sortiert und ohne Dubletten',
+  dt.join(',') === [tagInTagen(5), tagInTagen(9)].join(','), dt.join(','));
+t('ein Tag ohne eine einzige 1 zaehlt nicht', dt.indexOf(tagInTagen(2)) < 0);
+t('datenTage ignoriert Spieler, die nicht in der Sitzung sind',
+  T.datenTage({ spieler: {}, verfuegbar: { x: { [weit]: voll } } }).length === 0);
+
+/* Die Regie sieht ebenfalls, was weiter vorn liegt. */
+const planWeit = T.spielerPlan({ cfg: cfg, spieler: { a: { name: 'A' } },
+  verfuegbar: { a: { [weit]: voll, [tagInTagen(200)]: voll } } }, 'a');
+t('spielerPlan reicht ueber cfg.tage hinaus', planWeit.length === 2,
+  JSON.stringify(planWeit.map(x => x.datum)));
+const ubWeit = T.uebersicht({ cfg: cfg, spieler: { a: { name: 'A' } },
+  verfuegbar: { a: { [weit]: voll } } });
+t('die Regie-Uebersicht zeigt Zeiten weit vorn',
+  ubWeit[0].eingetragen === true && ubWeit[0].tage.length === 1);
+
+/* Der Spieler-Hub: Knoepfe da, Versatz nur Ansicht. */
+t('Spieler-Hub hat Blaetter-Knoepfe',
+  spC.indexOf('function blaettern(') > 0 && spC.indexOf('function blaetternHeute(') > 0);
+t('Blaettern ist auf heute abgeriegelt', spC.indexOf('Math.max(0, versatz') > 0);
+t('Schrittweite sind zwei Wochen', spC.indexOf('SEITE_TAGE = 14') > 0);
+t('der Versatz geht NICHT in die Datenbank',
+  schreibtAuf(spC, 'termine/config') === false && spC.indexOf("versatz)") > 0);
+t('die Rasteranzeige benutzt den Versatz',
+  spC.indexOf('TERMINE.tagListe(cfg, null, versatz)') > 0);
+/* Und die Suche benutzt ihn NICHT - sonst waere sie wieder begrenzt. */
+t('besteFenster wird ohne Versatz aufgerufen',
+  spC.indexOf('TERMINE.besteFenster({ cfg: cfg, spieler: spieler, verfuegbar: verfuegbar })') > 0);
+
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);
