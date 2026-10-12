@@ -61,6 +61,13 @@ button.gefahr{border-color:#c05555;color:#c05555}
 .sp .x:hover{color:#e05555}
 .sp.da{border-color:rgba(42,157,143,.5)}
 .meld{font-size:.78rem;margin-top:.5rem;min-height:1.1em}
+.srang{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.7rem;
+  padding:.35rem .5rem;border:1px dashed var(--border);border-radius:5px}
+.srang-l{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.srang select{font-size:.76rem;padding:.1rem .25rem;background:var(--dark);color:var(--ink);
+  border:1px solid var(--border);border-radius:4px}
+.srang-h{font-size:.74rem;color:var(--gray);font-style:italic}
+.srang-h b{color:var(--gold);font-style:normal}
 .figs{margin-top:.7rem;border:1px solid var(--border);border-radius:6px;padding:.55rem .7rem}
 .figs.warn{border-color:#ca6702;background:rgba(202,103,2,.08)}
 .figs-k{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);
@@ -510,6 +517,56 @@ function figurZuordnen(id, schluessel) {
   });
 }
 
+/* ==========================================================
+   STARTRANG
+   ----------------------------------------------------------
+   Eine neue Figur ist Novize. Punkt. Wer die gespielte Kampagne
+   als Vorgeschichte zaehlt, soll hoeher einsteigen koennen -
+   aber das entscheidet die Spielleitung, nicht der Spieler.
+
+   Liegt im meta der Sitzung und nicht im Spielstand: Es ist
+   eine Vorgabe fuer die Runde, kein Zustand, der sich im Spiel
+   aendert. "sitzungen" ist ohnehin schon beschreibbar, es kommt
+   also kein Pfad und keine Regel dazu.
+
+   Freigegeben wird eine OBERGRENZE, nicht ein fester Rang: Wer
+   lieber als Novize anfangen will, darf das auch dann.
+   ========================================================== */
+function startRangSetzen(id, wert) {
+  const r = Math.max(0, Math.min(4, +wert || 0));
+  db.ref('sitzungen/' + id + '/meta/startRang').set(r)
+    .then(function () {
+      meld('sitzMeld', r === 0
+        ? 'Neue Figuren starten als Novize.'
+        : 'Neue Figuren dürfen bis ' + RANG_NAMEN[r] + ' einsteigen.', 'var(--teal)');
+    })
+    .catch(function (e) {
+      meld('sitzMeld', 'Ließ sich nicht setzen: ' + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+    });
+}
+
+/* Die Rangnamen stehen in js/regelwerk.js - das laedt der Hub aber nicht
+   (er braucht sonst nichts davon). Fuer eine Auswahlliste mit fuenf
+   festen Eintraegen waere das zu viel Ladelast. */
+const RANG_NAMEN = ['Novize', 'Erfahren', 'Veteran', 'Heroisch', 'Legendär'];
+
+function zeichneStartRang(id) {
+  const sit = sitzungen[id] || {};
+  const jetzt = Math.max(0, Math.min(4, +((sit.meta || {}).startRang) || 0));
+  const opt = RANG_NAMEN.map(function (n, r) {
+    return '<option value="' + r + '"' + (r === jetzt ? ' selected' : '') + '>' + n + '</option>';
+  }).join('');
+  return '<div class="srang" onclick="event.stopPropagation()">' +
+    '<span class="srang-l">Startrang</span>' +
+    '<select onchange="startRangSetzen(\'' + id + '\',this.value)">' + opt + '</select>' +
+    '<span class="srang-h">' +
+      (jetzt === 0
+        ? 'Neue Figuren sind Novize.'
+        : 'Neue Figuren dürfen bis <b>' + RANG_NAMEN[jetzt] + '</b> einsteigen — niedriger geht auch.') +
+    '</span>' +
+  '</div>';
+}
+
 function zeichneFiguren(id) {
   const sit = sitzungen[id] || {};
   const figuren = (sit.stand && sit.stand.figuren) || {};
@@ -765,6 +822,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
+      zeichneStartRang(id) +
       zeichneFiguren(id) +
       zeichneTermine(id) +
       '</div>';

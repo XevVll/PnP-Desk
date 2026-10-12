@@ -105,6 +105,46 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 3) — Neue Figuren sind Novize, außer die SL gibt mehr frei
+- **Hendriks Vorgabe:** „Diese sind immer Novize außer die SL gibt explizit das anders frei."
+  Vorher durfte jeder Spieler seinen Rang im Konzept-Schritt frei wählen (eingebaut am 06.09.,
+  „wer die gespielte Kampagne als Vorgeschichte zählt, steigt höher ein") — die Entscheidung lag
+  damit beim Spieler statt bei der Spielleitung.
+- **Die eigentliche Falle lag aber nicht in der Oberfläche, sondern im Regelwerk.**
+  `steigerungAnwenden()` rechnete den Rang aus den **Steigerungen** zurück
+  (`figur.rang = rangVon(figur.steigerungen).id`). Eine Figur, die als Veteran beginnt, hat null
+  Steigerungen — **die erste Steigerung hätte sie zum Novizen gemacht.** Das wäre genau in dem
+  Moment aufgefallen, in dem Hendrik die Freigabe zum ersten Mal benutzt.
+  - Neues Feld **`startRang`** an der Figur und **`rangJetzt(figur)`** =
+    `max(startRang, rangVon(steigerungen))`. Die Steigerungen können den Rang damit nur **heben,
+    nie senken**. `alsFigur()` übernimmt und klemmt ihn.
+- **Die Freigabe liegt je Sitzung in `sitzungen/{sid}/meta/startRang`** — eine Vorgabe für die
+  Runde, kein Zustand, der sich im Spiel ändert. `sitzungen` ist ohnehin beschreibbar: **kein
+  neuer Pfad, keine Regeländerung.**
+- **Freigegeben wird eine OBERGRENZE, kein fester Rang.** Wer lieber als Novize anfängt, darf das
+  auch dann — die Freigabe nimmt niemandem etwas weg.
+- **Im Assistenten** steht ohne Freigabe schlicht „Novize — so startet in dieser Runde jede Figur.
+  Höher einsteigen gibt die Spielleitung frei." **Nichts anklickbar**: Eine Auswahl mit genau einem
+  Eintrag wäre eine Frage, die keine ist. Mit Freigabe erscheinen genau die erlaubten Ränge plus
+  der Hinweis, bis wohin freigegeben ist.
+  - Die Freigabe wird **beobachtet, nicht einmal gelesen**: Ändert die SL sie, zieht der Assistent
+    sofort nach. Steht eine Figur dann höher als erlaubt, **fällt sie zurück** — sonst trüge sie
+    eine Freigabe weiter, die es nicht mehr gibt.
+  - `waehleRang()` klemmt zusätzlich **im Code**, nicht nur in der Anzeige: Auch ein von Hand
+    abgesetzter Aufruf kommt nicht über die Freigabe hinaus.
+- **Im Regie-Hub** eine Zeile **Startrang** je Sitzung mit allen fünf Rängen und einem Satz, was
+  das bedeutet („Neue Figuren sind Novize." / „… dürfen bis Veteran einsteigen — niedriger geht
+  auch.").
+- **Getestet: 368 Prüfungen über drei Skripte, 0 Fehler** (36 neue). Der tragende Nachweis ist die
+  Falle oben: Eine Figur mit `startRang: 2` ist nach einer Steigerung **immer noch Veteran**.
+  Dazu: vier Steigerungen machen einen Novizen zu Erfahren, erspielter Rang **überholt** den
+  Startrang statt ihn zu ersetzen, `rangJetzt` senkt nie, `alsFigur` klemmt Unsinn
+  (`startRang: 99` und `-5`). Die Anzeige wird wirklich ausgeführt: ohne Freigabe **kein einziges
+  `onclick`**, mit Freigabe genau die erlaubten Ränge und die übrigen nicht; Wahl bis zur Grenze
+  geht, darüber wird geklemmt, darunter bleibt erlaubt. Und der Würfelkern samt Budgets ist
+  unverändert.
+
+
 ### 2026-10-12 (Fortsetzung 2) — Jede Anfangszeit eines Tages wählbar
 - **Hendriks Meldung:** „Ich kann nur eine Zeit am Tag wählen. Auch wenn von 18 Uhr zb verfügbar
   ist." Zu Recht — das war kein Fehler, sondern eine Regel, die zu weit ging: `besteFenster()`

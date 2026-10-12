@@ -154,6 +154,14 @@ function rangVon(steigerungen) {
 }
 function rangName(id) { return (RAENGE[id] || RAENGE[0]).name; }
 
+/* Der Rang, der jetzt gilt. Die Steigerungen koennen ihn nur HEBEN,
+   nie senken - sonst verlöre eine Figur, die hoeher eingestiegen ist,
+   ihren Startrang bei der ersten Steigerung. */
+function rangJetzt(figur) {
+  const erspielt = rangVon(figur.steigerungen || 0).id;
+  return Math.max(+figur.startRang || 0, erspielt);
+}
+
 /* ==========================================================
    DER STECKBRIEF
    Fuenf Felder ohne jede Zahl. Sie kosten nichts und wiegen
@@ -499,6 +507,12 @@ function ausgabenMuenzen(figur) {
 function leereFigur() {
   const f = {
     rang:0, steigerungen:0,
+    // Mit welchem Rang die Figur ANGEFANGEN hat. Normalerweise Novize;
+    // die Spielleitung kann je Sitzung einen hoeheren Start freigeben.
+    // Ohne dieses Feld wuerde die erste Steigerung den Rang auf das
+    // zurueckrechnen, was die Steigerungen allein hergeben - eine Figur,
+    // die als Veteran begonnen hat, faende sich als Novize wieder.
+    startRang:0,
     attributImRang:false,          // "Attribut nur einmal je Rang" braucht einen Merker
     attr:{}, fert:{}, tal:[], hnd:[], brief:{},
     ausr:[], muenzen:STARTGELD,    // Ausruestung als Liste von IDs
@@ -531,6 +545,7 @@ function alsFigur(roh) {
     if (v && typeof v === 'object') return Object.keys(v).map(function (k) { return v[k]; });
     return [];
   }
+  f.startRang = Math.max(0, Math.min(RAENGE.length - 1, +roh.startRang || 0));
   f.tal  = alsListe(roh.tal);
   f.hnd  = alsListe(roh.hnd);
   f.ausr = alsListe(roh.ausr);
@@ -691,7 +706,7 @@ function steigerungArten(figur) {
    gar keine. */
 function steigerungAnwenden(figur, artId, ziele) {
   const z = Array.isArray(ziele) ? ziele : [ziele];
-  const vorherRang = rangVon(figur.steigerungen || 0).id;
+  const vorherRang = rangJetzt(figur);
 
   if (artId === 'attribut') {
     if (!kannAttributSteigern(figur)) return { ok:false, fehler:'In diesem Rang schon genutzt' };
@@ -737,7 +752,7 @@ function steigerungAnwenden(figur, artId, ziele) {
   }
 
   figur.steigerungen = (figur.steigerungen || 0) + 1;
-  const neuerRang = rangVon(figur.steigerungen).id;
+  const neuerRang = rangJetzt(figur);
   figur.rang = neuerRang;
   // Neuer Rang: das Attribut-Kontingent lebt wieder auf.
   if (neuerRang > vorherRang) figur.attributImRang = false;
@@ -1002,7 +1017,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ATTRIBUTE, ATTR_NAMEN, FERTIGKEITEN, FERT_NAMEN, FERT_BY_NAME, ATTR_BY_NAME,
     fertigkeitenVon, istAttribut,
     ATTR_PUNKTE, FERT_PUNKTE, GRATIS_TALENTE, TALENT_KOSTEN, MAX_SCHWER, MAX_LEICHT,
-    BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, STECKBRIEF, CREW_STEPS,
+    BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, rangJetzt, STECKBRIEF, CREW_STEPS,
     TALENT_KATEGORIEN, TALENTE, HANDICAPS, TAL_BY_ID, HND_BY_ID, talenteDerKategorie,
     AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, ausruestungDerArt,
     traglast, getragen, ueberladen, ruestbonus, ausgabenMuenzen,

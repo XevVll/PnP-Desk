@@ -653,6 +653,145 @@ function huellePruefen() {
   t('hatLokaleFigur benutzt dieselbe Pruefung',
     hC3.indexOf('return istFigurEcht(zusammen);') > 0);
 
+  rangPruefen();
+}
+
+function rangPruefen() {
+  /* ==========================================================
+     STARTRANG
+     ----------------------------------------------------------
+     Hendriks Vorgabe vom 12.10.: "Diese sind immer Novize außer
+     die SL gibt explizit das anders frei."
+
+     Die eigentliche Falle lag nicht in der Oberflaeche, sondern
+     im Regelwerk: steigerungAnwenden() rechnete den Rang aus den
+     STEIGERUNGEN zurueck. Eine Figur, die als Veteran beginnt,
+     waere bei der ersten Steigerung Novize geworden.
+     ========================================================== */
+  t('die Figur merkt sich ihren Startrang', R.leereFigur().startRang === 0);
+  t('rangJetzt gibt es', typeof R.rangJetzt === 'function');
+
+  const v = R.leereFigur(); v.startRang = 2; v.rang = 2;
+  t('Startrang gilt ohne Steigerungen', R.rangJetzt(v) === 2, R.rangJetzt(v));
+  const ok1 = R.steigerungAnwenden(v, 'neueFert', 'Segeln');
+  t('eine Steigerung laeuft durch', ok1.ok === true, JSON.stringify(ok1));
+  t('der Startrang geht dabei NICHT verloren', v.rang === 2, R.rangName(v.rang));
+
+  /* Erspielt darf er weiter steigen. */
+  const e = R.leereFigur(); e.steigerungen = 3;
+  R.steigerungAnwenden(e, 'neueFert', 'Segeln');
+  t('vier Steigerungen machen einen Novizen zu Erfahren', e.rang === 1, R.rangName(e.rang));
+  /* Und ein hoher Start wird vom Erspielten ueberholt, nicht gesenkt. */
+  const h2 = R.leereFigur(); h2.startRang = 1; h2.steigerungen = 7;
+  R.steigerungAnwenden(h2, 'neueFert', 'Segeln');
+  t('erspielter Rang ueberholt den Startrang', h2.rang === 2, R.rangName(h2.rang));
+  t('rangJetzt senkt nie', R.rangJetzt({ startRang: 3, steigerungen: 0 }) === 3);
+
+  t('alsFigur uebernimmt den Startrang', R.alsFigur({ startRang: 2 }).startRang === 2);
+  t('alsFigur klemmt Unsinn',
+    R.alsFigur({ startRang: 99 }).startRang === R.RAENGE.length - 1 &&
+    R.alsFigur({ startRang: -5 }).startRang === 0);
+
+  /* ---- Der Assistent ---- */
+  const aC3 = inlineCode('charaktererstellung.html');
+  t('der Assistent kennt eine Freigabe', aC3.indexOf('let rangFrei = 0;') > 0);
+  t('Vorgabe ist Novize', aC3.indexOf('let rangFrei = 0;') > 0);
+  t('die Freigabe kommt aus dem meta der Sitzung',
+    aC3.indexOf("'/meta/startRang'") > 0);
+  t('sie wird beobachtet, nicht einmal gelesen',
+    aC3.indexOf("/meta/startRang').on(") > 0);
+  t('der Startrang wird mitgespeichert', aC3.indexOf('startRang: F.startRang || 0,') > 0);
+
+  /* Die Klemmung muss im Code stehen, nicht nur in der Anzeige. */
+  (function () {
+    const i = aC3.indexOf('function waehleRang(');
+    let j = aC3.indexOf('{', i), tief = 0, ende = -1;
+    for (let k = j; k < aC3.length; k++) {
+      if (aC3[k] === '{') tief++;
+      else if (aC3[k] === '}') { tief--; if (tief === 0) { ende = k; break; } }
+    }
+    const koerper = aC3.slice(i, ende);
+    t('waehleRang klemmt auf die Freigabe',
+      koerper.indexOf('Math.min(rangFrei') > 0, koerper.replace(/\s+/g, ' ').slice(0, 140));
+    t('und setzt startRang, nicht nur rang', koerper.indexOf('F.startRang = r;') > 0);
+  })();
+
+  /* ---- Die Anzeige wirklich ausfuehren ---- */
+  const knoten = {};
+  function el(id) {
+    if (!knoten[id]) knoten[id] = { innerHTML: '', textContent: '' };
+    return knoten[id];
+  }
+  function schneide(code, name) {
+    const i = code.indexOf('function ' + name + '(');
+    let j = code.indexOf('{', i), tief = 0;
+    for (let k = j; k < code.length; k++) {
+      if (code[k] === '{') tief++;
+      else if (code[k] === '}') { tief--; if (tief === 0) return code.slice(i, k + 1); }
+    }
+  }
+  const ctx = {
+    console, Object, String, Array, Math, JSON, document: { getElementById: el },
+    RAENGE: R.RAENGE, rangName: R.rangName, rangJetzt: R.rangJetzt, TAL_BY_ID: R.TAL_BY_ID,
+    talentWaehlbar: R.talentWaehlbar, speichern() {}, renderAlles() {},
+    F: R.leereFigur(), rangFrei: 0
+  };
+  vm.createContext(ctx);
+  new vm.Script([schneide(aC3, 'renderRang'), schneide(aC3, 'waehleRang')].join(String.fromCharCode(10)),
+    { filename: 'charaktererstellung.html:rang' }).runInContext(ctx);
+
+  ctx.renderRang();
+  const ohne = el('rangWahl').innerHTML;
+  t('ohne Freigabe steht dort nur Novize',
+    ohne.indexOf('Novize') >= 0 && ohne.indexOf('Veteran') < 0 && ohne.indexOf('Erfahren') < 0);
+  t('ohne Freigabe gibt es nichts anzuklicken', ohne.indexOf('onclick') < 0, ohne.slice(0, 120));
+  t('ohne Freigabe wird gesagt, wer das ändern kann',
+    ohne.indexOf('Spielleitung') > 0);
+
+  ctx.rangFrei = 2;
+  ctx.renderRang();
+  const mit = el('rangWahl').innerHTML;
+  t('mit Freigabe stehen die erlaubten Ränge da',
+    mit.indexOf('Novize') >= 0 && mit.indexOf('Erfahren') > 0 && mit.indexOf('Veteran') > 0);
+  t('nicht freigegebene Ränge fehlen',
+    mit.indexOf('Heroisch') < 0 && mit.indexOf('Legendär') < 0);
+  t('und sie sind anklickbar', mit.indexOf('onclick="waehleRang(') > 0);
+
+  ctx.waehleRang(2);
+  t('Wahl bis zur Freigabe geht', ctx.F.startRang === 2 && ctx.F.rang === 2);
+  ctx.waehleRang(4);
+  t('darüber hinaus wird geklemmt', ctx.F.startRang === 2, ctx.F.startRang);
+  ctx.waehleRang(0);
+  t('niedriger als die Freigabe geht auch', ctx.F.startRang === 0);
+
+  /* ---- Die Regie gibt frei ---- */
+  const rC2 = inlineCode('regie_hub.html');
+  t('der Regie-Hub kann den Startrang setzen', rC2.indexOf('function startRangSetzen(') > 0);
+  t('er schreibt ins meta der Sitzung',
+    rC2.indexOf("'sitzungen/' + id + '/meta/startRang'") > 0);
+  t('er klemmt auf 0..4', rC2.indexOf('Math.min(4, +wert || 0)') > 0);
+  t('und zeigt den Stand an', rC2.indexOf('function zeichneStartRang(') > 0);
+
+  const rctx = {
+    console, Object, String, Array, Math, JSON,
+    sitzungen: {}, meld() {}, db: { ref() { return { set() { return Promise.resolve(); } }; } }
+  };
+  vm.createContext(rctx);
+  const konst = rC2.slice(rC2.indexOf('const RANG_NAMEN'),
+    rC2.indexOf(';', rC2.indexOf('const RANG_NAMEN')) + 1);
+  new vm.Script([konst, schneide(rC2, 'zeichneStartRang')].join(String.fromCharCode(10)),
+    { filename: 'regie_hub.html:rang' }).runInContext(rctx);
+  rctx.sitzungen = { a: { meta: { name: 'A' } }, b: { meta: { name: 'B', startRang: 2 } } };
+  const oA = rctx.zeichneStartRang('a'), oB = rctx.zeichneStartRang('b');
+  t('ohne Vorgabe steht Novize gewählt', oA.indexOf('value="0" selected') > 0);
+  t('und es wird erklärt', oA.indexOf('sind Novize') > 0);
+  t('mit Vorgabe steht der freigegebene Rang gewählt', oB.indexOf('value="2" selected') > 0);
+  t('und es wird erklärt, dass niedriger auch geht', oB.indexOf('niedriger geht auch') > 0);
+  t('alle fünf Ränge stehen zur Wahl', (oA.match(/<option/g) || []).length === 5);
+  rctx.sitzungen.kaputt = { meta: { startRang: 99 } };
+  t('Unsinn im meta bricht nichts',
+    (function () { try { rctx.zeichneStartRang('kaputt'); return true; } catch (e) { return false; } })());
+
   abschluss();
 }
 

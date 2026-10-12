@@ -29,6 +29,12 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
+.rw-fest{border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;
+  font-family:'Cinzel',serif;color:var(--gold);background:var(--lgold)}
+.rw-fest small{display:block;margin-top:.2rem;font-family:inherit;font-size:.74rem;
+  color:var(--gray);font-style:italic;letter-spacing:0}
+.rw-hint{flex-basis:100%;margin-top:.35rem;font-size:.74rem;color:var(--gray);font-style:italic}
+.rw-hint b{color:var(--gold);font-style:normal}
 .uebernahme{border:1px solid var(--gold);background:var(--lgold);border-radius:6px;
   padding:.6rem .8rem;margin-bottom:1rem;font-size:.84rem;line-height:1.6;color:var(--gold)}
 
@@ -380,15 +386,34 @@ function setName() {
   META.spieler = spielerName();
   speichern();
 }
+/* Ohne Freigabe gibt es nichts zu waehlen - dann steht da schlicht, dass
+   man Novize ist. Eine Auswahl mit genau einem Eintrag waere eine Frage,
+   die keine ist. */
 function renderRang() {
-  document.getElementById('rangWahl').innerHTML = RAENGE.map(function (r) {
-    return '<div class="rw-b' + ((F.rang || 0) === r.id ? ' on' : '') + '" onclick="waehleRang(' + r.id + ')">' +
-      r.name + '<small>' + (r.abSteigerung ? 'ab ' + r.abSteigerung + ' Steig.' : 'Start') + '</small></div>';
-  }).join('');
+  const box = document.getElementById('rangWahl');
+  if (rangFrei <= 0) {
+    box.innerHTML = '<div class="rw-fest">Novize' +
+      '<small>So startet in dieser Runde jede Figur. Höher einsteigen gibt die Spielleitung frei.</small>' +
+      '</div>';
+  } else {
+    box.innerHTML = RAENGE.filter(function (r) { return r.id <= rangFrei; }).map(function (r) {
+      return '<div class="rw-b' + ((F.startRang || 0) === r.id ? ' on' : '') +
+        '" onclick="waehleRang(' + r.id + ')">' +
+        r.name + '<small>' + (r.abSteigerung ? 'ab ' + r.abSteigerung + ' Steig.' : 'Start') +
+        '</small></div>';
+    }).join('') +
+    '<div class="rw-hint">Die Spielleitung hat den Einstieg bis <b>' + rangName(rangFrei) +
+      '</b> freigegeben.</div>';
+  }
   document.getElementById('rangBadge').textContent = rangName(F.rang || 0);
 }
+
 function waehleRang(id) {
-  F.rang = id;
+  // Niemals ueber die Freigabe hinaus - auch nicht, wenn jemand den
+  // Aufruf von Hand absetzt.
+  const r = Math.max(0, Math.min(rangFrei, +id || 0));
+  F.startRang = r;
+  F.rang = rangJetzt(F);
   // Nur der Rang ist eine harte Sperre: Talente, die er nicht mehr traegt, fallen weg.
   F.tal = F.tal.filter(function (tid) { const t = TAL_BY_ID[tid]; return !t || talentWaehlbar(F, t).ok; });
   speichern(); renderAlles();
@@ -706,6 +731,12 @@ let startBereit = false;
 let geloescht = false;
 let uebernommen = '';     // Code einer Figur, die wir gefunden statt angelegt haben
 let istNeueFigur = false;
+/* Bis zu welchem Rang darf in DIESER Sitzung eingestiegen werden?
+   Vorgabe 0 (Novize) - eine neue Figur ist Novize, und nur die
+   Spielleitung kann daran etwas aendern (Regie-Hub, je Sitzung).
+   Bewusst eine OBERGRENZE: Wer lieber als Novize anfaengt, darf das
+   auch dann noch. */
+let rangFrei = 0;
 
 /* Die Realtime Database fuehrt unter ".info/connected" selbst Buch darueber,
    ob die Verbindung steht. Das ist der einzige ehrliche Weg, den Zustand
@@ -761,6 +792,19 @@ function initFirebase() {
     // es schlicht nicht.
     setzeSync('verbinde …', 'var(--gray)');
     beobachteVerbindung();
+    // Was die Spielleitung fuer diese Sitzung freigegeben hat. Liegt im
+    // meta der Sitzung, nicht im Spielstand - "sitzungen" geht ungefiltert
+    // durch die Huelle, die Sitzung muss hier also selbst dran.
+    const sidJetzt = (db && db.sitzung) || SITZUNG_VORGABE;
+    db.ref('sitzungen/' + sidJetzt + '/meta/startRang').on('value', function (s) {
+      const neu = Math.max(0, Math.min(RAENGE.length - 1, +s.val() || 0));
+      if (neu === rangFrei) return;
+      rangFrei = neu;
+      // Eine Figur, die hoeher steht als jetzt erlaubt, faellt zurueck -
+      // sonst traegt sie eine Freigabe weiter, die es nicht mehr gibt.
+      if ((F.startRang || 0) > rangFrei) waehleRang(rangFrei);
+      else renderRang();
+    }, function () { /* kein Zugriff: dann bleibt es bei Novize */ });
     // Wirft der erste Schreibversuch (statt abgelehnt zu werden), ist etwas
     // grundsaetzlich kaputt - dann darf syncBereit nicht stehen bleiben,
     // sonst laeuft jeder spaetere Aufruf in dieselbe Ausnahme.
@@ -868,6 +912,7 @@ function figurFuerDb() {
     name: (META.name || '').slice(0, 60),
     spieler: (META.spieler || '').slice(0, 60) || spielerName(),
     rang: F.rang || 0,
+    startRang: F.startRang || 0,
     steigerungen: F.steigerungen || 0,
     attr: F.attr, fert: F.fert, tal: F.tal, hnd: F.hnd, brief: F.brief,
     aktualisiert: Date.now()
