@@ -29,6 +29,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
+.tal-rest{display:block;margin-top:.3rem;color:var(--amber);font-style:normal}
+.hnd-meld{border:1px solid var(--amber);background:rgba(202,103,2,.1);color:var(--amber);
+  border-radius:6px;padding:.5rem .7rem;margin-bottom:.8rem;font-size:.84rem;line-height:1.5}
 .rw-fest{border:1px solid var(--border);border-radius:6px;padding:.5rem .7rem;
   font-family:'Cinzel',serif;color:var(--gold);background:var(--lgold)}
 .rw-fest small{display:block;margin-top:.2rem;font-family:inherit;font-size:.74rem;
@@ -204,6 +207,7 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
       als jeder Wert — und es bringt die Punkte, aus denen deine Talente bezahlt werden.
       Höchstens ein schweres und zwei leichte.</p>
     <div class="card"><div class="card-body">
+      <div class="hnd-meld" id="hndMeld" hidden></div>
       <div class="pick" id="hndGrid"></div>
       <div class="hint">Die mit <span class="haken">Haken</span> markierten senken keine Würfel, sondern
         lösen Szenen aus. Das sind die interessanteren — sie geben der Spielleitung etwas, woran sie
@@ -432,23 +436,65 @@ function renderHnd() {
 }
 function toggleHnd(id) {
   const i = F.hnd.indexOf(id);
-  if (i >= 0) F.hnd.splice(i, 1);
+  if (i >= 0) {
+    // Eine Schwaeche abzuwaehlen nimmt Punkte weg. Waeren damit Talente
+    // unbezahlt, wird NICHT still eines geloescht - der Spieler soll
+    // selbst entscheiden, welches. Also hier abbrechen und sagen, warum.
+    const h = HND_BY_ID[id];
+    const nachher = handicapPunkte(F) - (h ? (h.schwer ? 2 : 1) : 0);
+    const traegt = GRATIS_TALENTE + Math.floor(nachher / TALENT_KOSTEN);
+    if (F.tal.length > traegt) {
+      hndMeldung('„' + (h ? h.n : 'Diese Schwäche') + '" trägt eines deiner Talente. ' +
+        'Wähl erst im nächsten Schritt ein Talent ab.');
+      return;
+    }
+    F.hnd.splice(i, 1);
+    hndMeldung('');
+  }
   else {
     const h = HND_BY_ID[id];
     if (h.schwer && zaehleSchwer(F) >= MAX_SCHWER) return;
     if (!h.schwer && zaehleLeicht(F) >= MAX_LEICHT) return;
     F.hnd.push(id);
+    hndMeldung('');
   }
   speichern(); renderAlles();
 }
 
+function hndMeldung(txt) {
+  const n = document.getElementById('hndMeld');
+  if (!n) return;
+  n.textContent = txt || '';
+  n.hidden = !txt;
+}
+
 /* ---------- Schritt 2: Talente ---------- */
+/* Wie viele Talente traegt die Figur mit ihren jetzigen Schwaechen?
+   Das erste ist frei, jedes weitere kostet TALENT_KOSTEN. Ein einzelner
+   uebriger Punkt kauft NICHTS - dafuer gibt es in dieser Fassung keine
+   Verwendung, und genau das muss oben stehen, sonst haelt ihn jemand
+   fuer bare Muenze. */
+function talenteErlaubt() {
+  return GRATIS_TALENTE + Math.floor(handicapPunkte(F) / TALENT_KOSTEN);
+}
+
 function renderTal() {
-  const p = pruefeFigur(F);
-  document.getElementById('talLead').textContent =
-    'Was kann deine Figur, das andere nicht können? ' + GRATIS_TALENTE + ' Talent ist frei, jedes weitere kostet ' +
-    TALENT_KOSTEN + ' Punkte aus deinen Schwächen (du hast ' + handicapPunkte(F) + ', davon ' +
-    Math.max(0, p.talentOffen) + ' übrig). Die Voraussetzungen musst du hier noch nicht erfüllen — ' +
+  const erlaubt = talenteErlaubt();
+  const offen = erlaubt - F.tal.length;
+  const punkte = handicapPunkte(F);
+  const rest = punkte % TALENT_KOSTEN;
+
+  document.getElementById('talLead').innerHTML =
+    'Was kann deine Figur, das andere nicht können? <b>' + GRATIS_TALENTE +
+    ' Talent ist frei</b>, jedes weitere kostet <b>' + TALENT_KOSTEN +
+    ' Punkte aus deinen Schwächen</b> — eine schwere bringt 2, eine leichte 1. ' +
+    'Du hast <b>' + punkte + ' Punkte</b> und darfst damit <b>' + erlaubt + ' Talent' +
+    (erlaubt === 1 ? '' : 'e') + '</b> nehmen' +
+    (offen > 0 ? ' (noch ' + offen + ' frei).' : offen === 0 ? ' — alle vergeben.' : '.') +
+    (rest ? ' <span class="tal-rest">' + rest + ' Punkt bleibt übrig und verfällt: ' +
+      'Punkte kaufen hier nur Talente, und eines kostet ' + TALENT_KOSTEN +
+      '. Eine weitere Schwäche bringt dir das nächste.</span>' : '') +
+    '<br>Die Voraussetzungen musst du hier noch nicht erfüllen — ' +
     'sie werden zu deinen Zielen für die nächsten beiden Schritte.';
 
   document.getElementById('talGrid').innerHTML = TALENT_KATEGORIEN.map(function (kat) {
@@ -457,7 +503,11 @@ function renderTal() {
     return '<div class="kat-h">' + kat + '</div>' + liste.map(function (t) {
       const on = F.tal.indexOf(t.id) >= 0;
       const rangOk = talentWaehlbar(F, t).ok;
-      const gesperrt = !on && !rangOk;
+      // Zwei Gruende, warum eine Karte zu ist - und sie brauchen
+      // verschiedene Texte, sonst sucht man den Fehler an der falschen
+      // Stelle. Der Rang ist nicht zu kaufen, die Punkte schon.
+      const zuTeuer = !on && offen <= 0;
+      const gesperrt = !on && (!rangOk || zuTeuer);
       const preis = (!on && F.tal.length < GRATIS_TALENTE) ? 'frei' : TALENT_KOSTEN + ' P';
       let vorTxt = '';
       if ((t.vor || []).length) {
@@ -474,7 +524,12 @@ function renderTal() {
           (t.rang ? '<span class="pk-rang">' + rangName(t.rang) + '</span>' : '') +
         '</span><span class="pk-c">' + preis + '</span></div>' +
         '<div class="pk-d">' + t.d + '</div>' + vorTxt +
-        (gesperrt ? '<div class="pk-sperre">gesperrt: ab ' + rangName(t.rang) + '</div>' : '') +
+        (gesperrt
+          ? '<div class="pk-sperre">' +
+              (!rangOk ? 'gesperrt: ab ' + rangName(t.rang)
+                       : 'keine Punkte mehr — nimm eine Schwäche dazu oder wähle ein Talent ab') +
+            '</div>'
+          : '') +
       '</div>';
     }).join('');
   }).join('');
@@ -484,7 +539,8 @@ function toggleTal(id) {
   if (i >= 0) F.tal.splice(i, 1);
   else {
     const t = TAL_BY_ID[id];
-    if (t && !talentWaehlbar(F, t).ok) return;   // nur der Rang sperrt
+    if (t && !talentWaehlbar(F, t).ok) return;        // der Rang ist nicht zu kaufen
+    if (F.tal.length >= talenteErlaubt()) return;     // und bezahlt muss es sein
     F.tal.push(id);
   }
   speichern(); renderAlles();

@@ -792,6 +792,142 @@ function rangPruefen() {
   t('Unsinn im meta bricht nichts',
     (function () { try { rctx.zeichneStartRang('kaputt'); return true; } catch (e) { return false; } })());
 
+  talentePruefen();
+}
+
+function talentePruefen() {
+  /* ==========================================================
+     TALENTE KOSTEN PUNKTE, UND ZWAR VORHER
+     ----------------------------------------------------------
+     Hendriks Frage vom 12.10.: "Kann ich auch mehr Talente
+     nehmen, als meine Schwäche-Punkte erlauben?" Konnte man -
+     der Assistent sperrte nur den RANG und meckerte den Rest
+     bloss an ("Talente nicht bezahlt"), liess die Figur aber
+     trotzdem abschicken. Seine Vorgabe: dynamisch begrenzen und
+     im Hilfetext klarmachen.
+
+     Eine schwere Schwaeche bringt 2 Punkte, eine leichte 1;
+     hoechstens 1 schwere und 2 leichte, also hoechstens 4. Das
+     erste Talent ist frei, jedes weitere kostet 2 - ein
+     einzelner uebriger Punkt kauft NICHTS.
+     ========================================================== */
+  const aC4 = inlineCode('charaktererstellung.html');
+  t('es gibt eine Obergrenze fuer Talente', aC4.indexOf('function talenteErlaubt(') > 0);
+  t('toggleTal sperrt auch die Punkte, nicht nur den Rang',
+    aC4.indexOf('if (F.tal.length >= talenteErlaubt()) return;') > 0);
+  t('die Karte unterscheidet Rang- und Punktesperre',
+    aC4.indexOf('const zuTeuer =') > 0 && aC4.indexOf('keine Punkte mehr') > 0);
+  t('der Hilfetext nennt die erlaubte Zahl', aC4.indexOf('darfst damit') > 0);
+  t('und warnt vor dem verfallenden Punkt', aC4.indexOf('bleibt übrig und verfällt') > 0);
+  t('eine Schwaeche abzuwaehlen loescht kein Talent hinter dem Ruecken',
+    aC4.indexOf('trägt eines deiner Talente') > 0);
+
+  /* ---- Den Schritt wirklich ausfuehren ---- */
+  const knoten = {};
+  function el(id) {
+    if (!knoten[id]) knoten[id] = { innerHTML: '', textContent: '', hidden: false };
+    return knoten[id];
+  }
+  function schneide(code, name) {
+    const i = code.indexOf('function ' + name + '(');
+    if (i < 0) throw new Error('fehlt: ' + name);
+    let j = code.indexOf('{', i), tief = 0;
+    for (let k = j; k < code.length; k++) {
+      if (code[k] === '{') tief++;
+      else if (code[k] === '}') { tief--; if (tief === 0) return code.slice(i, k + 1); }
+    }
+  }
+  const ctx = {
+    console, Object, String, Array, Math, JSON, document: { getElementById: el },
+    GRATIS_TALENTE: R.GRATIS_TALENTE, TALENT_KOSTEN: R.TALENT_KOSTEN,
+    MAX_SCHWER: R.MAX_SCHWER, MAX_LEICHT: R.MAX_LEICHT,
+    HANDICAPS: R.HANDICAPS, HND_BY_ID: R.HND_BY_ID,
+    TALENTE: R.TALENTE, TAL_BY_ID: R.TAL_BY_ID, TALENT_KATEGORIEN: R.TALENT_KATEGORIEN,
+    talenteDerKategorie: R.talenteDerKategorie, talentWaehlbar: R.talentWaehlbar,
+    handicapPunkte: R.handicapPunkte, pruefeFigur: R.pruefeFigur,
+    zaehleSchwer: R.zaehleSchwer, zaehleLeicht: R.zaehleLeicht,
+    wertVon: R.wertVon, rangName: R.rangName, DLBL: R.DLBL,
+    F: R.leereFigur(), speichern() {}, renderAlles() {}
+  };
+  vm.createContext(ctx);
+  new vm.Script(['talenteErlaubt', 'renderTal', 'toggleTal', 'renderHnd', 'toggleHnd', 'hndMeldung']
+    .map(function (n) { return schneide(aC4, n); }).join(String.fromCharCode(10)),
+    { filename: 'charaktererstellung.html:talente' }).runInContext(ctx);
+
+  const schwer = R.HANDICAPS.filter(function (h) { return h.schwer; })[0];
+  const leicht = R.HANDICAPS.filter(function (h) { return !h.schwer; });
+  const frei = R.TALENTE.filter(function (x) { return (x.rang || 0) === 0; });
+
+  /* Die Rechnung, Zeile fuer Zeile. */
+  const tabelle = [[0, 0, 1], [0, 1, 1], [0, 2, 2], [1, 0, 2], [1, 1, 2], [1, 2, 3]];
+  tabelle.forEach(function (z) {
+    ctx.F = R.leereFigur();
+    for (let i = 0; i < z[0]; i++) ctx.F.hnd.push(schwer.id);
+    for (let i = 0; i < z[1]; i++) ctx.F.hnd.push(leicht[i].id);
+    t(z[0] + ' schwer + ' + z[1] + ' leicht erlaubt ' + z[2] + ' Talent(e)',
+      ctx.talenteErlaubt() === z[2], ctx.talenteErlaubt());
+  });
+
+  /* Ohne Schwaeche: genau eines. */
+  ctx.F = R.leereFigur();
+  ctx.toggleTal(frei[0].id);
+  t('das erste Talent ist frei', ctx.F.tal.length === 1);
+  ctx.toggleTal(frei[1].id);
+  t('ein zweites geht ohne Punkte NICHT', ctx.F.tal.length === 1, ctx.F.tal.length);
+  ctx.renderTal();
+  t('die gesperrte Karte nennt die Punkte als Grund',
+    el('talGrid').innerHTML.indexOf('keine Punkte mehr') > 0);
+
+  /* Mit einer schweren: zwei. */
+  ctx.toggleHnd(schwer.id);
+  t('eine schwere Schwaeche erlaubt ein zweites', ctx.talenteErlaubt() === 2);
+  ctx.toggleTal(frei[1].id);
+  t('und es laesst sich nehmen', ctx.F.tal.length === 2);
+  ctx.toggleTal(frei[2].id);
+  t('ein drittes aber nicht', ctx.F.tal.length === 2);
+
+  /* Ungerader Punkt: aendert nichts, wird aber gesagt. */
+  ctx.toggleHnd(leicht[0].id);
+  t('drei Punkte erlauben weiterhin nur zwei', R.handicapPunkte(ctx.F) === 3 && ctx.talenteErlaubt() === 2);
+  ctx.renderTal();
+  t('der Hilfetext sagt, dass der Punkt verfaellt',
+    el('talLead').innerHTML.indexOf('verfällt') > 0);
+  ctx.toggleHnd(leicht[1].id);
+  t('vier Punkte erlauben drei', ctx.talenteErlaubt() === 3);
+  ctx.renderTal();
+  t('und der Rest-Hinweis verschwindet wieder',
+    el('talLead').innerHTML.indexOf('verfällt') < 0);
+  ctx.toggleTal(frei[2].id);
+  t('das dritte Talent geht jetzt', ctx.F.tal.length === 3);
+
+  /* Der Rueckweg - und er darf nichts hinter dem Ruecken loeschen. */
+  const vorher = ctx.F.hnd.length;
+  ctx.toggleHnd(leicht[1].id);
+  t('eine Schwaeche, die ein Talent traegt, bleibt stehen', ctx.F.hnd.length === vorher);
+  t('und kein Talent verschwindet dabei', ctx.F.tal.length === 3);
+  t('es wird erklaert, warum', el('hndMeld').textContent.indexOf('trägt eines deiner Talente') > 0);
+  t('die Meldung nennt die Schwaeche beim Namen',
+    el('hndMeld').textContent.indexOf(leicht[1].n) >= 0, el('hndMeld').textContent);
+  ctx.toggleTal(frei[2].id);
+  ctx.toggleHnd(leicht[1].id);
+  t('nach dem Abwaehlen des Talents geht es', ctx.F.hnd.length === vorher - 1);
+  t('und die Meldung ist weg', el('hndMeld').textContent === '');
+
+  /* Durchgehend bezahlt - das ist der Sinn der Uebung. */
+  t('nie "Talente nicht bezahlt"',
+    R.pruefeFigur(ctx.F).probleme.indexOf('Talente nicht bezahlt') < 0,
+    R.pruefeFigur(ctx.F).probleme.join(', '));
+
+  /* Die Grenzen der Schwaechen selbst gelten weiter. */
+  const g = R.leereFigur();
+  ctx.F = g;
+  R.HANDICAPS.filter(function (h) { return h.schwer; }).slice(0, 3)
+    .forEach(function (h) { ctx.toggleHnd(h.id); });
+  t('hoechstens eine schwere Schwaeche', R.zaehleSchwer(ctx.F) <= R.MAX_SCHWER, R.zaehleSchwer(ctx.F));
+  leicht.slice(0, 4).forEach(function (h) { ctx.toggleHnd(h.id); });
+  t('hoechstens zwei leichte', R.zaehleLeicht(ctx.F) <= R.MAX_LEICHT, R.zaehleLeicht(ctx.F));
+  t('und damit nie mehr als vier Punkte', R.handicapPunkte(ctx.F) <= 4, R.handicapPunkte(ctx.F));
+
   abschluss();
 }
 

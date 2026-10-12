@@ -105,6 +105,45 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 4) — Talente sind bezahlt, bevor man sie nimmt
+- **Anlass war Hendriks Frage:** „Muss ich alle Schwächen nehmen? Und kann ich auch mehr Talente
+  nehmen, als meine Schwäche-Punkte erlauben?" Antwort auf die erste: nein, Schwächen sind
+  **vollständig optional** (höchstens 1 schwere und 2 leichte, null ist erlaubt) — das war schon
+  richtig und hart begrenzt. Antwort auf die zweite: **ja, man konnte.** `toggleTal()` sperrte nur
+  den **Rang**; bei den Punkten durfte man überziehen, es gab nur eine rote Zahl und den Hinweis
+  „Talente nicht bezahlt" — und **abschicken ließ sich die Figur trotzdem.**
+- **Hendriks Vorgabe darauf:** „Dann sollten wir das in der Auswahl auch dynamisch begrenzen und
+  im Hilfetext oben klar machen."
+- **Die Auswahl ist jetzt die Grenze**, nicht die Nachkontrolle. Neue `talenteErlaubt()`
+  (`GRATIS_TALENTE + ⌊Punkte / TALENT_KOSTEN⌋`), `toggleTal()` steigt darüber hinaus aus, und
+  erschöpfte Karten sind zu.
+  - **Die beiden Sperrgründe sind getrennt beschriftet.** Vorher stand an jeder gesperrten Karte
+    „gesperrt: ab ⟨Rang⟩" — bei einer Punktesperre hätte man den Fehler an der völlig falschen
+    Stelle gesucht. Jetzt: „keine Punkte mehr — nimm eine Schwäche dazu oder wähle ein Talent ab".
+    Der Rang ist nicht zu kaufen, die Punkte schon; das muss man unterscheiden können.
+- **Der Hilfetext rechnet jetzt vor**, statt nur Restpunkte zu nennen: „Du hast 2 Punkte und darfst
+  damit 2 Talente nehmen (noch 1 frei)."
+- **Der verfallende Punkt wird ausgesprochen.** Handicap-Punkte kaufen in dieser Fassung
+  **ausschließlich** Talente, und eines kostet 2 — ein **ungerader Punkt ist wertlos**. Eine
+  einzelne leichte Schwäche bringt mechanisch gar nichts, und „1 schwere + 1 leichte" ist exakt so
+  gut wie „1 schwere" allein. Steht jetzt orange im Hilfetext, sobald es zutrifft: „1 Punkt bleibt
+  übrig und verfällt … Eine weitere Schwäche bringt dir das nächste." Vorher hätte man ihn für
+  bare Münze genommen.
+  - **Die eigentliche Ursache ist damit nicht behoben, nur sichtbar.** Im Original kauft ein Punkt
+    auch einen Fertigkeitspunkt oder Startgeld; diese Verwendungen gibt es hier nicht. Das zu
+    ändern wäre eine Regelentscheidung — Hendrik hat sie (noch) nicht getroffen.
+- **Der Rückweg löscht nichts hinter dem Rücken.** Wählt man eine Schwäche ab, die ein Talent
+  trägt, **bleibt sie stehen** und die Seite sagt, warum: „„Seekrank" trägt eines deiner Talente.
+  Wähl erst im nächsten Schritt ein Talent ab." Bewusst anders als beim Rang, wo ein zu hohes
+  Talent automatisch abfällt — hier soll der Spieler selbst entscheiden, **welches** Talent weicht.
+- **Getestet: 401 Prüfungen über drei Skripte, 0 Fehler** (33 neue). Darunter die ganze
+  Rechentabelle Zeile für Zeile (0/0→1, 0/1→1, 0/2→2, 1/0→2, 1/1→2, 1/2→3) und ein
+  durchgespielter Ablauf: erstes Talent frei, zweites ohne Punkte gesperrt **mit dem richtigen
+  Grund**, nach einer schweren Schwäche geht es, nach einer leichten weiterhin nicht (aber der
+  Hinweis erscheint), nach der zweiten leichten geht das dritte — und der Rückweg bleibt stehen,
+  bis das Talent weg ist. Am Ende steht nachweislich nie „Talente nicht bezahlt".
+
+
 ### 2026-10-12 (Fortsetzung 3) — Neue Figuren sind Novize, außer die SL gibt mehr frei
 - **Hendriks Vorgabe:** „Diese sind immer Novize außer die SL gibt explizit das anders frei."
   Vorher durfte jeder Spieler seinen Rang im Konzept-Schritt frei wählen (eingebaut am 06.09.,
