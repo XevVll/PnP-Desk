@@ -131,11 +131,65 @@ var TERMINE = (function () {
     return WT[d.getDay()] + '. ' + p[2] + '.' + p[1] + '.';
   }
 
-  /* ---------- Bitstrings ---------- */
-  function holeTag(verfuegbar, pid, datum, cfg) {
+  /* ==========================================================
+     BITSTRINGS — absolut, ab 00:00
+     ----------------------------------------------------------
+     Ein Tag sind 48 Zeichen zu je 30 Minuten, und Zeichen 0 ist
+     IMMER 00:00 Uhr. Das klingt nach Verschwendung (angezeigt
+     werden meist nur 16 bis 20 davon), ist aber der ganze Punkt.
+
+     Bis Oktober 2026 begann der String bei cfg.vonStunde. Damit
+     bedeutete derselbe gespeicherte String je nach Raster eine
+     ANDERE Uhrzeit: "0000111100000000" hiess bei von=16 die Zeit
+     18:00-20:00, bei von=17 aber 19:00-21:00. Stellte die
+     Spielleitung das Raster um, verschoben sich rueckwirkend
+     alle schon eingetragenen Zeiten - lautlos, und niemand haette
+     es gemerkt ausser daran, dass die Vorschlaege ploetzlich
+     daneben lagen.
+
+     Jetzt ist das Raster reine ANSICHT. Man kann es beliebig
+     aendern, ohne eine einzige eingetragene Minute zu bewegen.
+     ========================================================== */
+  var TAG_SLOTS = 24 * 60 / SLOT_MIN;   // 48
+
+  /* Der ganze Tag, absolut ab 00:00.
+
+     Alte Eintraege (kuerzer als 48) stammen aus der Zeit, als der
+     String bei cfg.vonStunde begann. Ihr Anker laesst sich nicht
+     aus ihnen selbst ablesen - angenommen wird deshalb, dass ihr
+     Fenster bei 24:00 endete (das war immer so, bisStunde stand
+     nie woanders). Die Bestandsdaten wurden einmalig umgestellt;
+     dieser Zweig ist nur noch ein Netz. */
+  function tagAbsolut(verfuegbar, pid, datum) {
     var s = (verfuegbar && verfuegbar[pid] && verfuegbar[pid][datum]) || '';
+    if (s.length === TAG_SLOTS) return s;
+    if (!s) return '0'.repeat(TAG_SLOTS);
+    var ab = Math.max(0, TAG_SLOTS - s.length);          // 24:00 als Ende angenommen
+    var voll = '0'.repeat(ab) + s;
+    return (voll + '0'.repeat(TAG_SLOTS)).slice(0, TAG_SLOTS);
+  }
+
+  /* Der angezeigte Ausschnitt. Alle Aufrufer rechnen weiterhin in
+     Ansichts-Slots (0 = cfg.vonStunde) - nur die Speicherung ist
+     absolut geworden. */
+  function holeTag(verfuegbar, pid, datum, cfg) {
+    var voll = tagAbsolut(verfuegbar, pid, datum);
+    var ab = cfg.vonStunde * (60 / SLOT_MIN);
     var n = slotAnzahl(cfg);
-    return (s + '0'.repeat(n)).slice(0, n);
+    return (voll.slice(ab, ab + n) + '0'.repeat(n)).slice(0, n);
+  }
+
+  /* Einen angezeigten Ausschnitt zurueck in den ganzen Tag schreiben.
+     Was ausserhalb des Fensters liegt, bleibt unangetastet - sonst
+     wuerde ein verkleinertes Raster die Zeiten davor und danach
+     stillschweigend loeschen. */
+  function setzeAusschnitt(verfuegbar, pid, datum, cfg, bits) {
+    var voll = tagAbsolut(verfuegbar, pid, datum).split('');
+    var ab = cfg.vonStunde * (60 / SLOT_MIN);
+    for (var i = 0; i < bits.length && ab + i < TAG_SLOTS; i++) {
+      voll[ab + i] = (bits[i] === '1') ? '1' : '0';
+    }
+    return voll.join('');
   }
   function kann(verfuegbar, pid, datum, i, cfg) {
     return holeTag(verfuegbar, pid, datum, cfg)[i] === '1';
@@ -337,6 +391,7 @@ var TERMINE = (function () {
     slotAnzahl: slotAnzahl, fensterSlots: fensterSlots,
     heute0: heute0, tagListe: tagListe, datenTage: datenTage, iso: iso,
     slotZeit: slotZeit, uhr: uhr, minutenVon: minutenVon, langDatum: langDatum,
+    TAG_SLOTS: TAG_SLOTS, tagAbsolut: tagAbsolut, setzeAusschnitt: setzeAusschnitt,
     holeTag: holeTag, kann: kann, zaehle: zaehle, hatEingetragen: hatEingetragen,
     besteFenster: besteFenster, fensterAmTag: fensterAmTag,
     fensterText: fensterText, fensterUhrzeit: fensterUhrzeit,

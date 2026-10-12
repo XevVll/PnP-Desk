@@ -515,12 +515,20 @@ function anmeldenBeiDb() {
   }
 }
 
+/* "bits" ist der ANGEZEIGTE Ausschnitt (Slot 0 = cfg.vonStunde).
+   Gespeichert wird aber der ganze Tag ab 00:00 - sonst bedeutete
+   derselbe String je nach Raster eine andere Uhrzeit, und ein
+   Umstellen des Rasters wuerde alle Eintraege verschieben.
+   setzeAusschnitt() laesst dabei alles ausserhalb des Fensters
+   stehen: Ein verkleinertes Raster soll die Zeiten davor und
+   danach nicht stillschweigend loeschen. */
 function schreibeTag(datum, bits) {
   const k = meinKey();
   if (!k) return;   // ohne Namen gibt es keinen Platz, an den das gehoert
   if (!verfuegbar[k]) verfuegbar[k] = {};
-  verfuegbar[k][datum] = bits;
-  if (db) db.ref('termine/verfuegbar/' + k + '/' + datum).set(bits);
+  const voll = TERMINE.setzeAusschnitt(verfuegbar, k, datum, cfg, bits);
+  verfuegbar[k][datum] = voll;
+  if (db) db.ref('termine/verfuegbar/' + k + '/' + datum).set(voll);
 }
 
 /* ==========================================================

@@ -404,7 +404,9 @@ t('Regie-Hub schreibt nach stand/termine/config',
 t('Spieler schreibt seinen eigenen Namen',
   spC.indexOf("db.ref('termine/spieler/' + meinKey()).set(") > 0);
 t('Spieler schreibt seine eigenen Zeiten',
-  spC.indexOf("db.ref('termine/verfuegbar/' + k + '/' + datum).set(bits)") > 0);
+  spC.indexOf("db.ref('termine/verfuegbar/' + k + '/' + datum).set(voll)") > 0);
+t('und zwar den GANZEN Tag, nicht nur den Ausschnitt',
+  spC.indexOf('TERMINE.setzeAusschnitt(verfuegbar, k, datum, cfg, bits)') > 0);
 
 /* Die Regie schreibt, und zwar in die Sitzung. */
 t('Regie-Hub setzt den Termin', hubC.indexOf('function terminSetzen(') > 0);
@@ -588,6 +590,100 @@ t('besteFenster wird ohne Versatz aufgerufen',
   // der Ansicht nennt "andere Zeiten" ebenfalls.
   t('bei nur einer moeglichen Zeit kein Umschalter',
     nurEins.indexOf('t-mehr') < 0, nurEins.indexOf('t-mehr'));
+})();
+
+/* ==========================================================
+   ZEITEN HAENGEN AN DER UHR, NICHT AM RASTER
+   ----------------------------------------------------------
+   Hendriks Beobachtung vom 12.10.: "Wenn ich das Zeitfenster
+   ändere, verschieben sich diese." Genau so war es - der
+   gespeicherte String begann bei cfg.vonStunde, hatte also
+   keinen eigenen Anker. Derselbe String bedeutete bei von=16
+   eine andere Uhrzeit als bei von=14, und ein Umstellen des
+   Rasters verschob rueckwirkend alles, lautlos.
+
+   Jetzt sind 48 Zeichen gespeichert, Zeichen 0 ist 00:00. Das
+   Raster ist reine Ansicht.
+   ========================================================== */
+(function () {
+  t('ein Tag hat 48 Slots', T.TAG_SLOTS === 48, T.TAG_SLOTS);
+  const c14 = T.mitCfg({ vonStunde: 14, bisStunde: 24 });
+  const c16 = T.mitCfg({ vonStunde: 16, bisStunde: 24 });
+  const c09 = T.mitCfg({ vonStunde: 9,  bisStunde: 18 });
+  const tg = T.iso(T.tagListe(c16)[1]);
+
+  /* 18:00-20:00 absolut = Slot 36..39 */
+  let voll = '0'.repeat(48).split('');
+  for (let i = 36; i < 40; i++) voll[i] = '1';
+  voll = voll.join('');
+  const v = { a: { [tg]: voll } };
+
+  t('dieselbe Uhrzeit bei von=16', T.spannenText(c16, T.spannen(v, 'a', tg, c16)) === '18:00–20:00',
+    T.spannenText(c16, T.spannen(v, 'a', tg, c16)));
+  t('dieselbe Uhrzeit bei von=14', T.spannenText(c14, T.spannen(v, 'a', tg, c14)) === '18:00–20:00',
+    T.spannenText(c14, T.spannen(v, 'a', tg, c14)));
+  t('ein Raster, das die Zeit gar nicht zeigt, zeigt nichts',
+    T.spannen(v, 'a', tg, c09).length === 0);
+
+  /* Der Kern: Rasterwechsel bewegt keine Minute. */
+  (function () {
+    const raster = [c09, c14, c16, T.mitCfg({ vonStunde: 0, bisStunde: 24 })];
+    const gesehen = raster.map(function (c) {
+      return T.spannen(v, 'a', tg, c).map(function (sp) {
+        return T.slotZeit(c, sp.von) + '-' + T.uhr(T.minutenVon(c, sp.bis));
+      }).join(',');
+    }).filter(Boolean);
+    const einig = gesehen.every(function (x) { return x === gesehen[0]; });
+    t('ueber alle Raster hinweg dieselbe Uhrzeit', einig, gesehen.join(' | '));
+  })();
+
+  /* Alte Eintraege werden weiter richtig gelesen. */
+  const alt16 = '0000111100000000';            // 16 Zeichen, Fenster endete 24:00 -> ab 16:00
+  const alt20 = '00000000111100000000';        // 20 Zeichen -> ab 14:00
+  t('ein alter 16er-String wird auf 18:00-20:00 gelesen',
+    T.spannenText(c16, T.spannen({ a: { [tg]: alt16 } }, 'a', tg, c16)) === '18:00–20:00',
+    T.spannenText(c16, T.spannen({ a: { [tg]: alt16 } }, 'a', tg, c16)));
+  t('und zwar unabhaengig vom eingestellten Raster',
+    T.spannenText(c14, T.spannen({ a: { [tg]: alt16 } }, 'a', tg, c14)) === '18:00–20:00',
+    T.spannenText(c14, T.spannen({ a: { [tg]: alt16 } }, 'a', tg, c14)));
+  t('ein alter 20er-String ebenso',
+    T.spannenText(c14, T.spannen({ a: { [tg]: alt20 } }, 'a', tg, c14)) === '18:00–20:00',
+    T.spannenText(c14, T.spannen({ a: { [tg]: alt20 } }, 'a', tg, c14)));
+
+  t('tagAbsolut fuellt auf 48 auf', T.tagAbsolut({ a: { [tg]: alt16 } }, 'a', tg).length === 48);
+  t('tagAbsolut ueberlebt Leeres',
+    T.tagAbsolut({}, 'a', tg) === '0'.repeat(48) && T.tagAbsolut(null, 'a', tg).length === 48);
+
+  /* Schreiben: der Ausschnitt wird gesetzt, der Rest bleibt stehen. */
+  (function () {
+    // ganzer Tag belegt, dann im Fenster 16-24 alles abwaehlen
+    const alles = { a: { [tg]: '1'.repeat(48) } };
+    const neuStr = T.setzeAusschnitt(alles, 'a', tg, c16, '0'.repeat(T.slotAnzahl(c16)));
+    t('setzeAusschnitt loescht nur im Fenster',
+      neuStr.slice(0, 32) === '1'.repeat(32) && neuStr.slice(32) === '0'.repeat(16),
+      neuStr);
+    t('was ausserhalb liegt, bleibt erhalten',
+      T.spannenText(T.mitCfg({ vonStunde: 0, bisStunde: 16 }),
+        T.spannen({ a: { [tg]: neuStr } }, 'a', tg, T.mitCfg({ vonStunde: 0, bisStunde: 16 })))
+        === '00:00–16:00');
+    // und das Setzen selbst
+    const leer = { a: {} };
+    const gesetzt = T.setzeAusschnitt(leer, 'a', tg, c16, '1111' + '0'.repeat(12));
+    t('setzeAusschnitt setzt an der richtigen Uhrzeit',
+      T.spannenText(c16, T.spannen({ a: { [tg]: gesetzt } }, 'a', tg, c16)) === '16:00–18:00',
+      T.spannenText(c16, T.spannen({ a: { [tg]: gesetzt } }, 'a', tg, c16)));
+    t('und das Ergebnis ist wieder 48 Zeichen lang', gesetzt.length === 48);
+  })();
+
+  /* Die Fenstersuche rechnet weiterhin richtig. */
+  (function () {
+    const st = { cfg: c14, spieler: { a: { name: 'A' } }, verfuegbar: { a: { [tg]: voll } } };
+    const r = T.besteFenster({ cfg: T.mitCfg({ vonStunde: 14, bisStunde: 24, dauerMin: 120 }),
+      spieler: st.spieler, verfuegbar: st.verfuegbar });
+    t('die Fenstersuche findet die absolute Zeit',
+      r.length === 1 && T.fensterUhrzeit(T.mitCfg({ vonStunde: 14, bisStunde: 24, dauerMin: 120 }), r[0]) === '18:00–20:00',
+      r.length && T.fensterUhrzeit(T.mitCfg({ vonStunde: 14, bisStunde: 24, dauerMin: 120 }), r[0]));
+  })();
 })();
 
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);

@@ -105,6 +105,42 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 7) — Fehler: Zeiten verschoben sich beim Ändern des Rasters
+- **Hendriks Beobachtung, und sie war genau richtig:** „Wenn ich das Zeitfenster ändere,
+  verschieben sich diese. Demnach hängen die Zeiten nicht direkt auf einem Zeitslot, sondern
+  dieser Slot ist relativ zur Größe des gesamten Tages?" — Ja. Der gespeicherte Bitstring begann
+  bei `cfg.vonStunde` und hatte **keinen eigenen Anker**. Derselbe String bedeutete bei `von=16`
+  die Zeit 18:00–20:00 und bei `von=17` plötzlich 19:00–21:00.
+- **Das war kein Schönheitsfehler, sondern stiller Datenverfall.** Stellt die Spielleitung das
+  Raster um, verschieben sich **rückwirkend alle schon eingetragenen Zeiten** — ohne Meldung, und
+  bemerkbar erst daran, dass die Terminvorschläge nicht mehr passen.
+- **Beim Nachsehen in der laufenden Sitzung stand es schon gemischt da:** `kairasy` und `sl` mit
+  20 Zeichen (Raster 14–24, das aktuelle), `lucie` mit 16 (das alte 16–24). Ihre Einträge wurden
+  also bereits zwei Stunden verschoben gelesen. **Zum Glück ohne Schaden: alle vier Tage von
+  `lucie` waren leer.**
+- **Gespeichert wird jetzt absolut:** 48 Zeichen je Tag, Zeichen 0 ist **immer 00:00**. Das
+  Raster ist damit **reine Ansicht** — es lässt sich beliebig verstellen, ohne eine einzige
+  eingetragene Minute zu bewegen. Neue `tagAbsolut()`, `setzeAusschnitt()` und `TAG_SLOTS` in
+  `js/termine.js`; `holeTag()` liefert weiterhin den angezeigten Ausschnitt, **alle Aufrufer
+  bleiben unverändert**.
+  - `setzeAusschnitt()` lässt beim Schreiben alles **außerhalb** des Fensters stehen. Sonst würde
+    ein verkleinertes Raster die Zeiten davor und danach stillschweigend löschen.
+  - Alte Einträge werden weiter richtig gelesen: Ist ein String kürzer als 48, wird angenommen,
+    dass sein Fenster bei 24:00 endete — das traf auf alle Bestandsdaten zu.
+- **Die Bestandsdaten sind einmalig umgestellt** (42 Felder). Geprüft wurde dabei nicht die
+  Zeichenfolge, sondern die **Uhrzeiten**: Für jeden Spieler und Tag muss vorher und nachher
+  dieselbe Menge an Halbstunden belegt sein. Ergebnis: **0 Bedeutungsabweichungen.** Vorher wurde
+  der komplette `termine`-Knoten gesichert.
+  - Reihenfolge war dabei wichtig: **erst den Code ausliefern, dann die Daten umstellen.** Der
+    neue Code liest beide Formate; der alte hätte einen 48-Zeichen-String als Fenster ab 14:00
+    gelesen und Unsinn angezeigt.
+- **Getestet: 464 Prüfungen über drei Skripte, 0 Fehler** (16 neue). Der tragende Nachweis:
+  dieselbe gespeicherte Zeit wird über vier verschiedene Raster hinweg (9–18, 14–24, 16–24, 0–24)
+  **identisch** gelesen. Dazu, dass alte 16er- und 20er-Strings weiterhin auf dieselbe Uhrzeit
+  führen, dass `setzeAusschnitt()` nur im Fenster löscht und außerhalb nichts anfasst, und dass
+  die Fenstersuche die absolute Zeit findet.
+
+
 ### 2026-10-12 (Fortsetzung 6) — Attributs- und Fertigkeitspunkte: erklärt und begrenzt
 - **Hendriks Vorgabe:** Auch die Punkte bei Attributen und Fertigkeiten sollen erklärt werden, und
   **nur das mögliche Maximum** vergeben werden können. Vorher klemmten `chgAttr()` und `setFert()`
