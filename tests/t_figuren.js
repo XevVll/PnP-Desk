@@ -1092,6 +1092,121 @@ function budgetPruefen() {
   t('nie "Fertigkeitspunkte überzogen"',
     R.pruefeFigur(ctx.F).probleme.indexOf('Fertigkeitspunkte überzogen') < 0);
 
+  benniePruefen();
+}
+
+function benniePruefen() {
+  /* ==========================================================
+     BENNIES — und was sie endlich tun
+     ----------------------------------------------------------
+     Hendriks Frage vom 12.10.: "Was ist in dem Regelwerk
+     Glückspilz ein zusätzlicher Bennie?" Beim Nachsehen stellte
+     sich heraus: Der Bennie war ein reiner ZAEHLER. Nirgends im
+     Projekt stand, was man damit anfaengt - nicht im Regelwerk,
+     nicht im Heldenbrief, nicht in der Bibel.
+
+     Dabei setzten zwei Stellen die Wirkung schon voraus: der
+     Steckbrief-Hilfetext ("Kostet er dich einmal etwas, bekommst
+     du dafür einen Bennie") und das Talent "Anfeuern". Jetzt
+     gibt es den Gebrauch, den man am Tisch wirklich braucht:
+     die Probe mit einem Bennie neu würfeln.
+     ========================================================== */
+  t('Glückspilz gibt genau einen Bennie mehr', (function () {
+    const g = R.leereFigur(); g.tal.push('glueck');
+    return R.bennies(g) === R.bennies(R.leereFigur()) + 1;
+  })(), R.bennies(R.leereFigur()));
+  t('ohne Talent sind es drei', R.bennies(R.leereFigur()) === 3, R.bennies(R.leereFigur()));
+
+  const hC4 = inlineCode('heldenbrief.html');
+  t('es gibt eine Wiederholung', hC4.indexOf('function wurfWiederholen(') > 0);
+  t('sie geht über denselben wurf() wie der erste Wurf',
+    (function () {
+      const i = hC4.indexOf('function wurfWiederholen(');
+      return hC4.slice(i, i + 700).indexOf('wurf(letzterWurf.stufe') > 0;
+    })());
+  t('der Bennie wird VOR dem Wurf abgezogen', (function () {
+    const i = hC4.indexOf('function wurfWiederholen(');
+    const k = hC4.slice(i, i + 700);
+    return k.indexOf('F.benniesUebrig') > 0 && k.indexOf('F.benniesUebrig') < k.indexOf('wurf(letzterWurf.stufe');
+  })());
+  t('ohne Bennie passiert nichts', hC4.indexOf('if (benniesStand(F) <= 0) return;') > 0);
+  t('zweimal wiederholen geht nicht', hC4.indexOf('if (!letzterWurf || letzterWurf.zweit) return;') > 0);
+  t('der Hinweis am Zähler erklärt den Gebrauch',
+    hC4.indexOf('komplett neu zu würfeln') > 0);
+
+  /* ---- Den Ablauf wirklich ausfuehren ---- */
+  const knoten = {};
+  function el(id) {
+    if (!knoten[id]) knoten[id] = { innerHTML: '', className: '', textContent: '' };
+    return knoten[id];
+  }
+  function schneide(code, name) {
+    const i = code.indexOf('function ' + name + '(');
+    if (i < 0) throw new Error('fehlt: ' + name);
+    let j = code.indexOf('{', i), tief = 0;
+    for (let k = j; k < code.length; k++) {
+      if (code[k] === '{') tief++;
+      else if (code[k] === '}') { tief--; if (tief === 0) return code.slice(i, k + 1); }
+    }
+  }
+  const feed = [];
+  const ctx = {
+    console, Object, String, Array, Math, JSON, document: { getElementById: el },
+    DLBL: R.DLBL, ZIELZAHL: R.ZIELZAHL, BAND_NAMEN: R.BAND_NAMEN,
+    wurf: R.wurf, wundenAbzug: R.wundenAbzug, bennies: R.bennies, benniesStand: R.benniesStand,
+    esc: function (x) { return x; },
+    F: R.leereFigur(), speichern() {}, renderAlles() {},
+    meldeWurf: function (p, b) { feed.push(p + ' -> ' + b); }
+  };
+  vm.createContext(ctx);
+  new vm.Script('var letzterWurf = null;' + String.fromCharCode(10) +
+    ['wuerfelZeile', 'deutung', 'wurfBlock', 'besserer', 'zeigeWurf', 'wuerfle', 'wurfWiederholen']
+      .map(function (n) { return schneide(hC4, n); }).join(String.fromCharCode(10)),
+    { filename: 'heldenbrief.html:bennie' }).runInContext(ctx);
+
+  ctx.wuerfle('Kämpfen', 3);
+  t('ein normaler Wurf kostet keinen Bennie', R.benniesStand(ctx.F) === 3, R.benniesStand(ctx.F));
+  t('die Wiederholung wird angeboten',
+    el('wurfBox').innerHTML.indexOf('Mit Bennie wiederholen') > 0);
+  t('der Wurf geht in den Feed', feed.length === 1);
+
+  ctx.wurfWiederholen();
+  t('der Bennie ist abgezogen', R.benniesStand(ctx.F) === 2, R.benniesStand(ctx.F));
+  const hh = el('wurfBox').innerHTML;
+  t('beide Würfe stehen nebeneinander',
+    hh.indexOf('Erster Wurf') > 0 && hh.indexOf('Mit Bennie') > 0);
+  t('genau einer ist als zählend markiert',
+    (hh.match(/wurf-s zaehlt/g) || []).length === 1,
+    (hh.match(/wurf-s zaehlt/g) || []).length);
+  t('es wird gesagt, welcher gilt', hh.indexOf('Es zählt der') > 0);
+  t('das Ergebnis geht erneut in den Feed',
+    feed.length === 2 && feed[1].indexOf('(Bennie)') > 0, feed.join(' | '));
+
+  ctx.wurfWiederholen();
+  t('zweimal wiederholen zieht keinen zweiten Bennie', R.benniesStand(ctx.F) === 2);
+
+  ctx.F.benniesUebrig = 0;
+  ctx.wuerfle('Segeln', 2);
+  t('ohne Bennies kein Angebot',
+    el('wurfBox').innerHTML.indexOf('Mit Bennie wiederholen') < 0);
+  t('und es wird erklärt, warum', el('wurfBox').innerHTML.indexOf('Keine Bennies mehr') > 0);
+  ctx.wurfWiederholen();
+  t('nichts geht ins Minus', R.benniesStand(ctx.F) === 0);
+
+  /* Das bessere Ergebnis zaehlt - und "besser" heisst erst Band, dann Zahl. */
+  [[{ band: 'miss', ergebnis: 3 }, { band: 'erfolg', ergebnis: 5 }, 'erfolg'],
+   [{ band: 'steigerung', ergebnis: 9 }, { band: 'erfolg', ergebnis: 7 }, 'steigerung'],
+   [{ band: 'erfolg', ergebnis: 5 }, { band: 'erfolg', ergebnis: 6 }, 'erfolg'],
+   [{ band: 'patzer', ergebnis: 1 }, { band: 'miss', ergebnis: 2 }, 'miss'],
+   [{ band: 'erfolg', ergebnis: 5 }, { band: 'miss', ergebnis: 3 }, 'erfolg']
+  ].forEach(function (f) {
+    const w = ctx.besserer(f[0], f[1]);
+    t('besser: ' + f[0].band + '(' + f[0].ergebnis + ') vs ' + f[1].band + '(' + f[1].ergebnis +
+      ') -> ' + f[2], w.band === f[2], w.band + '(' + w.ergebnis + ')');
+  });
+  t('bei gleichem Band gewinnt die höhere Zahl',
+    ctx.besserer({ band: 'erfolg', ergebnis: 5 }, { band: 'erfolg', ergebnis: 9 }).ergebnis === 9);
+
   abschluss();
 }
 

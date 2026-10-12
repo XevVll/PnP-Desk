@@ -76,6 +76,14 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wurf-b.miss{color:#b7b0a4}.wurf-b.patzer{color:#e05555}
 .wurf-d{font-size:.78rem;color:#cfc8ba;line-height:1.6}
 .wurf-d em{font-style:normal;color:var(--gold);font-family:'Cinzel',serif}
+.wurf-t{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem}
+.wurf-paar{display:flex;gap:.7rem;flex-wrap:wrap}
+.wurf-s{flex:1;min-width:13rem;border:1px solid var(--border);border-radius:6px;padding:.5rem .6rem}
+.wurf-s.zaehlt{border-color:var(--gold);background:var(--lgold)}
+.wurf-s.aus{opacity:.45}
+.bennie-box{margin-top:.6rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.bennie-h{font-size:.78rem;color:var(--gray);line-height:1.5}
+.bennie-h b{color:var(--gold)}
 .wurf-z{color:#cfc8ba}
 .wurf-z.aus{opacity:.45}
 .wurf-z .zaehlt{color:var(--teal);font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.06em}
@@ -163,6 +171,7 @@ textarea:focus{border-color:var(--gold)}
     </div>
 
     <div class="dv-row" id="abgeleitet"></div>
+      <div class="hint" id="bennieHinweis"></div>
 
     <div class="card">
       <div class="card-hdr">Zustand <span class="card-hdr-sub">anklicken zum Setzen</span></div>
@@ -565,6 +574,16 @@ function renderAbgeleitet() {
         '<button ' + (b >= bMax ? 'disabled' : '') + ' onclick="bennieAendern(1)" title="zurück">+</button>' +
         '<button onclick="bennieAendern(0)" title="neue Sitzung: auffüllen">↺</button>' +
       '</div></div>';
+
+  // Was ein Bennie bewirkt, stand bisher nirgends - weder hier noch im
+  // Regelwerk. Ein Zaehler mit einem Knopf "ausgeben" sagt einem Spieler
+  // nicht, wofuer. Steigerungen und der Steckbrief setzen ihn aber schon
+  // voraus ("Kostet er dich einmal etwas, bekommst du dafuer einen Bennie").
+  const bh = document.getElementById('bennieHinweis');
+  if (bh) bh.innerHTML = 'Bennies sind dein Glück. Einen davon gibst du aus, um eine ' +
+    'misslungene Probe <b>komplett neu zu würfeln</b> — das bessere Ergebnis zählt; der Knopf ' +
+    'dafür erscheint direkt unter jedem Wurf. Zum Start der Sitzung hast du ' + bennies(F) +
+    ', und deine Spielleitung gibt dir für gutes Spiel weitere dazu.';
 }
 function bennieAendern(d) {
   const max = bennies(F);
@@ -648,16 +667,13 @@ function wuerfelZeile(titel, w, seiten, zaehlt) {
     (zaehlt ? ' <span class="zaehlt">— zählt</span>' : '') + '</div>';
 }
 
-function wuerfle(name, stufe) {
-  const abzug = wundenAbzug(F);
-  const r = wurf(stufe, { mod: -abzug });
+/* Der zuletzt geworfene Wurf - damit die Wiederholung weiss, WAS sie
+   wiederholt. Ein Bennie wiederholt die ganze Probe, nicht einen
+   einzelnen Wuerfel. */
+let letzterWurf = null;
 
-  const probe = name + ' ' + (stufe >= 1 ? DLBL[stufe] : 'ungelernt');
-  const zeilen = [
-    wuerfelZeile('Wert',     r.wert,     r.seiten,     r.zaehlt === 'wert'),
-    wuerfelZeile('Wild Die', r.wildWurf, r.wildSeiten, r.zaehlt === 'wild')
-  ];
-  const deutung = {
+function deutung(r) {
+  return {
     steigerung: r.steigerungen > 1
         ? 'Ergebnis ' + r.ergebnis + ' — ' + r.steigerungen + ' Steigerungen. Herausragend.'
         : 'Ergebnis ' + r.ergebnis + ' — mit Steigerung. Deutlich besser als nötig.',
@@ -665,16 +681,84 @@ function wuerfle(name, stufe) {
     miss:   'Ergebnis ' + r.ergebnis + ' — das reicht nicht (nötig: ' + ZIELZAHL + ').',
     patzer: 'Zwei Einsen. Es geht nicht nur schief, es geht schief.'
   }[r.band];
+}
 
-  const box = document.getElementById('wurfBox');
-  box.className = 'wurf on';
-  box.innerHTML = '<div class="wurf-k">' + esc(probe) +
-      (r.mod !== 0 ? ' · ' + (r.mod > 0 ? '+' : '') + r.mod : '') + '</div>' +
+function wurfBlock(r, titel) {
+  return (titel ? '<div class="wurf-t">' + titel + '</div>' : '') +
     '<div class="wurf-b ' + r.band + '">' + BAND_NAMEN[r.band] + '</div>' +
-    '<div class="wurf-d">' + zeilen.join('') +
-      '<div style="margin-top:.3rem">' + deutung + '</div></div>';
+    '<div class="wurf-d">' +
+      wuerfelZeile('Wert',     r.wert,     r.seiten,     r.zaehlt === 'wert') +
+      wuerfelZeile('Wild Die', r.wildWurf, r.wildSeiten, r.zaehlt === 'wild') +
+      '<div style="margin-top:.3rem">' + deutung(r) + '</div></div>';
+}
 
-  meldeWurf(probe, r.band, r.ergebnis, r.steigerungen);
+/* Ein Bennie wiederholt die Probe, und das BESSERE Ergebnis zaehlt.
+   (Spielt ihr es so, dass der neue Wurf den alten ersetzt, ist das
+   eine Zeile weiter unten.) Verglichen wird zuerst das Band, dann
+   das Ergebnis - ein Erfolg mit 5 ist mehr wert als ein Misserfolg
+   mit 3, auch wenn beide Zahlen nah beieinander liegen. */
+function besserer(a, b) {
+  const rang = { patzer: 0, miss: 1, erfolg: 2, steigerung: 3 };
+  if (rang[b.band] !== rang[a.band]) return rang[b.band] > rang[a.band] ? b : a;
+  return (b.ergebnis > a.ergebnis) ? b : a;
+}
+
+function zeigeWurf() {
+  const z = letzterWurf;
+  const box = document.getElementById('wurfBox');
+  const b = benniesStand(F);
+  box.className = 'wurf on';
+
+  let h = '<div class="wurf-k">' + esc(z.probe) +
+      (z.erst.mod !== 0 ? ' · ' + (z.erst.mod > 0 ? '+' : '') + z.erst.mod : '') + '</div>';
+
+  if (!z.zweit) {
+    h += wurfBlock(z.erst, '') +
+      '<div class="bennie-box">' +
+        (b > 0
+          ? '<button class="btn btn-sm" onclick="wurfWiederholen()">Mit Bennie wiederholen</button>' +
+            '<span class="bennie-h">Kostet einen Bennie. Die Probe wird komplett neu geworfen, ' +
+            'das bessere Ergebnis zählt. Du hast noch ' + b + '.</span>'
+          : '<span class="bennie-h">Keine Bennies mehr — die ließen sich sonst für einen ' +
+            'zweiten Versuch ausgeben.</span>') +
+      '</div>';
+  } else {
+    const gewinner = besserer(z.erst, z.zweit);
+    h += '<div class="wurf-paar">' +
+        '<div class="wurf-s' + (gewinner === z.erst ? ' zaehlt' : ' aus') + '">' +
+          wurfBlock(z.erst, 'Erster Wurf') + '</div>' +
+        '<div class="wurf-s' + (gewinner === z.zweit ? ' zaehlt' : ' aus') + '">' +
+          wurfBlock(z.zweit, 'Mit Bennie') + '</div>' +
+      '</div>' +
+      '<div class="bennie-box"><span class="bennie-h">Es zählt der ' +
+        (gewinner === z.zweit ? 'zweite' : 'erste') + ' Wurf: <b>' + BAND_NAMEN[gewinner.band] +
+        '</b>. Noch ' + b + ' Bennie' + (b === 1 ? '' : 's') + ' übrig.</span></div>';
+  }
+  box.innerHTML = h;
+}
+
+function wuerfle(name, stufe) {
+  const abzug = wundenAbzug(F);
+  const r = wurf(stufe, { mod: -abzug });
+  letzterWurf = { probe: name + ' ' + (stufe >= 1 ? DLBL[stufe] : 'ungelernt'),
+                  stufe: stufe, mod: -abzug, erst: r, zweit: null };
+  zeigeWurf();
+  meldeWurf(letzterWurf.probe, r.band, r.ergebnis, r.steigerungen);
+}
+
+function wurfWiederholen() {
+  if (!letzterWurf || letzterWurf.zweit) return;      // nur einmal je Probe
+  if (benniesStand(F) <= 0) return;
+  // Erst den Bennie abziehen, dann werfen: Bricht etwas dazwischen ab,
+  // ist lieber ein Bennie zu viel weg als ein Wurf umsonst.
+  F.benniesUebrig = Math.max(0, benniesStand(F) - 1);
+  speichern();
+  const r2 = wurf(letzterWurf.stufe, { mod: letzterWurf.mod });
+  letzterWurf.zweit = r2;
+  zeigeWurf();
+  renderAlles();
+  const g = besserer(letzterWurf.erst, r2);
+  meldeWurf(letzterWurf.probe + ' (Bennie)', g.band, g.ergebnis, g.steigerungen);
 }
 
 // Ab in den gemeinsamen Feed, damit die Spielleitung es mitbekommt.

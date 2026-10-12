@@ -105,6 +105,44 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 8) — Bennies tun endlich etwas: Wurf wiederholen
+- **Anlass war Hendriks Frage** „Was ist in dem Regelwerk Glückspilz ein zusätzlicher Bennie?"
+  Antwort auf die Frage selbst: 3 Bennies je Sitzung, mit dem Talent 4. Beim Nachsehen kam aber
+  heraus, dass das **die ganze Mechanik war** — der Bennie war ein reiner Zähler mit einem Knopf
+  „ausgeben". **Nirgends im Projekt stand, was man damit anfängt:** nicht in `js/regelwerk.js`,
+  nicht im Heldenbrief, nicht in der Kampagnen-Bibel.
+- **Zwei Stellen setzten die Wirkung längst voraus** und hingen damit in der Luft: der
+  Steckbrief-Hilfetext zum Antrieb („Kostet er dich einmal etwas, bekommst du dafür einen Bennie")
+  und das Talent **Anfeuern** („Einmal je Szene gibst du einem Verbündeten einen deiner Bennies").
+- **Eingebaut ist der Gebrauch, den man am Tisch wirklich braucht** (Hendriks Wahl aus den drei
+  angebotenen): Unter jedem Wurf im Heldenbrief steht **„Mit Bennie wiederholen"**. Die Probe wird
+  komplett neu geworfen, beide Würfe stehen danach nebeneinander, und der zählende ist markiert.
+  - **Gewürfelt wird weiterhin in `js/regelwerk.js`** (`wurf()`), nicht in der Seite — dieselbe
+    Funktion wie beim ersten Wurf. Die Seite stellt nur dar.
+  - **Der Bennie wird VOR dem Wurf abgezogen.** Bricht etwas dazwischen ab, ist lieber ein Bennie
+    zu viel weg als ein Wurf umsonst.
+  - **Nur einmal je Probe**, und ohne Bennie erscheint das Angebot gar nicht erst, sondern ein
+    Satz, warum. Nichts geht ins Minus.
+  - Das Ergebnis geht erneut in den Würfel-Feed, mit `(Bennie)` im Namen — die Spielleitung soll
+    sehen, dass hier ein Glückspunkt verbrannt wurde.
+- **„Das bessere zählt" heißt: erst das Band, dann die Zahl.** Ein Erfolg mit 5 schlägt einen
+  Misserfolg mit 3, obwohl die Zahlen nah beieinander liegen. Steht als Kommentar an
+  `besserer()`, samt dem Hinweis, dass die andere Lesart (der neue Wurf ersetzt den alten) eine
+  Zeile weiter unten wäre — falls am Tisch anders gespielt wird.
+- **Der Zähler erklärt sich jetzt selbst:** „Bennies sind dein Glück. Einen davon gibst du aus, um
+  eine misslungene Probe komplett neu zu würfeln — das bessere Ergebnis zählt … Zum Start der
+  Sitzung hast du 3, und deine Spielleitung gibt dir für gutes Spiel weitere dazu." Die Zahl kommt
+  aus `bennies(F)`, zeigt mit Glückspilz also 4.
+- **Getestet: 489 Prüfungen über drei Skripte, 0 Fehler** (26 neue). Der Ablauf wird wirklich
+  ausgeführt: normaler Wurf kostet nichts, Wiederholen zieht genau einen Bennie, beide Würfe
+  erscheinen, **genau einer** ist als zählend markiert, ein zweites Wiederholen zieht nichts mehr,
+  ohne Bennies gibt es kein Angebot und nichts rutscht ins Minus. Dazu fünf Vergleichsfälle für
+  „das bessere zählt".
+- **[OFFEN] Die beiden anderen Verwendungen** (Schaden abfangen, „Angeschlagen" sofort loswerden)
+  sind bewusst nicht eingebaut: Beide passieren im Kampf, und solange `js/arena.js` nach dem alten
+  W100-System rechnet, hingen sie in der Luft.
+
+
 ### 2026-10-12 (Fortsetzung 7) — Fehler: Zeiten verschoben sich beim Ändern des Rasters
 - **Hendriks Beobachtung, und sie war genau richtig:** „Wenn ich das Zeitfenster ändere,
   verschieben sich diese. Demnach hängen die Zeiten nicht direkt auf einem Zeitslot, sondern
