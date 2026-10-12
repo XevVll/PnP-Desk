@@ -294,12 +294,12 @@ function hatLokaleFigur() {
   try {
     const d = JSON.parse(localStorage.getItem(figurCacheKey(sitzungFest())) || 'null');
     if (!d || !d.F) return false;
-    if (d.META && String(d.META.name || '').trim()) return true;
-    const f = d.F;
-    if (f.tal && f.tal.length) return true;
-    if (f.hnd && f.hnd.length) return true;
-    if (f.steigerungen) return true;
-    return false;
+    // Dieselbe Pruefung wie fuer die Datenbank (js/sitzung.js). Zwei
+    // eigene Vorstellungen davon, was "eine Figur" ist, wuerden
+    // auseinanderlaufen - und dann sperrt die eine Seite, waehrend die
+    // andere aufmacht.
+    const zusammen = Object.assign({}, d.F, { name: (d.META && d.META.name) || '' });
+    return istFigurEcht(zusammen);
   } catch (e) { return false; }
 }
 
@@ -495,7 +495,9 @@ function initFirebase() {
     figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, codeJetzt(), function () {
       db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
         const roh = s.val();
-        if (roh) {
+        // Eine leere Huelle ist keine Figur - sonst oeffnet sich hier ein
+        // leeres Blatt, das man erneut "loeschen" kann.
+        if (istFigurEcht(roh)) {
           F = alsFigur(roh);
           if (roh.name) META.name = roh.name;
           if (roh.spieler) META.spieler = roh.spieler;

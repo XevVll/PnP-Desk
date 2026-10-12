@@ -24,6 +24,7 @@ let ok = 0, bad = 0;
 function t(n, c, x) { if (c) ok++; else { bad++; console.log('FEHLER: ' + n + (x ? '  [' + x + ']' : '')); } }
 
 const S = require(path.join(ROOT, 'js/sitzung.js'));
+const R = require(path.join(ROOT, 'js/regelwerk.js'));
 
 /* ---------- Der Schluessel ---------- */
 t('Schluessel aus dem Namen', S.figurSchluessel('Anna') === 'anna', S.figurSchluessel('Anna'));
@@ -566,6 +567,91 @@ function kachelPruefen() {
      nicht mehr - die Wahl ist im September entfallen. */
   t('keine Rede mehr von zwei Regelsaetzen',
     iRoh.indexOf('Korsaren-Variante') < 0);
+
+  huellePruefen();
+}
+
+function huellePruefen() {
+  /* ==========================================================
+     LEERE HUELLEN
+     ----------------------------------------------------------
+     Hendriks Meldung vom 12.10.: "Trotz ich den Charakter
+     gelöscht habe, ist der Heldenbrief immer noch klickbar und
+     ruft einen leeren Charakterbogen auf, den man theoretisch
+     wieder löschen kann."
+
+     Ursache war ein Kreis: Der Heldenbrief leitet nach dem
+     Loeschen zur Erschaffung weiter, und der Assistent schrieb
+     beim Oeffnen IMMER einmal hoch - was im selben Moment eine
+     leere Huelle anlegte. Fuer den Hub sah das aus wie eine
+     Figur.
+
+     Zwei Schranken dagegen, beide hier geprueft:
+       1. Der Assistent legt beim blossen Oeffnen nichts an.
+       2. Eine Huelle gilt NIRGENDS als Figur (istFigurEcht).
+     ========================================================== */
+  t('istFigurEcht gibt es', typeof S.istFigurEcht === 'function');
+
+  const leer = R.leereFigur();
+  const huelle = {
+    name: '', spieler: 'Anna', rang: 0, steigerungen: 0,
+    attr: leer.attr, fert: leer.fert, tal: [], hnd: [], brief: leer.brief,
+    aktualisiert: Date.now()
+  };
+  t('eine frische, unberuehrte Figur ist KEINE Figur', S.istFigurEcht(huelle) === false,
+    JSON.stringify(huelle).slice(0, 120));
+  t('null ist keine Figur', S.istFigurEcht(null) === false);
+  t('ein leeres Objekt ist keine Figur', S.istFigurEcht({}) === false);
+  t('Muell ist keine Figur',
+    S.istFigurEcht(7) === false && S.istFigurEcht('x') === false && S.istFigurEcht([]) === false);
+
+  /* Alles, was ein Spieler tun kann, macht sie echt. */
+  function mit(aenderung) {
+    const o = JSON.parse(JSON.stringify(huelle));
+    aenderung(o);
+    return S.istFigurEcht(o);
+  }
+  t('ein Name macht sie echt', mit(o => { o.name = 'Mara'; }));
+  t('ein Name aus Leerzeichen NICHT', mit(o => { o.name = '   '; }) === false);
+  t('ein Talent macht sie echt', mit(o => { o.tal = ['seebein']; }));
+  t('eine Schwaeche macht sie echt', mit(o => { o.hnd = ['stolz']; }));
+  t('Ausruestung macht sie echt', mit(o => { o.ausr = ['saebel']; }));
+  t('eine Steigerung macht sie echt', mit(o => { o.steigerungen = 1; }));
+  t('ein Rang macht sie echt', mit(o => { o.rang = 1; }));
+  t('eine Wunde macht sie echt', mit(o => { o.wunden = 1; }));
+  t('angeschlagen macht sie echt', mit(o => { o.angeschlagen = true; }));
+  t('eine Notiz macht sie echt', mit(o => { o.notizen = 'Hat Angst vor Wasser.'; }));
+  t('ein Steckbrief-Feld macht sie echt', mit(o => { o.brief.antrieb = 'Weg von hier.'; }));
+  t('ein gesteigertes Attribut macht sie echt', mit(o => { o.attr['Stärke'] = 2; }));
+  t('eine gesteigerte Fertigkeit macht sie echt', mit(o => { o.fert['Kämpfen'] = 2; }));
+  /* Firebase macht aus lueckenhaften Arrays Objekte. */
+  t('Talente als Firebase-Objekt zaehlen auch', mit(o => { o.tal = { 0: 'seebein' }; }));
+
+  /* ---- Der Assistent legt beim Oeffnen nichts an ---- */
+  const aC2 = inlineCode('charaktererstellung.html');
+  t('der Start schreibt nur bedingt hoch',
+    aC2.indexOf('if (gabEsSchon || istFigurEcht(figurFuerDb())) nachFirebase();') > 0);
+  t('kein unbedingtes nachFirebase im Start mehr', (function () {
+    const i = aC2.indexOf('const weiter = function (gabEsSchon)');
+    if (i < 0) return false;
+    const bis = aC2.indexOf('};', i);
+    const koerper = aC2.slice(i, bis);
+    // nachFirebase darf dort nur hinter der Bedingung stehen
+    return koerper.indexOf('nachFirebase()') > koerper.indexOf('istFigurEcht(');
+  })());
+  t('ein vorhandener Knoten wird weiter synchronisiert',
+    aC2.indexOf('weiter(true);') > 0);
+  t('eine umgezogene Figur ebenso', aC2.indexOf('weiter(!!alt);') > 0);
+
+  /* ---- Hub und Bogen pruefen Inhalt, nicht Existenz ---- */
+  const iC2 = inlineCode('index.html');
+  t('die Kachel prueft den Inhalt', iC2.indexOf('const echt = istFigurEcht(roh);') > 0);
+  t('die Kachel haengt NICHT mehr an der blossen Existenz',
+    iC2.indexOf('briefKachel(!!roh,') < 0);
+  const hC3 = inlineCode('heldenbrief.html');
+  t('der Bogen prueft den Inhalt', hC3.indexOf('if (istFigurEcht(roh)) {') > 0);
+  t('hatLokaleFigur benutzt dieselbe Pruefung',
+    hC3.indexOf('return istFigurEcht(zusammen);') > 0);
 
   abschluss();
 }

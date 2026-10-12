@@ -417,6 +417,53 @@ function istAltSchluessel(schluessel) {
 
 
 /* ==========================================================
+   IST DAS UEBERHAUPT EINE FIGUR?
+   ----------------------------------------------------------
+   Ein Knoten unter figuren/{name} heisst noch nicht, dass dort
+   eine Figur liegt. Es kann eine leere Huelle sein - ein
+   Datensatz mit Vorgabewerten und sonst nichts.
+
+   Das ist im Oktober 2026 schmerzhaft aufgefallen: Der Assistent
+   schrieb beim Oeffnen IMMER einmal hoch ("damit die Spielleitung
+   von einer fertigen Figur erfaehrt"). Wer seine Figur loeschte,
+   wurde zur Erschaffung weitergeleitet - und die legte im selben
+   Moment eine leere Huelle an. Fuer den Hub sah das aus wie eine
+   Figur: Die Heldenbrief-Kachel ging wieder auf, der Bogen
+   oeffnete sich leer, und man konnte dieselbe Nicht-Figur erneut
+   loeschen. Ein Kreis, aus dem man nicht herauskam.
+
+   Geprueft wird deshalb auf INHALT, nicht auf Existenz. Bewusst
+   ohne js/regelwerk.js: Diese Datei kennt die Regeln nicht und
+   soll sie nicht kennen muessen. Eine frische Figur hat alle
+   Attribute auf 1 (d4) und fuenf Kernfertigkeiten auf 1 - alles
+   darueber ist eine Entscheidung, die jemand getroffen hat.
+   ========================================================== */
+function istFigurEcht(roh) {
+  if (!roh || typeof roh !== 'object') return false;
+
+  if (String(roh.name || '').trim()) return true;
+  if (laenge(roh.tal) || laenge(roh.hnd) || laenge(roh.ausr)) return true;
+  if (+roh.steigerungen > 0 || +roh.rang > 0) return true;
+  if (+roh.wunden > 0 || roh.angeschlagen) return true;
+  if (String(roh.notizen || '').trim()) return true;
+  if (roh.brief && Object.keys(roh.brief).some(function (k) {
+    return String(roh.brief[k] || '').trim();
+  })) return true;
+  // Etwas gesteigert? Vorgabe ist ueberall 1.
+  if (ueberVorgabe(roh.attr) || ueberVorgabe(roh.fert)) return true;
+  return false;
+
+  function laenge(x) {
+    if (!x) return 0;
+    return Array.isArray(x) ? x.length : Object.keys(x).length;
+  }
+  function ueberVorgabe(o) {
+    if (!o || typeof o !== 'object') return false;
+    return Object.keys(o).some(function (k) { return +o[k] > 1; });
+  }
+}
+
+/* ==========================================================
    EINE FIGUR LOESCHEN
    ----------------------------------------------------------
    Haengt hier und nicht in den Seiten, weil es drei Stellen
@@ -511,7 +558,7 @@ if (typeof module !== 'undefined' && module.exports) {
     FIGUR_ALPHABET, FIGUR_LAENGE,
     figurCodeLesbar, figurCodeKey, figurCode,
     setzeFigurCode, vergissFigurCode, spielerKennung,
-    figurSchluessel, istAltSchluessel, figurUmzug, figurLoeschen,
+    figurSchluessel, istAltSchluessel, figurUmzug, figurLoeschen, istFigurEcht,
     figurCacheKey, figurCacheUebernehmen,
     sitzungAusCache, sitzungInCache, sitzungsDbJetzt
   };

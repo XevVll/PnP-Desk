@@ -105,6 +105,55 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 — Fehler: gelöschte Figur kam als leere Hülle zurück
+- **Hendriks Meldung mit Screenshot:** „Trotz ich den Charakter gelöscht habe, ist der Heldenbrief
+  immer noch klickbar und ruft einen leeren Charakterbogen auf, den man theoretisch wieder löschen
+  kann." Der Screenshot trug den Beweis schon in sich: Die Kachel zeigte den „hat Figur"-Text,
+  aber **ohne Namen** — es lag also ein Figurenknoten ohne Inhalt da.
+- **Ursache, und sie war ein Kreis, den ich selbst gebaut habe:**
+  1. Der Heldenbrief leitet nach dem Löschen zur Erschaffung weiter (richtig so).
+  2. `startUebernahme()` im Assistenten rief am Ende **immer** `nachFirebase()` — ein Erbe vom
+     07.09. mit der Begründung „damit die Spielleitung von einer fertigen Figur erfährt, auch wenn
+     ihr Spieler nichts mehr anfasst".
+  3. Also legte **das bloße Öffnen** des Assistenten im selben Moment eine **leere Hülle** an:
+     Vorgabewerte, kein Name.
+  4. Für den Hub war das eine Figur — Kachel wieder auf, Bogen öffnet sich leer, dieselbe
+     Nicht-Figur erneut löschbar. **Löschen war damit faktisch wirkungslos.**
+- **Zwei Schranken, bewusst beide:**
+  - **Der Assistent legt beim bloßen Öffnen nichts mehr an.** Hochgeschrieben wird nur noch, wenn
+    schon ein Knoten existierte (dann weiter synchronisieren, auch wenn es eine Hülle aus der Zeit
+    vor diesem Fix ist) **oder** der Spieler tatsächlich angefangen hat. Der ursprüngliche Zweck
+    bleibt damit erhalten.
+  - **Neue `istFigurEcht()` in `js/sitzung.js`: geprüft wird auf INHALT, nicht auf Existenz.**
+    Benutzt von der Hub-Kachel, der Sperre des Heldenbriefs **und** dessen lokalem Rückfall. Damit
+    ist die Lücke grundsätzlich zu — eine Hülle gilt nirgends als Figur, egal wer sie anlegt.
+    Bewusst **ohne** `js/regelwerk.js`: Diese Datei kennt die Regeln nicht und soll sie nicht
+    kennen müssen. Eine frische Figur hat alle Attribute auf 1 (d4) und fünf Kernfertigkeiten auf
+    1 — alles darüber ist eine Entscheidung, die jemand getroffen hat.
+  - `hatLokaleFigur()` im Heldenbrief hatte seine **eigene** Vorstellung davon, was eine Figur ist
+    (Name, Talente, Schwächen, Steigerungen). Zwei Vorstellungen laufen auseinander, und dann
+    sperrt die eine Seite, während die andere aufmacht — jetzt dieselbe Funktion.
+- **Der gemeldete Ablauf ist Schritt für Schritt durchgespielt** (eigene Simulation über alle drei
+  Seiten mit gefälschter Datenbank):
+
+      1-2. Löschen im Heldenbrief   LOESCHT anna · Weiterleitung · DB: (keine)
+      3.   Assistent geöffnet       keine Schreibzugriffe · DB: (keine)   ← vorher: Hülle
+      4.   Hub                      Kachel AUSGEGRAUT
+      5.   Heldenbrief direkt       Seite sperrt statt leeres Blatt
+
+- **Gegenprobe, dass ich nicht zu viel abgeschaltet habe** — vier Fälle: leerer Assistent schreibt
+  **nicht**; liegt schon eine Figur in der Datenbank, wird **sofort** geschrieben; hat der Browser
+  lokal schon einen Namen, ebenso; und wer nach dem Öffnen einen Namen eintippt, löst den
+  Schreibvorgang wie immer aus.
+- **Getestet: 297 Prüfungen über drei Skripte, 0 Fehler** (28 neue). Darunter jede Einzelheit, die
+  eine Figur echt macht (Name, Talent, Schwäche, Ausrüstung, Steigerung, Rang, Wunde,
+  angeschlagen, Notiz, Steckbrief-Feld, gesteigertes Attribut, gesteigerte Fertigkeit, auch als
+  Firebase-Objekt statt Array) — und dass ein Name aus lauter Leerzeichen **nicht** zählt.
+- **Die schon entstandenen Hüllen brauchen nichts.** Sie liegen unter demselben Schlüssel wie die
+  künftige Figur: Baut der Spieler neu, werden sie gefüllt. Bis dahin gelten sie als „keine Figur",
+  die Kachel bleibt grau, und die Regie listet sie als „ohne Namen" zum Löschen.
+
+
 ### 2026-10-11 (Fortsetzung 5) — Heldenbrief nur mit Figur
 - **Hendriks Vorgabe:** Den Heldenbrief soll es nur geben, wenn auch eine Figur da ist —
   „sonst sollte er halt auch ausgegraut sein wie die Karte". Also genau dasselbe Verhalten wie bei

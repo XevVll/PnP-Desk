@@ -925,13 +925,28 @@ function nachFirebase() {
    fertigen Figur eine leere. Genau dieselbe Falle wie beim
    set()/update()-Fehler im September, nur eine Ebene hoeher.
    ========================================================== */
+/* Beim Start wird nur hochgeschrieben, wenn es auch etwas zu schreiben
+   gibt. Vorher lief hier IMMER ein nachFirebase() - "damit die
+   Spielleitung von einer fertigen Figur erfaehrt, auch wenn ihr Spieler
+   nichts mehr anfasst".
+
+   Das hat einen Kreis erzeugt, aus dem man nicht herauskam: Wer seine
+   Figur im Heldenbrief loeschte, wurde hierher weitergeleitet - und
+   dieses eine Hochschreiben legte im selben Moment eine LEERE HUELLE an.
+   Fuer den Hub sah das aus wie eine Figur, die Kachel ging wieder auf,
+   der Bogen oeffnete sich leer, und man konnte dieselbe Nicht-Figur
+   erneut loeschen.
+
+   Der urspruengliche Zweck bleibt erhalten: Liegt schon eine Figur in
+   der Datenbank, oder hat der Spieler hier tatsaechlich angefangen,
+   wird weiterhin sofort hochgeschrieben. */
 function startUebernahme() {
   let fertig = false;
-  const weiter = function () {
+  const weiter = function (gabEsSchon) {
     if (fertig) return;
     fertig = true;
     startBereit = true;
-    nachFirebase();
+    if (gabEsSchon || istFigurEcht(figurFuerDb())) nachFirebase();
   };
   // Haengt die Datenbank, soll die Seite nicht fuer immer stumm sein.
   const frist = setTimeout(weiter, 8000);
@@ -955,7 +970,9 @@ function startUebernahme() {
       if (roh) {
         clearTimeout(frist);
         if (uebernimm(roh)) { zeigeUebernahme(roh); zeige(); }
-        weiter();
+        // Es lag schon etwas da - also weiter synchronisieren, selbst
+        // wenn es nur eine Huelle aus der Zeit vor diesem Fix ist.
+        weiter(true);
         return;
       }
       // Nichts unter dem Namen: Steckt noch eine Figur aus der Zeit der
@@ -963,7 +980,7 @@ function startUebernahme() {
       figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, schluessel, function (alt) {
         clearTimeout(frist);
         if (alt && uebernimm(alt)) { zeigeUebernahme(alt); zeige(); }
-        weiter();
+        weiter(!!alt);
       });
     }).catch(function () { clearTimeout(frist); weiter(); });
   } catch (e) {

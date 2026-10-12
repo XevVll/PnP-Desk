@@ -537,7 +537,11 @@ function beobachteFigur() {
   figurRef = db.ref('figuren/' + schluessel);
   figurRef.on('value', function (s) {
     const roh = s.val();
-    briefKachel(!!roh, roh ? (roh.name || '') : '');
+    // Auf INHALT pruefen, nicht auf Existenz: Eine leere Huelle ist keine
+    // Figur. Sonst ginge die Kachel nach dem Loeschen wieder auf, sobald
+    // irgendetwas einen Knoten anlegt.
+    const echt = istFigurEcht(roh);
+    briefKachel(echt, echt ? (roh.name || '') : '');
   }, function () {
     // Kein Zugriff: dann nicht sperren, sondern offen lassen - die
     // Seite selbst sagt dem Spieler, woran es liegt.
