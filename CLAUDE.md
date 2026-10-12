@@ -105,6 +105,55 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung) — Auch die Zeiten hängen am Namen
+- **Hendriks Meldung mit Screenshot:** Nach erneuter Anmeldung als „Peter" im abgesicherten Modus
+  stand **Peter zweimal** in der Liste — einmal mit seinen Zeiten, einmal als „nichts
+  eingetragen". Dazu seine Vorgabe: *„Können die abgegebenen Zeiten und die Charaktere einfach
+  immer an den Namen der Session gehangen werden? Dann kann man natürlich auch in das ‚Konto' von
+  anderen, aber P&P Runden sind ja lokal und da brauchen wir solchen Schutz nicht."*
+- **Ursache:** Der Schlüssel war `pnp_player_id` — eine **Zufallskennung, die je Browser neu
+  entsteht** (`'p' + Math.random()…`). Zweiter Browser, privates Fenster, gelöschte Browserdaten:
+  jedes Mal ein neuer Mensch für das System. Die Figuren hingen seit dem 11.10. schon am Namen,
+  die Termine noch nicht — das war die letzte Stelle.
+- **Jetzt am Namen, wie die Figuren:**
+
+      termine/spieler/{spielerKennung(name)}
+      termine/verfuegbar/{spielerKennung(name)}
+
+  Neue `meinKey()` im Hub; die Browser-Kennung bleibt nur noch als Vermerk, welcher Browser sich
+  zuletzt gemeldet hat.
+- **Hendriks Entscheidung ausdrücklich festgehalten:** Wer denselben Namen eintippt, sieht und
+  ändert dieselben Zeiten und dieselbe Figur. Das ist **gewollt**, nicht übersehen — eine
+  P&P-Runde ist eine Handvoll eingeladener Freunde, und derselbe Mensch soll von jedem Gerät an
+  seine Sachen kommen, ohne ein Konto zu haben. Ein Schutz gegeneinander wäre hier Aufwand ohne
+  Nutzen. Steht so als Begründung im Code, damit es niemand später „repariert".
+- **Die schon entstandenen Doppeleinträge räumen sich beim nächsten Anmelden selbst auf**
+  (`umzugAlterEintraege()`):
+  - **Erkannt wird ein Alteintrag daran, dass sein SCHLÜSSEL nicht zu seinem NAMEN passt.** Das
+    ist genau und braucht kein Raten über das Format der Kennung — ein Name wie „peter" fängt
+    schließlich genauso mit `p` an wie eine Zufallskennung.
+  - **Zusammengeführt wird tagweise, und der Eintrag am Namen gewinnt.** Ohne diese Regel hinge
+    das Ergebnis davon ab, welcher Browser sich zuletzt gemeldet hat.
+  - **Erst zusammenführen, dann löschen** — bricht es dazwischen ab, steht jemand doppelt da statt
+    mit leerem Kalender.
+- **Hendriks Lage aus dem Screenshot durchgespielt** (zwei Peter-Einträge unter Zufallskennungen,
+  die Zeiten beim älteren, dazu „SL" als anderer Mensch):
+
+      VORHER   Spieler: p7xk21mabc, p9qq44zdef, sl   ·   Peter-Einträge: 2
+      NACHHER  Spieler: sl, peter
+               peter: {"2026-10-12":"111100","2026-10-13":"001111"}
+               sl:    {"2026-10-12":"110000"}
+
+  Also ein Peter, seine Zeiten vollständig mitgekommen, **SL unberührt**, keine Reste.
+- **Getestet: 311 Prüfungen über drei Skripte, 0 Fehler.** Die Regel „jeder Schreibzugriff liegt
+  unter dem eigenen Schlüssel" ist dabei schärfer geworden: Sie erhebt alle vier Schreibzugriffe
+  aus dem Quelltext, verlangt, dass **keiner** die Browser-Kennung benutzt, und prüft bei den
+  zwei, die über eine lokale Variable laufen, zusätzlich nach, dass diese aus `meinKey()` stammt —
+  sonst ließe sich die Regel durch bloßes Umbenennen aushebeln.
+  - **Drei Testfehler, alle veraltete Erwartungen statt echter Fehler:** Die Prüfungen suchten
+    noch wörtlich nach `meinePid`.
+
+
 ### 2026-10-12 — Fehler: gelöschte Figur kam als leere Hülle zurück
 - **Hendriks Meldung mit Screenshot:** „Trotz ich den Charakter gelöscht habe, ist der Heldenbrief
   immer noch klickbar und ruft einen leeren Charakterbogen auf, den man theoretisch wieder löschen

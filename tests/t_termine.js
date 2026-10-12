@@ -322,9 +322,72 @@ const schreibStellen = [];
 })();
 t('der Spieler-Hub schreibt ueberhaupt noch etwas', schreibStellen.length > 0,
   'gefunden=' + schreibStellen.length);
-const fremd = schreibStellen.filter(function (a) { return a.indexOf('meinePid') < 0; });
-t('JEDER Schreibzugriff des Spielers liegt unter seiner eigenen Kennung',
-  fremd.length === 0, fremd.join(' | '));
+/* Kein Schreibzugriff darf die Browser-Kennung benutzen. Wo der
+   Schluessel ueber eine lokale Variable laeuft, wird zusaetzlich
+   geprueft, dass diese aus meinKey() stammt - sonst waere die Regel
+   per Umbenennung aushebelbar. */
+const mitPid = schreibStellen.filter(function (a) { return a.indexOf('meinePid') >= 0; });
+t('KEIN Schreibzugriff laeuft noch ueber die Browser-Kennung',
+  mitPid.length === 0, mitPid.join(' | '));
+const ueberVariable = schreibStellen.filter(function (a) {
+  return a.indexOf('meinKey()') < 0;
+});
+ueberVariable.forEach(function (a) {
+  const v = (a.match(/\+ ([A-Za-z_][A-Za-z0-9_]*)/) || [])[1];
+  t('der Schluessel "' + v + '" stammt aus meinKey()',
+    !!v && spC.indexOf('const ' + v + ' = meinKey();') > 0, a);
+});
+
+/* ==========================================================
+   NAME STATT BROWSER-KENNUNG
+   ----------------------------------------------------------
+   Hendriks Meldung vom 12.10.: Nach einer erneuten Anmeldung im
+   abgesicherten Modus stand "Peter" ZWEIMAL in der Liste -
+   einmal mit Zeiten, einmal als "nichts eingetragen". Ursache
+   war der Schluessel: pnp_player_id entsteht je Browser neu.
+
+   Jetzt haengt alles am Namen, wie die Figuren auch. Hendriks
+   Entscheidung dazu ausdruecklich: Wer denselben Namen eintippt,
+   kommt an dieselben Sachen - "P&P Runden sind ja lokal und da
+   brauchen wir solchen Schutz nicht".
+   ========================================================== */
+t('es gibt einen Namensschluessel', spC.indexOf('function meinKey()') > 0);
+t('er kommt aus spielerKennung', spC.indexOf('return spielerKennung(meinName)') > 0);
+t('die Browser-Kennung ist kein Schluessel mehr',
+  spC.indexOf("'termine/spieler/' + meinePid") < 0 &&
+  spC.indexOf("'termine/verfuegbar/' + meinePid") < 0);
+t('auch beim Malen nicht', spC.indexOf('verfuegbar[meinePid]') < 0);
+t('ohne Namen wird nichts geschrieben',
+  spC.indexOf('if (!k) return;') > 0);
+
+/* Der Umzug alter Eintraege. */
+t('es gibt einen Umzug', spC.indexOf('function umzugAlterEintraege(') > 0);
+(function () {
+  const i = spC.indexOf('function umzugAlterEintraege(');
+  let j = spC.indexOf('{', i), tief = 0, ende = -1;
+  for (let k = j; k < spC.length; k++) {
+    if (spC[k] === '{') tief++;
+    else if (spC[k] === '}') { tief--; if (tief === 0) { ende = k; break; } }
+  }
+  const koerper = spC.slice(i, ende);
+  t('ein Alteintrag wird am Namen erkannt, nicht am Format der Kennung',
+    koerper.indexOf("spielerKennung(e.name || '') === ziel") > 0);
+  t('der eigene Eintrag wird dabei nicht angefasst', koerper.indexOf('k !== ziel') > 0);
+  t('zusammengefuehrt wird tagweise', koerper.indexOf('meins[tag] === undefined') > 0);
+  const iSetzen = koerper.indexOf("set(meins)");
+  const iLoeschen = koerper.indexOf("= null;");
+  t('erst zusammenfuehren, dann loeschen',
+    iSetzen > 0 && iLoeschen > 0 && iSetzen < iLoeschen,
+    'setzen=' + iSetzen + ' loeschen=' + iLoeschen);
+  t('ohne Namen passiert nichts', koerper.indexOf('if (!db || !ziel)') > 0);
+})();
+t('der Umzug laeuft beim Anmelden', (function () {
+  const i = spC.indexOf('function anmeldenBeiDb(');
+  const j = spC.indexOf('function ', i + 30);
+  const koerper = spC.slice(i, j);
+  return koerper.indexOf('umzugAlterEintraege()') > 0 &&
+         koerper.indexOf('umzugAlterEintraege()') < koerper.indexOf("'termine/spieler/'");
+})());
 
 t('cfgAendern() ist aus dem Spieler-Hub verschwunden', spC.indexOf('function cfgAendern(') < 0);
 t('Spieler-Hub schreibt NICHT auf termine/config', schreibtAuf(spC, 'termine/config') === false);
@@ -339,9 +402,9 @@ t('Regie-Hub schreibt nach stand/termine/config',
 
 /* Was der Spieler schreibt, gehoert ihm: Name und eigene Zeiten. */
 t('Spieler schreibt seinen eigenen Namen',
-  spC.indexOf("db.ref('termine/spieler/' + meinePid).set(") > 0);
+  spC.indexOf("db.ref('termine/spieler/' + meinKey()).set(") > 0);
 t('Spieler schreibt seine eigenen Zeiten',
-  spC.indexOf("termine/verfuegbar/' + meinePid") > 0);
+  spC.indexOf("db.ref('termine/verfuegbar/' + k + '/' + datum).set(bits)") > 0);
 
 /* Die Regie schreibt, und zwar in die Sitzung. */
 t('Regie-Hub setzt den Termin', hubC.indexOf('function terminSetzen(') > 0);
