@@ -105,6 +105,43 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 2) — Jede Anfangszeit eines Tages wählbar
+- **Hendriks Meldung:** „Ich kann nur eine Zeit am Tag wählen. Auch wenn von 18 Uhr zb verfügbar
+  ist." Zu Recht — das war kein Fehler, sondern eine Regel, die zu weit ging: `besteFenster()`
+  zeigt je Tag **nur das beste** Fenster („sonst stünden hier zwölf Varianten desselben Abends").
+  Für die Übersicht richtig, aber es nimmt der Spielleitung die Wahl. Kann jemand von 17 bis 23
+  Uhr, ist 19:00–22:30 nur **ein** Schnitt daraus.
+- **Neue `fensterAmTag()` in `js/termine.js`:** alle Anfangszeiten eines Tages, an denen überhaupt
+  jemand die volle Sitzungsdauer durchhält — nach Uhrzeit sortiert, damit man sie lesen kann wie
+  einen Abendplan. `besteFenster()` bleibt unverändert und trägt weiter die Übersicht.
+- **Im Regie-Hub ist jede Fensterzeile jetzt aufklappbar** („▾ 5 andere Zeiten an diesem Tag").
+  Aufgeklappt steht jede Anfangszeit mit Namen, Zähler und eigenem **„veröffentlichen"** da; das
+  Fenster, von dem aus man aufgeklappt hat, ist markiert. Bei einem Tag mit nur einer möglichen
+  Zeit erscheint **kein** Umschalter — dort gibt es nichts zu wählen.
+  - Welche Tage offen sind, liegt wie die übrige Aufklapperei **nur im Speicher**, nicht in der
+    Datenbank.
+- **An Hendriks Beispiel nachgerechnet** (Peter 17:00–23:00, SL 17:30–21:30, Sitzung 3,5 h):
+
+      17:00–20:30  1/2    18:30–22:00  1/2
+      17:30–21:00  2/2    19:00–22:30  1/2
+      18:00–21:30  2/2    19:30–23:00  1/2
+
+  **18:00 ist damit wählbar** — vorher stand dort nur 17:30–21:00, weil das als „bestes" galt.
+  Dass auch Zeiten erscheinen, an denen nur einer kann, ist Absicht: Die Spielleitung entscheidet,
+  ob ihr das reicht, nicht die Rechnung.
+- **Der Schlusshinweis der Ansicht ist nachgezogen** — er behauptete noch „Je Tag steht nur das
+  beste Fenster", was jetzt nur noch die halbe Wahrheit wäre.
+- **Getestet: 332 Prüfungen über drei Skripte, 0 Fehler** (21 neue). Darunter: die Liste ist nach
+  Uhrzeit sortiert, jedes Fenster hat mindestens einen, der kann, **das beste Fenster kommt in der
+  Tagesliste vor** (sonst fände man den Vorschlag von oben unten nicht wieder) und keines ist
+  besser als das beste; dazu Hendriks konkreter Fall — 18:00 ist wählbar und sagt richtig, dass
+  beide können. Grenzen: ein Tag ohne Eintrag, ein vergangener Tag, keine Spieler und eine
+  Sitzungsdauer, die länger ist als der angezeigte Zeitraum, ergeben jeweils nichts.
+  - **Ein Testfehler, meiner:** Die Prüfung „bei nur einer möglichen Zeit kein Umschalter" suchte
+    nach dem Wortlaut „andere Zeit" — und stolperte über meinen eigenen, neu geschriebenen
+    Schlusshinweis. Prüft jetzt auf den Knopf statt auf den Text.
+
+
 ### 2026-10-12 (Fortsetzung) — Auch die Zeiten hängen am Namen
 - **Hendriks Meldung mit Screenshot:** Nach erneuter Anmeldung als „Peter" im abgesicherten Modus
   stand **Peter zweimal** in der Liste — einmal mit seinen Zeiten, einmal als „nichts

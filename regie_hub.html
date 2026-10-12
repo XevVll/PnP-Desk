@@ -97,6 +97,19 @@ button.gefahr{border-color:#c05555;color:#c05555}
 .t-cfg label{font-size:.76rem;color:var(--gray);display:flex;align-items:center;gap:.25rem}
 .t-cfg select{font-size:.76rem;padding:.1rem .25rem;background:var(--dark);color:var(--ink);
   border:1px solid var(--border);border-radius:4px}
+.t-mehr{margin-top:.25rem;font-size:.72rem;color:var(--gray);background:none;border:none;
+  padding:0;cursor:pointer;text-decoration:underline dotted}
+.t-mehr:hover{color:var(--gold)}
+.t-tag{margin:-.1rem 0 .45rem .8rem;padding:.3rem .5rem;border-left:2px solid var(--border)}
+.t-tagz{display:grid;grid-template-columns:7.5rem 1fr auto auto;gap:.5rem;align-items:center;
+  padding:.18rem 0;font-size:.78rem}
+.t-tagz.dies{color:var(--ink)}
+.t-tagz.ist .t-tagu{color:var(--teal)}
+.t-tagu{font-weight:600;color:var(--gold);white-space:nowrap}
+.t-tagz.dies .t-tagu::after{content:' ◂';color:var(--gray)}
+.t-tagw{color:var(--gray);overflow:hidden;text-overflow:ellipsis}
+.t-tagw .nein{text-decoration:line-through;opacity:.6}
+.t-tagn{color:var(--gold);white-space:nowrap}
 .t-plan{margin-top:.7rem;font-size:.8rem}
 .t-zeile{display:grid;grid-template-columns:8.5rem 1fr;gap:.5rem;padding:.2rem 0;
   border-bottom:1px solid rgba(201,168,76,.08)}
@@ -199,6 +212,9 @@ let db = null, spiele = {}, sitzungen = {}, aktiv = null, altStand = null;
 // Speicher: Das ist eine Ansichtssache dieses Browsers und gehoert
 // nicht in die Datenbank.
 let termineOffen = {};
+/* Welche TAGE zeigen ihre übrigen Zeiten? Schlüssel ist Sitzung|Datum.
+   Ebenfalls nur im Speicher - eine Ansichtssache dieses Browsers. */
+let tagOffen = {};
 
 function el(id) { return document.getElementById(id); }
 function esc(s) {
@@ -358,6 +374,16 @@ function altUebernehmen(ziel) {
    die Spielleitung einen Termin veroeffentlichen, den der Hub
    der Spieler gar nicht als den besten ansieht.
    ========================================================== */
+/* Je Tag steht oben nur das beste Fenster - sonst stuenden dort zwoelf
+   sich ueberlappende Varianten desselben Abends. Das ist fuer die
+   Uebersicht richtig, nimmt aber die Wahl: Wenn jemand von 17 bis 23 Uhr
+   kann, ist 19:00-22:30 nur EIN Schnitt daraus. Hier sind die anderen. */
+function tagUmschalten(id, datum) {
+  const k = id + '|' + datum;
+  tagOffen[k] = !tagOffen[k];
+  zeichneSitzungen();
+}
+
 function termineUmschalten(id) {
   termineOffen[id] = !termineOffen[id];
   zeichneSitzungen();
@@ -592,14 +618,49 @@ function zeichneTermine(id) {
         .map(function (p) { return '<span class="nein">' + esc(st.spieler[p].name || p) + '</span>'; })
         .join(', ');
       const ist = st.gewaehlt && st.gewaehlt.datum === r.datum && st.gewaehlt.slot === r.slot;
-      return '<div class="t-fenster' + (idx === 0 ? ' top' : '') + (ist ? ' ist' : '') + '">' +
+      const auf = !!tagOffen[id + '|' + r.datum];
+      const andere = TERMINE.fensterAmTag(st, r.datum);
+      // Nur anbieten, wenn es an diesem Tag ueberhaupt etwas zu waehlen gibt.
+      const mehr = andere.length > 1
+        ? '<button class="t-mehr" onclick="tagUmschalten(\'' + id + '\',\'' + r.datum + '\')">' +
+            (auf ? '▴ weniger' : '▾ ' + (andere.length - 1) + ' andere Zeit' +
+              (andere.length - 1 === 1 ? '' : 'en') + ' an diesem Tag') +
+          '</button>'
+        : '';
+
+      let block = '<div class="t-fenster' + (idx === 0 ? ' top' : '') + (ist ? ' ist' : '') + '">' +
         '<div><div class="t-wann">' + esc(TERMINE.fensterText(st.cfg, r)) + '</div>' +
-          '<div class="t-wer">' + kann + (nicht ? ' · ' + nicht : '') + '</div></div>' +
+          '<div class="t-wer">' + kann + (nicht ? ' · ' + nicht : '') + '</div>' + mehr + '</div>' +
         '<div class="t-zahl">' + r.wer.length + '/' + pids.length + '</div>' +
         '<button class="klein' + (ist ? ' warn' : '') + '" onclick="terminSetzen(\'' + id +
           '\',\'' + r.datum + '\',' + r.slot + ')">' +
           (ist ? 'zurücknehmen' : 'veröffentlichen') + '</button>' +
       '</div>';
+
+      if (auf) {
+        block += '<div class="t-tag">' + andere.map(function (a) {
+          const aIst = st.gewaehlt && st.gewaehlt.datum === a.datum && st.gewaehlt.slot === a.slot;
+          const aDies = (a.slot === r.slot);
+          const wer = a.wer.map(function (p) {
+            return esc(st.spieler[p].name || p);
+          }).join(', ');
+          const fehlt = pids.filter(function (p) { return a.wer.indexOf(p) < 0; })
+            .map(function (p) { return '<span class="nein">' + esc(st.spieler[p].name || p) + '</span>'; })
+            .join(', ');
+          return '<div class="t-tagz' + (aIst ? ' ist' : '') + (aDies ? ' dies' : '') + '">' +
+            '<span class="t-tagu">' + esc(TERMINE.fensterUhrzeit(st.cfg, a)) + '</span>' +
+            '<span class="t-tagw">' + wer + (fehlt ? ' · ' + fehlt : '') + '</span>' +
+            '<span class="t-tagn">' + a.wer.length + '/' + pids.length + '</span>' +
+            '<button class="klein' + (aIst ? ' warn' : '') + '" onclick="terminSetzen(\'' + id +
+              '\',\'' + a.datum + '\',' + a.slot + ')">' +
+              (aIst ? 'zurücknehmen' : 'veröffentlichen') + '</button>' +
+          '</div>';
+        }).join('') +
+        '<div class="hint">Alle Anfangszeiten, zu denen an diesem Tag jemand die vollen ' +
+          (st.cfg.dauerMin / 60).toFixed(1).replace('.', ',') + ' Stunden durchhält.</div>' +
+        '</div>';
+      }
+      return block;
     }).join('');
   }
 
@@ -615,7 +676,8 @@ function zeichneTermine(id) {
       '<div class="t-tage">' + tage + '</div></div>';
   }).join('') + '</div>';
 
-  h += '<div class="hint" style="margin-top:.5rem">Je Tag steht nur das beste Fenster. ' +
+  h += '<div class="hint" style="margin-top:.5rem">Oben steht je Tag das beste Fenster — ' +
+       'über „andere Zeiten“ kommst du an jede andere Anfangszeit desselben Tages. ' +
        'Fehlende Eintragung gilt als „kann nicht“, nicht als „weiß noch nicht“ — ' +
        'ein Kalender, der Schweigen als Zustimmung deutet, schlägt Termine vor, an denen niemand kann.</div>';
 

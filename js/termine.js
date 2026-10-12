@@ -208,6 +208,49 @@ var TERMINE = (function () {
     return gefiltert.slice(0, 6);
   }
 
+  /* ==========================================================
+     ALLE FENSTER EINES TAGES
+     ----------------------------------------------------------
+     besteFenster() zeigt je Tag nur das beste - sonst stuenden
+     dort zwoelf sich ueberlappende Varianten desselben Abends.
+     Fuer die Uebersicht ist das richtig, aber es nimmt der
+     Spielleitung die Wahl: Wenn an einem Montag von 17 bis 23
+     Uhr jemand kann, ist 19:00-22:30 nur EIN moeglicher Schnitt
+     daraus, und vielleicht will man um 18 Uhr anfangen.
+
+     Diese Funktion liefert deshalb ALLE Startzeiten eines Tages,
+     an denen ueberhaupt jemand durchgehend kann - nach Uhrzeit
+     sortiert, damit man sie lesen kann wie einen Abendplan.
+     ========================================================== */
+  function fensterAmTag(st, datum, jetzt) {
+    var cfg = st.cfg, spieler = st.spieler || {}, verfuegbar = st.verfuegbar || {};
+    var pids = Object.keys(spieler);
+    var n = slotAnzahl(cfg), w = fensterSlots(cfg), out = [];
+    if (!pids.length || w > n) return out;
+    var nun = jetzt || new Date();
+    var heuteIso = iso(heute0(nun));
+    if (datum < heuteIso) return out;
+
+    var tage = {};
+    pids.forEach(function (p) { tage[p] = holeTag(verfuegbar, p, datum, cfg); });
+
+    for (var s = 0; s + w <= n; s++) {
+      // Was heute schon vorbei ist, ist kein Vorschlag mehr.
+      if (datum === heuteIso) {
+        var ende = new Date(nun.getFullYear(), nun.getMonth(), nun.getDate());
+        ende.setHours(cfg.vonStunde, 0, 0, 0);
+        ende.setMinutes(ende.getMinutes() + (s + w) * SLOT_MIN);
+        if (ende < nun) continue;
+      }
+      var wer = pids.filter(function (p) {
+        for (var k = s; k < s + w; k++) if (tage[p][k] !== '1') return false;
+        return true;
+      });
+      if (wer.length) out.push({ datum: datum, slot: s, wer: wer });
+    }
+    return out;
+  }
+
   function fensterText(cfg, r) {
     var bis = r.slot + fensterSlots(cfg);
     return langDatum(r.datum) + ' ' + slotZeit(cfg, r.slot) + '–' + uhr(minutenVon(cfg, bis));
@@ -295,7 +338,8 @@ var TERMINE = (function () {
     heute0: heute0, tagListe: tagListe, datenTage: datenTage, iso: iso,
     slotZeit: slotZeit, uhr: uhr, minutenVon: minutenVon, langDatum: langDatum,
     holeTag: holeTag, kann: kann, zaehle: zaehle, hatEingetragen: hatEingetragen,
-    besteFenster: besteFenster, fensterText: fensterText, fensterUhrzeit: fensterUhrzeit,
+    besteFenster: besteFenster, fensterAmTag: fensterAmTag,
+    fensterText: fensterText, fensterUhrzeit: fensterUhrzeit,
     spannen: spannen, spannenText: spannenText, spielerPlan: spielerPlan,
     uebersicht: uebersicht
   };

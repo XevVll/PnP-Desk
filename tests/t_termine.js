@@ -159,7 +159,7 @@ function ladeHubAnsicht() {
   }
   const ctx = {
     console, Date, Math, JSON, Object, String, Array, TERMINE: T,
-    sitzungen: {}, termineOffen: {},
+    sitzungen: {}, termineOffen: {}, tagOffen: {},
     zeichneSitzungen() {}, meld() {},
     db: { ref() { return { set() { return Promise.resolve(); } }; } }
   };
@@ -491,6 +491,104 @@ t('die Rasteranzeige benutzt den Versatz',
 /* Und die Suche benutzt ihn NICHT - sonst waere sie wieder begrenzt. */
 t('besteFenster wird ohne Versatz aufgerufen',
   spC.indexOf('TERMINE.besteFenster({ cfg: cfg, spieler: spieler, verfuegbar: verfuegbar })') > 0);
+
+/* ==========================================================
+   ALLE ZEITEN EINES TAGES
+   ----------------------------------------------------------
+   Hendriks Meldung vom 12.10.: "Ich kann nur eine Zeit am Tag
+   wählen. Auch wenn von 18 Uhr zb verfügbar ist."
+
+   Je Tag nur das beste Fenster zu zeigen ist fuer die Uebersicht
+   richtig - es nimmt der Spielleitung aber die Wahl. Wenn jemand
+   von 17 bis 23 Uhr kann, ist 19:00-22:30 nur EIN Schnitt daraus.
+   ========================================================== */
+(function () {
+  const tag = T.iso(T.tagListe(cfg)[1]);
+  function bitsVon(von, bis) {
+    let b = '';
+    for (let i = 0; i < N; i++) b += (i >= von && i < bis) ? '1' : '0';
+    return b;
+  }
+  // Peter 17:00-23:00 (Slot 2..13), SL 17:30-21:30 (Slot 3..10), von = 16:00
+  const st = { cfg: cfg, spieler: { peter: { name: 'Peter' }, sl: { name: 'SL' } },
+    verfuegbar: { peter: { [tag]: bitsVon(2, 14) }, sl: { [tag]: bitsVon(3, 11) } } };
+
+  const alle = T.fensterAmTag(st, tag);
+  t('ein Tag liefert mehrere Anfangszeiten', alle.length > 1, 'n=' + alle.length);
+  t('sie sind nach Uhrzeit sortiert',
+    alle.every(function (x, i) { return i === 0 || alle[i - 1].slot < x.slot; }),
+    alle.map(x => x.slot).join(','));
+  t('alle gehoeren zu diesem Tag', alle.every(function (x) { return x.datum === tag; }));
+  t('jedes Fenster hat mindestens einen, der kann',
+    alle.every(function (x) { return x.wer.length > 0; }));
+
+  /* Das beste Fenster des Tages muss in der Liste vorkommen - sonst
+     koennte man den Vorschlag von oben unten nicht wiederfinden. */
+  const best = T.besteFenster(st).filter(function (x) { return x.datum === tag; })[0];
+  t('das beste Fenster steht auch in der Tagesliste',
+    !!best && alle.some(function (x) { return x.slot === best.slot; }),
+    best && T.fensterUhrzeit(cfg, best));
+  t('kein Fenster der Tagesliste ist besser als das beste',
+    alle.every(function (x) { return x.wer.length <= best.wer.length; }));
+
+  /* Der konkrete Fall aus Hendriks Meldung: 18:00 muss waehlbar sein. */
+  const umAcht = alle.filter(function (x) { return T.slotZeit(cfg, x.slot) === '18:00'; })[0];
+  t('18:00 ist als Anfangszeit waehlbar', !!umAcht,
+    alle.map(function (x) { return T.slotZeit(cfg, x.slot); }).join(' '));
+  t('und sagt richtig, wer dann kann', !!umAcht && umAcht.wer.length === 2,
+    umAcht && umAcht.wer.join(','));
+  /* Eine Zeit, zu der nur einer kann, faellt nicht unter den Tisch. */
+  const umHalbSieben = alle.filter(function (x) { return T.slotZeit(cfg, x.slot) === '19:30'; })[0];
+  t('auch eine Zeit mit nur einem erscheint', !!umHalbSieben && umHalbSieben.wer.length === 1,
+    umHalbSieben && umHalbSieben.wer.join(','));
+
+  /* Grenzen. */
+  t('ein Tag ohne Eintrag ergibt nichts',
+    T.fensterAmTag(st, T.iso(T.tagListe(cfg)[5])).length === 0);
+  const gestern = T.iso(new Date(Date.now() - 36e5 * 24));
+  t('ein vergangener Tag ergibt nichts', T.fensterAmTag(st, gestern).length === 0);
+  t('ohne Spieler ergibt nichts',
+    T.fensterAmTag({ cfg: cfg, spieler: {}, verfuegbar: {} }, tag).length === 0);
+  /* Ist die Sitzung laenger als der angezeigte Zeitraum, gibt es nichts. */
+  t('ein zu langes Fenster ergibt nichts',
+    T.fensterAmTag({ cfg: T.mitCfg({ dauerMin: 24 * 60 }), spieler: st.spieler,
+      verfuegbar: st.verfuegbar }, tag).length === 0);
+
+  /* ---- Die Regie-Ansicht zeigt sie ---- */
+  H.sitzungen = { tagtest: { stand: { termine: {
+    config: { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 },
+    spieler: st.spieler, verfuegbar: st.verfuegbar } } } };
+  H.termineOffen = { tagtest: true };
+  H.tagOffen = {};
+  const zu = H.zeichneTermine('tagtest');
+  t('zugeklappt wird auf die anderen Zeiten hingewiesen',
+    zu.indexOf('t-mehr') > 0 && zu.indexOf('andere Zeit') > 0);
+  t('zugeklappt stehen sie noch nicht da', zu.indexOf('t-tagz') < 0);
+
+  H.tagOffen = { ['tagtest|' + tag]: true };
+  const auf = H.zeichneTermine('tagtest');
+  t('aufgeklappt stehen alle Anfangszeiten da',
+    (auf.match(/t-tagz/g) || []).length === alle.length,
+    (auf.match(/t-tagz/g) || []).length + ' statt ' + alle.length);
+  t('jede ist veroeffentlichbar',
+    (auf.match(/terminSetzen\(/g) || []).length >= alle.length);
+  t('18:00 steht in der aufgeklappten Liste', auf.indexOf('18:00') > 0);
+  t('das gerade gezeigte Fenster ist markiert', auf.indexOf('dies') > 0);
+  t('aufgeklappt gibt es ein "weniger"', auf.indexOf('weniger') > 0);
+
+  /* Ein Tag mit nur einer moeglichen Zeit braucht keinen Umschalter. */
+  const einTag = T.iso(T.tagListe(cfg)[2]);
+  H.sitzungen.eins = { stand: { termine: {
+    config: { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 },
+    spieler: { peter: { name: 'Peter' } },
+    verfuegbar: { peter: { [einTag]: bitsVon(0, 7) } } } } };
+  H.termineOffen = { eins: true };
+  const nurEins = H.zeichneTermine('eins');
+  // Auf den KNOPF pruefen, nicht auf den Wortlaut: Der Schlusshinweis
+  // der Ansicht nennt "andere Zeiten" ebenfalls.
+  t('bei nur einer moeglichen Zeit kein Umschalter',
+    nurEins.indexOf('t-mehr') < 0, nurEins.indexOf('t-mehr'));
+})();
 
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);
