@@ -105,6 +105,40 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 5) — Der Schwächen-Schritt erklärt den Tausch
+- **Hendriks Vorgabe:** Der obere Text soll besser erklären, **wie Schwächen sich auswirken**, **wie
+  sie Punkte freischalten**, dass sie **freiwillig** sind und dass sie **mehr Talente ermöglichen**.
+  Vorher stand dort ein statischer Satz über „die Punkte, aus denen deine Talente bezahlt werden"
+  plus die Obergrenze — **der Tausch war daraus nicht abzulesen**, und wie viele Talente man
+  gerade hat, erst recht nicht.
+- **Der Text ist jetzt dynamisch** (`hndLead`, gerendert in `renderHnd()`) und sagt vier Dinge,
+  bevor jemand klickt:
+  1. **Freiwillig** — „eine Figur ohne Schwächen ist regelkonform. Sie hat dann das eine freie
+     Talent und sonst keines."
+  2. **Was sie bewirken** — die einen drücken Würfel oder schränken ein, die anderen (mit *Haken*)
+     kosten keinen Wert, sondern **verpflichten**: Sie geben der Spielleitung etwas, woran sie die
+     Figur aufhängt.
+  3. **Was sie bringen** — eine schwere 2 Punkte, eine leichte 1, höchstens 1 schwere und
+     2 leichte, also nie mehr als 4.
+  4. **Wofür das gut ist** — als **Leiter**, bei der die gerade zutreffende Stufe leuchtet:
+
+         keine → 1 Talent  ·  1 schwere oder 2 leichte → 2 Talente  ·  1 schwere + 2 leichte → 3 Talente
+
+- **Dazu der eigene Stand in Worten:** „Du hast 1 schwere und 1 leichte, also 3 Punkte — damit sind
+  2 Talente möglich." Trifft es zu, hängt der Verfall-Hinweis dran.
+- **Der Hinweis unten erklärte den *Haken* ein zweites Mal** — das steht jetzt oben, wo es
+  hingehört. Unten steht dafür, was vorher nirgends stand: dass sich eine Schwäche jederzeit
+  wieder abwählen lässt, solange kein Talent mehr daran hängt.
+- **Zwei Sprachfehler in meinem eigenen Text, beim Gegenlesen des gerenderten Ergebnisses
+  gefunden:** „bekommt ihr eines freies Talent" und „damit **sind** 1 Talent möglich". Beide
+  behoben; Einzahl/Mehrzahl hängt jetzt an der Zahl, und eine Null wird gar nicht erst genannt
+  („1 schwere" statt „1 schwere und 0 leichte").
+- **Getestet: 415 Prüfungen über drei Skripte, 0 Fehler** (14 neue). Der Text wird dabei wirklich
+  gerendert und auf Inhalt geprüft: beide Sorten erklärt, Punktwerte und Obergrenze genannt, alle
+  drei Leiterstufen da, die zutreffende hervorgehoben — und Einzahl/Mehrzahl stimmt bei 1 Talent,
+  2 Talenten und 1 Punkt.
+
+
 ### 2026-10-12 (Fortsetzung 4) — Talente sind bezahlt, bevor man sie nimmt
 - **Anlass war Hendriks Frage:** „Muss ich alle Schwächen nehmen? Und kann ich auch mehr Talente
   nehmen, als meine Schwäche-Punkte erlauben?" Antwort auf die erste: nein, Schwächen sind

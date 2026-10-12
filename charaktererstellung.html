@@ -29,6 +29,12 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
+.hnd-leiter{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0 0}
+.hl{font-size:.76rem;font-style:normal;color:var(--gray);border:1px solid var(--border);
+  border-radius:4px;padding:.18rem .45rem}
+.hl i{color:var(--gray);opacity:.8}
+.hl.on{border-color:var(--gold);color:var(--gold);background:var(--lgold)}
+.hnd-stand{display:block;margin-top:.5rem;font-style:normal;color:var(--ink);font-size:.84rem}
 .tal-rest{display:block;margin-top:.3rem;color:var(--amber);font-style:normal}
 .hnd-meld{border:1px solid var(--amber);background:rgba(202,103,2,.1);color:var(--amber);
   border-radius:6px;padding:.5rem .7rem;margin-bottom:.8rem;font-size:.84rem;line-height:1.5}
@@ -203,15 +209,12 @@ h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:
   <!-- 1 — SCHWÄCHEN -->
   <div class="panel" id="p1">
     <h2>Schwächen</h2>
-    <p class="lead">Der Anfang, nicht das Anhängsel. Was deiner Figur im Weg steht, sagt mehr über sie
-      als jeder Wert — und es bringt die Punkte, aus denen deine Talente bezahlt werden.
-      Höchstens ein schweres und zwei leichte.</p>
+    <p class="lead" id="hndLead"></p>
     <div class="card"><div class="card-body">
       <div class="hnd-meld" id="hndMeld" hidden></div>
       <div class="pick" id="hndGrid"></div>
-      <div class="hint">Die mit <span class="haken">Haken</span> markierten senken keine Würfel, sondern
-        lösen Szenen aus. Das sind die interessanteren — sie geben der Spielleitung etwas, woran sie
-        deine Figur aufhängen kann.</div>
+      <div class="hint">Eine Schwäche lässt sich jederzeit wieder abwählen — solange kein Talent
+        mehr daran hängt, als die übrigen Punkte tragen.</div>
     </div></div>
   </div>
 
@@ -423,7 +426,55 @@ function waehleRang(id) {
   speichern(); renderAlles();
 }
 /* ---------- Schritt 1: Schwächen ---------- */
+/* Der Text ueber den Schwaechen. Er muss vier Dinge sagen, und zwar
+   bevor jemand klickt:
+     1. Sie sind FREIWILLIG - null ist eine gueltige Figur.
+     2. Was sie bewirken (Wuerfel senken ODER Szenen ausloesen).
+     3. Dass sie Punkte bringen und wie viele.
+     4. Wofuer die Punkte gut sind - naemlich fuer Talente, und
+        in welchen Stufen.
+
+   Vorher stand dort nur ein Satz ueber "die Punkte, aus denen deine
+   Talente bezahlt werden" und die Obergrenze. Der Tausch - drei
+   Schwaechen gegen ein drittes Talent - war daraus nicht abzulesen. */
 function renderHnd() {
+  const punkte = handicapPunkte(F);
+  const erlaubt = talenteErlaubt();
+  const rest = punkte % TALENT_KOSTEN;
+  const sc = zaehleSchwer(F), le = zaehleLeicht(F);
+
+  document.getElementById('hndLead').innerHTML =
+    '<b>Freiwillig.</b> Du musst keine einzige nehmen — eine Figur ohne Schwächen ist ' +
+    'regelkonform. Sie hat dann das eine freie Talent und sonst keines. Wer Schwächen nimmt, ' +
+    'kauft sich damit <b>weitere Talente</b>.' +
+
+    '<br><br>Es gibt zwei Sorten: Die einen drücken Würfel oder schränken ein. Die anderen — ' +
+    'unten mit <span class="haken">Haken</span> markiert — kosten keinen Wert, sondern ' +
+    '<b>verpflichten</b>: Sie geben der Spielleitung etwas, woran sie deine Figur aufhängt. ' +
+    'Das sind die interessanteren.' +
+
+    '<br><br><b>Eine schwere bringt ' + 2 + ' Punkte, eine leichte ' + 1 + '</b> — höchstens ' +
+    MAX_SCHWER + ' schwere und ' + MAX_LEICHT + ' leichte, also nie mehr als ' +
+    (MAX_SCHWER * 2 + MAX_LEICHT) + '. Ein Talent kostet ' + TALENT_KOSTEN + ' Punkte:' +
+
+    '<span class="hnd-leiter">' +
+      '<span class="hl' + (erlaubt === 1 ? ' on' : '') + '">keine → 1 Talent</span>' +
+      '<span class="hl' + (erlaubt === 2 ? ' on' : '') + '">1 schwere <i>oder</i> 2 leichte → 2 Talente</span>' +
+      '<span class="hl' + (erlaubt === 3 ? ' on' : '') + '">1 schwere + 2 leichte → 3 Talente</span>' +
+    '</span>' +
+
+    '<span class="hnd-stand">Du hast ' +
+      (punkte === 0
+        ? 'noch keine Schwäche gewählt'
+        : [sc ? sc + ' schwere' : '', le ? le + ' leichte' : ''].filter(Boolean).join(' und ') +
+          ', also <b>' + punkte + ' Punkt' + (punkte === 1 ? '' : 'e') + '</b>') +
+      ' — damit ' + (erlaubt === 1 ? 'ist <b>1 Talent</b>' : 'sind <b>' + erlaubt + ' Talente</b>') +
+      ' möglich.' +
+      (rest ? ' <span class="tal-rest">' + rest + ' Punkt verfällt ungenutzt: Punkte kaufen hier nur ' +
+              'Talente, und eines kostet ' + TALENT_KOSTEN + '. Eine leichte Schwäche mehr ' +
+              'bringt dir das nächste.</span>' : '') +
+    '</span>';
+
   document.getElementById('hndGrid').innerHTML = HANDICAPS.map(function (h) {
     const on = F.hnd.indexOf(h.id) >= 0;
     const voll = !on && (h.schwer ? zaehleSchwer(F) >= MAX_SCHWER : zaehleLeicht(F) >= MAX_LEICHT);

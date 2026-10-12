@@ -918,6 +918,41 @@ function talentePruefen() {
     R.pruefeFigur(ctx.F).probleme.indexOf('Talente nicht bezahlt') < 0,
     R.pruefeFigur(ctx.F).probleme.join(', '));
 
+  /* ---- Der Text ueber den Schwaechen ---- */
+  ctx.F = R.leereFigur();
+  ctx.renderHnd();
+  const lead0 = el('hndLead').innerHTML;
+  t('der Text sagt, dass Schwaechen freiwillig sind', lead0.indexOf('Freiwillig') >= 0);
+  t('er sagt, was ohne sie bleibt', lead0.indexOf('das eine freie Talent') > 0);
+  t('er erklaert BEIDE Sorten',
+    lead0.indexOf('drücken Würfel') > 0 && lead0.indexOf('verpflichten') > 0);
+  t('er nennt die Punktwerte', lead0.indexOf('schwere bringt 2') > 0);
+  t('er nennt die Obergrenze', lead0.indexOf('nie mehr als 4') > 0);
+  t('er zeigt den Tausch als Leiter',
+    lead0.indexOf('keine → 1 Talent') > 0 &&
+    lead0.indexOf('→ 2 Talente') > 0 && lead0.indexOf('→ 3 Talente') > 0);
+  t('die zutreffende Stufe ist hervorgehoben', lead0.indexOf('class="hl on"') > 0);
+  t('und der aktuelle Stand steht da', lead0.indexOf('noch keine Schwäche gewählt') > 0);
+  t('Einzahl stimmt bei einem Talent', lead0.indexOf('ist <b>1 Talent</b> möglich') > 0,
+    lead0.indexOf('sind <b>1 Talent'));
+
+  ctx.F = R.leereFigur(); ctx.F.hnd = [schwer.id];
+  ctx.renderHnd();
+  const lead1 = el('hndLead').innerHTML;
+  t('Mehrzahl stimmt bei zweien', lead1.indexOf('sind <b>2 Talente</b> möglich') > 0);
+  t('eine Null wird nicht mitgezaehlt', lead1.indexOf('0 leichte') < 0, lead1.indexOf('0 leichte'));
+
+  ctx.F = R.leereFigur(); ctx.F.hnd = [leicht[0].id];
+  ctx.renderHnd();
+  const lead2 = el('hndLead').innerHTML;
+  t('ein einzelner Punkt wird als verfallend benannt', lead2.indexOf('verfällt ungenutzt') > 0);
+  t('und Einzahl bei einem Punkt stimmt', lead2.indexOf('<b>1 Punkt</b>') > 0);
+
+  ctx.F = R.leereFigur(); ctx.F.hnd = [schwer.id, leicht[0].id, leicht[1].id];
+  ctx.renderHnd();
+  t('bei vier Punkten kein Verfall-Hinweis',
+    el('hndLead').innerHTML.indexOf('verfällt') < 0);
+
   /* Die Grenzen der Schwaechen selbst gelten weiter. */
   const g = R.leereFigur();
   ctx.F = g;
