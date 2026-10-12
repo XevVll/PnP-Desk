@@ -29,6 +29,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .panel{display:none}.panel.on{display:block}
 h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:.07em;margin-bottom:.3rem}
 .lead{color:var(--gray);font-size:.84rem;font-style:italic;line-height:1.6;margin-bottom:1rem}
+.budget-stand{display:block;margin-top:.6rem;font-style:normal;color:var(--ink);font-size:.86rem}
+.chip.zu{opacity:.35;cursor:default}
+.sbtn[disabled]{opacity:.3;cursor:default}
 .hnd-leiter{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0 0}
 .hl{font-size:.76rem;font-style:normal;color:var(--gray);border:1px solid var(--border);
   border-radius:4px;padding:.18rem .45rem}
@@ -623,9 +626,11 @@ function stepRow(o) {
       (o.sub ? '<br><span class="row-sub">' + o.sub + '</span>' : '') + '</div>' +
     (o.weg || '') +
     '<div class="step">' +
-      '<button class="sbtn" ' + (o.wert <= o.min ? 'disabled' : '') + ' onclick="' + o.minus + '">−</button>' +
+      '<button class="sbtn" ' + (o.wert <= o.min || o.runterZu ? 'disabled' : '') +
+        (o.runterZu ? ' title="' + o.runterZu + '"' : '') + ' onclick="' + o.minus + '">−</button>' +
       '<div class="die ' + dcls(o.wert) + '">' + DLBL[o.wert] + '</div>' +
-      '<button class="sbtn" ' + (o.wert >= MAXD ? 'disabled' : '') + ' onclick="' + o.plus + '">+</button>' +
+      '<button class="sbtn" ' + (o.wert >= MAXD || o.hochZu ? 'disabled' : '') +
+        (o.hochZu ? ' title="' + o.hochZu + '"' : '') + ' onclick="' + o.plus + '">+</button>' +
     '</div><div class="cost' + (o.teuer ? ' teuer' : '') + '">' + (o.cost || '') + '</div></div>';
 }
 function sollBadge(noetig, ist) {
@@ -635,10 +640,30 @@ function sollBadge(noetig, ist) {
 }
 
 /* ---------- Schritt 3: Attribute ---------- */
+/* Was eine Aenderung kosten wuerde, BEVOR sie gemacht wird. Nur so
+   lassen sich die Knoepfe vorher sperren, statt hinterher zu meckern. */
+function probeAttr(name, d) {
+  const alt = F.attr[name] || 1;
+  const neu = Math.max(1, Math.min(MAXD, alt + d));
+  if (neu === alt) return null;
+  const k = JSON.parse(JSON.stringify(F));
+  k.attr[name] = neu;
+  return { attr: ausgabenAttr(k), fert: ausgabenFert(k) };
+}
+
 function renderAttr() {
-  document.getElementById('attrLead').textContent =
-    ATTR_PUNKTE + ' Punkte auf fünf Attribute. Alles beginnt bei d4, jeder Punkt ist eine Würfelstufe. ' +
-    'Sie entscheiden außerdem, wie teuer deine Fertigkeiten werden.';
+  const aOffen = ATTR_PUNKTE - ausgabenAttr(F);
+  document.getElementById('attrLead').innerHTML =
+    '<b>' + ATTR_PUNKTE + ' Punkte</b> auf fünf Attribute. Alles beginnt bei <b>d4</b>, und ' +
+    '<b>jeder Punkt hebt ein Attribut um eine Würfelstufe</b> — d4 → d6 → d8 → d10 → d12. ' +
+    'Mehr als ' + ATTR_PUNKTE + ' lassen sich nicht vergeben; was du nicht ausgibst, verfällt.' +
+    '<br><br>Attribute entscheiden außerdem, <b>wie teuer deine Fertigkeiten werden</b>: Bis zur ' +
+    'Höhe ihres Attributs kostet eine Fertigkeitsstufe 1 Punkt, darüber 2. Ein hohes Attribut ' +
+    'macht also alles billiger, was daran hängt.' +
+    '<span class="budget-stand">' +
+      (aOffen > 0 ? 'Noch <b>' + aOffen + ' Punkt' + (aOffen === 1 ? '' : 'e') + '</b> zu vergeben.'
+                  : 'Alle ' + ATTR_PUNKTE + ' Punkte vergeben.') +
+    '</span>';
   document.getElementById('attrZiele').innerHTML = zieleHtml(true);
 
   document.getElementById('attrRows').innerHTML = ATTRIBUTE.map(function (a) {
@@ -646,21 +671,53 @@ function renderAttr() {
     const soll = verlangtVon(F, a.name);
     const anzahl = fertigkeitenVon(a.name).length;
     const sub = a.d + (anzahl ? ' · Leitwert für ' + anzahl + ' Fertigkeiten' : ' · wird direkt gewürfelt');
+    const hoch = probeAttr(a.name, 1), runter = probeAttr(a.name, -1);
     return stepRow({ label:a.name, soll:sollBadge(soll, v), braucht:(soll && v < soll),
       sub:sub, wert:v, min:1,
+      hochZu: (hoch && hoch.attr > ATTR_PUNKTE)
+        ? 'Keine Attributspunkte mehr — senk ein anderes Attribut.' : '',
+      // Ein Attribut zu senken macht die Fertigkeiten darueber teurer.
+      // Das kann das Fertigkeitsbudget sprengen - dann hier abfangen,
+      // statt es stillschweigend ueberziehen zu lassen.
+      runterZu: (runter && runter.fert > FERT_PUNKTE)
+        ? 'Senken würde deine Fertigkeiten teurer machen, als du Punkte hast.' : '',
       minus:"chgAttr('" + a.name + "',-1)", plus:"chgAttr('" + a.name + "',1)", cost:(v - 1) + 'P' });
   }).join('');
 }
 function chgAttr(name, d) {
+  const p = probeAttr(name, d);
+  if (!p) return;
+  if (p.attr > ATTR_PUNKTE) return;   // nie mehr ausgeben, als da ist
+  if (p.fert > FERT_PUNKTE) return;   // und nicht durch die Hintertuer
   F.attr[name] = Math.max(1, Math.min(MAXD, (F.attr[name] || 1) + d));
   speichern(); renderAlles();
 }
 
 /* ---------- Schritt 4: Fertigkeiten ---------- */
+function probeFert(name, wert) {
+  const min = startStufe(name);
+  const neu = Math.max(min, Math.min(MAXD, wert));
+  if (neu === (F.fert[name] || 0)) return null;
+  const k = JSON.parse(JSON.stringify(F));
+  k.fert[name] = neu;
+  return { fert: ausgabenFert(k), stufe: neu };
+}
+
 function renderFert() {
-  document.getElementById('fertLead').textContent =
-    FERT_PUNKTE + ' Punkte. Eine Stufe kostet 1 Punkt, solange die Fertigkeit ihr Attribut nicht ' +
-    'übersteigt — darüber 2. Fünf Fertigkeiten kann jeder ein wenig und stehen schon auf d4.';
+  const fOffen = FERT_PUNKTE - ausgabenFert(F);
+  document.getElementById('fertLead').innerHTML =
+    '<b>' + FERT_PUNKTE + ' Punkte.</b> Jede Fertigkeit beginnt ungelernt und steigt in ' +
+    'Würfelstufen: d4 → d6 → d8 → d10 → d12.' +
+    '<br><br><b>Eine Stufe kostet 1 Punkt, solange die Fertigkeit ihr Attribut nicht übersteigt — ' +
+    'darüber 2.</b> Kämpfen auf d8 kostet also 3 Punkte, wenn Geschicklichkeit auf d8 steht, ' +
+    'aber 5, wenn sie nur auf d4 steht. Lohnt sich eine Fertigkeit, lohnt oft erst ihr Attribut.' +
+    '<br><br>Fünf Fertigkeiten kann jeder ein wenig — sie stehen schon auf d4 und haben nichts ' +
+    'gekostet. Mehr als ' + FERT_PUNKTE + ' Punkte lassen sich nicht vergeben; was übrig bleibt, ' +
+    'verfällt.' +
+    '<span class="budget-stand">' +
+      (fOffen > 0 ? 'Noch <b>' + fOffen + ' Punkt' + (fOffen === 1 ? '' : 'e') + '</b> zu vergeben.'
+                  : 'Alle ' + FERT_PUNKTE + ' Punkte vergeben.') +
+    '</span>';
   document.getElementById('fertZiele').innerHTML = zieleHtml(false);
 
   // Gezeigt wird, was gelernt ist ODER was ein Talent verlangt.
@@ -676,9 +733,14 @@ function renderFert() {
         const weg = (v > min && !soll)
           ? '<button class="wegbtn" title="wieder verlernen" onclick="setFert(\'' + s.name + '\',' + min + ')">✕</button>'
           : '';
+        const hoch = probeFert(s.name, v + 1);
+        const naechste = (v + 1 <= cap) ? 1 : 2;
         return stepRow({ label:s.name + (min > 0 ? ' <span class="gratis">frei</span>' : ''),
           soll:sollBadge(soll, v), braucht:(soll && v < soll),
           sub:s.attr + ' ' + DLBL[cap] + ' · ' + s.d, wert:v, min:min, teuer:(v > cap), weg:weg,
+          hochZu: (hoch && hoch.fert > FERT_PUNKTE)
+            ? 'Die nächste Stufe kostet ' + naechste + ' Punkt' + (naechste === 1 ? '' : 'e') +
+              ' — so viel hast du nicht mehr.' : '',
           minus:"chgFert('" + s.name + "',-1)", plus:"chgFert('" + s.name + "',1)",
           cost:fertKosten(F, s.name, v) + 'P' });
       }).join('')
@@ -690,10 +752,15 @@ function renderFert() {
       return (F.fert[s.name] || 0) === 0 && verlangtVon(F, s.name) === 0;
     });
     if (!offen.length) return '';
+    // Eine neue Fertigkeit auf d4 kostet 1 Punkt - ist der nicht da,
+    // darf der Chip nicht so aussehen, als ginge es noch.
+    const reicht = (FERT_PUNKTE - ausgabenFert(F)) >= 1;
     return '<div style="margin-bottom:.5rem"><div class="sl">' + a.name + ' <span style="color:var(--gray)">' +
       DLBL[F.attr[a.name] || 1] + '</span></div><div class="chips">' +
       offen.map(function (s) {
-        return '<button class="chip" onclick="setFert(\'' + s.name + '\',1)" title="' + esc(s.d) + '">' +
+        return '<button class="chip' + (reicht ? '' : ' zu') + '"' +
+          (reicht ? ' onclick="setFert(\'' + s.name + '\',1)"' : ' disabled') +
+          ' title="' + (reicht ? esc(s.d) : 'Kein Fertigkeitspunkt mehr übrig.') + '">' +
           s.name + '<span class="cs">+1P</span></button>';
       }).join('') + '</div></div>';
   }).join('') || '<div class="leer">Du hast jede Fertigkeit mindestens angefangen.</div>';
@@ -702,8 +769,10 @@ function chgFert(name, d) {
   setFert(name, (F.fert[name] || 0) + d);
 }
 function setFert(name, wert) {
-  const min = startStufe(name);
-  F.fert[name] = Math.max(min, Math.min(MAXD, wert));
+  const p = probeFert(name, wert);
+  if (!p) return;
+  if (p.fert > FERT_PUNKTE) return;   // nie mehr ausgeben, als da ist
+  F.fert[name] = p.stufe;
   speichern(); renderAlles();
 }
 

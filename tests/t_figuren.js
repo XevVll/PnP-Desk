@@ -963,6 +963,135 @@ function talentePruefen() {
   t('hoechstens zwei leichte', R.zaehleLeicht(ctx.F) <= R.MAX_LEICHT, R.zaehleLeicht(ctx.F));
   t('und damit nie mehr als vier Punkte', R.handicapPunkte(ctx.F) <= 4, R.handicapPunkte(ctx.F));
 
+  budgetPruefen();
+}
+
+function budgetPruefen() {
+  /* ==========================================================
+     ATTRIBUTS- UND FERTIGKEITSPUNKTE
+     ----------------------------------------------------------
+     Hendriks Vorgabe vom 12.10.: erklaeren und "nur das moegliche
+     Maximum vergeben koennen". Vorher klemmten chgAttr() und
+     setFert() nur auf die Wuerfelstufen (1..d12), nicht aufs
+     Budget - ueberziehen ging, es gab nur eine rote Zahl.
+
+     Die unauffaellige Stelle ist die HINTERTUER: Ein Attribut zu
+     SENKEN macht die Fertigkeiten darueber teurer (1 Punkt bis
+     zum Attribut, 2 darueber). Wer also erst Fertigkeiten kauft
+     und dann das Attribut senkt, sprengt das Fertigkeitsbudget,
+     ohne eine einzige Fertigkeit angefasst zu haben.
+     ========================================================== */
+  const aC5 = inlineCode('charaktererstellung.html');
+  t('es gibt eine Vorab-Probe fuer Attribute', aC5.indexOf('function probeAttr(') > 0);
+  t('und eine fuer Fertigkeiten', aC5.indexOf('function probeFert(') > 0);
+  t('chgAttr sperrt das Attributsbudget', aC5.indexOf('if (p.attr > ATTR_PUNKTE) return;') > 0);
+  t('chgAttr sperrt auch die Hintertuer', aC5.indexOf('if (p.fert > FERT_PUNKTE) return;') > 0);
+  t('setFert sperrt das Fertigkeitsbudget',
+    aC5.indexOf('if (p.fert > FERT_PUNKTE) return;') > 0);
+  t('die Knoepfe lassen sich sperren', aC5.indexOf('o.hochZu') > 0 && aC5.indexOf('o.runterZu') > 0);
+  t('und tragen den Grund als Titel', aC5.indexOf("' title=\"' + o.hochZu") > 0);
+
+  /* ---- Beide Schritte wirklich ausfuehren ---- */
+  const knoten = {};
+  function el(id) {
+    if (!knoten[id]) knoten[id] = { innerHTML: '', textContent: '', hidden: false };
+    return knoten[id];
+  }
+  function schneide(code, name) {
+    const i = code.indexOf('function ' + name + '(');
+    if (i < 0) throw new Error('fehlt: ' + name);
+    let j = code.indexOf('{', i), tief = 0;
+    for (let k = j; k < code.length; k++) {
+      if (code[k] === '{') tief++;
+      else if (code[k] === '}') { tief--; if (tief === 0) return code.slice(i, k + 1); }
+    }
+  }
+  const ctx = {
+    console, Object, String, Array, Math, JSON, document: { getElementById: el },
+    ATTR_PUNKTE: R.ATTR_PUNKTE, FERT_PUNKTE: R.FERT_PUNKTE, MAXD: R.MAXD, DLBL: R.DLBL,
+    ATTRIBUTE: R.ATTRIBUTE, FERTIGKEITEN: R.FERTIGKEITEN, ATTR_NAMEN: R.ATTR_NAMEN,
+    ausgabenAttr: R.ausgabenAttr, ausgabenFert: R.ausgabenFert, fertKosten: R.fertKosten,
+    startStufe: R.startStufe, fertigkeitenVon: R.fertigkeitenVon, verlangtVon: R.verlangtVon,
+    zieleHtml: function () { return ''; }, sollBadge: function () { return ''; },
+    dcls: function () { return ''; }, esc: function (x) { return x; },
+    F: R.leereFigur(), speichern() {}, renderAlles() {}
+  };
+  vm.createContext(ctx);
+  new vm.Script(['stepRow', 'probeAttr', 'renderAttr', 'chgAttr',
+                 'probeFert', 'renderFert', 'chgFert', 'setFert']
+    .map(function (n) { return schneide(aC5, n); }).join(String.fromCharCode(10)),
+    { filename: 'charaktererstellung.html:budget' }).runInContext(ctx);
+
+  /* Attribute: wild draufklicken darf nichts sprengen. */
+  for (let i = 0; i < 30; i++) ctx.chgAttr('Geschicklichkeit', 1);
+  t('ein Attribut laesst sich nicht ueber das Budget heben',
+    R.ausgabenAttr(ctx.F) <= R.ATTR_PUNKTE, R.ausgabenAttr(ctx.F));
+  R.ATTR_NAMEN.forEach(function (a) { for (let i = 0; i < 6; i++) ctx.chgAttr(a, 1); });
+  t('auch ueber alle fuenf Attribute hinweg nicht',
+    R.ausgabenAttr(ctx.F) <= R.ATTR_PUNKTE, R.ausgabenAttr(ctx.F));
+  t('aber alle Punkte lassen sich vergeben', R.ausgabenAttr(ctx.F) === R.ATTR_PUNKTE);
+  ctx.renderAttr();
+  t('der erschoepfte Knopf nennt den Grund',
+    el('attrRows').innerHTML.indexOf('Keine Attributspunkte mehr') > 0);
+
+  /* Fertigkeiten: dasselbe. */
+  ctx.F = R.leereFigur();
+  R.FERTIGKEITEN.forEach(function (sk) { for (let i = 0; i < 6; i++) ctx.chgFert(sk.name, 1); });
+  t('Fertigkeiten lassen sich nicht ueber das Budget heben',
+    R.ausgabenFert(ctx.F) <= R.FERT_PUNKTE, R.ausgabenFert(ctx.F));
+  t('aber alle Punkte lassen sich vergeben', R.ausgabenFert(ctx.F) === R.FERT_PUNKTE);
+
+  /* Die Hintertuer. */
+  ctx.F = R.leereFigur();
+  ctx.F.attr['Geschicklichkeit'] = 4;
+  ctx.F.fert['Kämpfen'] = 4; ctx.F.fert['Schießen'] = 4; ctx.F.fert['Athletik'] = 4;
+  const vorhin = R.ausgabenFert(ctx.F);
+  t('der Aufbau fuer die Hintertuer passt ins Budget', vorhin <= R.FERT_PUNKTE, vorhin);
+  ctx.chgAttr('Geschicklichkeit', -1);
+  t('ein Attribut zu senken sprengt das Fertigkeitsbudget NICHT',
+    R.ausgabenFert(ctx.F) <= R.FERT_PUNKTE, R.ausgabenFert(ctx.F));
+
+  /* Herunterregeln muss immer gehen, sonst sitzt man fest. */
+  ctx.F = R.leereFigur();
+  ctx.chgAttr('Stärke', 1); ctx.chgAttr('Stärke', 1);
+  t('hochregeln geht', ctx.F.attr['Stärke'] === 3);
+  ctx.chgAttr('Stärke', -1); ctx.chgAttr('Stärke', -1);
+  t('und herunterregeln auch', ctx.F.attr['Stärke'] === 1 && R.ausgabenAttr(ctx.F) === 0);
+
+  /* Die Texte. */
+  ctx.F = R.leereFigur();
+  ctx.renderAttr(); ctx.renderFert();
+  const aL = el('attrLead').innerHTML, fL = el('fertLead').innerHTML;
+  t('der Attributstext nennt das Budget', aL.indexOf(R.ATTR_PUNKTE + ' Punkte') > 0);
+  t('er erklaert, was ein Punkt bewirkt', aL.indexOf('Würfelstufe') > 0);
+  t('er zeigt die Stufenleiter', aL.indexOf('d4 → d6 → d8 → d10 → d12') > 0);
+  t('er sagt, dass Reste verfallen', aL.indexOf('verfällt') > 0);
+  t('er erklaert die Wirkung auf die Fertigkeitskosten',
+    aL.indexOf('wie teuer deine Fertigkeiten') > 0);
+  t('und nennt den Stand', aL.indexOf('Noch <b>5 Punkte</b>') > 0, aL.indexOf('budget-stand'));
+
+  t('der Fertigkeitstext nennt das Budget', fL.indexOf(R.FERT_PUNKTE + ' Punkte') > 0);
+  t('er erklaert die Kostenregel', fL.indexOf('kostet 1 Punkt') > 0 && fL.indexOf('darüber 2') > 0);
+  t('er rechnet ein Beispiel vor', fL.indexOf('Kämpfen auf d8') > 0);
+  t('er erwaehnt die fuenf freien Fertigkeiten', fL.indexOf('Fünf Fertigkeiten') > 0);
+  t('und nennt den Stand', fL.indexOf('Noch <b>12 Punkte</b>') > 0);
+
+  /* Das Rechenbeispiel im Text muss stimmen - sonst lehrt es Falsches. */
+  (function () {
+    const f1 = R.leereFigur(); f1.attr['Geschicklichkeit'] = 3;
+    const f2 = R.leereFigur(); f2.attr['Geschicklichkeit'] = 1;
+    t('das Beispiel "3 Punkte bei d8" stimmt', R.fertKosten(f1, 'Kämpfen', 3) === 3,
+      R.fertKosten(f1, 'Kämpfen', 3));
+    t('das Beispiel "5 Punkte bei d4" stimmt', R.fertKosten(f2, 'Kämpfen', 3) === 5,
+      R.fertKosten(f2, 'Kämpfen', 3));
+  })();
+
+  /* Und am Ende nie ueberzogen. */
+  t('nie "Attributspunkte überzogen"',
+    R.pruefeFigur(ctx.F).probleme.indexOf('Attributspunkte überzogen') < 0);
+  t('nie "Fertigkeitspunkte überzogen"',
+    R.pruefeFigur(ctx.F).probleme.indexOf('Fertigkeitspunkte überzogen') < 0);
+
   abschluss();
 }
 

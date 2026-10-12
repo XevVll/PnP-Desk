@@ -105,6 +105,38 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-12 (Fortsetzung 6) — Attributs- und Fertigkeitspunkte: erklärt und begrenzt
+- **Hendriks Vorgabe:** Auch die Punkte bei Attributen und Fertigkeiten sollen erklärt werden, und
+  **nur das mögliche Maximum** vergeben werden können. Vorher klemmten `chgAttr()` und `setFert()`
+  nur auf die Würfelstufen (d4…d12), **nicht aufs Budget** — überziehen ging, es gab nur eine rote
+  Zahl in der Fußleiste.
+- **Die unauffällige Stelle war nicht das Hochklicken, sondern die Hintertür.** Ein Attribut zu
+  **senken** macht die Fertigkeiten darüber teurer (1 Punkt bis zur Höhe des Attributs, 2 darüber).
+  Wer also erst Fertigkeiten kauft und dann das Attribut senkt, **sprengt das Fertigkeitsbudget,
+  ohne eine einzige Fertigkeit angefasst zu haben.** Deshalb prüfen `probeAttr()`/`probeFert()` die
+  Folgen einer Änderung, **bevor** sie geschieht — nur so lässt sich der Knopf vorher sperren,
+  statt hinterher zu meckern.
+- **Gesperrt wird sichtbar, nicht stumm.** Ein erschöpfter Knopf ist ausgegraut und trägt den Grund
+  als Titel: „Keine Attributspunkte mehr — senk ein anderes Attribut.", „Die nächste Stufe kostet
+  2 Punkte — so viel hast du nicht mehr.", „Senken würde deine Fertigkeiten teurer machen, als du
+  Punkte hast." Auch die Chips der ungelernten Fertigkeiten gehen zu, wenn kein Punkt mehr da ist.
+- **Beide Hilfetexte erklären jetzt die Rechnung**, nicht nur die Zahl:
+  - **Attribute:** „5 Punkte auf fünf Attribute. Alles beginnt bei d4, und jeder Punkt hebt ein
+    Attribut um eine Würfelstufe — d4 → d6 → d8 → d10 → d12. … Attribute entscheiden außerdem, wie
+    teuer deine Fertigkeiten werden: Bis zur Höhe ihres Attributs kostet eine Fertigkeitsstufe
+    1 Punkt, darüber 2. Ein hohes Attribut macht also alles billiger, was daran hängt."
+  - **Fertigkeiten:** mit ausgerechnetem Beispiel — „Kämpfen auf d8 kostet also 3 Punkte, wenn
+    Geschicklichkeit auf d8 steht, aber 5, wenn sie nur auf d4 steht. Lohnt sich eine Fertigkeit,
+    lohnt oft erst ihr Attribut."
+  - Dazu je ein Stand in Worten („Noch 3 Punkte zu vergeben." / „Alle 5 Punkte vergeben.") und der
+    Hinweis, dass Reste verfallen.
+- **Getestet: 447 Prüfungen über drei Skripte, 0 Fehler** (32 neue). Darunter: 30 Klicks auf ein
+  Attribut und sechs auf jede Fertigkeit sprengen nichts, **alle** Punkte lassen sich aber
+  vergeben; die Hintertür ist zu; Herunterregeln geht immer, damit niemand feststeckt. Und das
+  Rechenbeispiel im Hilfetext ist **gegen `fertKosten()` nachgerechnet** (3 bzw. 5) — ein Beispiel,
+  das falsch rechnet, lehrt Falsches.
+
+
 ### 2026-10-12 (Fortsetzung 5) — Der Schwächen-Schritt erklärt den Tausch
 - **Hendriks Vorgabe:** Der obere Text soll besser erklären, **wie Schwächen sich auswirken**, **wie
   sie Punkte freischalten**, dass sie **freiwillig** sind und dass sie **mehr Talente ermöglichen**.
