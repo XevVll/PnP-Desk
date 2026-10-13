@@ -409,7 +409,7 @@ const CREW_STEPS = ['Unbekannt','Bemerkt','Respektiert','Vertraut','Unverzichtba
    Traglast, die an der Staerke haengt.
 
    Preise in Muenzen. Die Zahlen sind ein Aufschlag und als
-   Stellschraube gedacht - was ein Saebel 1720 in der Karibik
+   Stellschraube gedacht - was ein Saebel 1701 in der Karibik
    gekostet hat, weiss niemand genau, und fuers Spiel zaehlt
    nur das Verhaeltnis zueinander.
    ========================================================== */

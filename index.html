@@ -409,7 +409,11 @@ function sitzungStarten() {
 
   db.ref('termine/verfuegbar').on('value', function (s) {
     verfuegbar = s.val() || {};
-    renderKalender(); renderErgebnis();
+    /* renderWhoList() gehoert hierher, nicht nur zu termine/spieler: Die
+       Spielerliste kommt meist ZUERST an, die Namen werden dann gegen noch
+       leere Zeiten gezeichnet - und ohne diesen Aufruf stand bei allen
+       dauerhaft "nichts eingetragen" (Hendriks Meldung vom 13.10.). */
+    renderKalender(); renderErgebnis(); renderWhoList();
   }, fbFehler);
 
   db.ref('termine/gewaehlt').on('value', function (s) {
@@ -782,7 +786,7 @@ function meineLeeren() {
   if (!confirm('Alle deine eingetragenen Zeiten löschen?')) return;
   verfuegbar[meinKey()] = {};
   if (db) db.ref('termine/verfuegbar/' + meinKey()).remove();
-  renderKalender(); renderErgebnis();
+  renderKalender(); renderErgebnis(); renderWhoList();
 }
 
 /* ==========================================================

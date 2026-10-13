@@ -105,6 +105,22 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-13 — Fehler: alle Spieler standen als „nichts eingetragen" da
+- **Hendriks Meldung mit Screenshot:** Unter dem Kalender trug jeder Name „· nichts eingetragen",
+  während „Beste Fenster" direkt darunter dieselben Leute mit 3/5 fand.
+- **Ursache:** `renderWhoList()` hing nur am Lauscher auf `termine/spieler`, nicht an dem auf
+  `termine/verfuegbar`. Die Spielerliste kommt meist zuerst an, die Namen wurden also gegen noch
+  leere Zeiten gezeichnet und danach nie wieder. Die Daten waren die ganze Zeit richtig, falsch
+  war nur die Anzeige.
+- **Behoben:** Der Zeiten-Lauscher zeichnet die Liste jetzt neu, ebenso „Alle meine Zeiten
+  löschen". Eine neue Prüfung in `tests/t_termine.js` schlägt auf dem alten Code nachweislich an.
+  144 + 37 Prüfungen ohne Fehler. In `t_figuren.js` fällt weiterhin eine Prüfung durch („vor dem
+  ersten Ergebnis ist die Kachel zu“). Sie fiel schon vor dieser Änderung durch und ist hier nicht
+  angefasst.
+- **Nebenbei:** Das Kampagnenjahr ist auf **1701** festgelegt (Bibel, Kopf). Begründung: zwischen
+  den Kriegen. Spanien ist feindselig, aber ein spanischer Hafen ist noch anlaufbar (`7.1`), und
+  Harwicks Kaperbrief stammt aus dem letzten Krieg, ist also rechtlich fragwürdig.
+
 ### 2026-10-12 (Fortsetzung 8) — Bennies tun endlich etwas: Wurf wiederholen
 - **Anlass war Hendriks Frage** „Was ist in dem Regelwerk Glückspilz ein zusätzlicher Bennie?"
   Antwort auf die Frage selbst: 3 Bennies je Sitzung, mit dem Talent 4. Beim Nachsehen kam aber

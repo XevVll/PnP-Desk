@@ -287,6 +287,15 @@ t('kein waehle-Aufruf ausserhalb des erklaerenden Kommentars',
 
 /* Lesen muss er weiterhin - sonst sieht er den Termin nicht. */
 t('Spieler-Hub LIEST termine/gewaehlt weiter', spC.indexOf("db.ref('termine/gewaehlt').on") > 0);
+
+/* Hendriks Meldung vom 13.10.: alle Spieler standen als "nichts eingetragen"
+   da, obwohl die Fenster sie fanden. Der Lauscher auf die Zeiten zeichnete die
+   Namensliste nicht neu - die Spieler kamen zuerst, die Zeiten danach. */
+(function () {
+  const i = spC.indexOf("db.ref('termine/verfuegbar').on(");
+  const block = i >= 0 ? spC.slice(i, spC.indexOf('}, fbFehler);', i)) : '';
+  t('der Zeiten-Lauscher zeichnet die Namensliste neu', block.indexOf('renderWhoList()') > 0, block.slice(0, 80));
+})();
 t('Spieler-Hub zeigt den Termin an', spC.indexOf('function renderChosen(') > 0);
 t('Spieler-Hub sagt, wer festlegt',
   spC.indexOf('legt die Spielleitung fest') > 0 && spC.indexOf('von der Spielleitung festgelegt') > 0);

@@ -3,7 +3,7 @@
 **Stand:** 29. Juli 2026
 **Spielleiter:** Hendrik
 **System:** Eigenentwicklung (d100, siehe Regelwerk-Kern)
-**Setting:** Karibik / englische Küste, 1690er Jahre
+**Setting:** Karibik / englische Küste, 1701 (zwischen Neunjährigem Krieg und Spanischem Erbfolgekrieg — Spanien ist kein Verbündeter mehr, aber noch kein erklärter Feind)
 
 ---
 
