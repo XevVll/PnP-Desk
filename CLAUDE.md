@@ -1,6 +1,9 @@
 # CLAUDE.md — Projekt-Gedächtnis
 
-Kurzer technischer Leitfaden für dieses Repo. Die eigentliche Story-/Design-Doku steht in
+Kurzer technischer Leitfaden für dieses Repo. **Für Regelfragen am Tisch:
+[REGELREFERENZ.md](REGELREFERENZ.md)** — Spickzettel plus alle Listen (Talente, Schwächen,
+Fertigkeiten, Ausrüstung), die Listen daraus erzeugt aus `js/regelwerk.js`. Die Regel selbst
+steht in `KAMPAGNEN-BIBEL.md` §4. Die eigentliche Story-/Design-Doku steht in
 `KAMPAGNEN-BIBEL.md` — vor inhaltlicher Arbeit lesen, v. a. Abschnitt 13 „Technischer Stack"
 und Abschnitt 17 „Arbeitsweise". Dieses Dokument hier ist rein technisch/prozessual und hält
 zusätzlich einen laufenden Changelog. Für das Erkundungs-Graph-System (Riffinsel, `11.1`) siehe
@@ -94,6 +97,11 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
   `git merge --no-edit FETCH_HEAD`. Bei Konflikten (kommt vor, wenn dieselben Zeilen mehrfach
   angefasst wurden): `git checkout --ours <datei>` — die eingehende Seite ist immer die
   veraltete.
+- **Regelreferenz:** `REGELREFERENZ.md` wird zur Hälfte erzeugt. Nach jeder Änderung an
+  `js/regelwerk.js` (neues Talent, neue Ausrüstung, geänderte Werte)
+  `node tools/regelreferenz.js` laufen lassen. `tests/t_regelreferenz.js` schlägt an, wenn die
+  eingecheckte Datei veraltet ist. **Der Spickzettel oben in der Datei ist handgeschrieben** und
+  wird vom Generator nicht angefasst — er steht außerhalb der `ERZEUGT:`-Marken.
 - **Testen ohne Firebase:** `python3 -m http.server` + Playwright/Chromium headless, Szenen-
   Funktionen direkt per `page.evaluate()` aufrufen (z. B. `getMarkersForScene('4.1')`), da ohne
   echte Firebase-Verbindung nichts live geschaltet werden kann.
@@ -117,6 +125,50 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen (e
 die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
+
+### 2026-10-14 (Fortsetzung 6) — Neue `REGELREFERENZ.md` für schnelle Regelfragen
+- **Hendriks Frage:** „Gibt es das Regelwerk komplett, was wir im Git hinterlegen können für
+  schnelle Fragen und Antworten?“
+- **Als fertiges Dokument: nein, und das ist keine Förmelei.** Savage Worlds hat **keinen SRD**,
+  und die **Fan License** erlaubt ausdrücklich nicht, Regeltext aus dem Buch zu reproduzieren.
+  Entscheidend ist dabei weniger das Lizenzrecht als die Lage: **dieses Repo ist öffentlich**
+  (GitHub Pages). Hendriks Einordnung vom 06.09.2026 — für eine private Runde spielt Copyright
+  keine Rolle — gilt für den Tisch, nicht für ein öffentliches Repository.
+- **Stattdessen der Weg, den das Projekt bei Talenten und Schwächen längst geht** (06.09.2026):
+  **Mechanik übernehmen, Texte selbst schreiben.** Neue **`REGELREFERENZ.md`**, 316 Zeilen,
+  zweigeteilt:
+  - **Spickzettel, handgeschrieben:** Probe · Ass · Wild Die · Steigerung · Erschwernis ·
+    Wunden · Bennies · Patzer · ungelernt. Mit beiden Verwechslungen dieses Tages ausdrücklich
+    aufgelöst: Ein Würfel explodiert bei **seiner eigenen** Höchstzahl, und eine Steigerung hat
+    **nichts** mit dem Maximalwurf zu tun.
+  - **Tabellen, erzeugt** aus `js/regelwerk.js`: 5 Attribute · 16 Fertigkeiten · 41 Talente ·
+    20 Schwächen · 24 Ausrüstungsgegenstände · 5 Ränge · 5 Steigerungsarten, dazu die exakt
+    gerechneten Erfolgsquoten je Würfelstufe.
+- **Warum die Trennung, und sie ist der eigentliche Punkt:** Die **Regel** kommt aus Savage
+  Worlds und wird von Hand geschrieben. Die **Tabellen** sind unsere eigenen Inhalte und stehen
+  schon im Code — sie dort abzuschreiben heißt nur, zwei Fassungen auseinanderlaufen zu lassen.
+  Der Generator ersetzt deshalb **ausschließlich** den Block zwischen `ERZEUGT:ANFANG` und
+  `ERZEUGT:ENDE`; der Spickzettel liegt davor und bleibt unangetastet.
+- **Fehlen die Marken, bricht der Generator ab**, statt die Datei neu zu schreiben — sonst wäre
+  der handgeschriebene Teil genau dann weg, wenn jemand die Marken versehentlich gelöscht hat.
+- **Neues `tools/regelreferenz.js`** (`--pruefen` schreibt nicht, `--ziel` lässt es auf einer
+  Kopie laufen) und **`tests/t_regelreferenz.js`** (24 Prüfungen, 0 Fehler).
+  - **Eine veraltete Referenz ist schlimmer als keine** — man liest sie, glaubt ihr und spielt
+    nach einer Regel, die nicht mehr gilt. Deshalb läuft die Aktualitätsprüfung bei jedem
+    Testlauf mit. **Gegengeprüft:** ein geänderter Talentname lässt drei Prüfungen anschlagen.
+  - Der Schutz des handgeschriebenen Teils wird **auf einer Kopie wirklich ausgeführt**, nicht im
+    Quelltext gesucht: Satz einfügen, Generator laufen lassen, Satz muss stehen und der erzeugte
+    Block unverändert sein.
+  - Dazu inhaltlich: **jedes** Talent, jede Schwäche, jede Fertigkeit und jeder Gegenstand kommt
+    vor, und die Zahlen des Spickzettels (Zielwert, Steigerungsschwellen, Wild Die, ungelernt,
+    Wunden, Startgeld) sind gegen `js/regelwerk.js` nachgerechnet — ein Spickzettel mit falschen
+    Zahlen lehrt Falsches.
+- **Eigener Fehler beim Prüfen, festgehalten:** Ich wollte belegen, dass die Veraltungsprüfung
+  anschlägt, und habe dafür `n: 'Seebein'` ersetzt — im Quelltext steht aber `n:'Seebein'` ohne
+  Leerzeichen. Die Ersetzung fand nichts, die Datei blieb unverändert, und die Prüfung meldete
+  korrekt „aktuell“. Beinahe als Testlücke fehlgedeutet. **Konsequenz:** eine Ersetzung in einem
+  Prüfskript immer mit `assert s.count(alt) == 1` absichern — dieselbe Lehre wie bei den
+  Extraktionsmustern, die bei leerer Eingabe „OK“ melden (07.09.2026).
 
 ### 2026-10-14 (Fortsetzung 5) — Das Regelwerk stand noch auf W100 (Bibel §4 umgeschrieben)
 - **Hendriks Einwand, und er sitzt:** „Du sollst die Regel im Regelwerk nachlesen, nicht im
