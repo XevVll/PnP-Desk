@@ -182,11 +182,16 @@ function erzeuge() {
     if (!liste.length) return;
     t.push('### ' + z(art));
     t.push('');
-    t.push('| Gegenstand | Schaden | Rüstung | Gewicht | Preis | Anmerkung |');
-    t.push('|---|---|---|---|---|---|');
+    t.push('| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |');
+    t.push('|---|---|---|---|---|---|---|');
     liste.forEach(function (a) {
+      /* Munition bringt Ladungen statt Schaden - ohne die Spalte waere die
+         wichtigste Zahl der ganzen Ware nicht zu sehen. */
+      const zusatz = a.ladungen ? a.ladungen + ' Ladungen'
+                   : (a.schuss ? a.schuss + ' Schuss' : '—');
       t.push('| **' + z(a.n) + '** | ' + (a.schaden ? wuerfel(a.schaden) : '—') +
-        ' | ' + (a.ruest ? '+' + a.ruest : '—') + ' | ' + (a.gew || 0) +
+        ' | ' + (a.ruest ? '+' + a.ruest : '—') + ' | ' + zusatz +
+        ' | ' + (a.gew || 0) +
         ' | ' + (a.preis || 0) + ' | ' + z(a.d) + ' |');
     });
     t.push('');

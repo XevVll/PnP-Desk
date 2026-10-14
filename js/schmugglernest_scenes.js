@@ -72,7 +72,8 @@ const SCHMUGGLERNEST_SCENES = {
             { n: "Unter der Plane: Pulver und Blei",
               d: "Der einzige Stand der Kampagne, an dem es Schusswaffen gibt. " +
                  "Er zeigt sie erst, wenn man danach fragt.",
-              waren: ["pistole", "tromblon", "muskete"] },
+              waren: ["pistole", "tromblon", "muskete", "pulverhorn", "patronen",
+                      "feuersteine", "kugelform"] },
             { n: "Die Klingenreihe",
               d: "Drei Stände nebeneinander, die sich gegenseitig unterbieten.",
               waren: ["messer", "entermesser", "saebel", "enteraxt", "wurfmesser"] },
@@ -81,7 +82,15 @@ const SCHMUGGLERNEST_SCENES = {
               waren: ["lederwams", "kettenhemd"] },
             { n: "Was von Bord kommt",
               d: "Beutegut ohne Herkunft. Der Händler nennt keine Namen, auch nicht seinen.",
-              waren: ["dietriche", "fernrohr", "kompass", "enterhaken", "rum"] }
+              waren: ["dietriche", "fernrohr", "kompass", "enterhaken", "rum",
+                      "sanduhr", "seekarte", "brennglas", "signalhorn", "lot"] },
+            { n: "Der Tisch mit dem Krempel",
+              d: "Was sich nicht verkaufen lässt, landet hier. Manches ist hundert Jahre alt.",
+              waren: ["flasche", "schluessel", "spiegel", "glasperlen", "amulett",
+                      "spielkarten", "wuerfelbecher", "tabak"] },
+            { n: "Werkstatt am Rand",
+              d: "Ein Zimmermann, der auch Schlösser macht. Und öffnet.",
+              waren: ["werkzeug", "naehzeug", "teer", "kiste"] }
           ]
         },
         top: 50, left: 50,

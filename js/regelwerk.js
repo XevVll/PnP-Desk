@@ -413,7 +413,19 @@ const CREW_STEPS = ['Unbekannt','Bemerkt','Respektiert','Vertraut','Unverzichtba
    gekostet hat, weiss niemand genau, und fuers Spiel zaehlt
    nur das Verhaeltnis zueinander.
    ========================================================== */
-const AUSR_ARTEN = ['Nahkampf', 'Fernkampf', 'Schutz', 'Gerät'];
+const AUSR_ARTEN = ['Nahkampf', 'Fernkampf', 'Munition', 'Schutz', 'Gerät', 'Allerlei'];
+
+/* ---------- Munition ----------
+   Savage Worlds fuehrt je Fernwaffe eine Zahl "Shots": so viele Schuss, dann
+   muss nachgeladen werden. 1701 sind das durchweg Vorderlader - EIN Schuss,
+   und Nachladen dauert. Genau so haelt es die Arena schon ("nach einem Schuss
+   ist die Waffe leer und erst in der uebernaechsten Runde wieder bereit").
+   Das Einzige, was gefehlt hat, ist der Vorrat: Woher kommt die naechste
+   Ladung? Deshalb "ladungen" als Zahl an der Figur und Munition als Ware.
+   Bewusst KEINE Kaliber, keine Fehlzuendungstabelle, kein Rechnen je Waffe:
+   Eine Ladung ist eine Ladung. Mehr Buchhaltung wuerde am Tisch nur bremsen,
+   und Savage Worlds selbst zaehlt Schuss je Gefecht, nicht je Kampagne. */
+const LADUNGEN_START = 0;
 const STARTGELD = 500;
 
 const AUSRUESTUNG = [
@@ -436,11 +448,11 @@ const AUSRUESTUNG = [
   /* ---- Fernkampf ---- */
   { id:'wurfmesser', n:'Wurfmesser',        art:'Fernkampf', schaden:1, gew:1, preis:30,  reichweite:3,
     d:'Leise. Danach hat es der andere.' },
-  { id:'pistole',    n:'Steinschlosspistole',art:'Fernkampf',schaden:2, gew:3, preis:350, reichweite:5,
+  { id:'pistole',    n:'Steinschlosspistole',art:'Fernkampf',schaden:2, schuss:1, gew:3, preis:350, reichweite:5,
     d:'Ein Schuss. Danach ist sie ein schlechter Knüppel — Nachladen dauert eine Runde.' },
-  { id:'tromblon',   n:'Donnerbüchse',      art:'Fernkampf', schaden:2, gew:6, preis:400, reichweite:3,
+  { id:'tromblon',   n:'Donnerbüchse',      art:'Fernkampf', schaden:2, schuss:1, gew:6, preis:400, reichweite:3,
     d:'Streut breit, trifft alles vor der Mündung. Nachladen dauert zwei Runden.' },
-  { id:'muskete',    n:'Muskete',           art:'Fernkampf', schaden:3, gew:8, preis:500, reichweite:12,
+  { id:'muskete',    n:'Muskete',           art:'Fernkampf', schaden:3, schuss:1, gew:8, preis:500, reichweite:12,
     d:'Auf Entfernung tödlich, an Deck unhandlich. Nachladen dauert zwei Runden.' },
 
   /* ---- Schutz ---- */
@@ -471,7 +483,80 @@ const AUSRUESTUNG = [
   { id:'rum',        n:'Flasche Rum',       art:'Gerät', gew:2, preis:50,
     d:'Betäubungsmittel, Desinfektion, Zahlungsmittel, Freundschaftsangebot.' },
   { id:'schreibzeug',n:'Schreibzeug',       art:'Gerät', gew:2, preis:150,
-    d:'Feder, Tinte, Papier. Wer schreiben kann, gilt schon als halber Herr.' }
+    d:'Feder, Tinte, Papier. Wer schreiben kann, gilt schon als halber Herr.' },
+
+  /* ---------- Munition ----------
+     1701 ist alles Vorderlader: ein Schuss, dann nachladen. Eine "Ladung"
+     ist Pulver + Kugel + Pfropfen zusammen - was genau, interessiert am
+     Tisch niemanden. Die Zahl steht an der Figur, nicht am Gegenstand:
+     Wer zwei Pistolen traegt, schiesst trotzdem aus demselben Vorrat. */
+  { id:'pulverhorn', n:'Pulverhorn mit Blei', art:'Munition', gew:2, preis:40, ladungen:20,
+    d:'Horn, Pfropfen, ein Beutel Kugeln. Zwanzig Ladungen, wenn man nicht kleckert.' },
+  { id:'patronen',   n:'Papierpatronen, ein Dutzend', art:'Munition', gew:1, preis:60, ladungen:12,
+    d:'Pulver und Kugel schon abgemessen, in Papier gedreht. Teurer, aber man lädt schneller und im Regen.' },
+  { id:'feuersteine',n:'Feuersteine, fünf Stück', art:'Munition', gew:0, preis:15,
+    d:'Ein Stein hält etwa dreißig Schuss, dann zündet er nicht mehr. Daran denkt niemand, bis es klickt.' },
+  { id:'kugelform',  n:'Kugelform und Bleibarren', art:'Munition', gew:4, preis:90, ladungen:0,
+    d:'Blei einschmelzen, Kugeln gießen. Braucht Feuer, Zeit und ruhige Hände — dafür nie wieder leer.' },
+
+  /* ---------- Geraet ---------- */
+  { id:'wasserschlauch',n:'Lederner Wasserschlauch', art:'Gerät', gew:2, preis:25,
+    d:'Schmeckt nach Leder. Besser als der Durst.' },
+  { id:'oelzeug',    n:'Ölzeug',              art:'Gerät', gew:4, preis:70,
+    d:'Steif, stinkt, hält trocken. Auf See mehr wert als ein guter Rock.' },
+  { id:'decke',      n:'Wolldecke',           art:'Gerät', gew:3, preis:35,
+    d:'Nass wärmt sie immer noch. Das ist der ganze Trick an Wolle.' },
+  { id:'haengematte',n:'Hängematte',          art:'Gerät', gew:3, preis:30,
+    d:'An Bord schläft man so oder gar nicht.' },
+  { id:'zunder',     n:'Zunderbüchse',        art:'Gerät', gew:1, preis:20,
+    d:'Stahl, Stein, Zunder. Ohne sie gibt es kein Feuer, und mit nassem Zunder auch nicht.' },
+  { id:'kerzen',     n:'Talgkerzen, ein Bund',art:'Gerät', gew:1, preis:10,
+    d:'Riechen beim Brennen nach dem Tier, aus dem sie sind.' },
+  { id:'naehzeug',   n:'Nähzeug und Pech',    art:'Gerät', gew:1, preis:30,
+    d:'Segeltuchnadel, gewachster Faden. Flickt Segel, Zelte und im Notfall Menschen.' },
+  { id:'werkzeug',   n:'Zimmermannswerkzeug', art:'Gerät', gew:8, preis:180,
+    d:'Beil, Bohrer, Stemmeisen in einer Rolle. Schwer, aber damit repariert man ein Schiff.' },
+  { id:'teer',       n:'Topf Pech',           art:'Gerät', gew:3, preis:20,
+    d:'Dichtet Fugen, klebt Verbände, brennt hervorragend. Macht alles schwarz, was es berührt.' },
+  { id:'angel',      n:'Angelzeug',           art:'Gerät', gew:1, preis:25,
+    d:'Schnur, Haken, ein Stück Blei. Auf einer langen Flaute das Wertvollste an Bord.' },
+  { id:'lot',        n:'Senklot',             art:'Gerät', gew:3, preis:70,
+    d:'Blei an geknoteter Leine. Misst, wie tief es unter dem Kiel noch ist — kurz bevor es zu spät wäre.' },
+  { id:'sanduhr',    n:'Sanduhr, halbe Stunde',art:'Gerät', gew:2, preis:120,
+    d:'An Bord misst sie die Wache. Sonst misst sie, wie lange man schon wartet.' },
+  { id:'signalhorn', n:'Signalhorn',          art:'Gerät', gew:1, preis:55,
+    d:'Trägt weiter als jede Stimme. Verrät dafür auch jedem, wo man ist.' },
+  { id:'seekarte',   n:'Abgegriffene Seekarte',art:'Gerät', gew:1, preis:200,
+    d:'Die Küsten stimmen ungefähr. Was dahinter liegt, hat der Zeichner sich gedacht.' },
+  { id:'brennglas',  n:'Brennglas',           art:'Gerät', gew:1, preis:140,
+    d:'Macht Feuer ohne Zunder und kleine Schrift groß. Bei Regen nutzlos.' },
+  { id:'kiste',      n:'Seemannskiste',       art:'Gerät', gew:10, preis:40,
+    d:'Schwer, eckig, abschließbar. Alles, was man besitzt, passt hinein — und bleibt an Bord.' },
+
+  /* ---------- Allerlei ----------
+     Ausdruecklich Dinge, mit denen man erst einmal gar nichts anfangen kann
+     (Hendriks Vorgabe). Sie tun NICHTS - kein verstecktes Talent, kein
+     Bonus. Was daraus wird, entscheidet die Spielleitung oder niemand.
+     Genau deshalb stehen sie hier und nicht unter "Geraet": Wer sie kauft,
+     soll nicht glauben, etwas uebersehen zu haben. */
+  { id:'spielkarten',n:'Spielkarten',         art:'Allerlei', gew:0, preis:20,
+    d:'Abgegriffen, eine Ecke fehlt. An Bord sind sie trotzdem Gold wert.' },
+  { id:'wuerfelbecher',n:'Würfelbecher',      art:'Allerlei', gew:0, preis:15,
+    d:'Drei Würfel, Leder, ein Filzboden. Für Meiern reicht es.' },
+  { id:'tabak',      n:'Tabak und Pfeife',    art:'Allerlei', gew:1, preis:35,
+    d:'Macht niemanden stärker. Aber jemandem eine Pfeife zu stopfen hat schon Türen geöffnet.' },
+  { id:'spiegel',    n:'Handspiegel aus Zinn',art:'Allerlei', gew:1, preis:35,
+    d:'Verzerrt ein wenig. Man sieht trotzdem mehr, als einem lieb ist.' },
+  { id:'glasperlen', n:'Schnur Glasperlen',   art:'Allerlei', gew:0, preis:25,
+    d:'Der Krämer schwört, so etwas sei anderswo ein Vermögen wert. Er war nie anderswo.' },
+  { id:'amulett',    n:'Billiges Amulett',    art:'Allerlei', gew:0, preis:10,
+    d:'Zinn, Schnur, irgendein Heiliger. Der Hausierer verspricht Schutz vor dem Ertrinken. Es tut nichts.' },
+  { id:'flasche',    n:'Leere Flasche mit Korken',art:'Allerlei', gew:1, preis:5,
+    d:'Grünes Glas, dicker Boden. Wofür man sie braucht, weiß man vorher nie.' },
+  { id:'schluessel', n:'Ein Schlüssel ohne Schloss',art:'Allerlei', gew:0, preis:10,
+    d:'Lag in einer Kiste, die der Krämer billig bekam. Er hat nie herausgefunden, wozu er gehört.' },
+  { id:'rosenkranz', n:'Rosenkranz',          art:'Allerlei', gew:0, preis:15,
+    d:'Holzperlen, abgegriffen. Hilft manchen Leuten. Nicht gegen Klingen.' }
 ];
 
 const AUSR_BY_ID = {}; AUSRUESTUNG.forEach(function (a) { AUSR_BY_ID[a.id] = a; });
@@ -554,6 +639,9 @@ function alsFigur(roh) {
   f.steigerungen = roh.steigerungen || 0;
   f.attributImRang = !!roh.attributImRang;
   f.muenzen = (roh.muenzen == null) ? STARTGELD : roh.muenzen;
+  /* Ladungen stehen an der FIGUR, nicht am Gegenstand: Wer zwei Pistolen
+     traegt, schiesst trotzdem aus demselben Pulverhorn. */
+  f.ladungen = Math.max(0, roh.ladungen || LADUNGEN_START);
   f.angeschlagen = !!roh.angeschlagen;
   /* MAX_WUNDEN + 1, nicht MAX_WUNDEN: Die vierte Wunde IST der Zustand
      "ausser Gefecht" - ausserGefecht() prueft genau auf > MAX_WUNDEN, und
@@ -1039,7 +1127,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ATTR_PUNKTE, FERT_PUNKTE, GRATIS_TALENTE, TALENT_KOSTEN, MAX_SCHWER, MAX_LEICHT,
     BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, rangJetzt, STECKBRIEF, CREW_STEPS,
     TALENT_KATEGORIEN, TALENTE, HANDICAPS, TAL_BY_ID, HND_BY_ID, talenteDerKategorie,
-    AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, ausruestungDerArt,
+    AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, LADUNGEN_START, ausruestungDerArt,
     traglast, getragen, ueberladen, ruestbonus, ausgabenMuenzen,
     leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,

@@ -172,7 +172,7 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 > **Stand 14.10.2026.** Die Figuren spielen seit dem 07.09.2026 **Savage Worlds**, nicht mehr
 > das W100-System. Dieser Abschnitt stand bis heute noch auf W100 und war damit die falsche
 > Auskunft — aufgefallen, als die Regel zu den explodierenden Würfeln nachgeschlagen werden
-> sollte und hier nichts stand. Das alte System ist nicht gelöscht, sondern nach **4.6**
+> sollte und hier nichts stand. Das alte System ist nicht gelöscht, sondern nach **4.7**
 > verschoben: `js/arena.js` rechnet weiterhin danach.
 >
 > **Die Quellen, in dieser Reihenfolge** (Hendriks stehende Anweisung vom 14.10.2026:
@@ -180,7 +180,7 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 >
 > 1. **Savage Worlds selbst** — die Regel. Bei jeder Regelfrage zuerst dort nachsehen.
 > 2. **Dieser Abschnitt** — wie die Regel in dieser Kampagne gilt, samt der bewussten
->    Abweichungen (siehe 4.6). Bei Widerspruch zum Code gilt, was hier steht.
+>    Abweichungen (siehe 4.7). Bei Widerspruch zum Code gilt, was hier steht.
 > 3. **`js/regelwerk.js`** — nur die *Ausführung*. Eine Messung am Code zeigt, **was** er tut,
 >    nie **ob er recht hat**; als Beleg für eine Regel taugt sie nicht.
 >
@@ -234,13 +234,36 @@ niedrigen Werten am meisten: Auf W4 gelingt eine Probe mit ihm zu 62,5 % statt z
 - **Bennies:** 3 je Sitzung (mit dem Talent *Glückspilz* 4). Einer davon wiederholt eine
   misslungene Probe vollständig; das bessere Ergebnis zählt.
 
-### 4.5 Ränge und Steigerungen
+### 4.5 Schusswaffen und Ladungen
+
+Savage Worlds führt je Fernwaffe eine Zahl **Shots**: so viele Schuss, dann muss nachgeladen
+werden. **1701 ist alles Vorderlader** — also **ein Schuss**, und Nachladen dauert.
+
+- **Jede Schusswaffe hat genau einen Schuss**, dann ist sie leer. Die Arena bildet das bereits ab:
+  nach einem Schuss ist die Waffe leer und erst in der übernächsten Runde wieder bereit.
+- **Ein Schuss verbraucht eine Ladung.** Der Vorrat steht als Zahl **an der Figur**, nicht am
+  Gegenstand — wer zwei Pistolen trägt, schießt trotzdem aus demselben Pulverhorn.
+- **Ohne Ladungen kein Schuss.** Die Waffe ist dann ein teurer Knüppel.
+- **Abgezogen wird von Hand**, im Heldenbrief. Nicht jede Schießen-Probe ist ein Schuss — Zielen,
+  Drohen, Warten gehören auch dazu, und eine Automatik wäre öfter falsch als richtig.
+
+**Bewusst NICHT abgebildet:** Kaliber, Fehlzündung, Pulverqualität, Rechnen je Waffe. Eine Ladung
+ist eine Ladung. Savage Worlds selbst zählt Schuss je Gefecht, nicht je Kampagne — mehr
+Buchhaltung würde am Tisch nur bremsen.
+
+**Nachschub** gibt es als Ware: ein Pulverhorn mit Blei (20 Ladungen), Papierpatronen (12, dafür
+schneller und auch bei Regen), Feuersteine (ein Stein hält etwa dreißig Schuss) und eine Kugelform
+mit Bleibarren, mit der man sich selbst versorgt. **Schusswaffen und Pulver gibt es in dieser
+Kampagne nur bei den Schmugglern** (`8.1`) — und beim Krämer in Grimsgate hält er das Pulver
+hinter einem Vorhang, nicht im Laden.
+
+### 4.6 Ränge und Steigerungen
 
 Novize → Erfahren → Veteran → Heroisch → Legendär, je vier Steigerungen ein Rang. Am Rang
 hängen die Talente. Neue Figuren sind **Novize**, sofern die Spielleitung je Sitzung nichts
 anderes freigibt; erspielte Steigerungen können den Rang nur **heben**, nie senken.
 
-### 4.6 ⚠ Das alte W100-System — nur noch in der Arena
+### 4.7 ⚠ Das alte W100-System — nur noch in der Arena
 
 Die **Kampf-Arena des Endkampfs** (`js/arena.js`, Szene `15.1`) rechnet weiterhin nach diesem
 System. Es gilt **nicht** mehr für Figuren­proben, und die Umstellung steht aus.
@@ -264,7 +287,7 @@ ersatzlos gestrichen worden — ein Paket, das Werte vorab füllt, überspringt 
 geführten Erschaffung. Das Design-Ziel dahinter bleibt gültig: **jede Figur soll über den
 Abenteuerbogen mindestens einmal ihren großen Moment bekommen.**
 
-### 4.7 Weiteres
+### 4.8 Weiteres
 
 - **Fortschritt** ist an Steigerungen gekoppelt, nicht direkt kaufbar — soll sich verdient und
   nicht linear anfühlen.

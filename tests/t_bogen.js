@@ -401,6 +401,58 @@ chk('Schusswaffen nur im Schmugglernest',
   mitPulver.map(function (e) { return e.szene + '/' + e.l.name; }));
 
 console.log('');
+console.log('=== MUNITION ===');
+/* Savage Worlds fuehrt je Fernwaffe "Shots". 1701 ist alles Vorderlader:
+   ein Schuss, dann nachladen. Siehe KAMPAGNEN-BIBEL.md 4.5. */
+/* "Schusswaffe" ist nicht dasselbe wie "Fernkampf": Das Wurfmesser ist
+   Fernkampf und braucht trotzdem kein Pulver. Woran man sie unterscheidet,
+   ist das Feld "schuss" - genau das wird hier geprueft, in beide Richtungen. */
+const mitSchuss = R.AUSRUESTUNG.filter(function (a) { return a.schuss; });
+chk('genau die drei Feuerwaffen haben einen Schusswert',
+  mitSchuss.map(function (a) { return a.id; }).sort().join(',') === 'muskete,pistole,tromblon',
+  mitSchuss.map(function (a) { return a.id; }));
+chk('und zwar je genau einen \u2014 1701 ist alles Vorderlader',
+  mitSchuss.every(function (a) { return a.schuss === 1; }),
+  mitSchuss.map(function (a) { return a.n + ':' + a.schuss; }));
+chk('das Wurfmesser braucht keine Ladung', !R.AUSR_BY_ID['wurfmesser'].schuss);
+
+const muni = R.AUSRUESTUNG.filter(function (a) { return a.art === 'Munition'; });
+chk('es gibt Munition zu kaufen', muni.length >= 3, muni.length);
+chk('mindestens eine bringt gleich Ladungen mit',
+  muni.some(function (a) { return a.ladungen > 0; }));
+chk('alle Munition ist bezahlbar f\u00fcr eine frische Figur',
+  muni.every(function (a) { return a.preis <= R.STARTGELD; }),
+  muni.filter(function (a) { return a.preis > R.STARTGELD; }).map(function (a) { return a.n; }));
+
+chk('eine frische Figur hat keine Ladungen', R.alsFigur({}).ladungen === 0);
+chk('Ladungen werden \u00fcbernommen', R.alsFigur({ ladungen: 14 }).ladungen === 14);
+chk('und nie negativ', R.alsFigur({ ladungen: -3 }).ladungen === 0);
+/* Der haeufigste stille Datenverlust: ein Feld, das die Figur kennt, aber der
+   Bogen nicht hochschreibt. Dann zaehlt man am Tisch mit und es ist beim
+   naechsten Laden wieder weg. */
+chk('der Bogen speichert die Ladungen', BOGEN.indexOf('ladungen: F.ladungen') >= 0);
+
+
+
+console.log('');
+console.log('=== ALLERLEI: DINGE, DIE NICHTS TUN ===');
+/* Hendriks Vorgabe: Es duerfen Dinge dabei sein, mit denen man erst einmal
+   gar nichts anfangen kann. Die stehen in einer eigenen Art - wer sie kauft,
+   soll nicht glauben, etwas uebersehen zu haben. */
+const allerlei = R.AUSRUESTUNG.filter(function (a) { return a.art === 'Allerlei'; });
+chk('es gibt die Art \u00fcberhaupt', allerlei.length > 0, allerlei.length);
+chk('und sie tut wirklich nichts',
+  allerlei.every(function (a) { return !a.schaden && !a.ruest && !a.ladungen && !a.schuss; }),
+  allerlei.filter(function (a) { return a.schaden || a.ruest; }).map(function (a) { return a.n; }));
+chk('jede Ware hat eine Beschreibung',
+  R.AUSRUESTUNG.every(function (a) { return a.d && a.d.length > 10; }),
+  R.AUSRUESTUNG.filter(function (a) { return !a.d || a.d.length <= 10; }).map(function (a) { return a.n; }));
+chk('jede Ware hat ein Gewicht', R.AUSRUESTUNG.every(function (a) { return a.gew !== undefined; }));
+chk('jede Art kommt in AUSR_ARTEN vor',
+  R.AUSRUESTUNG.every(function (a) { return R.AUSR_ARTEN.indexOf(a.art) >= 0; }),
+  R.AUSRUESTUNG.filter(function (a) { return R.AUSR_ARTEN.indexOf(a.art) < 0; }).map(function (a) { return a.art; }));
+
+console.log('');
 console.log('=== GEKAUFT WIRD AUF DER KARTE ===');
 chk('die Karte hat einen Laden im Ort-Fenster', KARTE.indexOf('id="ladenBox"') >= 0);
 chk('er wird beim Öffnen eines Ortes gezeichnet', KARTE.indexOf('zeichneLaden(marker)') >= 0);
@@ -522,6 +574,26 @@ chk('Geld geht dabei nie ins Minus', zctx.F.muenzen >= 0);
 chk('der Spieler erfährt davon', BOGEN.indexOf('Von der Spielleitung') >= 0);
 chk('und erfährt auch, wenn das Geld nicht reichte',
   BOGEN.indexOf('reicht dein Geld nicht') >= 0);
+
+/* Kauf von Munition fuellt den Vorrat auf. */
+zctx.F = { ausr: [], muenzen: 500, ladungen: 0 };
+zctx.zuteilungAnnehmen({ m1: { art: 'kauf', id: 'pulverhorn' } });
+chk('ein gekauftes Pulverhorn f\u00fcllt auf',
+  zctx.F.ladungen === R.AUSR_BY_ID['pulverhorn'].ladungen, zctx.F.ladungen);
+chk('und liegt trotzdem im Gep\u00e4ck', zctx.F.ausr.indexOf('pulverhorn') >= 0);
+zctx.zuteilungAnnehmen({ m2: { art: 'kauf', id: 'patronen' } });
+chk('ein zweiter Kauf z\u00e4hlt dazu',
+  zctx.F.ladungen === R.AUSR_BY_ID['pulverhorn'].ladungen + R.AUSR_BY_ID['patronen'].ladungen,
+  zctx.F.ladungen);
+/* Auch ein Geschenk der Spielleitung muss Ladungen bringen - sonst steht ein
+   geschenktes Pulverhorn leer im Gepaeck. */
+zctx.F = { ausr: [], muenzen: 0, ladungen: 0 };
+zctx.zuteilungAnnehmen({ g1: { art: 'gegenstand', id: 'pulverhorn' } });
+chk('auch ein geschenktes Pulverhorn f\u00fcllt auf', zctx.F.ladungen > 0, zctx.F.ladungen);
+/* Die Kugelform bringt bewusst KEINE fertigen Ladungen - man giesst sie erst. */
+zctx.F = { ausr: [], muenzen: 500, ladungen: 0 };
+zctx.zuteilungAnnehmen({ g2: { art: 'kauf', id: 'kugelform' } });
+chk('die Kugelform bringt keine fertigen Ladungen', zctx.F.ladungen === 0, zctx.F.ladungen);
 chk('erst eintragen, dann räumen',
   BOGEN.indexOf('speichern();') < BOGEN.indexOf("'/zuteilung').remove()"),
   { speichern: BOGEN.indexOf('speichern();'), remove: BOGEN.indexOf("'/zuteilung').remove()") });

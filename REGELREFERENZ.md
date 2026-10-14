@@ -45,6 +45,8 @@ Zeitstrafe, keine Werteinbuße.
 **Bennie.** 3 je Sitzung (mit *Glückspilz* 4). Einer wiederholt eine misslungene Probe
 vollständig — das bessere Ergebnis zählt, wobei erst das Band zählt und dann die Zahl.
 
+**Schießen.** 1701 ist alles Vorderlader: **ein Schuss**, dann nachladen — das dauert (in der Arena: erst in der übernächsten Runde wieder bereit). Jeder Schuss verbraucht **eine Ladung**; der Vorrat steht an der Figur, nicht an der Waffe. Ohne Ladungen ist die Waffe ein teurer Knüppel. Abgezogen wird von Hand — nicht jede Schießen-Probe ist ein Schuss.
+
 **Kritischer Patzer.** Beide Würfel zeigen eine natürliche 1.
 
 **Ungelernt** ist d4 mit **−2** — nicht „gar kein Würfel". Gelingt also, nur selten.
@@ -229,7 +231,7 @@ Spielleitung etwas, woran sie die Figur aufhängt. 15 der 20 sind von dieser Art
 | **Treu** | Haken | Du lässt niemanden zurück, auch wenn es klüger wäre. Besonders nicht die, die zu dir gehören. |
 | **Stolz** | Haken | Eine Beleidigung deiner Ehre erträgst du nicht schweigend. Widerworte sind das Mindeste. |
 
-## Ausrüstung (24)
+## Ausrüstung (53)
 
 Startgeld 500 Münzen. **Waffen bringen einen eigenen Schadenswürfel**
 mit, keinen Bonus — in diesem System wird nichts addiert. Rüstung hebt die Robustheit.
@@ -238,47 +240,86 @@ Würfelstufe**, genau wie eine Wunde.
 
 ### Nahkampf
 
-| Gegenstand | Schaden | Rüstung | Gewicht | Preis | Anmerkung |
-|---|---|---|---|---|---|
-| **Bloße Fäuste** | d4 | — | 0 | 0 | Hast du immer dabei. Reicht selten. |
-| **Messer** | d4 | — | 1 | 25 | Unauffällig, überall dabei, im Ernstfall zu kurz. |
-| **Belegnagel** | d4 | — | 2 | 10 | Liegt an jeder Reling. Keiner nimmt dir übel, dass du ihn in der Hand hast. |
-| **Entermesser** | d6 | — | 4 | 200 | Kurz, schwer, für den engen Raum unter Deck gemacht. |
-| **Säbel** | d6 | — | 3 | 250 | Die Waffe dessen, der fechten gelernt hat — oder so tun will. |
-| **Enteraxt** | d6 | — | 5 | 150 | Öffnet Türen, Luken und Menschen. Nicht elegant. |
-| **Pike** | d6 | — | 8 | 100 | Hält den Gegner auf Abstand — an Deck oft im Weg. |
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Bloße Fäuste** | d4 | — | — | 0 | 0 | Hast du immer dabei. Reicht selten. |
+| **Messer** | d4 | — | — | 1 | 25 | Unauffällig, überall dabei, im Ernstfall zu kurz. |
+| **Belegnagel** | d4 | — | — | 2 | 10 | Liegt an jeder Reling. Keiner nimmt dir übel, dass du ihn in der Hand hast. |
+| **Entermesser** | d6 | — | — | 4 | 200 | Kurz, schwer, für den engen Raum unter Deck gemacht. |
+| **Säbel** | d6 | — | — | 3 | 250 | Die Waffe dessen, der fechten gelernt hat — oder so tun will. |
+| **Enteraxt** | d6 | — | — | 5 | 150 | Öffnet Türen, Luken und Menschen. Nicht elegant. |
+| **Pike** | d6 | — | — | 8 | 100 | Hält den Gegner auf Abstand — an Deck oft im Weg. |
 
 ### Fernkampf
 
-| Gegenstand | Schaden | Rüstung | Gewicht | Preis | Anmerkung |
-|---|---|---|---|---|---|
-| **Wurfmesser** | d4 | — | 1 | 30 | Leise. Danach hat es der andere. |
-| **Steinschlosspistole** | d6 | — | 3 | 350 | Ein Schuss. Danach ist sie ein schlechter Knüppel — Nachladen dauert eine Runde. |
-| **Donnerbüchse** | d6 | — | 6 | 400 | Streut breit, trifft alles vor der Mündung. Nachladen dauert zwei Runden. |
-| **Muskete** | d8 | — | 8 | 500 | Auf Entfernung tödlich, an Deck unhandlich. Nachladen dauert zwei Runden. |
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Wurfmesser** | d4 | — | — | 1 | 30 | Leise. Danach hat es der andere. |
+| **Steinschlosspistole** | d6 | — | 1 Schuss | 3 | 350 | Ein Schuss. Danach ist sie ein schlechter Knüppel — Nachladen dauert eine Runde. |
+| **Donnerbüchse** | d6 | — | 1 Schuss | 6 | 400 | Streut breit, trifft alles vor der Mündung. Nachladen dauert zwei Runden. |
+| **Muskete** | d8 | — | 1 Schuss | 8 | 500 | Auf Entfernung tödlich, an Deck unhandlich. Nachladen dauert zwei Runden. |
+
+### Munition
+
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Pulverhorn mit Blei** | — | — | 20 Ladungen | 2 | 40 | Horn, Pfropfen, ein Beutel Kugeln. Zwanzig Ladungen, wenn man nicht kleckert. |
+| **Papierpatronen, ein Dutzend** | — | — | 12 Ladungen | 1 | 60 | Pulver und Kugel schon abgemessen, in Papier gedreht. Teurer, aber man lädt schneller und im Regen. |
+| **Feuersteine, fünf Stück** | — | — | — | 0 | 15 | Ein Stein hält etwa dreißig Schuss, dann zündet er nicht mehr. Daran denkt niemand, bis es klickt. |
+| **Kugelform und Bleibarren** | — | — | — | 4 | 90 | Blei einschmelzen, Kugeln gießen. Braucht Feuer, Zeit und ruhige Hände — dafür nie wieder leer. |
 
 ### Schutz
 
-| Gegenstand | Schaden | Rüstung | Gewicht | Preis | Anmerkung |
-|---|---|---|---|---|---|
-| **Lederwams** | — | +1 | 5 | 200 | Robustheit +1. Fällt an Bord niemandem auf. |
-| **Kettenhemd** | — | +2 | 12 | 800 | Robustheit +2. Wer damit über Bord geht, geht unter. |
-| **Brustharnisch** | — | +3 | 20 | 2000 | Robustheit +3. Spanische Soldatenware. Man sieht dich kommen und hören kann man dich auch. |
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Lederwams** | — | +1 | — | 5 | 200 | Robustheit +1. Fällt an Bord niemandem auf. |
+| **Kettenhemd** | — | +2 | — | 12 | 800 | Robustheit +2. Wer damit über Bord geht, geht unter. |
+| **Brustharnisch** | — | +3 | — | 20 | 2000 | Robustheit +3. Spanische Soldatenware. Man sieht dich kommen und hören kann man dich auch. |
 
 ### Gerät
 
-| Gegenstand | Schaden | Rüstung | Gewicht | Preis | Anmerkung |
-|---|---|---|---|---|---|
-| **Enterhaken mit Tau** | — | — | 6 | 80 | Der kürzeste Weg auf ein fremdes Deck. |
-| **Fernrohr** | — | — | 2 | 400 | Sieht, was andere erst später sehen. |
-| **Kompass** | — | — | 1 | 300 | Bei Nebel und Nacht der Unterschied zwischen Kurs und Raten. |
-| **Laterne** | — | — | 3 | 60 | Licht, das dich auch verrät. |
-| **Dietriche** | — | — | 1 | 120 | Wer sie bei dir findet, hat schon eine Meinung über dich. |
-| **Verbandszeug** | — | — | 2 | 90 | Nadel, Faden, Leinen, Branntwein. Reicht für drei Männer. |
-| **Seil, zwanzig Schritt** | — | — | 5 | 40 | Man braucht es immer dann, wenn man es nicht hat. |
-| **Proviant für drei Tage** | — | — | 4 | 30 | Zwieback, Pökelfleisch, Wasser. Schmeckt nach nichts. |
-| **Flasche Rum** | — | — | 2 | 50 | Betäubungsmittel, Desinfektion, Zahlungsmittel, Freundschaftsangebot. |
-| **Schreibzeug** | — | — | 2 | 150 | Feder, Tinte, Papier. Wer schreiben kann, gilt schon als halber Herr. |
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Enterhaken mit Tau** | — | — | — | 6 | 80 | Der kürzeste Weg auf ein fremdes Deck. |
+| **Fernrohr** | — | — | — | 2 | 400 | Sieht, was andere erst später sehen. |
+| **Kompass** | — | — | — | 1 | 300 | Bei Nebel und Nacht der Unterschied zwischen Kurs und Raten. |
+| **Laterne** | — | — | — | 3 | 60 | Licht, das dich auch verrät. |
+| **Dietriche** | — | — | — | 1 | 120 | Wer sie bei dir findet, hat schon eine Meinung über dich. |
+| **Verbandszeug** | — | — | — | 2 | 90 | Nadel, Faden, Leinen, Branntwein. Reicht für drei Männer. |
+| **Seil, zwanzig Schritt** | — | — | — | 5 | 40 | Man braucht es immer dann, wenn man es nicht hat. |
+| **Proviant für drei Tage** | — | — | — | 4 | 30 | Zwieback, Pökelfleisch, Wasser. Schmeckt nach nichts. |
+| **Flasche Rum** | — | — | — | 2 | 50 | Betäubungsmittel, Desinfektion, Zahlungsmittel, Freundschaftsangebot. |
+| **Schreibzeug** | — | — | — | 2 | 150 | Feder, Tinte, Papier. Wer schreiben kann, gilt schon als halber Herr. |
+| **Lederner Wasserschlauch** | — | — | — | 2 | 25 | Schmeckt nach Leder. Besser als der Durst. |
+| **Ölzeug** | — | — | — | 4 | 70 | Steif, stinkt, hält trocken. Auf See mehr wert als ein guter Rock. |
+| **Wolldecke** | — | — | — | 3 | 35 | Nass wärmt sie immer noch. Das ist der ganze Trick an Wolle. |
+| **Hängematte** | — | — | — | 3 | 30 | An Bord schläft man so oder gar nicht. |
+| **Zunderbüchse** | — | — | — | 1 | 20 | Stahl, Stein, Zunder. Ohne sie gibt es kein Feuer, und mit nassem Zunder auch nicht. |
+| **Talgkerzen, ein Bund** | — | — | — | 1 | 10 | Riechen beim Brennen nach dem Tier, aus dem sie sind. |
+| **Nähzeug und Pech** | — | — | — | 1 | 30 | Segeltuchnadel, gewachster Faden. Flickt Segel, Zelte und im Notfall Menschen. |
+| **Zimmermannswerkzeug** | — | — | — | 8 | 180 | Beil, Bohrer, Stemmeisen in einer Rolle. Schwer, aber damit repariert man ein Schiff. |
+| **Topf Pech** | — | — | — | 3 | 20 | Dichtet Fugen, klebt Verbände, brennt hervorragend. Macht alles schwarz, was es berührt. |
+| **Angelzeug** | — | — | — | 1 | 25 | Schnur, Haken, ein Stück Blei. Auf einer langen Flaute das Wertvollste an Bord. |
+| **Senklot** | — | — | — | 3 | 70 | Blei an geknoteter Leine. Misst, wie tief es unter dem Kiel noch ist — kurz bevor es zu spät wäre. |
+| **Sanduhr, halbe Stunde** | — | — | — | 2 | 120 | An Bord misst sie die Wache. Sonst misst sie, wie lange man schon wartet. |
+| **Signalhorn** | — | — | — | 1 | 55 | Trägt weiter als jede Stimme. Verrät dafür auch jedem, wo man ist. |
+| **Abgegriffene Seekarte** | — | — | — | 1 | 200 | Die Küsten stimmen ungefähr. Was dahinter liegt, hat der Zeichner sich gedacht. |
+| **Brennglas** | — | — | — | 1 | 140 | Macht Feuer ohne Zunder und kleine Schrift groß. Bei Regen nutzlos. |
+| **Seemannskiste** | — | — | — | 10 | 40 | Schwer, eckig, abschließbar. Alles, was man besitzt, passt hinein — und bleibt an Bord. |
+
+### Allerlei
+
+| Gegenstand | Schaden | Rüstung | Schuss/Ladungen | Gewicht | Preis | Anmerkung |
+|---|---|---|---|---|---|---|
+| **Spielkarten** | — | — | — | 0 | 20 | Abgegriffen, eine Ecke fehlt. An Bord sind sie trotzdem Gold wert. |
+| **Würfelbecher** | — | — | — | 0 | 15 | Drei Würfel, Leder, ein Filzboden. Für Meiern reicht es. |
+| **Tabak und Pfeife** | — | — | — | 1 | 35 | Macht niemanden stärker. Aber jemandem eine Pfeife zu stopfen hat schon Türen geöffnet. |
+| **Handspiegel aus Zinn** | — | — | — | 1 | 35 | Verzerrt ein wenig. Man sieht trotzdem mehr, als einem lieb ist. |
+| **Schnur Glasperlen** | — | — | — | 0 | 25 | Der Krämer schwört, so etwas sei anderswo ein Vermögen wert. Er war nie anderswo. |
+| **Billiges Amulett** | — | — | — | 0 | 10 | Zinn, Schnur, irgendein Heiliger. Der Hausierer verspricht Schutz vor dem Ertrinken. Es tut nichts. |
+| **Leere Flasche mit Korken** | — | — | — | 1 | 5 | Grünes Glas, dicker Boden. Wofür man sie braucht, weiß man vorher nie. |
+| **Ein Schlüssel ohne Schloss** | — | — | — | 0 | 10 | Lag in einer Kiste, die der Krämer billig bekam. Er hat nie herausgefunden, wozu er gehört. |
+| **Rosenkranz** | — | — | — | 0 | 15 | Holzperlen, abgegriffen. Hilft manchen Leuten. Nicht gegen Klingen. |
 
 ## Steckbrief
 

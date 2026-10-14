@@ -126,6 +126,62 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 13) — Munition als Regel, 29 neue Waren
+- **Hendriks Vorgaben:** Munition einbauen, dazu allerlei Gerät — **1701-tauglich**, an diesem
+  Ort **plausibel zu bekommen**, und **manches darf ausdrücklich nutzlos sein**.
+- **Erst nachgelesen, dann gebaut** (stehende Regel seit heute Mittag): Savage Worlds führt je
+  Fernwaffe eine Zahl **Shots** — so viele Schuss, dann wird nachgeladen. 1701 heißt das: **ein
+  Schuss.** Und das Projekt bildete es längst ab, nur an einer Stelle: Die Arena sagt seit August
+  „nach einem Schuss ist die Waffe leer und erst in der übernächsten Runde wieder bereit“.
+  **Gefehlt hat nur der Vorrat** — woher kommt die nächste Ladung?
+- **Die Regel steht in Bibel §4.5** (neu), der Spickzettel in `REGELREFERENZ.md` nennt sie:
+  - Jede Schusswaffe hat **einen** Schuss. Ein Schuss verbraucht **eine Ladung**.
+  - Der Vorrat steht **an der Figur**, nicht am Gegenstand — wer zwei Pistolen trägt, schießt
+    trotzdem aus demselben Pulverhorn.
+  - **Abgezogen wird von Hand.** Nicht jede Schießen-Probe ist ein Schuss (Zielen, Drohen,
+    Warten) — eine Automatik wäre öfter falsch als richtig.
+  - **Bewusst NICHT abgebildet:** Kaliber, Fehlzündung, Pulverqualität. Eine Ladung ist eine
+    Ladung; Savage Worlds zählt Schuss je Gefecht, nicht je Kampagne.
+- **29 neue Waren, 24 → 53**, in zwei neuen Arten:
+  - **Munition (4):** Pulverhorn mit Blei (20 Ladungen) · Papierpatronen (12, dafür schneller und
+    auch bei Regen) · Feuersteine (einer hält etwa dreißig Schuss) · Kugelform mit Bleibarren
+    (bringt **keine** fertigen Ladungen — man gießt sie erst).
+  - **Gerät (+16):** Ölzeug, Hängematte, Zunderbüchse, Nähzeug und Pech, Zimmermannswerkzeug,
+    Senklot, Sanduhr, Signalhorn, Seekarte, Brennglas, Seemannskiste, Angelzeug … — durchweg
+    Dinge, die es 1701 in einem Hafen wirklich gab.
+  - **Allerlei (9):** Spielkarten, Würfelbecher, Tabak, Handspiegel, Glasperlen, billiges Amulett,
+    leere Flasche, **ein Schlüssel ohne Schloss**, Rosenkranz. **Diese Art tut nichts** — kein
+    verstecktes Talent, kein Bonus. Sie steht als eigene Art da, damit niemand glaubt, etwas
+    übersehen zu haben; was daraus wird, entscheidet die Spielleitung oder niemand.
+- **Die dünnen Schubladen sind gefüllt.** Vorher hielten **8 von 20 Fächern genau ein Stück** —
+  eine Schublade aufzuziehen, in der ein Gegenstand liegt, fühlt sich nach Fehler an. Jetzt
+  **26 Fächer, 116 Warenplätze**, und nur noch eines mit einem einzigen Stück (der
+  Wurfeisenkarren — das ist der Stand, nicht die Lücke).
+  - Neue Fächer: **„Der Hausierer“** und **„Der Trödelkarren“** (Markt) · **„Die Ecke für
+    Seeleute“** und **„Hinter dem Vorhang“** (Krämer — Pulver hält er nicht im Laden) ·
+    **„Vor der Kirche“** (Hafen) · **„Der Tisch mit dem Krempel“** und **„Werkstatt am Rand“**
+    (Höhlenstadt).
+- **Getestet: 133 Prüfungen in `tests/t_bogen.js`, 0 Fehler** (20 neue).
+  - **Die Dubletten-Prüfung von gestern hat sofort zugeschlagen:** Beim Verteilen hatte ich
+    `rosenkranz` und `kerzen` am Hafen je zweimal gelegt. Genau wofür sie gebaut war.
+  - **Zwei eigene Fehler im Test selbst**, beide gefunden, bevor etwas falsch wurde: „Schusswaffe“
+    ist **nicht** dasselbe wie „Fernkampf“ — das Wurfmesser ist Fernkampf und braucht kein Pulver;
+    die Prüfung geht jetzt über das Feld `schuss`, in beide Richtungen. Und die Kauf-Prüfungen
+    standen **vor** ihrer Umgebung.
+  - Dazu: der Bogen **speichert** die Ladungen (ein Feld, das die Figur kennt und der Bogen nicht
+    hochschreibt, ist der häufigste stille Datenverlust), ein geschenktes Pulverhorn füllt
+    ebenso auf wie ein gekauftes, und die Kugelform bringt nachweislich keine.
+- **Zwei Werkzeug-Fehler, beide dokumentiert und beide wieder gemacht:**
+  1. Ein Index-Sprung hat den neuen Warenblock **mitten in `leereFigur()`** eingefügt. Statt zu
+     operieren: Datei zurücksetzen und die Skripte neu laufen lassen — das erste war
+     reproduzierbar.
+  2. Ein Python-Schreibzugriff hat `REGELREFERENZ.md` **von LF auf CRLF** umgestellt, worauf die
+     Aktualitätsprüfung die ganze Datei für verändert hielt. **Merke:** Dateien dieses Repos mit
+     `newline=''` lesen und schreiben, sonst ändert ein Einzeiler jede Zeile.
+- **[OFFEN] Die Arena kennt die Ladungen nicht.** `js/arena.js` rechnet weiter nach W100 und hat
+  seine eigene Waffenlogik („Waffe leer, in der übernächsten Runde bereit“). Beides passt
+  inhaltlich zusammen, ist aber nicht verbunden — im Endkampf zählt niemand Ladungen.
+
 ### 2026-10-14 (Fortsetzung 12) — Schubladen beim Krämer, Stände auf dem Markt
 - **Hendriks Vorgabe:** Die Waren kategorisieren und **ausklappbar** machen — beim Krämer wie
   **Schubladen**, auf dem Markt nach dem **jeweils passenden Stand**.

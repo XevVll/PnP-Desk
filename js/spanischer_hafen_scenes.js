@@ -53,16 +53,19 @@ const SPANISCHER_HAFEN_SCENES = {
           gruppen: [
             { n: "Puesto de víveres",
               d: "Der Proviantstand. Der Händler zählt laut mit, auf Spanisch.",
-              waren: ["proviant", "rum"] },
+              waren: ["proviant", "rum", "wasserschlauch", "tabak"] },
             { n: "Schiffsbedarf",
               d: "Tau, Öl, Docht. Das Übliche, und hier kümmert es niemanden, wessen Schiff.",
-              waren: ["seil", "laterne", "kompass"] },
+              waren: ["seil", "laterne", "kompass", "teer", "naehzeug", "lot", "kerzen"] },
             { n: "Tuch und Leder",
               d: "Der Händler misst zweimal und redet dabei ohne Pause.",
-              waren: ["lederwams"] },
+              waren: ["lederwams", "oelzeug", "decke"] },
             { n: "Beim Bader",
               d: "Ein Tisch, eine Schüssel, ein Korb mit Leinen.",
-              waren: ["verband"] }
+              waren: ["verband", "flasche"] },
+            { n: "Vor der Kirche",
+              d: "Ein Alter verkauft Heiligenbildchen und Zinnkram an alle, die ablegen.",
+              waren: ["amulett", "spiegel", "rosenkranz", "glasperlen"] }
           ]
         },
         top: 46, left: 58,

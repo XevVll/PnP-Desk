@@ -108,6 +108,18 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   color:var(--gold);margin-bottom:.2rem}
 #tagTip i{font-style:normal;color:var(--gray);font-size:.7rem}
 #tagTip u{display:block;text-decoration:none;color:var(--gray);font-size:.66rem;margin-top:.35rem}
+.lad{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;border:1px solid var(--border);
+  border-radius:var(--r);padding:.5rem .7rem;margin:.6rem .9rem}
+.lad.leer{border-color:rgba(202,103,2,.6)}
+.lad b{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--gray);
+  text-transform:uppercase}
+.lad .z{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold);min-width:2rem;text-align:center}
+.lad button{background:transparent;border:1px solid var(--border);color:var(--gray);
+  border-radius:4px;width:1.6rem;height:1.6rem;line-height:1;cursor:pointer;font-size:.9rem}
+.lad button:hover{border-color:var(--gold);color:var(--ink)}
+.lad .t{flex:1;min-width:12rem;font-size:.74rem;color:var(--gray);font-style:italic;line-height:1.5}
+.lad .t b{display:inline;font-family:inherit;font-size:inherit;letter-spacing:0;
+  text-transform:none;color:var(--amber);font-style:normal}
 #uebergabe{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%) translateY(2rem);
   z-index:260;background:#16242b;border:1px solid var(--gold);border-radius:var(--r);
   padding:.6rem 1rem;font-size:.85rem;color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,.5);
@@ -303,6 +315,7 @@ textarea:focus{border-color:var(--gold)}
     </div>
     <div class="card">
       <div class="card-hdr">Was du trägst</div>
+      <div id="ladungen"></div>
       <div class="card-body" id="getragen"></div>
     </div>
     <div class="card">
@@ -524,7 +537,7 @@ function figurLoeschenFragen() {
 
 function bogenFelder() {
   return {
-    ausr: F.ausr, muenzen: F.muenzen,
+    ausr: F.ausr, muenzen: F.muenzen, ladungen: F.ladungen,
     angeschlagen: F.angeschlagen, wunden: F.wunden,
     benniesUebrig: F.benniesUebrig, notizen: F.notizen,
     // Steigerungen aendern auch Werte - die muessen mit.
@@ -1220,6 +1233,26 @@ function renderAusruestung() {
     ? 'Überladen — alle Würfel eine Stufe niedriger, solange du das alles schleppst.'
     : 'Die Traglast hängt an deiner Stärke (' + DLBL[F.attr['Stärke'] || 1] + ').';
 
+  /* Der Vorrat an Ladungen. Abgezogen wird von Hand: Nicht jede
+     Schiessen-Probe ist ein Schuss (Zielen, Drohen, Warten), und eine
+     Automatik waere oefter falsch als richtig. */
+  const schuetzen = F.ausr.filter(function (id) {
+    return AUSR_BY_ID[id] && AUSR_BY_ID[id].schuss;
+  }).length;
+  document.getElementById('ladungen').innerHTML =
+    '<div class="lad' + ((schuetzen && !F.ladungen) ? ' leer' : '') + '">' +
+    '<b>Ladungen</b><span class="z">' + (F.ladungen || 0) + '</span>' +
+    '<button onclick="ladungenAendern(-1)" title="ein Schuss">−</button>' +
+    '<button onclick="ladungenAendern(1)">+</button>' +
+    '<span class="t">' +
+    (schuetzen
+      ? (F.ladungen
+         ? 'Jeder Schuss kostet eine. Nachladen dauert — 1701 ist alles Vorderlader.'
+         : '<b>Leer.</b> Deine Schusswaffe ist damit ein teurer Knüppel. ' +
+           'Pulver gibt es beim Händler.')
+      : 'Du trägst keine Schusswaffe. Pulver schadet trotzdem nicht.') +
+    '</span></div>';
+
   document.getElementById('getragen').innerHTML = F.ausr.length
     ? F.ausr.map(function (id, i) {
         const a = AUSR_BY_ID[id];
@@ -1271,11 +1304,18 @@ function zuteilungAnnehmen(post) {
       } else {
         F.muenzen = (F.muenzen || 0) - (a.preis || 0);
         F.ausr.push(z.id);
-        erzaehlt.push(a.n + ' gekauft (−' + a.preis + ' M.)');
+        let zusatz = '';
+        if (a.ladungen) {
+          F.ladungen = (F.ladungen || 0) + a.ladungen;
+          zusatz = ', +' + a.ladungen + ' Ladungen';
+        }
+        erzaehlt.push(a.n + ' gekauft (−' + a.preis + ' M.' + zusatz + ')');
       }
     } else if (z.art === 'gegenstand' && AUSR_BY_ID[z.id]) {
+      const g = AUSR_BY_ID[z.id];
       F.ausr.push(z.id);
-      erzaehlt.push(AUSR_BY_ID[z.id].n);
+      if (g.ladungen) F.ladungen = (F.ladungen || 0) + g.ladungen;
+      erzaehlt.push(g.n + (g.ladungen ? ' (+' + g.ladungen + ' Ladungen)' : ''));
     } else if (z.art === 'nehmen') {
       const i = F.ausr.indexOf(z.id);
       if (i >= 0) { F.ausr.splice(i, 1); erzaehlt.push('— ' + (AUSR_BY_ID[z.id] || {}).n); }
@@ -1308,6 +1348,11 @@ function zeigeUebergabe(liste) {
   el.className = 'auf';
   clearTimeout(zeigeUebergabe._t);
   zeigeUebergabe._t = setTimeout(function () { el.className = ''; }, 6000);
+}
+
+function ladungenAendern(d) {
+  F.ladungen = Math.max(0, (F.ladungen || 0) + d);
+  speichern(); renderAlles();
 }
 
 function muenzenAendern(d) {
