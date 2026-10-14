@@ -98,6 +98,46 @@ chk('keine freie Seitenzahl bis 1000', quelle.indexOf('DICE_SIDES_MAX') < 0);
 chk('keine Vorgabe d20', !/value="20"/.test(quelle));
 
 console.log('');
+console.log('=== DIE FUENF WUERFEL STEHEN AUF EINER LINIE ===');
+/* Hendriks Meldung vom 14.10.2026: 4 und 12 standen tiefer als 6, 8 und 10.
+   Ursache war ein eigener Mittelpunkt je Form (der Flaechenschwerpunkt).
+   Geprueft wird deshalb beides: dieselbe Hoehe fuer alle - und dass die Zahl
+   trotzdem in jede Form passt, damit die Linie nicht durch Ueberstehen erkauft
+   ist. */
+const yWerte = (u.markup().match(/class="wl-zahl" x="50" y="(\d+)"/g) || []);
+chk('fuenf Zahlen gezeichnet', yWerte.length === 5, yWerte);
+chk('alle auf derselben Hoehe', new Set(yWerte).size === 1, yWerte);
+chk('kein eigener Mittelpunkt je Form mehr', quelle.indexOf('mitte:') < 0);
+
+/* Passt die Zahl hinein? Fuer jede Form die Breite des Umrisses am oberen und
+   unteren Rand des Schriftbands messen. Eine zweistellige Zahl in Georgia 34
+   ist rund 38 Einheiten breit. */
+const Y = parseInt((u.markup().match(/class="wl-zahl" x="50" y="(\d+)"/) || [])[1], 10);
+const formen = {};
+quelle.replace(/(\d+):\s*\{ punkte: '([^']+)' \}/g, function (_, n, pts) {
+  formen[n] = pts.split(' ').map(function (p) { return p.split(',').map(Number); });
+  return _;
+});
+function breiteBei(ecken, y) {
+  // Schnittpunkte des Umrisses mit der Waagerechten y.
+  const xs = [];
+  for (let i = 0; i < ecken.length; i++) {
+    const a = ecken[i], b = ecken[(i + 1) % ecken.length];
+    if ((a[1] - y) * (b[1] - y) > 0 || a[1] === b[1]) continue;
+    xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]));
+  }
+  return xs.length < 2 ? 0 : Math.max.apply(null, xs) - Math.min.apply(null, xs);
+}
+chk('alle fuenf Formen erfasst', Object.keys(formen).length === 5, Object.keys(formen));
+[4, 6, 8, 10, 12].forEach(function (n) {
+  const e = formen[n];
+  const oben = breiteBei(e, Y - 12), unten = breiteBei(e, Y + 12);
+  const noetig = n === 12 ? 40 : 24;   // nur die 12 ist zweistellig
+  chk('d' + n + ': Zahl passt ins Band', Math.min(oben, unten) >= noetig,
+    { oben: Math.round(oben), unten: Math.round(unten), noetig: noetig });
+});
+
+console.log('');
 console.log('=== WERTPROBE: FEED UND PROTOKOLL ===');
 u = start(FIGUR);
 u.geschrieben.length = 0;

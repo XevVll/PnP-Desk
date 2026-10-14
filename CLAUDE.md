@@ -110,6 +110,20 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 2) — Die fünf Würfel standen im Zickzack
+- **Hendriks Meldung mit Screenshot:** „Die 4 und die 12 sind nicht auf der gleichen Höhe."
+- **Ursache:** Jede Form trug ihren **eigenen** Mittelpunkt (`mitte`), und der war der
+  **Flächenschwerpunkt** — beim Dreieck 62, beim Fünfeck 56, beim Drachen 46. Jede Zahl saß damit
+  schön in ihrer Form, aber **nebeneinander las sich die Reihe als Zickzack**.
+- **Behoben:** eine gemeinsame Linie (`DICE_ZAHL_Y = 50`) für alle fünf; die Einzel-Mittelpunkte
+  sind ersatzlos weg. Dreieck und Fünfeck sind dafür minimal breiter und tiefer gezeichnet, damit
+  die Zahl auf der neuen Höhe nicht an die Kante stößt. **Nebeneinander wiegt die gemeinsame Linie
+  schwerer als die optische Mitte der einzelnen Form** — steht so als Begründung im Code.
+- **Getestet: 9 neue Prüfungen** (t_wuerfel jetzt 51, 0 Fehler). Geprüft wird beides: dass alle
+  fünf dieselbe Höhe tragen **und** dass die Zahl trotzdem in jede Form passt — sonst wäre die
+  Linie durch Überstehen erkauft. Dafür schneidet der Test den Umriss jeder Form am oberen und
+  unteren Rand des Schriftbands und misst die Breite (zweistellig nur bei der 12).
+
 ### 2026-10-14 — Die Spielleitung fordert Würfe an, und das Protokoll trägt den Abend
 - **Zweite Hälfte des Würfel-Umbaus** (die Leiste stand seit gestern, `js/dice.js`). Gebaut nach
   Hendriks „passt. So bitte einbauen" — alles davon in `regie_figuren.html`.

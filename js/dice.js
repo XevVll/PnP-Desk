@@ -57,12 +57,20 @@ const DICE_EX_GRENZE = 50;          // Sicherung gegen eine endlose Explosion
 
 // Umrisse der echten Körper. Die Form trägt die Erkennung, nicht die
 // Beschriftung: Dreieck, Quadrat, Raute, Drachen, Fünfeck.
+//
+// Alle Zahlen stehen auf DERSELBEN Hoehe (DICE_ZAHL_Y). Vorher trug jede Form
+// ihren eigenen Mittelpunkt - den Schwerpunkt der Flaeche, also beim Dreieck
+// und beim Fuenfeck deutlich tiefer. Jede Zahl sass damit zwar schoen in ihrer
+// Form, aber die Reihe las sich als Zickzack: 4 und 12 standen sichtbar tiefer
+// als 6, 8 und 10. Nebeneinander wiegt die gemeinsame Linie schwerer als die
+// optische Mitte der einzelnen Form. (Hendriks Meldung, 14.10.2026.)
+const DICE_ZAHL_Y = 50;
 const DICE_FORMEN = {
-  4:  { punkte: '50,12 91,83 9,83',            mitte: 62 },
-  6:  { punkte: '14,14 86,14 86,86 14,86',     mitte: 50 },
-  8:  { punkte: '50,9 89,50 50,91 11,50',      mitte: 52 },
-  10: { punkte: '50,6 90,38 50,94 10,38',      mitte: 46 },
-  12: { punkte: '50,8 93,39 77,89 23,89 7,39', mitte: 56 }
+  4:  { punkte: '50,14 93,85 7,85' },
+  6:  { punkte: '14,14 86,14 86,86 14,86' },
+  8:  { punkte: '50,9 89,50 50,91 11,50' },
+  10: { punkte: '50,6 90,38 50,94 10,38' },
+  12: { punkte: '50,9 93,40 77,90 23,90 7,40' }
 };
 
 // Der Stil wohnt hier und nicht in den Seiten: Die Leiste läuft auf zwei
@@ -297,7 +305,7 @@ function initDiceRoller(db, options) {
       'title="d' + seiten + ' werfen" aria-label="d' + seiten + ' werfen">' +
       '<svg viewBox="0 0 100 100" aria-hidden="true">' +
       '<polygon class="wl-korpus" points="' + fo.punkte + '"></polygon>' +
-      '<text class="wl-zahl" x="50" y="' + fo.mitte + '" text-anchor="middle" ' +
+      '<text class="wl-zahl" x="50" y="' + DICE_ZAHL_Y + '" text-anchor="middle" ' +
       'dominant-baseline="central">' + seiten + '</text></svg></button>';
   }
   function freiZeile() {
