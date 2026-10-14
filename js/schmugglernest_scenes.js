@@ -67,10 +67,22 @@ const SCHMUGGLERNEST_SCENES = {
         // der einzige Ort der Kampagne, an dem das gilt.
         laden: {
           name: "Markt der Höhlenstadt",
-          was: "Alles, was anderswo niemand offen verkauft — auch Pulver und Panzer.",
-          waren: ["messer", "entermesser", "saebel", "enteraxt", "wurfmesser",
-                  "pistole", "tromblon", "muskete", "lederwams", "kettenhemd",
-                  "dietriche", "fernrohr", "kompass", "enterhaken", "rum"]
+          was: "Alles, was anderswo niemand offen verkauft. Hier fragt keiner, woher.",
+          gruppen: [
+            { n: "Unter der Plane: Pulver und Blei",
+              d: "Der einzige Stand der Kampagne, an dem es Schusswaffen gibt. " +
+                 "Er zeigt sie erst, wenn man danach fragt.",
+              waren: ["pistole", "tromblon", "muskete"] },
+            { n: "Die Klingenreihe",
+              d: "Drei Stände nebeneinander, die sich gegenseitig unterbieten.",
+              waren: ["messer", "entermesser", "saebel", "enteraxt", "wurfmesser"] },
+            { n: "Panzer und Leder",
+              d: "Ein Kettenhemd hängt an einem Haken. Es ist ausgebessert worden, mehrfach.",
+              waren: ["lederwams", "kettenhemd"] },
+            { n: "Was von Bord kommt",
+              d: "Beutegut ohne Herkunft. Der Händler nennt keine Namen, auch nicht seinen.",
+              waren: ["dietriche", "fernrohr", "kompass", "enterhaken", "rum"] }
+          ]
         },
         top: 50, left: 50,
         title: "Die Höhlenstadt",

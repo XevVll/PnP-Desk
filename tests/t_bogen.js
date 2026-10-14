@@ -322,13 +322,19 @@ chk('auf dem Schiff keinen', lctx.laedenDerSzene('2.1').length === 0);
 chk('auf der Schatzinsel keinen', lctx.laedenDerSzene('4.1').length === 0);
 chk('eine unbekannte Szene ergibt nichts', lctx.laedenDerSzene('99.9').length === 0);
 
+/* Waren liegen jetzt in Schubladen bzw. Staenden, nicht mehr flach. Fuer die
+   Pruefungen flach ziehen - was WO liegt, wird darunter eigens geprueft. */
+function alleWaren(l) {
+  return (l.gruppen || []).reduce(function (acc, g) { return acc.concat(g.waren || []); }, []);
+}
+
 /* Der tragende Punkt: Jede Ware muss es wirklich geben. Beim Schreiben der
    Sortimente habe ich eine ID erfunden ("verbandszeug_platzhalter") - genau
    das fängt diese Prüfung. Ein Laden mit einer toten ID zeigt sie einfach
    nicht an, und niemand merkt, dass die Ware fehlt. */
 let toteWaren = [];
 alleLaeden.forEach(function (e) {
-  (e.l.waren || []).forEach(function (id) {
+  alleWaren(e.l).forEach(function (id) {
     if (!R.AUSR_BY_ID[id]) toteWaren.push(e.szene + ': ' + id);
   });
 });
@@ -338,14 +344,43 @@ chk('jeder Laden hat einen Namen',
 chk('jeder Laden sagt, was er führt',
   alleLaeden.every(function (e) { return !!e.l.was; }));
 chk('und führt überhaupt etwas',
-  alleLaeden.every(function (e) { return (e.l.waren || []).length > 0; }),
-  alleLaeden.filter(function (e) { return !(e.l.waren || []).length; }).map(function (e) { return e.l.name; }));
+  alleLaeden.every(function (e) { return alleWaren(e.l).length > 0; }),
+  alleLaeden.filter(function (e) { return !alleWaren(e.l).length; }).map(function (e) { return e.l.name; }));
+
+console.log('');
+console.log('=== SCHUBLADEN UND STÄNDE ===');
+/* Hendriks Vorgabe: beim Krämer Schubladen, auf dem Markt Stände. */
+const alleFaecher = [];
+alleLaeden.forEach(function (e) {
+  (e.l.gruppen || []).forEach(function (g) { alleFaecher.push({ laden: e.l.name, g: g }); });
+});
+chk('es gibt überhaupt Fächer', alleFaecher.length > 0, alleFaecher.length);
+chk('jedes Fach hat einen Namen', alleFaecher.every(function (f) { return !!f.g.n; }),
+  alleFaecher.filter(function (f) { return !f.g.n; }).map(function (f) { return f.laden; }));
+chk('kein Fach ist leer', alleFaecher.every(function (f) { return (f.g.waren || []).length > 0; }),
+  alleFaecher.filter(function (f) { return !(f.g.waren || []).length; }).map(function (f) { return f.g.n; }));
+/* Eine Ware zweimal im selben Laden waere ein Kopierfehler, der am Tisch wie
+   ein zweites Angebot aussieht. */
+let doppelt = [];
+alleLaeden.forEach(function (e) {
+  const w = alleWaren(e.l), gesehen = {};
+  w.forEach(function (id) {
+    if (gesehen[id]) doppelt.push(e.l.name + ': ' + id);
+    gesehen[id] = true;
+  });
+});
+chk('keine Ware liegt zweimal im selben Laden', doppelt.length === 0, doppelt);
+chk('jedes Fach hat mindestens vier Zeichen Beschreibung oder keine',
+  alleFaecher.every(function (f) { return !f.g.d || f.g.d.length > 4; }));
+chk('der Krämer hat mehrere Schubladen',
+  lctx.laedenDerSzene('1.1').filter(function (l) { return l.name.indexOf('Krämer') >= 0; })[0]
+    .gruppen.length >= 4);
 
 /* Die Sortimente sollen sich unterscheiden - sonst waere die Trennung eine
    Behauptung. */
 function waren(szene, name) {
   const l = lctx.laedenDerSzene(szene).filter(function (x) { return x.name.indexOf(name) >= 0; })[0];
-  return l ? l.waren : [];
+  return l ? alleWaren(l) : [];
 }
 const kraemer = waren('1.1', 'Krämer'), markt = waren('1.1', 'Markt');
 chk('Krämer und Markt führen Verschiedenes',
@@ -357,7 +392,7 @@ chk('der Markt führt Klingen', markt.indexOf('saebel') >= 0);
 /* Schusswaffen gibt es in der ganzen Kampagne nur bei den Schmugglern -
    das ist eine Aussage ueber die Welt, nicht nur ueber eine Liste. */
 const mitPulver = alleLaeden.filter(function (e) {
-  return (e.l.waren || []).some(function (id) {
+  return alleWaren(e.l).some(function (id) {
     return ['pistole', 'tromblon', 'muskete'].indexOf(id) >= 0;
   });
 });
@@ -370,6 +405,15 @@ console.log('=== GEKAUFT WIRD AUF DER KARTE ===');
 chk('die Karte hat einen Laden im Ort-Fenster', KARTE.indexOf('id="ladenBox"') >= 0);
 chk('er wird beim Öffnen eines Ortes gezeichnet', KARTE.indexOf('zeichneLaden(marker)') >= 0);
 chk('er nennt den Geldstand', KARTE.indexOf('Du hast <b>') >= 0);
+chk('die Fächer sind zu, bis man sie aufzieht',
+  KARTE.indexOf("'<div class=\"fach' + (offen ? '' : ' zu')") >= 0);
+chk('sie lassen sich anklicken', KARTE.indexOf('data-fach=') >= 0 &&
+  KARTE.indexOf('ladenFaecherOffen[i] = !ladenFaecherOffen[i]') >= 0);
+chk('ein Fach sagt, wie viel davon bezahlbar ist', KARTE.indexOf('bezahlbar') >= 0);
+chk('beim Ortswechsel sind wieder alle zu',
+  KARTE.indexOf('ladenFaecherOffen = {};') >= 0 && KARTE.indexOf('ladenFuerMarker') >= 0);
+chk('welches Fach offen ist, geht nicht in die Datenbank',
+  KARTE.indexOf("ref('ladenFaecher") < 0 && KARTE.indexOf('let ladenFaecherOffen = {}') >= 0);
 /* Gekauft wird NICHT direkt in die Figur geschrieben - derselbe Grund wie bei
    der Uebergabe durch die Regie. */
 chk('ein Kauf geht ins Postfach, nicht in die Figur',

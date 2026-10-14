@@ -346,6 +346,25 @@
   #ladenBox .ware button:hover:not(:disabled) { border-color: var(--gold); color: var(--ink); }
   #ladenBox .ware button:disabled { opacity: .35; cursor: default; }
   #ladenBox .hinw { font-size: 12px; color: var(--ink-dim); font-style: italic; margin-top: 10px; line-height: 1.5; }
+
+  /* Schubladen beim Kraemer, Staende auf dem Markt: zu, bis man sie
+     aufzieht. Alles auf einmal zu zeigen waere eine Preisliste - so geht
+     man hin und fragt. */
+  #ladenBox .fach { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; overflow: hidden; }
+  #ladenBox .fach > button.kopf {
+    width: 100%; text-align: left; background: rgba(201,162,75,.04); border: none;
+    color: var(--ink); font-family: Georgia, serif; font-size: 13.5px;
+    padding: 8px 11px; cursor: pointer; display: flex; align-items: baseline; gap: 8px;
+  }
+  #ladenBox .fach > button.kopf:hover { background: rgba(201,162,75,.12); }
+  #ladenBox .fach > button.kopf .pfeil { color: var(--gold); font-size: 11px; width: 11px; flex: none; }
+  #ladenBox .fach > button.kopf .t { flex: 1; }
+  #ladenBox .fach > button.kopf .t small {
+    display: block; font-size: 11.5px; color: var(--ink-dim); font-style: italic; line-height: 1.45; margin-top: 1px;
+  }
+  #ladenBox .fach > button.kopf .z { font-size: 11.5px; color: var(--ink-dim); flex: none; }
+  #ladenBox .fach .inhalt { padding: 2px 11px 8px; }
+  #ladenBox .fach.zu .inhalt { display: none; }
   #overlayClose {
     position: absolute; top: 14px; right: 18px; z-index: 10;
     background: none; border: none; color: var(--ink-dim);
@@ -2027,12 +2046,23 @@
       }).catch(function () { /* ohne Verbindung geht kein Handel */ });
     }
 
+    /* Welche Schublade offen ist, liegt nur im Speicher dieser Seite - das
+       ist Ansichtssache dieses Spielers, nicht Spielstand. Beim Wechsel des
+       Orts wird zurueckgesetzt: Man kommt an einen neuen Laden und steht
+       wieder davor, nicht vor den Schubladen des letzten. */
+    let ladenFaecherOffen = {};
+    let ladenFuerMarker = null;
+
     function zeichneLaden(marker) {
       const box = document.getElementById('ladenBox');
       if (!box) return;
       const l = marker && marker.laden;
       if (!l || typeof AUSR_BY_ID === 'undefined') { box.style.display = 'none'; return; }
       box.style.display = '';
+      if (ladenFuerMarker !== (marker.id || null)) {
+        ladenFaecherOffen = {};
+        ladenFuerMarker = marker.id || null;
+      }
 
       if (!meineFigur) {
         box.innerHTML = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
@@ -2042,13 +2072,11 @@
       }
 
       const geld = meineFigur.muenzen || 0;
-      const waren = (l.waren || []).map(function (id) { return AUSR_BY_ID[id]; })
-                                   .filter(function (a) { return !!a; });
       let h = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
         '<div class="was">' + escHtml(l.was || '') + '</div>' +
         '<div class="geld">Du hast <b>' + geld + '</b> Münzen.</div>';
 
-      h += waren.map(function (a) {
+      function wareZeile(a) {
         const zuTeuer = geld < (a.preis || 0);
         const werte = [];
         if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
@@ -2060,6 +2088,25 @@
           '<div class="w">' + werte.join(' · ') + '</div>' +
           '<button data-kauf="' + escHtml(a.id) + '"' +
           (zuTeuer ? ' disabled title="zu teuer"' : '') + '>Kaufen</button></div>';
+      }
+
+      h += (l.gruppen || []).map(function (g, i) {
+        const waren = (g.waren || []).map(function (id) { return AUSR_BY_ID[id]; })
+                                     .filter(function (a) { return !!a; });
+        if (!waren.length) return '';
+        const offen = !!ladenFaecherOffen[i];
+        /* Bezahlbares zaehlen statt nur Stueckzahl: Vor einer zugezogenen
+           Schublade will man wissen, ob sich das Aufziehen lohnt. */
+        const kannIch = waren.filter(function (a) { return geld >= (a.preis || 0); }).length;
+        return '<div class="fach' + (offen ? '' : ' zu') + '">' +
+          '<button class="kopf" data-fach="' + i + '" aria-expanded="' + (offen ? 'true' : 'false') + '">' +
+          '<span class="pfeil">' + (offen ? '▾' : '▸') + '</span>' +
+          '<span class="t">' + escHtml(g.n || 'Fach') +
+          (g.d ? '<small>' + escHtml(g.d) + '</small>' : '') + '</span>' +
+          '<span class="z">' + waren.length + ' Stück' +
+          (kannIch < waren.length ? ' · ' + kannIch + ' bezahlbar' : '') + '</span>' +
+          '</button>' +
+          '<div class="inhalt">' + waren.map(wareZeile).join('') + '</div></div>';
       }).join('');
 
       h += '<div class="hinw">Gekauftes landet in deinem Heldenbrief. ' +
@@ -2074,7 +2121,15 @@
     }
 
     document.addEventListener('click', function (ev) {
-      const t = ev.target.closest ? ev.target.closest('[data-kauf]') : null;
+      if (!ev.target.closest) return;
+      const fach = ev.target.closest('[data-fach]');
+      if (fach) {
+        const i = fach.dataset.fach;
+        ladenFaecherOffen[i] = !ladenFaecherOffen[i];
+        if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
+        return;
+      }
+      const t = ev.target.closest('[data-kauf]');
       if (t && !t.disabled) kaufen(t.dataset.kauf);
     });
 

@@ -126,6 +126,33 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 12) — Schubladen beim Krämer, Stände auf dem Markt
+- **Hendriks Vorgabe:** Die Waren kategorisieren und **ausklappbar** machen — beim Krämer wie
+  **Schubladen**, auf dem Markt nach dem **jeweils passenden Stand**.
+- **Aus `waren: […]` ist `gruppen: [{ n, d, waren }]` geworden.** Die Gruppen sind nicht
+  Warenarten („Nahkampf“, „Gerät“) — das wäre wieder ein Katalog. Sie sind **Orte im Laden**:
+  - **Krämer:** „Die Schublade mit dem Tauwerk“ (klemmt, er tritt einmal dagegen) · „Das Regal
+    über der Theke“ · „Die Kisten an der Rückwand“ · „Das Fach unter der Theke“ (Werkzeug —
+    was davon auch eine Waffe ist, sagt er nicht dazu) · „Die Vitrine beim Fenster“ (das Teure,
+    er wischt sie ab, bevor er aufschließt) · „Der Kasten mit dem roten Kreuz“.
+  - **Marktplatz:** Klingenhändler · Gerber · Wurfeisenkarren · „Fisch, Brot, Fässer“ ·
+    „Taue und Netze“.
+  - **Hafen (`7.1`):** „Puesto de víveres“ · Schiffsbedarf · Tuch und Leder · beim Bader.
+  - **Höhlenstadt (`8.1`):** „Unter der Plane: Pulver und Blei“ (zeigt sie erst, wenn man fragt)
+    · Klingenreihe · Panzer und Leder · „Was von Bord kommt“.
+  - Namen und Zuordnung sind mein Aufschlag entlang der vorhandenen Ortstexte — jede Zeile
+    einzeln änderbar.
+- **Zu, bis man sie aufzieht.** Alles auf einmal zu zeigen wäre eine Preisliste; so geht man hin
+  und fragt. Jedes Fach nennt die Stückzahl **und wie viel davon bezahlbar ist** — vor einer
+  geschlossenen Schublade will man wissen, ob sich das Aufziehen lohnt.
+- **Beim Ortswechsel sind wieder alle zu.** Man kommt an einen neuen Laden und steht davor, nicht
+  vor den Schubladen des letzten. Welches Fach offen ist, liegt **nur im Speicher dieser Seite** —
+  das ist Ansichtssache dieses Spielers, kein Spielstand.
+- **Getestet: 113 Prüfungen in `tests/t_bogen.js`, 0 Fehler** (11 neue). Neu darunter: kein Fach
+  ist leer, jedes hat einen Namen, und **keine Ware liegt zweimal im selben Laden** — ein
+  Kopierfehler beim Aufteilen hätte am Tisch wie ein zweites Angebot ausgesehen. Die Prüfung
+  „jede Ware gibt es wirklich“ zieht die Gruppen jetzt flach und gilt unverändert weiter.
+
 ### 2026-10-14 (Fortsetzung 11) — Der Laden steht am Ort und führt sein eigenes Sortiment
 - **Hendriks Korrektur am Vormittagsstand:** Nicht aus dem Charakterfenster aufmachen, sondern
   **direkt im Krämerladen oder auf dem Markt** — und **die Waren passend zum Laden**.

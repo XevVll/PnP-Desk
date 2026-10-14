@@ -86,11 +86,28 @@ const SCENES = {
         // Ein Laden: Name plus das, was er wirklich fuehrt. Staende und
         // Gebrauchtes - Waffen aus zweiter Hand, Kleidung, Vorrat. Keine
         // Feinmechanik und nichts Teures, dafuer ist der Kraemer da.
+        // Auf einem Markt geht man von Stand zu Stand - deshalb Staende und
+        // keine Warenarten. Die Namen sind aenderbar, die Zuordnung auch.
         laden: {
           name: "Marktplatz",
-          was: "Stände mit Gebrauchtem — Klingen aus zweiter Hand, Leder, Vorrat.",
-          waren: ["messer", "belegnagel", "entermesser", "saebel", "enteraxt",
-                  "pike", "wurfmesser", "lederwams", "proviant", "rum", "seil"]
+          was: "Stände, so weit man sieht. Man geht von einem zum nächsten.",
+          gruppen: [
+            { n: "Der Stand des Klingenhändlers",
+              d: "Gebrauchtes aus Nachlässen. Er behauptet, jedes Stück habe eine Geschichte.",
+              waren: ["messer", "belegnagel", "entermesser", "saebel", "enteraxt", "pike"] },
+            { n: "Beim Gerber",
+              d: "Riecht man, bevor man ihn sieht.",
+              waren: ["lederwams"] },
+            { n: "Der Wurfeisenkarren",
+              d: "Ein Alter mit einem Brett voller Klingen, die er niemandem erklärt.",
+              waren: ["wurfmesser"] },
+            { n: "Fisch, Brot, Fässer",
+              d: "Die halbe Reihe verkauft dasselbe, und jeder schwört auf seins.",
+              waren: ["proviant", "rum"] },
+            { n: "Taue und Netze",
+              d: "Ein Stand für die Fischer, aber Tau ist Tau.",
+              waren: ["seil"] }
+          ]
         },
         top: 74.6, left: 53.2,
         title: "Marktplatz",
@@ -102,12 +119,32 @@ const SCENES = {
         // Was man kurz vor einer Abfahrt noch braucht und vergessen hat -
         // genau die Liste aus ORTE.kraemerladen. Keine Waffen ausser dem,
         // was ohnehin Werkzeug ist.
+        // Beim Kraemer stapelt sich alles bis unter die Decke, und er findet
+        // trotzdem sofort, wonach man fragt (ORTE.kraemerladen). Deshalb
+        // Schubladen und Regale statt Warenarten - man fragt, er zieht auf.
         laden: {
           name: "Krämerladen",
-          was: "Seile, Werkzeug, Konserven — alles, was man vor der Abfahrt vergisst.",
-          waren: ["messer", "belegnagel", "enterhaken", "laterne", "seil",
-                  "proviant", "verband", "schreibzeug", "kompass",
-                  "dietriche", "rum", "fernrohr"]
+          was: "Bis unter die Decke vollgestopft. Frag ihn, und er zieht die richtige Schublade auf.",
+          gruppen: [
+            { n: "Die Schublade mit dem Tauwerk",
+              d: "Klemmt. Er tritt einmal dagegen, dann geht sie.",
+              waren: ["seil", "enterhaken"] },
+            { n: "Das Regal über der Theke",
+              d: "Licht und was man nachts sonst braucht.",
+              waren: ["laterne"] },
+            { n: "Die Kisten an der Rückwand",
+              d: "Konserven, Pökelfleisch, Zwieback. Und der Rum, den er nie dazuzählt.",
+              waren: ["proviant", "rum"] },
+            { n: "Das Fach unter der Theke",
+              d: "Werkzeug. Was davon auch eine Waffe ist, sagt er nicht dazu.",
+              waren: ["messer", "belegnagel", "dietriche"] },
+            { n: "Die Vitrine beim Fenster",
+              d: "Das Teure. Er wischt sie ab, bevor er aufschließt.",
+              waren: ["kompass", "fernrohr", "schreibzeug"] },
+            { n: "Der Kasten mit dem roten Kreuz",
+              d: "„Hoffentlich brauchst du's nicht.“",
+              waren: ["verband"] }
+          ]
         },
         top: 58.9, left: 49.8,
         title: "Krämerladen",

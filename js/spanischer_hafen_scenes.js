@@ -50,8 +50,20 @@ const SPANISCHER_HAFEN_SCENES = {
         laden: {
           name: "Markt am Hafen",
           was: "Vorrat, Tuch, Gerät. Waffen verkauft hier niemand an Engländer.",
-          waren: ["proviant", "rum", "seil", "laterne", "verband",
-                  "kompass", "lederwams"]
+          gruppen: [
+            { n: "Puesto de víveres",
+              d: "Der Proviantstand. Der Händler zählt laut mit, auf Spanisch.",
+              waren: ["proviant", "rum"] },
+            { n: "Schiffsbedarf",
+              d: "Tau, Öl, Docht. Das Übliche, und hier kümmert es niemanden, wessen Schiff.",
+              waren: ["seil", "laterne", "kompass"] },
+            { n: "Tuch und Leder",
+              d: "Der Händler misst zweimal und redet dabei ohne Pause.",
+              waren: ["lederwams"] },
+            { n: "Beim Bader",
+              d: "Ein Tisch, eine Schüssel, ein Korb mit Leinen.",
+              waren: ["verband"] }
+          ]
         },
         top: 46, left: 58,
         title: "Der Markt",
