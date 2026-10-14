@@ -26,12 +26,20 @@
        figurspezifischen tragen in js/regelwerk.js nurNsc:true
        und sind damit für Spieler nicht wählbar.
 
-   BEWUSST MASSVOLL. Eine frische Spielerfigur kommt auf
-   Robustheit 6, Parade 6. Die NSC liegen bei 4 bis 8 — und wo
-   einer oben steht, kommt es vom Talent, nicht vom Attribut:
-   Wats 8 sind 7 aus Konstitution plus 1 aus "Grobschlächtig".
-   Sie sollen erfahren wirken, nicht unerreichbar; die Spieler
-   sollen sie im Lauf der Kampagne einholen können.
+   BEWUSST MASSVOLL, und seit dem 15.10.2026 noch einmal
+   deutlicher: **d12 trägt in dieser Kampagne nur Der
+   Seelenlose.** Vorher hatten sieben von acht Figuren
+   mindestens einen d12, vierzehn Stück insgesamt — in einem
+   System, in dem d12 die Spitze der Skala ist, war das zu
+   viel. Die Mannschaft hört jetzt bei d10 auf.
+   Was dadurch an Unterschied verlorenging, kommt NICHT über
+   eine Zahl zurück, sondern über Talente und über die
+   Rangfolge, die schon im Kanon steht: Cormac kämpft besser
+   als sein Kapitän, weil dort Kampf 7 gegen 6 steht — nicht,
+   weil einer von beiden an der Decke klebt.
+   Eine frische Spielerfigur kommt auf Robustheit 6, Parade 6;
+   die Crew liegt bei 4 bis 7. Sie sollen erfahren wirken,
+   nicht unerreichbar.
 
    WILD CARDS UND STATISTEN. Die sieben Kernfiguren und Der
    Seelenlose sind Wild Cards: Sie würfeln den Wild Die mit und
@@ -53,10 +61,10 @@ const NSC = {
   harwick: {
     name: 'James Harwick', rolle: 'Kapitän der Golden Lion',
     wild: true, rang: 2,              // Veteran
-    attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 5, 'Stärke': 3, 'Konstitution': 3 },
+    attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 4, 'Stärke': 3, 'Konstitution': 3 },
     fert: {
-      'Kämpfen': 4, 'Schießen': 3, 'Segeln': 4, 'Navigation': 3,
-      'Überreden': 4, 'Einschüchtern': 3, 'Aufmerksamkeit': 3,
+      'Kämpfen': 3, 'Schießen': 3, 'Segeln': 4, 'Navigation': 3,
+      'Überreden': 3, 'Einschüchtern': 3, 'Aufmerksamkeit': 3,
       'Allgemeinwissen': 3, 'Handel': 2, 'Athletik': 2, 'Heilkunde': 1
     },
     tal: ['nsc_vanthei', 'kommando', 'kapitaen', 'zaeh'],
@@ -73,9 +81,9 @@ const NSC = {
   cormac: {
     name: 'Cormac Daly', rolle: 'Quartiermeister',
     wild: true, rang: 2,
-    attr: { 'Geschicklichkeit': 3, 'Verstand': 1, 'Willenskraft': 3, 'Stärke': 4, 'Konstitution': 4 },
+    attr: { 'Geschicklichkeit': 3, 'Verstand': 2, 'Willenskraft': 3, 'Stärke': 4, 'Konstitution': 4 },
     fert: {
-      'Kämpfen': 5, 'Segeln': 5, 'Athletik': 3, 'Aufmerksamkeit': 3,
+      'Kämpfen': 4, 'Segeln': 4, 'Athletik': 3, 'Aufmerksamkeit': 3,
       'Einschüchtern': 3, 'Überreden': 2, 'Heilkunde': 2, 'Handwerk': 2,
       'Gassenwissen': 2, 'Schießen': 2
     },
@@ -93,7 +101,7 @@ const NSC = {
     wild: true, rang: 1,             // Erfahren
     attr: { 'Geschicklichkeit': 4, 'Verstand': 3, 'Willenskraft': 3, 'Stärke': 2, 'Konstitution': 2 },
     fert: {
-      'Segeln': 5, 'Navigation': 4, 'Athletik': 4, 'Aufmerksamkeit': 4,
+      'Segeln': 4, 'Navigation': 4, 'Athletik': 4, 'Aufmerksamkeit': 4,
       'Überreden': 3, 'Provozieren': 3, 'Heimlichkeit': 2, 'Kämpfen': 2,
       'Gassenwissen': 2, 'Diebeskunst': 1
     },
@@ -113,7 +121,7 @@ const NSC = {
     wild: true, rang: 2,
     attr: { 'Geschicklichkeit': 3, 'Verstand': 3, 'Willenskraft': 2, 'Stärke': 3, 'Konstitution': 3 },
     fert: {
-      'Schießen': 5, 'Handwerk': 4, 'Segeln': 4, 'Aufmerksamkeit': 4,
+      'Schießen': 4, 'Handwerk': 4, 'Segeln': 3, 'Aufmerksamkeit': 4,
       'Athletik': 3, 'Kämpfen': 3, 'Allgemeinwissen': 2, 'Navigation': 2,
       'Heilkunde': 1, 'Überreden': 1
     },
@@ -128,9 +136,9 @@ const NSC = {
   francesco: {
     name: 'Francesco Benedetto Almeida', rolle: 'Dolmetscher, Händler, Gelegenheitslügner',
     wild: true, rang: 1,
-    attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 5, 'Stärke': 1, 'Konstitution': 1 },
+    attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 4, 'Stärke': 1, 'Konstitution': 1 },
     fert: {
-      'Überreden': 5, 'Handel': 4, 'Aufmerksamkeit': 4, 'Gassenwissen': 4,
+      'Überreden': 4, 'Handel': 4, 'Aufmerksamkeit': 3, 'Gassenwissen': 4,
       'Allgemeinwissen': 3, 'Provozieren': 3, 'Heimlichkeit': 2, 'Diebeskunst': 2,
       'Kämpfen': 2, 'Segeln': 2
     },
@@ -147,12 +155,12 @@ const NSC = {
   wat: {
     name: 'Walter „Wat“ Crozier', rolle: 'Waffenmeister',
     wild: true, rang: 2,
-    attr: { 'Geschicklichkeit': 3, 'Verstand': 1, 'Willenskraft': 3, 'Stärke': 5, 'Konstitution': 4 },
+    attr: { 'Geschicklichkeit': 3, 'Verstand': 1, 'Willenskraft': 2, 'Stärke': 4, 'Konstitution': 4 },
     fert: {
-      'Kämpfen': 5, 'Einschüchtern': 4, 'Athletik': 3, 'Schießen': 3,
+      'Kämpfen': 3, 'Einschüchtern': 4, 'Athletik': 3, 'Schießen': 3,
       'Aufmerksamkeit': 2, 'Gassenwissen': 2, 'Segeln': 2, 'Handwerk': 2
     },
-    tal: ['nsc_kein_gewissen', 'grob', 'kalt', 'drohend'],
+    tal: ['nsc_kein_gewissen', 'nsc_dreien', 'grob', 'kalt', 'drohend'],
     hnd: ['nsc_grenzland', 'blut'],
     notiz: 'Die Crew behandelt ihn wie das Wetter. Schläft sofort ein, tief, überall — ' +
            'kein Gewissen, das ihn wachhält. Wörtlich zu nehmen.'

@@ -145,6 +145,28 @@ chk('jede Kernfigur außer dem Boss hat Schwächen',
   ohneBoss.every(i => (W[i].hnd || []).length >= 1));
 
 console.log('');
+console.log('=== d12 TRÄGT NUR DER SEELENLOSE ===');
+/* Hendriks Einwand vom 15.10.2026: d12 ist in diesem Regelwerk die Spitze
+   der Skala, und vorher trugen sieben von acht Figuren mindestens einen -
+   vierzehn Stueck insgesamt. Unterschiede sollen ueber Talente kommen,
+   nicht ueber Zahlen an der Decke. */
+function d12Zahl(e) {
+  return Object.values(e.attr).filter(v => v === 5).length +
+         Object.values(e.fert || {}).filter(v => v === 5).length;
+}
+chk('kein Crewmitglied hat einen d12',
+  ohneBoss.every(i => d12Zahl(W[i]) === 0),
+  ohneBoss.filter(i => d12Zahl(W[i])).map(i => W[i].name + ': ' + d12Zahl(W[i])));
+chk('auch die Mannschaft nicht',
+  MANN.every(id => d12Zahl(N.NSC_MANNSCHAFT[id]) === 0),
+  MANN.filter(id => d12Zahl(N.NSC_MANNSCHAFT[id])));
+chk('der Seelenlose schon', d12Zahl(W.seelenloser) >= 3, d12Zahl(W.seelenloser));
+/* Und die Unterschiede sind trotzdem noch da - das ist der Prueffall,
+   denn eine flache Umrechnung macht alle gleich. */
+chk('die Crew ist trotzdem unterscheidbar',
+  new Set(ohneBoss.map(i => JSON.stringify(W[i].fert))).size === ohneBoss.length);
+
+console.log('');
 console.log('=== EINZIGARTIGE TALENTE GEHÖREN GENAU EINER FIGUR ===');
 const nurNsc = R.TALENTE.filter(t => t.nurNsc).map(t => t.id)
   .concat(R.HANDICAPS.filter(h => h.nurNsc).map(h => h.id));

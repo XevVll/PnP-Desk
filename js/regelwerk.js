@@ -416,6 +416,9 @@ TALENTE.push(
   { id:'nsc_kombuese', n:'Niemand geht hungrig', kat:'Umgang', rang:0, vor:[], nurNsc:true,
     d:'Streit, der in seiner Kombüse ausgetragen wird, endet friedlicher als anderswo. ' +
       'Einmal je Szene darf er einen Streit beilegen, ohne zu würfeln — wenn Essen im Spiel ist.' },
+  { id:'nsc_dreien', n:'Nimmt es mit dreien auf', kat:'Kampf', rang:2, vor:[], nurNsc:true,
+    d:'Mehrere Gegner gleichzeitig bringen ihn nicht aus dem Takt — im Gegenteil, ' +
+      'er sucht sie. Bedrängnis erschwert ihm nichts, egal wie viele um ihn herumstehen.' },
   { id:'nsc_namen', n:'Drei Namen, drei Pässe', kat:'Umgang', rang:1, vor:[], nurNsc:true,
     d:'In jedem Hafen heißt er anders, und in dreien davon schuldet man ihm etwas. ' +
       'Er kennt immer jemanden — wen, erfindet er im Gehen.' }

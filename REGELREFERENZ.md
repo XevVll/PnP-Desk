@@ -101,7 +101,7 @@ Zweck. Neue Figuren sind Novize, sofern die Spielleitung nichts anderes freigibt
 |---|---|---|
 | **Novize** | 0 | 22 |
 | **Erfahren** | 4 | 19 |
-| **Veteran** | 8 | 6 |
+| **Veteran** | 8 | 7 |
 | **Heroisch** | 12 | 1 |
 | **Legendär** | 16 | 0 |
 

@@ -126,6 +126,33 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung) — d12 trägt nur noch Der Seelenlose
+- **Hendriks Einwand, und er ist berechtigt:** „d12-Werte sind etwas zu stark in diesem Regelwerk,
+  und hier hat nahezu jeder d12. Ich würde das lieber mit einzigartigen Talenten und Schwächen
+  lösen.“
+- **Nachgezählt, und es war schlimmer als „nahezu jeder“:** **7 von 8 Figuren** trugen mindestens
+  einen d12, **14 Stück insgesamt.** In einem System, in dem d12 das Ende der Skala ist, hatte
+  damit fast jeder NSC irgendwo das Maximum.
+- **Jetzt: 5 d12 — alle beim Seelenlosen.** Die Mannschaft hört bei **d10** auf, die
+  Mannschafts-Extras ohnehin.
+- **Der Unterschied kommt nicht über eine andere Zahl zurück, sondern aus zwei Quellen:**
+  1. **Die Rangfolge, die schon im Kanon steht.** Cormac kämpft weiterhin besser als sein
+     Kapitän — nicht weil einer an der Decke klebt, sondern weil in `besatzung.html` Kampf 7
+     gegen 6 steht. Dasselbe bei Francesco gegen Harwick im Reden (7 gegen 5).
+  2. **Talente.** Wat verliert Kampf d12 und Stärke d12 und bekommt dafür **„Nimmt es mit dreien
+     auf“** (Bedrängnis erschwert ihm nichts). Seine Robustheit 8 kommt jetzt aus Konstitution 7
+     **plus 1 aus Grobschlächtig** — genau die Bauweise, die Hendrik wollte.
+- **Ein älterer Fehler kam dabei heraus:** Cormac und Wat hatten nach der Absenkung **identische
+  Attribute**. Das war schon vorher ungenau — der Kanon gibt Cormac INT 2 und Auftreten 4, Wat
+  INT 1 und Auftreten 3. Jetzt bildet das Blatt auch diesen Unterschied ab (Cormac Verstand d6
+  und Willenskraft d8, Wat d4 und d6). **Die Prüfung „keine zwei Kernfiguren haben dieselben
+  Attribute“ hat das gefangen** — geschrieben worden war sie gegen Nachlässigkeit, gefunden hat
+  sie eine Ungenauigkeit im Kanonabgleich.
+- **Getestet: 46 Prüfungen in `tests/t_nsc.js`, 0 Fehler** (4 neue). Die neue Regel steht als
+  Prüfung da — kein Crewmitglied und kein Extra hat einen d12, der Seelenlose mindestens drei.
+  **Dazu die Gegenprobe:** Die Crew muss trotzdem unterscheidbar bleiben; eine flache Absenkung,
+  die alle gleich macht, wäre genauso falsch wie die Decke vorher.
+
 ### 2026-10-15 — Alle 22 NSC im neuen System
 - **Hendriks Vorgabe:** Alle NSC ins neue System bringen — „vielfältiger, müssen nicht so stark
   sein, wichtige Leute wie Harwick sind auch nicht mehr Novize, eventuell einzigartige Schwächen
