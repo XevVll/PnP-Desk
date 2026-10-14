@@ -993,8 +993,21 @@ function wurf(stufe, opts) {
     band = steigerungen > 0 ? 'steigerung' : 'erfolg';
   } else band = 'miss';
 
+  /* Zwei gleichwertige Lesarten desselben Wurfs, und BEIDE werden gebraucht:
+       "Wurf 5, davon 4 Abzug -> 1, noetig war 4"   (ergebnis / ZIELZAHL)
+       "Wurf 5, noetig war 8"                       (roh / ziel)
+     Sie sind mathematisch identisch, weil die Steigerung immer bei Ziel+4
+     liegt. Am Tisch ist die ZWEITE die verstaendliche: Die Wuerfel zeigen,
+     was sie zeigen, und die Schwelle wandert. Mischt man beides - rohe
+     Wuerfel anzeigen, aber das gerechnete Ergebnis gegen die feste 4 -
+     stehen zwei Zahlen da, die nicht zueinander passen. Genau das ist
+     passiert, sobald es ueberhaupt einen Modifikator gab. */
+  const roh = (summeWild === null) ? wWert.summe : Math.max(wWert.summe, wWild.summe);
   return {
     band: band, ergebnis: ergebnis, steigerungen: steigerungen, mod: mod,
+    roh: roh,
+    ziel: ZIELZAHL - mod,
+    zielSteigerung: ZIELZAHL + STEIGERUNG_SCHRITT - mod,
     seiten: sT, wildSeiten: wild ? WILD_DIE : null,
     wert: wWert, wildWurf: wWild,
     zaehlt: (summeWild !== null && summeWild > summeWert) ? 'wild' : 'wert'

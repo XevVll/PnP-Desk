@@ -675,10 +675,10 @@ let letzterWurf = null;
 function deutung(r) {
   return {
     steigerung: r.steigerungen > 1
-        ? 'Ergebnis ' + r.ergebnis + ' — ' + r.steigerungen + ' Steigerungen. Herausragend.'
-        : 'Ergebnis ' + r.ergebnis + ' — mit Steigerung. Deutlich besser als nötig.',
-    erfolg: 'Ergebnis ' + r.ergebnis + ' — es gelingt.',
-    miss:   'Ergebnis ' + r.ergebnis + ' — das reicht nicht (nötig: ' + ZIELZAHL + ').',
+        ? 'Ergebnis ' + r.roh + ' — ' + r.steigerungen + ' Steigerungen. Herausragend.'
+        : 'Ergebnis ' + r.roh + ' — mit Steigerung (nötig war ' + r.zielSteigerung + ').',
+    erfolg: 'Ergebnis ' + r.roh + ' — es gelingt (nötig: ' + r.ziel + ').',
+    miss:   'Ergebnis ' + r.roh + ' — das reicht nicht (nötig: ' + r.ziel + ').',
     patzer: 'Zwei Einsen. Es geht nicht nur schief, es geht schief.'
   }[r.band];
 }

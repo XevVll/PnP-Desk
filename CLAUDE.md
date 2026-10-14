@@ -105,6 +105,34 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung) — Fehler: Wurf und Schwelle widersprachen sich
+- **Hendriks Fund an der Würfelleisten-Vorschau:** Bei −4 stand dort „Wert: d6 5 … Ergebnis 1 …
+  das reicht nicht (nötig: 4)". Drei Zahlen, die nicht zueinander passen.
+- **Der Fehler steckte nicht nur in der Vorschau, sondern im ausgelieferten
+  `heldenbrief.html`** (Zeile 681): Dort stand fest `nötig: ZIELZAHL`, also immer 4 — während
+  `r.ergebnis` den Modifikator bereits enthielt. Solange es keinen Modifikator gab, fiel das nie
+  auf. **Mit Wunden zeigt der echte Bogen seit dem 07.09. dasselbe Durcheinander.**
+- **Ursache: zwei gleichwertige Lesarten desselben Wurfs vermischt.**
+  - „Wurf 5, davon 4 Abzug → 1, nötig war 4"
+  - „Wurf 5, nötig war 8"
+
+  Beide sind **mathematisch identisch**, weil die Steigerung immer bei Ziel + 4 liegt — ein
+  Abzug und eine höhere Zielzahl verschieben beide Schwellen gleich weit. Angezeigt wurden aber
+  die **rohen** Würfel aus der ersten Lesart und die **feste 4** aus der zweiten.
+- **Behoben an der Wurzel, nicht in der Anzeige:** `wurf()` in `js/regelwerk.js` liefert jetzt
+  zusätzlich `roh` (der höhere Wurf, unverrechnet), `ziel` und `zielSteigerung`. Der Heldenbrief
+  zeigt damit, was am Tisch verständlich ist: **Die Würfel zeigen, was sie zeigen, und die
+  Schwelle wandert.** „Ergebnis 5 — das reicht nicht (nötig: 8)."
+- **Geprüft:** über vier Modifikatoren je 60.000 Würfe **null Widersprüche** zwischen
+  `roh >= ziel` und dem ausgewiesenen Band, und `ziel` ist immer `4 − mod`.
+- **Dazu in der Vorschau:** eine Reihe **Erschwernis** (`+2 · 0 · −2 · −4`), die zu jedem Abzug
+  gleich die Zielzahl nennt — so trifft die Ansage der Spielleitung („du brauchst eine 8") genau
+  einen Knopf. Die Engine konnte Modifikatoren längst; es fehlte nur die Bedienung.
+- **Nebenbei beantwortet:** Würfe sind **öffentlich**. `diceRolls` ist ein gemeinsamer Pfad, der
+  Feed läuft auf `karte.html` und `regie.html`, jeder sieht jeden Wurf (90 s in der Datenbank,
+  60 s sichtbar). Nur die Spielleitung hat „Privat würfeln" (`allowPrivate` wird ausschließlich
+  von `regie_vault.js` gesetzt) — ein privater Wurf geht nie über Firebase.
+
 ### 2026-10-14 — Fehler: keine Musik im gestarteten Spiel
 - **Hendriks Meldung:** „Es läuft keine Musik im gestarteten Spiel."
 - **Ursache war nicht die Tonwiedergabe, sondern WO die Zuordnung lag.** **Neun von dreizehn
