@@ -120,7 +120,10 @@ function erzeuge() {
   t.push('');
 
   /* ---------- Talente ---------- */
-  t.push('## Talente (' + R.TALENTE.length + ')');
+  /* nurNsc bleibt draussen: Diese Referenz ist fuer Spieler. Die
+     figurgebundenen Talente stehen in js/npcs.js bei ihrer Figur. */
+  const talSpielbar = R.TALENTE.filter(function (x) { return !x.nurNsc; });
+  t.push('## Talente (' + talSpielbar.length + ')');
   t.push('');
   t.push('Eine neue Figur hat ' + R.GRATIS_TALENTE + ' freies Talent; jedes weitere kostet ' +
     R.TALENT_KOSTEN + ' Punkte aus Schwächen.');
@@ -128,7 +131,7 @@ function erzeuge() {
   t.push('**Wert**-Voraussetzung sperrt bei der Erschaffung dagegen nicht, sie wird zum Ziel.');
   t.push('');
   R.TALENT_KATEGORIEN.forEach(function (kat) {
-    const liste = R.TALENTE.filter(function (x) { return x.kat === kat; });
+    const liste = talSpielbar.filter(function (x) { return x.kat === kat; });
     if (!liste.length) return;
     const fuerNovizen = liste.filter(function (x) { return x.rang === 0; }).length;
     t.push('### ' + z(kat) + ' — ' + liste.length + ', davon ' + fuerNovizen + ' für Novizen');
@@ -143,9 +146,10 @@ function erzeuge() {
   });
 
   /* ---------- Schwächen ---------- */
-  const schwer = R.HANDICAPS.filter(function (h) { return h.schwer; });
-  const leicht = R.HANDICAPS.filter(function (h) { return !h.schwer; });
-  t.push('## Schwächen (' + R.HANDICAPS.length + ')');
+  const hndSpielbar = R.HANDICAPS.filter(function (h) { return !h.nurNsc; });
+  const schwer = hndSpielbar.filter(function (h) { return h.schwer; });
+  const leicht = hndSpielbar.filter(function (h) { return !h.schwer; });
+  t.push('## Schwächen (' + hndSpielbar.length + ')');
   t.push('');
   t.push('Vollständig **freiwillig**. Höchstens ' + R.MAX_SCHWER + ' schwere (2 Punkte) und ' +
     R.MAX_LEICHT + ' leichte (1 Punkt), also nie mehr als ' +
@@ -155,7 +159,7 @@ function erzeuge() {
   t.push('');
   t.push('**Haken** heißt: Die Schwäche senkt keinen Würfel, sondern verpflichtet. Sie gibt der');
   t.push('Spielleitung etwas, woran sie die Figur aufhängt. ' +
-    R.HANDICAPS.filter(function (h) { return h.haken; }).length + ' der ' +
+    hndSpielbar.filter(function (h) { return h.haken; }).length + ' der ' +
     R.HANDICAPS.length + ' sind von dieser Art.');
   t.push('');
   [['Schwer (2 Punkte)', schwer], ['Leicht (1 Punkt)', leicht]].forEach(function (paar) {

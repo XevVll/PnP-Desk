@@ -99,9 +99,9 @@ Zweck. Neue Figuren sind Novize, sofern die Spielleitung nichts anderes freigibt
 
 | Rang | ab Steigerung | Talente, die er freischaltet |
 |---|---|---|
-| **Novize** | 0 | 20 |
-| **Erfahren** | 4 | 15 |
-| **Veteran** | 8 | 5 |
+| **Novize** | 0 | 22 |
+| **Erfahren** | 4 | 19 |
+| **Veteran** | 8 | 6 |
 | **Heroisch** | 12 | 1 |
 | **Legendär** | 16 | 0 |
 
@@ -199,7 +199,7 @@ Punkte kaufen in dieser Fassung **ausschließlich** Talente — ein ungerader Pu
 verfällt also.
 
 **Haken** heißt: Die Schwäche senkt keinen Würfel, sondern verpflichtet. Sie gibt der
-Spielleitung etwas, woran sie die Figur aufhängt. 15 der 20 sind von dieser Art.
+Spielleitung etwas, woran sie die Figur aufhängt. 15 der 24 sind von dieser Art.
 
 ### Schwer (2 Punkte) — 9
 

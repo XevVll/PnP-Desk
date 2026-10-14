@@ -72,12 +72,24 @@ try { fs.unlinkSync(tmp); } catch (e) { /* egal */ }
 console.log('');
 console.log('=== INHALT: DIE ZAHLEN STIMMEN MIT DEM REGELWERK UEBEREIN ===');
 const R = require(path.join(BASIS, 'js/regelwerk.js'));
-chk('alle ' + R.TALENTE.length + ' Talente kommen vor',
-  R.TALENTE.every(function (t) { return inhalt.indexOf('**' + t.n + '**') >= 0; }),
-  R.TALENTE.filter(function (t) { return inhalt.indexOf('**' + t.n + '**') < 0; }).map(t => t.n));
-chk('alle ' + R.HANDICAPS.length + ' Schwaechen kommen vor',
-  R.HANDICAPS.every(function (h) { return inhalt.indexOf('**' + h.n + '**') >= 0; }),
-  R.HANDICAPS.filter(function (h) { return inhalt.indexOf('**' + h.n + '**') < 0; }).map(h => h.n));
+/* Nur die SPIELBAREN. Talente mit nurNsc gehoeren zu einer bestimmten Figur
+   und haben in einem Katalog moeglicher Talente nichts verloren - wer sie
+   dort liest, haelt sie fuer waehlbar. */
+const talSpielbar = R.TALENTE.filter(function (t) { return !t.nurNsc; });
+const hndSpielbar = R.HANDICAPS.filter(function (h) { return !h.nurNsc; });
+chk('alle ' + talSpielbar.length + ' spielbaren Talente kommen vor',
+  talSpielbar.every(function (t) { return inhalt.indexOf('**' + t.n + '**') >= 0; }),
+  talSpielbar.filter(function (t) { return inhalt.indexOf('**' + t.n + '**') < 0; }).map(t => t.n));
+chk('die NSC-eigenen stehen NICHT drin',
+  R.TALENTE.filter(function (t) { return t.nurNsc; })
+    .every(function (t) { return inhalt.indexOf(t.n) < 0; }),
+  R.TALENTE.filter(function (t) { return t.nurNsc && inhalt.indexOf(t.n) >= 0; }).map(t => t.n));
+chk('alle ' + hndSpielbar.length + ' spielbaren Schwaechen kommen vor',
+  hndSpielbar.every(function (h) { return inhalt.indexOf('**' + h.n + '**') >= 0; }),
+  hndSpielbar.filter(function (h) { return inhalt.indexOf('**' + h.n + '**') < 0; }).map(h => h.n));
+chk('und auch hier keine NSC-eigene',
+  R.HANDICAPS.filter(function (h) { return h.nurNsc; })
+    .every(function (h) { return inhalt.indexOf(h.n) < 0; }));
 chk('alle ' + R.FERTIGKEITEN.length + ' Fertigkeiten kommen vor',
   R.FERTIGKEITEN.every(function (s) { return inhalt.indexOf('**' + s.name + '**') >= 0; }));
 chk('alle ' + R.AUSRUESTUNG.length + ' Gegenstaende kommen vor',

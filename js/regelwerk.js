@@ -391,7 +391,52 @@ const HANDICAPS = [
     d:'Eine Beleidigung deiner Ehre erträgst du nicht schweigend. Widerworte sind das Mindeste.' }
 ];
 
+/* ---------- Nur fuer NSC ----------
+   Diese Talente und Schwaechen gehoeren je zu EINER Figur. Sie stehen hier
+   und nicht in einer eigenen Datei, damit TAL_BY_ID/HND_BY_ID sie kennen -
+   sonst zeigte jede Anzeige nur die nackte ID. Das Feld "nurNsc" haelt sie
+   aus der Charaktererschaffung heraus: Ein Spieler soll sich nicht "Kein
+   Gewissen" aussuchen koennen, das ist Wat. */
+TALENTE.push(
+  { id:'nsc_vanthei', n:'Unangefochten', kat:'Führung', rang:2, vor:[], nurNsc:true,
+    d:'Seine Autorität steht nicht zur Debatte. Wer ihm widerspricht, tut es leise und einmal. ' +
+      'Befehle an die eigene Crew brauchen keine Probe, solange sie nicht offen selbstmörderisch sind.' },
+  { id:'nsc_knoten', n:'Die zweite Instanz', kat:'Führung', rang:1, vor:[], nurNsc:true,
+    d:'Die Crew würde für den Kapitän sterben. Für ihn läuft sie ins Feuer. ' +
+      'Wo er zupackt, packen die Umstehenden mit an, ohne dass jemand fragt.' },
+  { id:'nsc_kein_gewissen', n:'Kein Gewissen', kat:'Unheimliches', rang:0, vor:[], nurNsc:true,
+    d:'Wörtlich zu nehmen: Nichts von dem, was er getan hat, hält ihn nachts wach. ' +
+      'Immun gegen Furcht und gegen jeden Versuch, ihn über Schuld zu erreichen.' },
+  { id:'nsc_ruder', n:'Fühlt das Ruder', kat:'Handwerk', rang:1, vor:[], nurNsc:true,
+    d:'Er merkt am Druck in den Händen, was das Schiff gleich tun wird — bevor es sichtbar ist. ' +
+      'Bei Segeln-Proben am Ruder zählt ein Misserfolg als knapper Erfolg, wenn Zeit bleibt.' },
+  { id:'nsc_abgeschaltet', n:'Abgeschaltet', kat:'Unheimliches', rang:1, vor:[], nurNsc:true,
+    d:'Er hat gelernt, nichts an sich heranzulassen. Lärm, Blut, Geschrei — die Hände bleiben ruhig. ' +
+      'Keine Erschwernis durch Bedrängnis, solange er an einem Geschütz arbeitet.' },
+  { id:'nsc_kombuese', n:'Niemand geht hungrig', kat:'Umgang', rang:0, vor:[], nurNsc:true,
+    d:'Streit, der in seiner Kombüse ausgetragen wird, endet friedlicher als anderswo. ' +
+      'Einmal je Szene darf er einen Streit beilegen, ohne zu würfeln — wenn Essen im Spiel ist.' },
+  { id:'nsc_namen', n:'Drei Namen, drei Pässe', kat:'Umgang', rang:1, vor:[], nurNsc:true,
+    d:'In jedem Hafen heißt er anders, und in dreien davon schuldet man ihm etwas. ' +
+      'Er kennt immer jemanden — wen, erfindet er im Gehen.' }
+);
+
 const TAL_BY_ID = {}; TALENTE.forEach(function (t) { TAL_BY_ID[t.id] = t; });
+HANDICAPS.push(
+  { id:'nsc_jessica', n:'Jessicas Schatten', schwer:true, haken:true, nurNsc:true,
+    d:'Alles andere ist Mittel zum Zweck. Jede Entscheidung, die vom Ritual wegführt, ' +
+      'kostet ihn sichtbar — und irgendwann trifft er sie nicht mehr.' },
+  { id:'nsc_schuld', n:'Der Knoten am Gürtel', schwer:false, haken:true, nurNsc:true,
+    d:'Er trug die Verantwortung an Deck, als das Kind starb. Er spricht nie darüber. ' +
+      'Wer ihn darauf anspricht, bekommt entweder gar nichts oder alles.' },
+  { id:'nsc_grenzland', n:'Der Auftrag, nicht der Mann', schwer:false, haken:true, nurNsc:true,
+    d:'Sein Kompass gehört dem Auftrag, nicht dem Kapitän. Fällt der Auftrag weg, ' +
+      'steht er da und wartet auf den nächsten. Loyalität ist nicht dasselbe.' },
+  { id:'nsc_leer', n:'Was er zurückließ', schwer:false, haken:true, nurNsc:true,
+    d:'Er erwähnt die Niederlande nie. Wer nachbohrt, redet gegen eine Wand — ' +
+      'und die Wand merkt es sich.' }
+);
+
 const HND_BY_ID = {}; HANDICAPS.forEach(function (h) { HND_BY_ID[h.id] = h; });
 function talenteDerKategorie(kat) { return TALENTE.filter(function (t) { return t.kat === kat; }); }
 
@@ -884,7 +929,14 @@ function talentVerfuegbar(figur, talent) {
      Werte  - weiches Ziel. Waehlbar, und die spaeteren
               Schritte zeigen an, was noch fehlt.
    ---------------------------------------------------------- */
+/* NSC-Talente stehen im Baukasten nicht zur Wahl - sie gehoeren zu einer
+   bestimmten Figur. Die Pruefung sitzt hier und nicht in der Oberflaeche,
+   damit auch ein von Hand abgesetzter Aufruf nicht daran vorbeikommt. */
 function talentWaehlbar(figur, talent) {
+  if (talent && talent.nurNsc) return false;
+  return talentWaehlbarIntern(figur, talent);
+}
+function talentWaehlbarIntern(figur, talent) {
   const rangOk = (talent.rang || 0) <= (figur.rang || 0);
   return { ok: rangOk, gruende: rangOk ? [] : ['ab ' + rangName(talent.rang)] };
 }

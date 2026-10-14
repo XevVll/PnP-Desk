@@ -126,6 +126,70 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 — Alle 22 NSC im neuen System
+- **Hendriks Vorgabe:** Alle NSC ins neue System bringen — „vielfältiger, müssen nicht so stark
+  sein, wichtige Leute wie Harwick sind auch nicht mehr Novize, eventuell einzigartige Schwächen
+  und Talente“.
+- **Der Befund vor dem Bauen ändert die Aufgabe:** Die sieben Kernfiguren trugen in
+  `besatzung.html` **bereits vollständige Spielwerte** — im alten W100-System, also seit dem
+  Systemwechsel im September **falsche**. Es ging damit um **Umrechnung, nicht Erfindung.** Die
+  Charakterisierung stammt aus Hendriks Zahlen, nicht von mir.
+- **Neue `js/npcs.js`** mit 8 Kernfiguren (Wild Cards) und 14 Mannschaftsmitgliedern (Extras,
+  kein Wild Die). Jedes Blatt rechnet durch `js/regelwerk.js` — `parade()`, `robustheit()` und
+  `wurf()` arbeiten ohne Sonderweg damit.
+- **Was aus den alten Zahlen wurde**, und warum es stimmt:
+  - **Cormac schlägt besser zu als sein Kapitän** (alt: Kampf 7 gegen 6) und **denkt mit den
+    Händen** (INT 2 → Verstand d4).
+  - **Francesco redet am besten und hält am wenigsten aus** (Rhetorik 7, Körper 2).
+  - **Wat ist der Brocken und redet nicht** (Körper 5★, Rhetorik 1).
+  - **Dirk kann nicht mit Menschen** (Auftreten 2 → Willenskraft d4).
+  - **Josiah heilt am besten und kämpft am schlechtesten** (Kampf 1).
+  - Jede dieser Sätze steht als eigene Prüfung da. **Geht eine kaputt, ist nicht der Code falsch,
+    sondern die Figur.**
+- **Neu dazu, auf die Vorgabe hin:**
+  - **Geschicklichkeit und Konstitution** gab es im alten Blatt gar nicht — abgeleitet aus dem,
+    was über die Figur dasteht.
+  - **Fertigkeiten über die alten elf hinaus:** Schießen (Dirk ist Kanonenmeister und hatte
+    keinen Schusswert!), Navigation, Diebeskunst, Provozieren, Einschüchtern. **14 der 16**
+    kommen jetzt vor.
+  - **Ränge:** Harwick, Cormac, Dirk und Wat sind **Veteran**, Tom/Francesco/Josiah **Erfahren**,
+    Der Seelenlose **Legendär**. Keine Kernfigur ist mehr Novize.
+- **Sieben figurgebundene Talente und vier Schwächen**, je aus dem Kanon abgeleitet: *Kein
+  Gewissen* (Wat — wörtlich aus besatzung.html), *Jessicas Schatten* (Harwick), *Der Knoten am
+  Gürtel* (Cormac), *Fühlt das Ruder* (Tom), *Abgeschaltet* (Dirk), *Niemand geht hungrig*
+  (Josiah), *Drei Namen, drei Pässe* (Francesco).
+  - Sie tragen **`nurNsc: true`** und sind für Spieler **nicht wählbar** — geprüft in
+    `talentWaehlbar()`, nicht nur in der Oberfläche, damit auch ein von Hand abgesetzter Aufruf
+    nicht daran vorbeikommt. Jedes gehört **genau einer** Figur; auch das wird geprüft.
+  - Aus der **Regelreferenz** bleiben sie draußen: Ein Katalog möglicher Talente, in dem
+    unwählbare stehen, lehrt Falsches. Wieder bei 41 Talenten und 20 Schwächen.
+- **Maßvoll statt mächtig** („müssen nicht so stark sein“): Eine frische Spielerfigur kommt auf
+  Robustheit 6 — **kein Crewmitglied liegt mehr als 2 darüber**, und wo einer oben steht, kommt
+  es vom **Talent**, nicht vom Attribut: Wats 8 sind 7 aus Konstitution plus 1 aus
+  *Grobschlächtig*. Steht als Prüfung da, damit es bei der nächsten Änderung nicht abdriftet.
+- **`besatzung.html` rendert die Werte jetzt aus `js/npcs.js`** statt sie als festes Markup zu
+  tragen — **21 Platzhalter**, kein „Körper/INT/Auftreten“ und kein „Mastery“ mehr im Quelltext.
+  Zwei Fassungen derselben Zahlen laufen sonst auseinander, und die auf dieser Seite ist die, auf
+  die am Tisch jemand schaut.
+- **Getestet: 42 Prüfungen im neuen `tests/t_nsc.js`, 0 Fehler** (939 über neun Skripte).
+  Darunter: keine erfundene Fertigkeit, kein erfundenes Talent, keine Stufe außerhalb d4–d12,
+  jeder Platzhalter in `besatzung.html` zeigt auf ein Blatt.
+- **Drei eigene Fehler beim Bauen, alle gefunden:**
+  1. **Ein durchlaufendes Suchmuster hat Werte der falschen Figur zugeordnet.** Weil die sieben
+     Hauptfiguren ihre alte `gw-row` nicht mehr hatten, griff es auf die der *nächsten* Karte
+     über — drei Mannschaftsmitglieder fielen hinten runter. Pro Karte parsen statt global.
+  2. **Die erste Umrechnung machte alle gleich** (2 und 3 beide zu d6): vierzehn
+     Mannschaftsmitglieder mit identischen Werten — das Gegenteil von „vielfältiger“. Skala
+     gespreizt.
+  3. **Mein Dateikommentar behauptete „die stärksten NSC liegen bei 7“**, während Wat auf 8 stand.
+     Korrigiert statt Wat zu beschneiden — die 8 ist richtig, der Satz war falsch.
+- **Nebenbei:** `tools/regelreferenz.js` filtert `nurNsc`, und zwei Zeilenende-Fallen
+  (CRLF/LF) haben je einen Anlauf gekostet. **Merke:** vor einer Ersetzung das Zeilenende der
+  Zieldatei prüfen, nicht annehmen.
+- **[OFFEN] Die Arena kennt die Blätter nicht.** `js/arena_scenes.js` führt weiterhin eigene
+  Kampfwerte (`nahWert`, `hpMax`) nach W100. Ein Verbündeter im Endkampf hat damit andere Werte
+  als dieselbe Figur in `besatzung.html`. Das ist der nächste logische Schritt.
+
 ### 2026-10-14 (Fortsetzung 13) — Munition als Regel, 29 neue Waren
 - **Hendriks Vorgaben:** Munition einbauen, dazu allerlei Gerät — **1701-tauglich**, an diesem
   Ort **plausibel zu bekommen**, und **manches darf ausdrücklich nutzlos sein**.
