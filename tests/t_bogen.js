@@ -294,6 +294,138 @@ chk('die Chips sind als Knopf ausgewiesen', (tagsEl.innerHTML.match(/role="butto
   BOGEN.indexOf('role="button"') >= 0);
 
 console.log('');
+console.log('=== DER LADEN GEHT AM ORT AUF ===');
+/* Eingekauft wird, wo es etwas zu kaufen gibt. Der Katalog stand vorher
+   immer offen, auch mitten auf See. Aufgemacht wird er vom SPIELER, nicht
+   von der Spielleitung. (Hendriks Vorgabe, 14.10.2026.) */
+const SZENEN_DATEIEN = ['scenes', 'golden_lion_scenes', 'schatzinsel_scenes',
+  'spanischer_hafen_scenes', 'schmugglernest_scenes', 'artefakthandel_scenes',
+  'riffinsel_scenes', 'grabesinsel_scenes', 'abspann_scenes', 'arena_scenes'];
+
+/* Die Fundstellen-Logik aus dem Bogen schneiden und mit gesetztem Zustand
+   ausfuehren. Die Zustandsvariablen stehen im Bogen weiter oben; sie werden
+   hier davorgesetzt, damit der geschnittene Teil fuer sich laeuft. */
+const ladenCode = 'let aktuelleSzene = null, szeneGehoert = false;\n' +
+  schnitt('function alleSzenen()', 'function renderTags()') +
+  '\nfunction setzeOrt(sz, gehoert) { aktuelleSzene = sz; szeneGehoert = gehoert; }';
+
+const lctx = { Object, Array, String, console };
+vm.createContext(lctx);
+SZENEN_DATEIEN.forEach(function (d) {
+  vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/' + d + '.js'), 'utf8'), lctx);
+});
+vm.runInContext(ladenCode, lctx);
+
+/* Zuerst: Gibt es ueberhaupt Haendler? Eine Kennzeichnung, die nirgends
+   gesetzt ist, waere eine Sperre ohne Ausweg - niemand koennte je kaufen. */
+const mitLaden = Object.keys(lctx.alleSzenen()).filter(function (id) {
+  return lctx.laedenDerSzene(id).length > 0;
+});
+chk('es gibt überhaupt Händler-Orte', mitLaden.length > 0, mitLaden);
+chk('Grimsgate ist einer davon', lctx.laedenDerSzene('1.1').length === 2,
+  lctx.laedenDerSzene('1.1'));
+chk('Markt und Krämer, beide benannt',
+  lctx.laedenDerSzene('1.1').join('|').indexOf('Markt') >= 0 &&
+  lctx.laedenDerSzene('1.1').join('|').indexOf('Krämer') >= 0, lctx.laedenDerSzene('1.1'));
+chk('der spanische Hafen auch', lctx.laedenDerSzene('7.1').length === 1, lctx.laedenDerSzene('7.1'));
+chk('das Schmugglernest auch', lctx.laedenDerSzene('8.1').length === 1, lctx.laedenDerSzene('8.1'));
+chk('auf dem Schiff dagegen nicht', lctx.laedenDerSzene('2.1').length === 0);
+chk('auf der Schatzinsel auch nicht', lctx.laedenDerSzene('4.1').length === 0);
+chk('eine unbekannte Szene ergibt nichts', lctx.laedenDerSzene('99.9').length === 0);
+chk('und keine Szene bricht nicht', lctx.laedenDerSzene(null).length === 0);
+
+lctx.setzeOrt('1.1', true);
+chk('beim Krämer ist Einkaufen möglich', lctx.ladenMoeglich() === true);
+lctx.setzeOrt('2.1', true);
+chk('auf See nicht', lctx.ladenMoeglich() === false);
+/* Ohne Verbindung wird NICHT gesperrt: Wir wissen dann nicht, wo die Gruppe
+   steht, und eine Sperre aus Unwissen waere schlimmer als ein offener Laden -
+   der Bogen soll offline benutzbar bleiben. */
+lctx.setzeOrt(null, false);
+chk('ohne Verbindung bleibt er offen', lctx.ladenMoeglich() === true);
+
+chk('der Katalog ist im Quelltext hinter dem Schalter',
+  BOGEN.indexOf('if (!ladenOffen)') >= 0 && BOGEN.indexOf('ladenAufschlagen()') >= 0);
+chk('ein Szenenwechsel schließt ihn wieder',
+  BOGEN.indexOf('aktuelleSzene = neu; ladenOffen = false;') >= 0);
+chk('die Szene wird nur gelesen, nie geschrieben',
+  BOGEN.indexOf("db.ref('currentScene').on(") >= 0 &&
+  BOGEN.indexOf("db.ref('currentScene').set") < 0);
+
+console.log('');
+console.log('=== WAS DIE SPIELLEITUNG ÜBERGIBT, KOMMT AN ===');
+const zCode = schnitt('function zuteilungAnnehmen(', 'function ladenAufschlagen()');
+const geschrieben = [];
+let gespeichert = 0, gezeichnet = 0;
+const zctx = {
+  Object, Array, String, Number, Math, Date, console, setTimeout, clearTimeout,
+  AUSR_BY_ID: R.AUSR_BY_ID,
+  F: { ausr: [], muenzen: 100 },
+  ladeBereit: true,
+  codeJetzt: function () { return 'anna'; },
+  speichern: function () { gespeichert++; },
+  renderAlles: function () { gezeichnet++; },
+  esc: function (x) { return String(x == null ? '' : x); },
+  db: { ref: function (p) { return { remove: function () {
+    geschrieben.push('REMOVE ' + p); return { catch: function () {} };
+  } }; } },
+  document: {
+    getElementById: function () { return null; },
+    createElement: function () { return { id: '', innerHTML: '', className: '' }; },
+    body: { appendChild: function (e) { return e; } }
+  }
+};
+vm.createContext(zctx);
+vm.runInContext(zCode, zctx);
+
+zctx.zuteilungAnnehmen({ a: { art: 'gegenstand', id: 'saebel' } });
+chk('der Gegenstand liegt im Bogen', zctx.F.ausr.indexOf('saebel') >= 0, zctx.F.ausr);
+chk('und wird gespeichert', gespeichert === 1, gespeichert);
+chk('das Postfach wird geräumt',
+  geschrieben.indexOf('REMOVE figuren/anna/zuteilung') >= 0, geschrieben);
+
+zctx.zuteilungAnnehmen({ b: { art: 'muenzen', wert: 250 } });
+chk('Münzen kommen dazu', zctx.F.muenzen === 350, zctx.F.muenzen);
+zctx.zuteilungAnnehmen({ c: { art: 'muenzen', wert: -1000 } });
+chk('und rutschen nie ins Minus', zctx.F.muenzen === 0, zctx.F.muenzen);
+
+zctx.zuteilungAnnehmen({ d: { art: 'nehmen', id: 'saebel' } });
+chk('Einziehen nimmt den Gegenstand weg', zctx.F.ausr.indexOf('saebel') < 0, zctx.F.ausr);
+
+/* Mehrere Uebergaben auf einmal - die Spielleitung verteilt Beute oft in
+   einem Rutsch. */
+zctx.zuteilungAnnehmen({ e: { art: 'gegenstand', id: 'messer' },
+                         f: { art: 'gegenstand', id: 'seil' },
+                         g: { art: 'muenzen', wert: 40 } });
+chk('mehrere auf einmal kommen alle an',
+  zctx.F.ausr.length === 2 && zctx.F.muenzen === 40, { ausr: zctx.F.ausr, m: zctx.F.muenzen });
+
+/* Unsinn darf den Bogen nicht sprengen - und nicht liegen bleiben. */
+const vorher = gespeichert;
+geschrieben.length = 0;
+zctx.zuteilungAnnehmen({ h: { art: 'gegenstand', id: 'gibtsnicht' } });
+chk('ein unbekannter Gegenstand wird nicht eingetragen', zctx.F.ausr.length === 2);
+chk('aber das Postfach trotzdem geräumt',
+  geschrieben.indexOf('REMOVE figuren/anna/zuteilung') >= 0, geschrieben);
+chk('und nichts gespeichert', gespeichert === vorher, gespeichert);
+chk('ein leeres Postfach tut nichts', (function () {
+  const g = gespeichert; zctx.zuteilungAnnehmen({}); return gespeichert === g;
+})());
+
+/* Vor dem ersten Lesen der Figur darf nichts angenommen werden - sonst
+   traegt der Bogen etwas in eine Figur ein, die er noch gar nicht kennt. */
+zctx.ladeBereit = false;
+const g2 = gespeichert;
+zctx.zuteilungAnnehmen({ i: { art: 'gegenstand', id: 'messer' } });
+chk('vor dem ersten Lesen wird nichts angenommen', gespeichert === g2 && zctx.F.ausr.length === 2);
+zctx.ladeBereit = true;
+
+chk('der Spieler erfährt davon', BOGEN.indexOf('Von der Spielleitung') >= 0);
+chk('erst eintragen, dann räumen',
+  BOGEN.indexOf('speichern();') < BOGEN.indexOf("'/zuteilung').remove()"),
+  { speichern: BOGEN.indexOf('speichern();'), remove: BOGEN.indexOf("'/zuteilung').remove()") });
+
+console.log('');
 console.log('=== AUCH DIE REGIE SIEHT, WAS EIN TALENT TUT ===');
 const REGIE = fs.readFileSync(path.join(BASIS, 'regie_figuren.html'), 'utf8');
 chk('die Chips tragen dort eine Erklärung',

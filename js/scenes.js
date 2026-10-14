@@ -83,6 +83,7 @@ const SCENES = {
       },
       {
         id: "markt",
+        laden: "Marktplatz",   // hier kann eingekauft werden - siehe heldenbrief.html
         top: 74.6, left: 53.2,
         title: "Marktplatz",
         desc: "Handel, Menschenmengen, guter Ort für Gerüchte und Zufallsbegegnungen.",
@@ -90,6 +91,7 @@ const SCENES = {
       },
       {
         id: "kraemerladen",
+        laden: "Krämerladen",
         top: 58.9, left: 49.8,
         title: "Krämerladen",
         desc: "Ausrüstung und Grundbedarf. Der Krämer hört viel — und vergisst wenig.",

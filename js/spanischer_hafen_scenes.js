@@ -44,6 +44,7 @@ const SPANISCHER_HAFEN_SCENES = {
       },
       {
         id: "hafen_markt",
+        laden: "Markt am Hafen",
         top: 46, left: 58,
         title: "Der Markt",
         desc: "Ein enger Marktplatz zwischen den Gassen, dicht gedrängte Stände mit Obst, Stoffen und frischem Fisch, feilschende Stimmen von allen Seiten. Uniformierte Wachen patrouillieren in kleinen Gruppen zwischen den Ständen, ihre Blicke bleiben an jedem fremden Gesicht länger hängen als nötig.",

@@ -63,6 +63,7 @@ const SCHMUGGLERNEST_SCENES = {
       },
       {
         id: "schmuggler_hoehlenstadt",
+        laden: "Markt der Höhlenstadt",
         top: 50, left: 50,
         title: "Die Höhlenstadt",
         desc: "Eine gewaltige Höhle öffnet sich im Innern des Felsens, ein großer See erstreckt sich über einen Großteil der Fläche, über eine schmale Zufahrt mit dem offenen Meer verbunden. Auf Holzgerüsten, halb an die Felswand gebaut, halb über dem Wasser, drängen sich Buden und Häuser dicht an dicht, erhellt von unzähligen Fackeln und Lampen. Mehrere Schiffe liegen vertäut, eines mitten auf dem See beschießt in regelmäßigen Abständen entfernte Ziele auf hohen Pfählen — das dumpfe Donnern und leichte Beben von oben. Stimmengewirr, Musik und geschäftiges Feilschen erfüllen die Luft, ein ausladender Markt zieht sich durch die Gassen.",

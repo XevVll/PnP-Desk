@@ -16,6 +16,7 @@
    ========================================================== */
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const BASIS = path.join(__dirname, '..');
+const RW = require(path.join(BASIS, 'js/regelwerk.js'));
 
 let f = 0, anzahl = 0;
 const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n + (c ? '' : '  <<< ' + JSON.stringify(x))); if (!c) f++; };
@@ -76,6 +77,7 @@ function bau() {
     return {
       update(paket) { Object.keys(paket).forEach(k => schreib.push({ p: k, v: paket[k], op: 'update' })); return Promise.resolve(); },
       set(v) { schreib.push({ p: p, v: v, op: 'set' }); return Promise.resolve(); },
+      push(v) { schreib.push({ p: p, v: v, op: 'push' }); return Promise.resolve({ key: 'k1' }); },
       remove() { schreib.push({ p: p, op: 'remove' }); return Promise.resolve(); },
       on(e, cb) { lauscher[p] = cb; },
       off() { delete lauscher[p]; }
@@ -222,10 +224,17 @@ u.schreib.length = 0;
 u.klick({ pid: 'anna', wert: 'Kämpfen' }); u.klick({ einzeln: '1' });
 u.klick({ pid: 'bert', wert: 'Segeln' }); u.klick({ alle: '1' });
 u.klick({ weg: 'anna' });
+M3.uebergeben('anna', { art: 'gegenstand', id: 'saebel' });
+M3.uebergeben('bert', { art: 'muenzen', wert: 100 });
+M3.uebergeben('anna', { art: 'nehmen', id: 'saebel' });
 M3.setzeAnsicht('protokoll');
 u.klick({ komm: 'p1' });
 u.klick({ sichern: 'p1' });
-const erlaubt = /^(figuren\/[a-z0-9_-]+\/anfrage|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz)$/;
+/* Drei erlaubte Ziele, und alle drei liegen NEBEN der Figur, nicht in ihr:
+   die Bitte zu wuerfeln, die Notiz am Wurf, und seit 14.10.2026 das Postfach
+   fuer uebergebene Ausruestung. Der Kern der Regel bleibt derselbe: Kein
+   Schreibzugriff dieser Seite fasst einen WERT der Figur an. */
+const erlaubt = /^(figuren\/[a-z0-9_-]+\/(anfrage|zuteilung)|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz)$/;
 chk('es wurde überhaupt geschrieben', u.schreib.length >= 4, u.schreib.length);
 chk('JEDER Schreibzugriff ist Anfrage oder Notiz',
   u.schreib.every(s => erlaubt.test(s.p)), u.schreib.filter(s => !erlaubt.test(s.p)).map(s => s.p));
@@ -252,6 +261,51 @@ u.klick({ weg: 'anna' });
 chk('Zurücknehmen löscht genau die Anfrage',
   u.schreib.length === 1 && u.schreib[0].op === 'remove' && u.schreib[0].p === 'figuren/anna/anfrage',
   u.schreib);
+
+console.log('');
+console.log('=== AUSRÜSTUNG ÜBERGEBEN ===');
+/* Warum ein Postfach und kein direkter Schreibzugriff: heldenbrief.html liest
+   die Figur genau EINMAL und schreibt danach seine eigene Fassung hoch, samt
+   ausr und muenzen. Ein direkter Zugriff von hier wäre beim nächsten Klick
+   des Spielers lautlos weg gewesen. */
+u = bau(); const MU = u.ctx.module.exports;
+MU.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+u.schreib.length = 0;
+MU.uebergeben('anna', { art: 'gegenstand', id: 'saebel' });
+chk('ein Schreibzugriff', u.schreib.length === 1, u.schreib);
+chk('und zwar ins Postfach, nicht in die Figur',
+  u.schreib[0] && u.schreib[0].p === 'figuren/anna/zuteilung', u.schreib[0]);
+chk('er legt etwas ab, statt zu setzen', u.schreib[0] && u.schreib[0].op === 'push',
+  u.schreib[0] && u.schreib[0].op);
+chk('mit Gegenstand, Absender und Zeit',
+  u.schreib[0].v.id === 'saebel' && u.schreib[0].v.art === 'gegenstand' &&
+  u.schreib[0].v.von === 'Spielleitung' && !!u.schreib[0].v.ts, u.schreib[0].v);
+
+u.schreib.length = 0;
+MU.uebergeben('bert', { art: 'muenzen', wert: -50 });
+chk('auch Münzen gehen übers Postfach',
+  u.schreib[0].p === 'figuren/bert/zuteilung' && u.schreib[0].v.wert === -50, u.schreib[0]);
+
+u.schreib.length = 0;
+MU.uebergeben('anna', { art: 'nehmen', id: 'saebel' });
+chk('einziehen ebenso', u.schreib[0].v.art === 'nehmen' && u.schreib[0].v.id === 'saebel');
+
+const gb = MU.gebenBlock('anna', { muenzen: 120, zuteilung: { a: {}, b: {} } });
+chk('die Auswahl listet alle Gegenstände',
+  (gb.match(/<option /g) || []).length === RW.AUSRUESTUNG.length,
+  (gb.match(/<option /g) || []).length);
+chk('nach Art gruppiert', (gb.match(/<optgroup /g) || []).length === RW.AUSR_ARTEN.length);
+chk('der Preis steht dabei', gb.indexOf('M.)') >= 0);
+chk('der Münzstand wird genannt', gb.indexOf('hat 120 M.') >= 0);
+chk('offene Übergaben werden gezählt', gb.indexOf('liegt bereit') >= 0 && gb.indexOf('2 Übergabe') >= 0, gb);
+chk('und gesagt, dass es nichts kostet', gb.indexOf('kein Kauf') >= 0);
+chk('ohne offene Übergabe kein Hinweis',
+  MU.gebenBlock('anna', { muenzen: 0 }).indexOf('liegt bereit') < 0);
+
+const mitAusr = JSON.parse(JSON.stringify(FIGUREN));
+mitAusr.anna.ausr = ['saebel'];
+MU.setFiguren(mitAusr);
+chk('Getragenes lässt sich anklicken', u.inhalt().indexOf('data-nehmen="anna|saebel"') >= 0);
 
 console.log('');
 console.log('=== PROTOKOLL: SZENE UND ORT IM KLARTEXT ===');
@@ -358,7 +412,6 @@ console.log('=== AUSSER GEFECHT UEBERLEBT DAS LADEN ===');
    > MAX_WUNDEN prueft. Der Zustand war damit nach jedem Laden weg - im
    Heldenbrief wie in dieser Uebersicht. Die Pruefung schlaegt auf dem
    alten Code nachweislich an. */
-const RW = require(path.join(BASIS, 'js/regelwerk.js'));
 chk('vier Wunden bleiben vier', RW.alsFigur({ wunden: 4 }).wunden === 4,
   RW.alsFigur({ wunden: 4 }).wunden);
 chk('und gelten als ausser Gefecht', RW.ausserGefecht(RW.alsFigur({ wunden: 4 })) === true);

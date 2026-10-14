@@ -126,6 +126,65 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 10) — Eingekauft wird beim Krämer, nicht im Menü
+- **Hendriks Vorschlag:** Die Ausrüstung eventuell leer lassen und etwas davon auf **Markt und
+  Krämer in Grimsgate** verschieben. **Seine Entscheidung nach dem Nachmessen:** Startgeld
+  bleibt, und **die Spieler machen den Laden am Ort selbst auf** — nicht die Spielleitung.
+- **Zwei Drittel davon gab es schon, nur nicht sichtbar:** Eine frische Figur trägt bereits
+  **nichts** (`ausr: []`), und gekauft wird **nicht** bei der Erschaffung, sondern jederzeit im
+  Heldenbrief — der Assistent hat seit dem 07.09. gar keinen Ausrüstungsschritt. Und
+  `ORTE.kraemerladen` sagt wörtlich: „Spieler können hier Ausrüstung kaufen, an die sie vorher
+  nicht gedacht haben“, samt Begründung für günstige Preise. **Offen war nur, dass der Katalog
+  immer offen stand** — auch mitten auf See.
+- **Der Laden hängt jetzt am Ort.** Ein Marker trägt `laden: "…"` und wird damit zum Händler;
+  gekennzeichnet sind **Marktplatz** und **Krämerladen** (`1.1`), **Markt am Hafen** (`7.1`) und
+  der **Markt der Höhlenstadt** (`8.1`).
+  - **Die Kennzeichnung sitzt am Marker**, nicht in einer Liste anderswo — sonst wäre eine neue
+    Szene mit Laden eine Stelle zum Vergessen.
+  - `heldenbrief.html` hört auf `currentScene` (**nur lesend**) und zeigt drei Zustände, von
+    denen jeder sagt warum: „Hier gibt es nichts zu kaufen“ · „**Krämerladen** — hier kannst du
+    einkaufen“ mit Knopf · der offene Katalog. **Ein Szenenwechsel schließt ihn wieder** — man
+    kauft nicht weiter ein, während das Schiff ablegt.
+  - **Ohne Verbindung wird NICHT gesperrt.** Dann wissen wir nicht, wo die Gruppe steht, und eine
+    Sperre aus Unwissen wäre schlimmer als ein offener Laden — der Bogen soll offline benutzbar
+    bleiben.
+  - Dass der Laden offen ist, liegt **nur im Speicher dieser Seite**. Wohin die Gruppe geht, steht
+    in der Datenbank; ob jemand den Katalog aufschlägt, geht niemanden etwas an.
+- **Die Spielleitung kann jetzt Ausrüstung und Münzen übergeben** (`regie_figuren.html`) — das
+  fehlte bisher ganz: Es gab nur „kaufen“ im Bogen, und für Beute oder den Jaguar-Säbel keinen
+  Weg außer „der Spieler tippt es sich selbst ein“. Getragenes anklicken zieht es wieder ein.
+- **Der Grund für das Postfach ist ein echter Datenverlust, kein Stilempfinden.**
+  `heldenbrief.html` liest die Figur genau **einmal** (`once`) und schreibt danach bei jeder
+  Änderung **seine eigene Fassung** hoch — `bogenFelder()` enthält `ausr` und `muenzen`. Ein
+  direkter Schreibzugriff der Regie wäre **beim nächsten Klick des Spielers lautlos weg**
+  gewesen. Deshalb `figuren/{pid}/zuteilung`: Die Regie legt daneben, der Bogen nimmt an, trägt
+  in seine Fassung ein und räumt das Postfach. **Es bleibt bei genau einem Schreiber auf der
+  Figur** — dasselbe Muster wie bei der Würfel-Anfrage. **Keine Regeländerung nötig**, `figuren`
+  ist schon freigegeben.
+  - **Erst eintragen, dann räumen** — bricht es dazwischen ab, bekommt der Spieler das Stück
+    lieber zweimal angeboten als gar nicht.
+  - **Vor dem ersten Lesen der Figur wird nichts angenommen**, sonst trüge der Bogen etwas in
+    eine Figur ein, die er noch gar nicht kennt.
+  - Der Spieler **sieht die Übergabe** („Von der Spielleitung · Säbel“). Stillschweigend etwas
+    in einen fremden Bogen zu legen wäre unheimlich.
+- **An Markt und Krämer steht jetzt ein `[MECHANIK]`-Hinweis** für die Spielleitung: dass der
+  Laden hier aufgeht, wo die Preise stehen und wie man etwas verschenkt. Rein prozedural, kein
+  Inhalt.
+- **Getestet: 206 Prüfungen in den beiden betroffenen Skripten, 0 Fehler** (28 neue).
+  - **Die Regel „jeder Schreibzugriff liegt neben der Figur“ ist erweitert, nicht aufgeweicht:**
+    Jetzt sind drei Ziele erlaubt (Anfrage, Notiz, Postfach), aber die Prüfung, dass **kein
+    WERT** der Figur angefasst wird, steht unverändert.
+  - Zuerst geprüft wird, dass es **überhaupt Händler-Orte gibt** — eine Kennzeichnung, die
+    nirgends gesetzt ist, wäre eine Sperre ohne Ausweg, und niemand könnte je kaufen.
+  - Dazu: mehrere Übergaben auf einmal, Münzen rutschen nie ins Minus, ein unbekannter
+    Gegenstand wird nicht eingetragen — aber das Postfach trotzdem geräumt, sonst bliebe es
+    für immer liegen.
+- **Zwei eigene Fehler beim Bauen, beide vom `assert` gefangen:** Eine Ersetzung zielte auf eine
+  Export-Zeile, die anders lautete — das Skript brach ab, **bevor** es schrieb, die Datei blieb
+  unversehrt. Danach habe ich dieses Skript per Shell-Quoting nachpatchen wollen und es dabei
+  zerlegt; richtig war, ein frisches zu schreiben. **Die Lehre vom Vormittag hat gegriffen**
+  (`assert s.count(alt) == 1`), die über Heredocs noch nicht ganz.
+
 ### 2026-10-14 (Fortsetzung 9) — Der Hub-Knopf geht unter den Bogen, der im Bogen führt hinaus
 - **Hendriks Meldung mit Screenshot:** Der neue Hub-Knopf der Karte klebte auf der Kopfzeile des
   aufgeschlagenen Bogens. Er soll **dahinter verschwinden** — und der Hub-Knopf **im Bogen** soll

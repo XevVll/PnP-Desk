@@ -79,6 +79,23 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wartet button:hover{border-color:var(--gold);color:var(--ink)}
 
 /* ---- Protokoll ---- */
+/* ---- Ausruestung uebergeben ---- */
+.geb{margin-top:.5rem;border:1px solid var(--border);border-radius:5px;padding:.45rem .55rem}
+.geb-h{font-family:'Cinzel',serif;font-size:.53rem;letter-spacing:.12em;color:var(--gray);
+  text-transform:uppercase;margin-bottom:.35rem}
+.geb-r{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap}
+.geb select{flex:1;min-width:8rem;font-family:'Libre Baskerville',Georgia,serif;font-size:.72rem;
+  background:#0d1b21;color:var(--ink);border:1px solid var(--border);border-radius:4px;padding:.22rem .3rem}
+.geb input{width:4.5rem;font-family:'Libre Baskerville',Georgia,serif;font-size:.72rem;
+  background:#0d1b21;color:var(--ink);border:1px solid var(--border);border-radius:4px;padding:.22rem .35rem}
+.geb .mini{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
+  border:1px solid var(--border);color:var(--gray);border-radius:4px;padding:.24rem .6rem;cursor:pointer}
+.geb .mini:hover{border-color:var(--gold);color:var(--ink)}
+.geb .warte{font-size:.64rem;color:#8fe0d6;margin-top:.35rem}
+.geb .hinw{font-size:.62rem;color:var(--gray);font-style:italic;margin-top:.3rem;line-height:1.5}
+.tag.weg{cursor:pointer}
+.tag.weg:hover{border-color:#e05555;color:#e08080}
+
 .pszene{margin-bottom:1.1rem}
 .pszene>h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.84rem;letter-spacing:.08em;
   border-bottom:1px solid var(--border);padding-bottom:.25rem;margin-bottom:.45rem}
@@ -336,6 +353,49 @@ function anfrageBlock(pid, roh) {
     '</span><button data-weg="' + esc(pid) + '">zurücknehmen</button></div>';
 }
 
+/* ---------- Ausrüstung übergeben ----------
+   Geschrieben wird NICHT in die Figur, sondern in ihr Postfach
+   figuren/{pid}/zuteilung. Der Bogen des Spielers liest seine Figur genau
+   einmal und schreibt danach seine eigene Fassung hoch - samt ausr und
+   muenzen. Ein direkter Zugriff von hier waere beim naechsten Klick des
+   Spielers lautlos weg. So bleibt es bei genau EINEM Schreiber auf der
+   Figur; der Bogen nimmt die Uebergabe an und raeumt das Postfach selbst.
+   Dasselbe Muster wie bei der Wuerfel-Anfrage. */
+function uebergeben(pid, eintrag) {
+  if (!db) return;
+  db.ref('figuren/' + pid + '/zuteilung').push(
+    Object.assign({ von: 'Spielleitung', ts: Date.now() }, eintrag)
+  ).catch(function (e) {
+    warnung('Die Übergabe ging nicht durch: ' + (e && e.message ? e.message : 'unbekannt'));
+  });
+}
+
+function gebenBlock(pid, roh) {
+  const offen = Object.keys(roh.zuteilung || {}).length;
+  const opt = AUSR_ARTEN.map(function (art) {
+    return '<optgroup label="' + esc(art) + '">' +
+      AUSRUESTUNG.filter(function (a) { return a.art === art; }).map(function (a) {
+        return '<option value="' + esc(a.id) + '">' + esc(a.n) +
+          (a.preis ? ' (' + a.preis + ' M.)' : '') + '</option>';
+      }).join('') + '</optgroup>';
+  }).join('');
+  return '<div class="geb"><div class="geb-h">Übergeben</div>' +
+    '<div class="geb-r"><select data-sel="' + esc(pid) + '">' + opt + '</select>' +
+    '<button class="mini" data-geben="' + esc(pid) + '">geben</button></div>' +
+    '<div class="geb-r" style="margin-top:.3rem">' +
+    '<input type="number" step="10" value="100" data-muenz="' + esc(pid) + '">' +
+    '<button class="mini" data-muenzgeben="' + esc(pid) + '">Münzen</button>' +
+    '<span style="flex:1"></span>' +
+    '<span style="font-size:.66rem;color:var(--gray)">hat ' +
+      (roh.muenzen == null ? '—' : roh.muenzen) + ' M.</span>' +
+    '</div>' +
+    (offen ? '<div class="warte">' + offen + ' Übergabe' + (offen > 1 ? 'n' : '') +
+      ' liegt bereit — kommt an, sobald der Spieler seinen Bogen offen hat.</div>' : '') +
+    '<div class="hinw">Getragenes anklicken, um es wieder einzuziehen. ' +
+    'Nichts davon kostet Münzen — das hier ist Fund und Geschenk, kein Kauf.</div>' +
+    '</div>';
+}
+
 function menuBlock(pid) {
   if (!menu || menu.pid !== pid) return '';
   const n = gruppe().length;
@@ -506,7 +566,8 @@ function render() {
       const a = AUSR_BY_ID[id];
       if (!a) return '';
       const zus = a.schaden ? ' ' + DLBL[a.schaden] : (a.ruest ? ' +' + a.ruest : '');
-      return '<span class="tag">' + esc(a.n) + zus + '</span>';
+      return '<span class="tag weg" data-nehmen="' + esc(pid) + '|' + esc(id) +
+        '" title="anklicken: ' + esc(a.n) + ' wieder einziehen">' + esc(a.n) + zus + '</span>';
     }).join('');
 
     const brief = zeigeBrief ? '<div class="sl">Steckbrief</div><div class="brief">' +
@@ -547,6 +608,7 @@ function render() {
         '<div class="sl">Fertigkeiten</div><div class="werte">' + fert + '</div>' +
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
         (traegt ? '<div class="sl">Trägt</div><div class="tags">' + traegt + '</div>' : '') +
+        gebenBlock(pid, roh) +
         menuBlock(pid) +
         anfrageBlock(pid, roh) +
         brief +
@@ -566,7 +628,8 @@ function setzeAnsicht(a) {
 
 document.addEventListener('click', function (ev) {
   const t = ev.target.closest('[data-ersch],[data-pid][data-wert],[data-einzeln],[data-alle],' +
-    '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch]');
+    '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
+    '[data-geben],[data-muenzgeben],[data-nehmen]');
   if (!t) return;
 
   if (t.dataset.ersch !== undefined) {
@@ -583,6 +646,22 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.alle && menu)    { anfordern(gruppe(), menu.wert); return; }
   if (t.dataset.abbruch)         { menu = null; render(); return; }
   if (t.dataset.weg !== undefined) { anfrageWeg(t.dataset.weg); return; }
+  if (t.dataset.geben !== undefined) {
+    const sel = document.querySelector('[data-sel="' + t.dataset.geben + '"]');
+    if (sel && sel.value) uebergeben(t.dataset.geben, { art: 'gegenstand', id: sel.value });
+    return;
+  }
+  if (t.dataset.muenzgeben !== undefined) {
+    const inp = document.querySelector('[data-muenz="' + t.dataset.muenzgeben + '"]');
+    const wert = Math.round(Number(inp && inp.value) || 0);
+    if (wert) uebergeben(t.dataset.muenzgeben, { art: 'muenzen', wert: wert });
+    return;
+  }
+  if (t.dataset.nehmen !== undefined) {
+    const teile = t.dataset.nehmen.split('|');
+    uebergeben(teile[0], { art: 'nehmen', id: teile[1] });
+    return;
+  }
   if (t.dataset.komm !== undefined) { kommentiert = t.dataset.komm; render(); return; }
   if (t.dataset.sichern !== undefined) {
     const feld = document.getElementById('kommFeld');
@@ -617,7 +696,7 @@ if (typeof module !== 'undefined' && module.exports) {
     setFiguren: function (f) { figuren = f; render(); },
     setProtokoll: function (p) { protokoll = p; render(); },
     setDb: function (d) { db = d; },
-    setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe,
+    setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe, uebergeben, gebenBlock,
     protokollZeilen, bandKurz, szenenLabel, ortTitel,
     alsFigur, render,
     zustand: function () { return { ansicht, erschwernis, menu, kommentiert }; }
