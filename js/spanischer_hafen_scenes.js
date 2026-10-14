@@ -22,6 +22,11 @@ const SPANISCHER_HAFEN_SCENES = {
   "7.1": {
     label: "Spanischer Hafen",
     background: "images/spanischer_hafen_map.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "flamenco.ogg",   // spanischer Hafen
     markers: [
       {
         id: "hafen_arzt",

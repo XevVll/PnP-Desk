@@ -105,6 +105,44 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 — Fehler: keine Musik im gestarteten Spiel
+- **Hendriks Meldung:** „Es läuft keine Musik im gestarteten Spiel."
+- **Ursache war nicht die Tonwiedergabe, sondern WO die Zuordnung lag.** **Neun von dreizehn
+  Szenen hatten überhaupt kein `soundFile` im Code** — darunter die Vorgabe-Szene Grimsgate
+  (1.1), das Schiff (2.1) und sämtliche Übergangsszenen. Ihre Musik kam ausschließlich aus der
+  Sound-Leiste der Regie, und die schreibt nach `sceneAudioFile` in die Datenbank.
+  - Per REST gegengeprüft: In der **Wurzel** liegen **15 Zuordnungen**
+    (`1-1: Grimgate1.ogg`, `11-1: jungle.ogg`, `7-1: flamenco.ogg` …) — über Monate gesetzt.
+    Die laufende Sitzung (`aktiveSitzung: "test"`) hat unter `stand/sceneAudioFile` **`null`**.
+  - **Das ist eine Folge des Sitzungs-Umbaus, die ich nicht genannt habe.** Ich habe gesagt, der
+    Spielstand bleibe in der Wurzel liegen und lasse sich kopieren — aber nicht, dass die
+    komplette Musikzuordnung dazugehört und ohne Übernahme jede neue Sitzung stumm ist.
+- **Behoben, und zwar an der richtigen Stelle:** Die Musik einer Szene ist **Inhalt des
+  Abenteuers, kein Spielstand.** Sie gehört ins Szenenfile. Acht Szenen haben ihr `soundFile`
+  jetzt im Code — die Werte sind Hendriks eigene aus der Wurzel übernommen:
+  1.1 Grimgate1.ogg · 2.1/5.1/12.1 ship1.ogg · 7.1 flamenco.ogg · 8.1 BBay.ogg ·
+  9.1 mystic.ogg · 11.1 jungle.ogg.
+  - **Kein Datenbankschreiben nötig**, und es wirkt in **jeder** Sitzung sofort, auch in künftigen.
+    Die Sound-Leiste bleibt für den Live-Wechsel (Finale: ritual → temple → ending) und
+    überschreibt den statischen Wert weiterhin — `karte.html` gibt dem Firebase-Wert Vorrang und
+    fällt nur zurück, wenn keiner da ist.
+- **Ein eigener Fehler beim Eintragen:** Bei `2.1` stand `soundFile` schon auskommentiert hinter
+  `imgOverrides: {}` **ohne** nachfolgendes Komma. Aus dem Kommentar ein echtes Feld zu machen
+  brach die Datei. Die Syntaxprüfung hat es sofort gemeldet.
+- **Neues `tests/t_musik.js`** (34 Prüfungen, 0 Fehler): jede Szene bringt ihre Musik selbst mit
+  (Ausnahmen stehen mit Begründung in einer Liste, derzeit nur 6.1), **jede genannte Datei liegt
+  wirklich in `audio/`** — ein Dateiname ins Leere ist schlimmer als keiner, weil es wie ein
+  Tonproblem aussieht statt wie ein Tippfehler — und `karte.html` fällt nachweislich auf den
+  statischen Wert zurück, wenn keine Datenbank da ist oder das Lesen scheitert.
+- **Bestand:** `t_syntax.js` 37, `t_termine.js` 144, `t_figuren.js` 308 mit **einem** Fehlschlag
+  („vor dem ersten Ergebnis ist die Kachel zu") — derselbe, der schon am 13.10. vermerkt ist,
+  nicht von dieser Änderung.
+- **[OFFEN] `6.1`** (Golden Lion in der Flaute) hat als einzige Szene keine Musik — hatte auch in
+  der Wurzel nie eine. Zuordnung ist Hendriks Entscheidung.
+- **[OFFEN] `15.1`** (Arena) steht im Code auf `ritual.ogg`, in der Wurzel stand `temple.ogg` —
+  offenbar am Tisch live umgeschaltet. Nicht angefasst: welche die Vorgabe sein soll, entscheidet
+  Hendrik.
+
 ### 2026-10-13 — Fehler: alle Spieler standen als „nichts eingetragen" da
 - **Hendriks Meldung mit Screenshot:** Unter dem Kalender trug jeder Name „· nichts eingetragen",
   während „Beste Fenster" direkt darunter dieselben Leute mit 3/5 fand.

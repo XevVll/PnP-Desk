@@ -131,9 +131,13 @@ const GOLDEN_LION_SCENES = {
   "2.1": {
     label: "Golden Lion (Basis)",
     background: "images/golden_lion_cutaway.webp",
-    imgOverrides: {}      // nutzt für alle Marker einfach die img aus BASE
+    imgOverrides: {},     // nutzt für alle Marker einfach die img aus BASE
     // descOverrides: {}  // optional, falls in einer Szene auch Texte abweichen sollen
-    // soundFile: "meeresrauschen.mp3"
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "ship1.ogg",   // Schiff auf ruhiger See
   },
 
   "3.1": {
@@ -162,6 +166,11 @@ const GOLDEN_LION_SCENES = {
   "5.1": {
     label: "Golden Lion — Nach der Insel",
     background: "images/golden_lion_cutaway.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "ship1.ogg",   // wie die Basis-Szene
     imgOverrides: {} // optisch bewusst identisch zur Basis-Szene (2.1) - Hendriks Auftrag: "optisch die Golden Lion Basis Szene kopieren"
     // descOverrides: {} - keine nötig, Marker-Texte aus BASE passen weiterhin
   },
@@ -214,6 +223,11 @@ const GOLDEN_LION_SCENES = {
   "12.1": {
     label: "Golden Lion — Die Einberufung",
     background: "images/golden_lion_cutaway.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "ship1.ogg",   // wie die Basis-Szene
     hiddenMarkers: [
       "bug", "oberdeck", "achterdeck", "offiziersquartier", "batteriedeck",
       "unterdeck", "werkstatt", "frachtraum", "kombuese"

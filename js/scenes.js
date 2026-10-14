@@ -54,6 +54,11 @@ const SCENES = {
   "1.1": {
     label: "Grimsgate",
     background: "images/grimsgate_map.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "Grimgate1.ogg",   // Hafenstadt bei Nacht
     markers: [
       {
         id: "heuer",

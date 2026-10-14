@@ -37,6 +37,11 @@ const RIFFINSEL_SCENES = {
   "11.1": {
     label: "Riffinsel",
     background: "images/riffinsel.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "jungle.ogg",   // Dschungel
     markers: [
       {
         id: "riffstrand",

@@ -25,6 +25,11 @@ const ARTEFAKTHANDEL_SCENES = {
   "9.1": {
     label: "Artefakthandel",
     background: "images/scene_artefakthandel.webp",
+    // Musik dieser Szene. Gehoert ins Szenenfile, nicht in die Datenbank:
+    // Sie ist Inhalt des Abenteuers, kein Spielstand. Lag sie nur unter
+    // sceneAudioFile in der Datenbank, hat eine neue Sitzung keine Musik.
+    // Die Sound-Leiste der Regie ueberschreibt diesen Wert weiterhin live.
+    soundFile: "mystic.ogg",   // Nebel, fremdes Schiff
     markers: [
       {
         id: "handelstreffen",
