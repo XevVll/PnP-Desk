@@ -90,6 +90,18 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
 .tags{display:flex;flex-wrap:wrap;gap:.25rem}
 .tag{font-size:.7rem;border:1px solid var(--border);border-radius:11px;padding:.08rem .5rem;cursor:help}
+.tag:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* Der native title-Tooltip stand hier schon - er kommt aber erst nach rund
+   einer Sekunde, bricht lange Texte schlecht um und verschwindet beim
+   kleinsten Mausruckeln. Fuer eine Talentwirkung, die man am Tisch WAEHREND
+   einer Probe nachliest, taugt er nicht. Deshalb ein eigenes Feld. */
+#tagTip{position:fixed;z-index:200;max-width:min(26rem,calc(100vw - 24px));
+  background:#16242b;border:1px solid var(--gold);border-radius:6px;
+  padding:.5rem .7rem;font-size:.78rem;line-height:1.55;color:var(--ink);
+  box-shadow:0 6px 24px rgba(0,0,0,.55);pointer-events:none;display:none}
+#tagTip b{display:block;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;
+  color:var(--gold);margin-bottom:.2rem}
+#tagTip i{font-style:normal;color:var(--gray);font-size:.7rem}
 .tag.pos{border-color:rgba(42,157,143,.55);color:#8fe0d6}
 .tag.neg{border-color:rgba(202,103,2,.55);color:#e0a86a}
 .brief b{display:block;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-top:.5rem}
@@ -792,17 +804,81 @@ function meldeWurf(probe, band, ergebnis, steigerungen) {
   }).catch(function () { /* Feed ist Beiwerk - ein Wurf gilt auch ohne ihn */ });
 }
 
+/* Talente und Schwaechen erklaeren sich beim Hovern selbst. Was in der
+   Kopfzeile des Felds steht, ist die EINORDNUNG - bei einem Talent sein
+   Rang, bei einer Schwaeche, ob sie schwer oder leicht ist und ob sie
+   verpflichtet statt Wuerfel zu senken. Ohne die liest sich eine Wirkung
+   wie "du verpflichtest dich" wie ein Nachteil ohne Gegenwert. */
+function tagFeld(name, art, text) {
+  return '<span class="tag ' + (art === 'tal' ? 'pos' : 'neg') + '" tabindex="0"' +
+    ' data-tipn="' + esc(name) + '" data-tipk="' + esc(art === 'tal' ? 'Talent' : 'Schwäche') +
+    '" data-tipt="' + esc(text) + '">' + esc(name) + '</span>';
+}
+
 function renderTags() {
   const t = F.tal.map(function (i) {
     const x = TAL_BY_ID[i];
-    return '<span class="tag pos" title="' + esc(x ? x.d : '') + '">' + esc(x ? x.n : i) + '</span>';
+    if (!x) return tagFeld(i, 'tal', 'Dieses Talent gibt es im Regelwerk nicht mehr.');
+    const rang = RAENGE[x.rang] ? RAENGE[x.rang].name : '';
+    return '<span class="tag pos" tabindex="0" data-tipn="' + esc(x.n) +
+      '" data-tipk="' + esc(x.kat + ' · ab ' + rang) + '" data-tipt="' + esc(x.d) + '">' +
+      esc(x.n) + '</span>';
   }).join('');
   const h = F.hnd.map(function (i) {
     const x = HND_BY_ID[i];
-    return '<span class="tag neg" title="' + esc(x ? x.d : '') + '">' + esc(x ? x.n : i) + '</span>';
+    if (!x) return tagFeld(i, 'hnd', 'Diese Schwäche gibt es im Regelwerk nicht mehr.');
+    const art = (x.schwer ? 'schwer · 2 Punkte' : 'leicht · 1 Punkt') +
+      (x.haken ? ' · verpflichtet, senkt keinen Würfel' : '');
+    return '<span class="tag neg" tabindex="0" data-tipn="' + esc(x.n) +
+      '" data-tipk="' + esc(art) + '" data-tipt="' + esc(x.d) + '">' + esc(x.n) + '</span>';
   }).join('');
   document.getElementById('tags').innerHTML = (t + h) || '<span class="leer">keine</span>';
 }
+
+/* Ein einziges Feld fuer alle Chips, per Delegation - sonst haengen an
+   40 Talenten 80 Lauscher. */
+function tipFeld() {
+  let el = document.getElementById('tagTip');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tagTip';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function tipZeigen(chip) {
+  const el = tipFeld();
+  el.innerHTML = '<b>' + esc(chip.dataset.tipn) + '</b>' +
+    '<i>' + esc(chip.dataset.tipk) + '</i><br>' + esc(chip.dataset.tipt);
+  el.style.display = 'block';
+  // Erst zeigen, dann messen: Vorher hat das Feld keine Hoehe.
+  const r = chip.getBoundingClientRect(), m = el.getBoundingClientRect();
+  let x = r.left, y = r.bottom + 7;
+  // Am Rand umklappen statt abgeschnitten zu werden - der Bogen laeuft in
+  // karte.html in einem schmalen iframe, dort ist rechts schnell Schluss.
+  if (x + m.width > window.innerWidth - 10) x = Math.max(10, window.innerWidth - m.width - 10);
+  if (y + m.height > window.innerHeight - 10) y = Math.max(10, r.top - m.height - 7);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+}
+function tipWeg() {
+  const el = document.getElementById('tagTip');
+  if (el) el.style.display = 'none';
+}
+document.addEventListener('mouseover', function (ev) {
+  const chip = ev.target.closest ? ev.target.closest('.tag[data-tipt]') : null;
+  if (chip) tipZeigen(chip);
+});
+document.addEventListener('mouseout', function (ev) {
+  if (ev.target.closest && ev.target.closest('.tag[data-tipt]')) tipWeg();
+});
+// Tastatur: wer sich durchtabbt, soll dieselbe Erklaerung bekommen.
+document.addEventListener('focusin', function (ev) {
+  const chip = ev.target.closest ? ev.target.closest('.tag[data-tipt]') : null;
+  if (chip) tipZeigen(chip);
+});
+document.addEventListener('focusout', tipWeg);
+document.addEventListener('scroll', tipWeg, true);
 
 function renderBrief() {
   const gefuellt = STECKBRIEF.filter(function (b) { return (F.brief[b.id] || '').trim(); });

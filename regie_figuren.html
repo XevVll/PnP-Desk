@@ -45,7 +45,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .w b{font-family:'Cinzel',serif;font-weight:700;font-size:.76rem}
 .w.d1 b{color:#b7b0a4}.w.d2 b{color:#e8f5f4}.w.d3 b{color:var(--teal)}.w.d4 b{color:var(--gold)}.w.d5 b{color:#e0c060}
 .tags{display:flex;flex-wrap:wrap;gap:.2rem}
-.tag{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.05rem .45rem}
+.tag{font-size:.66rem;border:1px solid var(--border);border-radius:10px;padding:.05rem .45rem;cursor:help}
 .tag.pos{border-color:rgba(42,157,143,.55);color:#8fe0d6}
 .tag.neg{border-color:rgba(202,103,2,.55);color:#e0a86a}
 .zst{font-size:.66rem;border-radius:10px;padding:.05rem .45rem;border:1px solid}
@@ -470,10 +470,24 @@ function render() {
       .map(function (s) { return wertChip(s.name, f.fert[s.name] || 0, pid); }).join('') ||
       '<span class="brief fehlt" style="font-size:.72rem">nichts gelernt</span>';
 
+    /* Mit Erklaerung am Mauszeiger. Die Spielleitung muss im Zweifel sagen
+       koennen, was das Talent eines Spielers eigentlich tut - und hatte hier
+       bis 14.10.2026 nur den nackten Namen. */
     const tal = f.tal.map(function (i) {
-      return '<span class="tag pos">' + esc(TAL_BY_ID[i] ? TAL_BY_ID[i].n : i) + '</span>'; }).join('');
+      const x = TAL_BY_ID[i];
+      if (!x) return '<span class="tag pos">' + esc(i) + '</span>';
+      const rang = RAENGE[x.rang] ? RAENGE[x.rang].name : '';
+      return '<span class="tag pos" title="' + esc(x.kat + ' · ab ' + rang + '\n\n' + x.d) +
+        '">' + esc(x.n) + '</span>';
+    }).join('');
     const hnd = f.hnd.map(function (i) {
-      return '<span class="tag neg">' + esc(HND_BY_ID[i] ? HND_BY_ID[i].n : i) + '</span>'; }).join('');
+      const x = HND_BY_ID[i];
+      if (!x) return '<span class="tag neg">' + esc(i) + '</span>';
+      const art = (x.schwer ? 'schwer · 2 Punkte' : 'leicht · 1 Punkt') +
+        (x.haken ? ' · verpflichtet, senkt keinen Würfel' : '');
+      return '<span class="tag neg" title="' + esc(art + '\n\n' + x.d) + '">' +
+        esc(x.n) + '</span>';
+    }).join('');
 
     /* Zustand ist fuer die SL am Tisch das Wichtigste ueberhaupt: wer haelt
        noch, wer nicht. Nur zeigen, wenn es etwas zu zeigen gibt - eine

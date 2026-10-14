@@ -126,6 +126,51 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 7) — Bogen über der Leiste, Talente erklären sich, Weg zurück ins Hub
+Drei Vorgaben Hendriks auf einmal.
+
+- **Der aufgeklappte Charakterbogen liegt jetzt über der Würfelleiste.** Backdrop 290→360,
+  Drawer 300→370, beide damit über den 350 der Leiste.
+  - **Die alte Reihenfolge war begründet — und die Begründung trägt nicht mehr.** Im Code stand
+    ausdrücklich, die Leiste müsse oben liegen, weil sonst der Backdrop Klicks auf die Würfel
+    abfängt. Das stimmt, war aber am Schreibtisch gedacht: Der Drawer nimmt **70 vw von links**
+    ein, die Leiste sitzt **unten links** — sie lag also mitten im aufgeschlagenen Bogen und
+    verdeckte ihn. Und gewürfelt wird im Bogen selbst, dort ist jeder Wert anklickbar. Die
+    Leiste wird gar nicht gebraucht, solange er offen ist. Der alte Kommentar ist durch die neue
+    Begründung ersetzt, nicht einfach gelöscht.
+  - **Der Griff bleibt bei 300** — er sitzt am linken Rand und kläbte sonst über dem Bogen.
+- **Talente und Schwächen erklären sich beim Hovern** (`heldenbrief.html`). Ein `title` stand
+  dort zwar schon, aber der native Tooltip kommt erst nach rund einer Sekunde, bricht lange Texte
+  schlecht um und verschwindet beim kleinsten Mausruckeln — für eine Talentwirkung, die man
+  **während einer Probe** nachliest, taugt er nicht. Jetzt ein eigenes Feld.
+  - **Es nennt die Einordnung, nicht nur die Wirkung:** beim Talent Kategorie und Mindestrang,
+    bei der Schwäche schwer/leicht samt Punktwert — und ob sie ein **Haken** ist, also
+    verpflichtet statt Würfel zu senken. Ohne das liest sich „du verpflichtest dich“ wie ein
+    Nachteil ohne Gegenwert.
+  - **Klappt am Rand um statt abgeschnitten zu werden.** Der Bogen läuft auf der Karte in einem
+    schmalen iframe; rechts und unten ist dort schnell Schluss.
+  - Mit der **Tastatur** erreichbar (`tabindex`, Anzeige auch bei Fokus), und ein Talent, das es
+    im Regelwerk nicht mehr gibt, bricht den Bogen nicht.
+- **Dieselbe Lücke in `regie_figuren.html` mitgeschlossen** — dort stand bisher **nur der nackte
+  Name**, ohne jede Erklärung. Die Spielleitung muss im Zweifel sagen können, was das Talent
+  eines Spielers tut.
+- **Von der Karte führt ein Weg zurück ins Hub.** Sie war für Spieler eine Sackgasse: Wer einmal
+  drin war, kam nur über den Zurück-Knopf des Browsers oder die Adresszeile wieder heraus.
+  - **Oben links**, weil dort als einziger Ecke nichts liegt — unten links die Würfelleiste,
+    unten rechts der Ton, rechts die Charakterleiste, links mittig der Bogen-Griff.
+  - **z-index 380, also über dem offenen Bogen (370)**: Der Weg hinaus darf nie verstellt sein.
+  - Ein **echter `<a href>`**, kein `onclick` — so funktionieren Mittelklick und „in neuem Tab
+    öffnen“. In der Vorschau der Spielleitung ausgeblendet, wie Leiste und Bogen auch.
+- **Neues `tests/t_bogen.js` (33 Prüfungen, 0 Fehler).** Die Tooltip-Funktionen werden **aus dem
+  Quelltext von `heldenbrief.html` geschnitten und wirklich ausgeführt** — eine nachgebaute
+  Kopie würde genau das nicht prüfen, was gemeldet war. Darunter: das Feld steht unter dem Chip,
+  rückt am rechten Rand nach innen und klappt unten nach oben, und es bleibt in beiden Fällen im
+  Bild. Die Ebenen werden als **Verhältnis** geprüft (Drawer > Backdrop > Leiste), nicht gegen
+  feste Zahlen — sonst müsste der Test bei jeder Verschiebung mitgepflegt werden.
+  - Die Hilfsfunktion, die einen `z-index` aus dem Stylesheet holt, gibt bei einem Fehlgriff
+    `null` zurück statt 0 — ein stiller Nulltreffer hätte jede Ebenenprüfung wertlos gemacht
+    (dieselbe Lehre wie beim Extraktionsmuster vom 07.09.2026).
+
 ### 2026-10-14 (Fortsetzung 6) — Neue `REGELREFERENZ.md` für schnelle Regelfragen
 - **Hendriks Frage:** „Gibt es das Regelwerk komplett, was wir im Git hinterlegen können für
   schnelle Fragen und Antworten?“
