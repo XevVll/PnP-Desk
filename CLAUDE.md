@@ -126,6 +126,40 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 8) — Klick auf ein Talent öffnet die ganze Erklärung
+- **Hendriks Vorgabe:** Man soll ein Talent bzw. eine Schwäche auch **anklicken** können und
+  dann ein richtiges Overlay bekommen.
+- **Warum das Hover-Feld allein nicht reicht** — drei Gründe, und der erste ist der tragende:
+  1. **Auf dem Tablet am Tisch gibt es überhaupt kein Hovern.** Dort war die Erklärung bis jetzt
+     schlicht unerreichbar.
+  2. Das Hover-Feld verschwindet beim kleinsten Mausruckeln — zum Lesen eines längeren Textes
+     taugt es nicht.
+  3. Im Overlay ist Platz für das, was ins Hover-Feld nicht hineinpasst.
+- **Das Overlay zeigt mehr, nicht dasselbe größer** — sonst wäre der Klick nur ein zweiter Weg
+  zur selben Zeile:
+  - **Talent:** seine **Voraussetzungen** im Klartext, dazu der Mindestrang mit dem Hinweis, dass
+    **der Rang eine harte Sperre ist, die Werte aber nicht**.
+  - **Schwäche:** ob sie ein **Haken** ist — und **warum das kein Nachteil ohne Gegenwert ist**:
+    Sie senkt keinen Würfel, sondern gibt der Spielleitung etwas, woran sie die Figur aufhängt.
+    Dazu, wie viele Punkte sie einbringt und was ein Talent davon kostet.
+- **Bedienung:** Klick, Enter oder Leertaste öffnen; ✕, Klick auf den Hintergrund oder **Escape**
+  schließen. Der Schließen-Knopf bekommt den Fokus. Die Chips tragen `role="button"` — wer sie
+  mit der Tastatur erreicht, soll sie auch auslösen können.
+- **Das Hover-Feld sagt jetzt, dass es weitergeht** („Anklicken für die ganze Erklärung“) — ein
+  Overlay, von dem niemand weiß, nützt nichts. Beim Öffnen wird es abgeräumt, sonst kläbte es
+  darüber.
+- **Ein Talent, das es im Regelwerk nicht mehr gibt**, öffnet das Overlay trotzdem — aber **ohne
+  erfundenen Zusatz**: Voraussetzungen, die niemand kennt, wären schlimmer als gar keine Angabe.
+- **Bewusst NICHT in `regie_figuren.html`.** Dort bleibt es beim Tooltip am Mauszeiger: Die Seite
+  ist ein breites Raster auf einem Rechner, kein schmaler iframe auf einem Tablet, und ein Overlay
+  würde beim Durchsehen mehrerer Figuren ständig im Weg stehen. Falls doch gewünscht, ist es
+  dieselbe Mechanik.
+- **Getestet: 51 Prüfungen in `tests/t_bogen.js`, 0 Fehler** (18 neue). Der geschnittene Code
+  reicht jetzt bis einschließlich der Lauscher, und die Ereignisse werden **wirklich gefeuert**:
+  Klick öffnet, Escape schließt, Enter und Leertaste öffnen und schlucken die Taste, ein Klick
+  daneben öffnet nichts. Dazu, dass das Hover-Feld beim Öffnen verschwindet und dass ein
+  unbekanntes Talent keinen Zusatz erfindet.
+
 ### 2026-10-14 (Fortsetzung 7) — Bogen über der Leiste, Talente erklären sich, Weg zurück ins Hub
 Drei Vorgaben Hendriks auf einmal.
 

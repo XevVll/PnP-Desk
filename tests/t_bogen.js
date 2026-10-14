@@ -75,14 +75,43 @@ function schnitt(von, bis) {
   if (a < 0 || b < 0) { console.log('ABBRUCH: ' + von + ' nicht gefunden.'); process.exit(1); }
   return BOGEN.slice(a, b);
 }
-const code = schnitt('function tagFeld(', 'document.addEventListener(\'mouseover\'');
+/* Alles von tagFeld() bis einschliesslich der Lauscher - also auch das
+   Overlay. Der Schnitt endet am Scroll-Lauscher, der letzten Zeile des
+   Blocks. */
+const code = schnitt('function tagFeld(', "document.addEventListener('scroll'") +
+  "document.addEventListener('scroll', tipWeg, true);";
 
 const tagsEl = { innerHTML: '' };
-let tipEl = null;
+let tipEl = null, modalEl = null;
+const lauscher = {};
+
+/* Ein Knoten, der so viel kann, wie der geschnittene Code braucht. Bewusst
+   schlicht: querySelector sucht nur nach den Marken, die der Code selbst
+   setzt - ein echter Selektor-Parser waere hier mehr Fehlerquelle als Nutzen. */
+function knoten() {
+  const n = {
+    id: '', innerHTML: '', textContent: '', style: {}, onclick: null,
+    classList: {
+      _s: new Set(),
+      add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); },
+      contains(c) { return this._s.has(c); }
+    },
+    kinder: {},
+    querySelector(sel) {
+      if (!n.kinder[sel]) { n.kinder[sel] = knoten(); n.kinder[sel].id = sel; }
+      return n.kinder[sel];
+    },
+    focus() { n._fokus = true; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 300, height: 120 }; }
+  };
+  return n;
+}
+
 const ctx = {
-  Math, Object, String, Array, Number, Date, console, RegExp,
+  Math, Object, String, Array, Number, Date, console, RegExp, Set,
   F: { tal: [], hnd: [] },
   TAL_BY_ID: R.TAL_BY_ID, HND_BY_ID: R.HND_BY_ID, RAENGE: R.RAENGE,
+  DLBL: R.DLBL, TALENT_KOSTEN: R.TALENT_KOSTEN,
   esc: function (s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -90,18 +119,27 @@ const ctx = {
   },
   window: { innerWidth: 400, innerHeight: 700 },   // schmal wie der iframe auf der Karte
   document: {
-    getElementById: function (id) { return id === 'tags' ? tagsEl : tipEl; },
-    createElement: function () {
-      return {
-        id: '', innerHTML: '', style: {},
-        getBoundingClientRect: function () { return { left: 0, top: 0, width: 300, height: 120 }; }
-      };
+    addEventListener: function (e, cb) { (lauscher[e] = lauscher[e] || []).push(cb); },
+    getElementById: function (id) {
+      if (id === 'tags') return tagsEl;
+      if (id === 'tagTip') return tipEl;
+      if (id === 'tagModal') return modalEl;
+      return null;
     },
-    body: { appendChild: function (el) { tipEl = el; return el; } }
+    createElement: function () { return knoten(); },
+    body: {
+      appendChild: function (el) {
+        if (el.id === 'tagModal') modalEl = el; else tipEl = el;
+        return el;
+      }
+    }
   }
 };
 vm.createContext(ctx);
 vm.runInContext(code, ctx);
+
+function feuer(art, ev) { (lauscher[art] || []).forEach(function (cb) { cb(ev); }); }
+function alsZiel(chip) { return { dataset: chip.dataset, closest: function () { return chip; } }; }
 
 // Eine Figur mit einem Talent und zwei Schwächen - eine davon mit Haken.
 const einTalent = R.TALENTE[0];
@@ -163,6 +201,74 @@ chk('und bleibt im Bild', parseInt(tipEl.style.top, 10) >= 10, tipEl.style.top);
 
 ctx.tipWeg();
 chk('und es verschwindet wieder', tipEl.style.display === 'none');
+
+console.log('');
+console.log('=== KLICK ÖFFNET DAS OVERLAY ===');
+/* Hendriks Vorgabe: Das Hover-Feld ist der schnelle Blick, der Klick das
+   Nachlesen. Auf einem Tablet am Tisch gibt es ueberhaupt kein Hovern -
+   dort ist der Klick der einzige Weg. */
+const talChip = {
+  dataset: { tipid: einTalent.id, tipart: 'tal', tipn: einTalent.n,
+             tipk: einTalent.kat, tipt: einTalent.d },
+  getBoundingClientRect: function () { return { left: 20, top: 100, bottom: 118, width: 60, height: 18 }; }
+};
+feuer('click', { target: { closest: function () { return talChip; } } });
+chk('das Overlay ist offen', modalEl && modalEl.classList.contains('auf'));
+chk('es nennt das Talent', modalEl.querySelector('#tagModalName').textContent === einTalent.n,
+  modalEl.querySelector('#tagModalName').textContent);
+chk('und seine Wirkung', modalEl.querySelector('.wirkung').textContent === einTalent.d);
+chk('es nennt die Voraussetzung',
+  modalEl.querySelector('.zusatz').innerHTML.indexOf('Voraussetzung') >= 0,
+  modalEl.querySelector('.zusatz').innerHTML);
+chk('und dass der Rang hart sperrt',
+  modalEl.querySelector('.zusatz').innerHTML.indexOf('harte Sperre') >= 0);
+chk('das Hover-Feld ist dabei weg', tipEl.style.display === 'none');
+chk('der Schließen-Knopf hat den Fokus', modalEl.querySelector('#tagModalZu')._fokus === true);
+
+/* Eine Schwaeche mit Haken muss erklaeren, WARUM sie keinen Wuerfel senkt -
+   sonst liest sie sich wie ein Nachteil ohne Gegenwert. */
+const hakenChip = {
+  dataset: { tipid: mitHaken.id, tipart: 'hnd', tipn: mitHaken.n, tipk: 'leicht', tipt: mitHaken.d }
+};
+feuer('click', { target: { closest: function () { return hakenChip; } } });
+chk('ein Haken wird im Overlay erklärt',
+  modalEl.querySelector('.zusatz').innerHTML.indexOf('Haken') >= 0 &&
+  modalEl.querySelector('.zusatz').innerHTML.indexOf('senkt keinen Würfel') >= 0,
+  modalEl.querySelector('.zusatz').innerHTML);
+chk('und was sie einbringt',
+  modalEl.querySelector('.zusatz').innerHTML.indexOf('Punkt') >= 0);
+
+// Escape schliesst.
+feuer('keydown', { key: 'Escape', target: {} });
+chk('Escape schließt das Overlay', !modalEl.classList.contains('auf'));
+
+// Tastatur oeffnet ebenso - ein role="button" muss auf Enter hoeren.
+let verhindert = false;
+feuer('keydown', { key: 'Enter', target: { closest: function () { return talChip; } },
+                   preventDefault: function () { verhindert = true; } });
+chk('Enter öffnet es', modalEl.classList.contains('auf'));
+chk('und schluckt die Taste', verhindert);
+feuer('keydown', { key: 'Escape', target: {} });
+feuer('keydown', { key: ' ', target: { closest: function () { return talChip; } },
+                   preventDefault: function () {} });
+chk('die Leertaste auch', modalEl.classList.contains('auf'));
+
+// Ein Klick daneben darf nichts oeffnen.
+modalEl.classList.remove('auf');
+feuer('click', { target: { closest: function () { return null; } } });
+chk('ein Klick daneben öffnet nichts', !modalEl.classList.contains('auf'));
+
+// Ein unbekanntes Talent: Overlay geht auf, aber ohne erfundenen Zusatz.
+const totChip = { dataset: { tipn: 'Weg', tipk: 'Talent', tipt: 'Gibt es nicht mehr.' } };
+feuer('click', { target: { closest: function () { return totChip; } } });
+chk('auch ein unbekanntes Talent bricht nicht', modalEl.classList.contains('auf'));
+chk('und erfindet keinen Zusatz', modalEl.querySelector('.zusatz').innerHTML === '' &&
+  modalEl.querySelector('.zusatz').style.display === 'none');
+
+chk('das Hover-Feld weist auf den Klick hin',
+  BOGEN.indexOf('Anklicken für die ganze Erklärung') >= 0);
+chk('die Chips sind als Knopf ausgewiesen', (tagsEl.innerHTML.match(/role="button"/g) || []).length > 0 ||
+  BOGEN.indexOf('role="button"') >= 0);
 
 console.log('');
 console.log('=== AUCH DIE REGIE SIEHT, WAS EIN TALENT TUT ===');

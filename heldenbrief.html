@@ -102,6 +102,35 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 #tagTip b{display:block;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;
   color:var(--gold);margin-bottom:.2rem}
 #tagTip i{font-style:normal;color:var(--gray);font-size:.7rem}
+#tagTip u{display:block;text-decoration:none;color:var(--gray);font-size:.66rem;margin-top:.35rem}
+
+/* ---- Erklaerung als Overlay ----
+   Das Hover-Feld ist der schnelle Blick, dieses hier das Nachlesen. Es gibt
+   drei Gruende, warum der Hover allein nicht reicht:
+     1. Auf dem Tablet am Tisch gibt es gar kein Hovern.
+     2. Das Hover-Feld verschwindet beim kleinsten Mausruckeln - zum Lesen
+        eines laengeren Textes ist es untauglich.
+     3. Hier ist Platz fuer das, was im Hover nicht hineinpasst:
+        Voraussetzungen und was ein "Haken" ueberhaupt bedeutet.
+   (Hendriks Vorgabe, 14.10.2026.) */
+#tagModal{position:fixed;inset:0;z-index:300;display:none;
+  align-items:center;justify-content:center;padding:1rem}
+#tagModal.auf{display:flex}
+#tagModalBg{position:absolute;inset:0;background:rgba(8,14,17,.72)}
+#tagModalCard{position:relative;width:min(30rem,100%);max-height:80vh;overflow:auto;
+  background:var(--dark);border:1px solid var(--gold);border-radius:var(--r);
+  box-shadow:0 12px 48px rgba(0,0,0,.6);padding:1.1rem 1.2rem 1.2rem}
+#tagModalCard h3{font-family:'Cinzel',serif;color:var(--gold);font-size:1.15rem;
+  letter-spacing:.04em;margin-bottom:.15rem;padding-right:2rem}
+#tagModalCard .kat{font-size:.72rem;color:var(--gray);font-style:italic;margin-bottom:.8rem}
+#tagModalCard .wirkung{font-size:.9rem;line-height:1.65;color:var(--ink)}
+#tagModalCard .zusatz{margin-top:.9rem;padding-top:.7rem;border-top:1px solid var(--border);
+  font-size:.78rem;line-height:1.6;color:var(--gray)}
+#tagModalCard .zusatz b{color:var(--ink);font-weight:400}
+#tagModalZu{position:absolute;top:.6rem;right:.6rem;width:28px;height:28px;border-radius:50%;
+  background:transparent;border:1px solid var(--border);color:var(--gray);
+  cursor:pointer;font-size:.9rem;line-height:1}
+#tagModalZu:hover{border-color:var(--gold);color:var(--ink)}
 .tag.pos{border-color:rgba(42,157,143,.55);color:#8fe0d6}
 .tag.neg{border-color:rgba(202,103,2,.55);color:#e0a86a}
 .brief b{display:block;font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-top:.5rem}
@@ -810,7 +839,7 @@ function meldeWurf(probe, band, ergebnis, steigerungen) {
    verpflichtet statt Wuerfel zu senken. Ohne die liest sich eine Wirkung
    wie "du verpflichtest dich" wie ein Nachteil ohne Gegenwert. */
 function tagFeld(name, art, text) {
-  return '<span class="tag ' + (art === 'tal' ? 'pos' : 'neg') + '" tabindex="0"' +
+  return '<span class="tag ' + (art === 'tal' ? 'pos' : 'neg') + '" tabindex="0" role="button"' +
     ' data-tipn="' + esc(name) + '" data-tipk="' + esc(art === 'tal' ? 'Talent' : 'Schwäche') +
     '" data-tipt="' + esc(text) + '">' + esc(name) + '</span>';
 }
@@ -820,7 +849,8 @@ function renderTags() {
     const x = TAL_BY_ID[i];
     if (!x) return tagFeld(i, 'tal', 'Dieses Talent gibt es im Regelwerk nicht mehr.');
     const rang = RAENGE[x.rang] ? RAENGE[x.rang].name : '';
-    return '<span class="tag pos" tabindex="0" data-tipn="' + esc(x.n) +
+    return '<span class="tag pos" tabindex="0" role="button" data-tipid="' + esc(x.id) +
+      '" data-tipart="tal" data-tipn="' + esc(x.n) +
       '" data-tipk="' + esc(x.kat + ' · ab ' + rang) + '" data-tipt="' + esc(x.d) + '">' +
       esc(x.n) + '</span>';
   }).join('');
@@ -829,7 +859,8 @@ function renderTags() {
     if (!x) return tagFeld(i, 'hnd', 'Diese Schwäche gibt es im Regelwerk nicht mehr.');
     const art = (x.schwer ? 'schwer · 2 Punkte' : 'leicht · 1 Punkt') +
       (x.haken ? ' · verpflichtet, senkt keinen Würfel' : '');
-    return '<span class="tag neg" tabindex="0" data-tipn="' + esc(x.n) +
+    return '<span class="tag neg" tabindex="0" role="button" data-tipid="' + esc(x.id) +
+      '" data-tipart="hnd" data-tipn="' + esc(x.n) +
       '" data-tipk="' + esc(art) + '" data-tipt="' + esc(x.d) + '">' + esc(x.n) + '</span>';
   }).join('');
   document.getElementById('tags').innerHTML = (t + h) || '<span class="leer">keine</span>';
@@ -849,7 +880,8 @@ function tipFeld() {
 function tipZeigen(chip) {
   const el = tipFeld();
   el.innerHTML = '<b>' + esc(chip.dataset.tipn) + '</b>' +
-    '<i>' + esc(chip.dataset.tipk) + '</i><br>' + esc(chip.dataset.tipt);
+    '<i>' + esc(chip.dataset.tipk) + '</i><br>' + esc(chip.dataset.tipt) +
+    '<u>Anklicken für die ganze Erklärung</u>';
   el.style.display = 'block';
   // Erst zeigen, dann messen: Vorher hat das Feld keine Hoehe.
   const r = chip.getBoundingClientRect(), m = el.getBoundingClientRect();
@@ -865,6 +897,80 @@ function tipWeg() {
   const el = document.getElementById('tagTip');
   if (el) el.style.display = 'none';
 }
+/* ---------- Die Erklaerung als Overlay ----------
+   Zeigt mehr als das Hover-Feld: beim Talent die Voraussetzungen, bei der
+   Schwaeche, was "Haken" bedeutet. Beides passt in ein Hover-Feld nicht
+   hinein und ist genau das, was man wissen will, wenn man stehen bleibt. */
+function vorText(vor) {
+  if (!vor || !vor.length) return 'keine';
+  return vor.map(function (v) { return v[0] + ' ' + DLBL[v[1]]; }).join(', ');
+}
+
+function tagModal() {
+  let el = document.getElementById('tagModal');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'tagModal';
+  el.innerHTML = '<div id="tagModalBg"></div><div id="tagModalCard" role="dialog" ' +
+    'aria-modal="true" aria-labelledby="tagModalName">' +
+    '<button id="tagModalZu" aria-label="Schließen">✕</button>' +
+    '<h3 id="tagModalName"></h3><div class="kat"></div>' +
+    '<div class="wirkung"></div><div class="zusatz"></div></div>';
+  document.body.appendChild(el);
+  el.querySelector('#tagModalBg').onclick = tagModalZu;
+  el.querySelector('#tagModalZu').onclick = tagModalZu;
+  return el;
+}
+
+function tagModalAuf(chip) {
+  tipWeg();                       // sonst klebt das Hover-Feld über dem Overlay
+  const el = tagModal();
+  const id = chip.dataset.tipid, art = chip.dataset.tipart;
+  const x = art === 'tal' ? TAL_BY_ID[id] : (art === 'hnd' ? HND_BY_ID[id] : null);
+
+  el.querySelector('#tagModalName').textContent = chip.dataset.tipn;
+  el.querySelector('.kat').textContent = chip.dataset.tipk;
+  el.querySelector('.wirkung').textContent = chip.dataset.tipt;
+
+  let zu = '';
+  if (x && art === 'tal') {
+    zu = '<b>Voraussetzung:</b> ' + esc(vorText(x.vor)) + '<br>' +
+      '<b>Ab Rang:</b> ' + esc(RAENGE[x.rang] ? RAENGE[x.rang].name : '—') +
+      ' — der Rang ist eine harte Sperre, die Werte sind es nicht.';
+  } else if (x && art === 'hnd') {
+    zu = x.haken
+      ? '<b>Haken.</b> Diese Schwäche senkt keinen Würfel. Sie verpflichtet dich und gibt ' +
+        'deiner Spielleitung etwas, woran sie dich aufhängen kann — darin liegt ihr Wert.'
+      : '<b>Wertschwäche.</b> Sie wirkt sich direkt auf Würfe oder Möglichkeiten aus.';
+    zu += '<br><b>Bringt:</b> ' + (x.schwer ? '2 Punkte (schwer)' : '1 Punkt (leicht)') +
+      ' — davon werden Talente bezahlt, eines kostet ' + TALENT_KOSTEN + '.';
+  }
+  const zEl = el.querySelector('.zusatz');
+  zEl.innerHTML = zu;
+  zEl.style.display = zu ? '' : 'none';
+
+  el.classList.add('auf');
+  const knopf = el.querySelector('#tagModalZu');
+  if (knopf && knopf.focus) knopf.focus();
+}
+
+function tagModalZu() {
+  const el = document.getElementById('tagModal');
+  if (el) el.classList.remove('auf');
+}
+
+document.addEventListener('click', function (ev) {
+  const chip = ev.target.closest ? ev.target.closest('.tag[data-tipt]') : null;
+  if (chip) { tagModalAuf(chip); return; }
+});
+// Tastatur: ein role="button" muss auf Enter und Leertaste hoeren.
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') { tagModalZu(); return; }
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const chip = ev.target && ev.target.closest ? ev.target.closest('.tag[data-tipt]') : null;
+  if (chip) { ev.preventDefault(); tagModalAuf(chip); }
+});
+
 document.addEventListener('mouseover', function (ev) {
   const chip = ev.target.closest ? ev.target.closest('.tag[data-tipt]') : null;
   if (chip) tipZeigen(chip);
