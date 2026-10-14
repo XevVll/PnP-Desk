@@ -108,6 +108,14 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
 Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge ohne Anweisung.
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
+**Regelfragen gehen gegen die Savage-Worlds-Regeln** (Hendriks stehende Anweisung vom
+14.10.2026). Reihenfolge der Quellen: **Savage Worlds → Bibel §4 → `js/regelwerk.js`.** Der
+Code ist nur die Ausführung — eine Messung an ihm zeigt, *was* er tut, nie *ob er recht hat*,
+und taugt deshalb nie als Beleg für eine Regel. Erst nachlesen, dann messen, ob die Umsetzung
+dazu passt. Steht eine Regel im Projekt nirgends, ist **das** der Befund: in Bibel §4
+nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen (etwa die Arena,
+die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
+
 ## Changelog
 
 ### 2026-10-14 (Fortsetzung 5) — Das Regelwerk stand noch auf W100 (Bibel §4 umgeschrieben)

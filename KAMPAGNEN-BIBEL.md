@@ -175,8 +175,16 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 > sollte und hier nichts stand. Das alte System ist nicht gelöscht, sondern nach **4.6**
 > verschoben: `js/arena.js` rechnet weiterhin danach.
 >
-> Die Umsetzung liegt in `js/regelwerk.js`. Dieser Abschnitt ist die **Regel**, der Code ihre
-> Ausführung — bei einem Widerspruch gilt, was hier steht.
+> **Die Quellen, in dieser Reihenfolge** (Hendriks stehende Anweisung vom 14.10.2026:
+> „Bitte Regeln immer mit den Savage World Regeln abgleichen“):
+>
+> 1. **Savage Worlds selbst** — die Regel. Bei jeder Regelfrage zuerst dort nachsehen.
+> 2. **Dieser Abschnitt** — wie die Regel in dieser Kampagne gilt, samt der bewussten
+>    Abweichungen (siehe 4.6). Bei Widerspruch zum Code gilt, was hier steht.
+> 3. **`js/regelwerk.js`** — nur die *Ausführung*. Eine Messung am Code zeigt, **was** er tut,
+>    nie **ob er recht hat**; als Beleg für eine Regel taugt sie nicht.
+>
+> Fehlt eine Regel hier, ist **das** der Befund — dann nachtragen, nicht im Code nachsehen.
 
 ### 4.1 Die Probe
 
