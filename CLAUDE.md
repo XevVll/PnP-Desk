@@ -126,6 +126,52 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 11) — Der Laden steht am Ort und führt sein eigenes Sortiment
+- **Hendriks Korrektur am Vormittagsstand:** Nicht aus dem Charakterfenster aufmachen, sondern
+  **direkt im Krämerladen oder auf dem Markt** — und **die Waren passend zum Laden**.
+- **Der Katalog im Heldenbrief ist ersatzlos entfallen.** Ein Katalog im Charakterfenster ist ein
+  **Menü**; ein Laden an einem Ort ist eine **Szene**. Der Bogen sagt jetzt nur noch, **wo**
+  gekauft werden kann, und führt weiter Getragenes, Ablegen und Verkaufen.
+- **Jeder Händler führt sein eigenes Sortiment.** Aus `laden: "Name"` ist
+  `laden: { name, was, waren: […] }` am Marker geworden:
+  - **Krämerladen** — Werkzeug, Seile, Konserven, Laterne, Verbandszeug, Kompass. **Keine
+    Kriegswaffen.** Das ist genau die Liste, die `ORTE.kraemerladen` seit August nennt.
+  - **Marktplatz** — Stände mit Gebrauchtem: Klingen aus zweiter Hand, Leder, Vorrat.
+  - **Markt am Hafen** (`7.1`) — Vorrat und Gerät, **bewusst keine Waffen**: Die verkauft in
+    einem spanischen Kriegshafen niemand an eine englische Crew.
+  - **Markt der Höhlenstadt** (`8.1`) — **der einzige Ort der Kampagne mit Schusswaffen und
+    Rüstung.** Das ist eine Aussage über die Welt, nicht nur eine Liste, und wird als solche
+    geprüft.
+  - Die Zuordnung ist mein Aufschlag entlang der vorhandenen Ortstexte — änderbar in je einer
+    Zeile.
+- **Gekauft wird im Ort-Fenster auf der Karte**: Name des Ladens, was er führt, der eigene
+  Geldstand, dann die Waren mit Werten und Preis. Zu teures ist ausgegraut.
+- **Ein Kauf schreibt NICHT in die Figur, sondern ins Postfach** — derselbe Grund wie bei der
+  Übergabe durch die Regie, und hier wäre er noch teurer gewesen: Der Bogen hätte den Kauf beim
+  nächsten Klick überschrieben, das Geld wäre weg und die Ware auch.
+  - **Das Geld prüft der BOGEN, nicht der Laden.** Der Laden sieht einen Stand, der eine Sekunde
+    alt sein kann; maßgeblich ist die Stelle, an der die Figur steht. Reicht es nicht, wird der
+    Kauf verworfen und der Spieler bekommt es gesagt — statt ins Minus zu gehen.
+  - **Der Bogen wird auf der Karte jetzt im Voraus geladen** (1,2 s nach dem Start), nicht erst
+    beim Aufklappen. Er ist der einzige Schreiber auf der Figur und verbucht die Käufe; läge er
+    bis zum ersten Aufklappen brach, bliebe ein Kauf einfach liegen, **ohne dass jemand sieht
+    warum**. Kostet eine zusätzliche Seitenladung je Spieler.
+- **Toter Code entfernt statt liegen gelassen:** `kaufen()`, `ladenAufschlagen()`,
+  `ladenMoeglich()` und `ausruestungDerArt()` sind weg, der Kommentarkopf, der die abgelöste
+  Lösung beschrieb, ist neu geschrieben. Beides hätte sauber geparst und wäre genau deshalb
+  gefährlich gewesen — wer es später liest, hält es für gültig.
+- **Getestet: 102 Prüfungen in `tests/t_bogen.js`, 0 Fehler.** Die tragende neue Prüfung:
+  **jede Ware muss es wirklich geben.** Beim Schreiben der Sortimente hatte ich eine ID erfunden
+  (`verbandszeug_platzhalter` statt `verband`) — ein Laden mit einer toten ID zeigt sie einfach
+  nicht an, und niemand merkt, dass die Ware fehlt. Dazu: Krämer und Markt führen nachweislich
+  Verschiedenes, der Krämer keine Kriegswaffen, Schusswaffen ausschließlich im Schmugglernest —
+  und die Karte schreibt nachweislich **weder `ausr` noch `muenzen`**.
+- **[OFFEN] Zwei geöffnete Bögen desselben Spielers** (Karte und eigener Tab) könnten dieselbe
+  Postfach-Zeile beide verbuchen. Bewusst in Kauf genommen: Die Reihenfolge ist *erst eintragen,
+  dann räumen*, weil ein verlorener Fund schlimmer wäre als ein doppelter. Beim Kauf hieße
+  doppelt allerdings **zweimal zahlen** — falls das am Tisch vorkommt, wäre eine Transaktion auf
+  dem Postfach die saubere Lösung.
+
 ### 2026-10-14 (Fortsetzung 10) — Eingekauft wird beim Krämer, nicht im Menü
 - **Hendriks Vorschlag:** Die Ausrüstung eventuell leer lassen und etwas davon auf **Markt und
   Krämer in Grimsgate** verschieben. **Seine Entscheidung nach dem Nachmessen:** Startgeld

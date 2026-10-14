@@ -83,7 +83,15 @@ const SCENES = {
       },
       {
         id: "markt",
-        laden: "Marktplatz",   // hier kann eingekauft werden - siehe heldenbrief.html
+        // Ein Laden: Name plus das, was er wirklich fuehrt. Staende und
+        // Gebrauchtes - Waffen aus zweiter Hand, Kleidung, Vorrat. Keine
+        // Feinmechanik und nichts Teures, dafuer ist der Kraemer da.
+        laden: {
+          name: "Marktplatz",
+          was: "Stände mit Gebrauchtem — Klingen aus zweiter Hand, Leder, Vorrat.",
+          waren: ["messer", "belegnagel", "entermesser", "saebel", "enteraxt",
+                  "pike", "wurfmesser", "lederwams", "proviant", "rum", "seil"]
+        },
         top: 74.6, left: 53.2,
         title: "Marktplatz",
         desc: "Handel, Menschenmengen, guter Ort für Gerüchte und Zufallsbegegnungen.",
@@ -91,7 +99,16 @@ const SCENES = {
       },
       {
         id: "kraemerladen",
-        laden: "Krämerladen",
+        // Was man kurz vor einer Abfahrt noch braucht und vergessen hat -
+        // genau die Liste aus ORTE.kraemerladen. Keine Waffen ausser dem,
+        // was ohnehin Werkzeug ist.
+        laden: {
+          name: "Krämerladen",
+          was: "Seile, Werkzeug, Konserven — alles, was man vor der Abfahrt vergisst.",
+          waren: ["messer", "belegnagel", "enterhaken", "laterne", "seil",
+                  "proviant", "verband", "schreibzeug", "kompass",
+                  "dietriche", "rum", "fernrohr"]
+        },
         top: 58.9, left: 49.8,
         title: "Krämerladen",
         desc: "Ausrüstung und Grundbedarf. Der Krämer hört viel — und vergisst wenig.",

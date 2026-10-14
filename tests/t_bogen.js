@@ -294,21 +294,15 @@ chk('die Chips sind als Knopf ausgewiesen', (tagsEl.innerHTML.match(/role="butto
   BOGEN.indexOf('role="button"') >= 0);
 
 console.log('');
-console.log('=== DER LADEN GEHT AM ORT AUF ===');
-/* Eingekauft wird, wo es etwas zu kaufen gibt. Der Katalog stand vorher
-   immer offen, auch mitten auf See. Aufgemacht wird er vom SPIELER, nicht
-   von der Spielleitung. (Hendriks Vorgabe, 14.10.2026.) */
+console.log('=== DER LADEN STEHT AM ORT, MIT EIGENEM SORTIMENT ===');
+/* Hendriks Vorgabe: Nicht im Charakterfenster aufmachen, sondern direkt im
+   Krämerladen oder auf dem Markt - und jeder Laden führt, was zu ihm passt. */
 const SZENEN_DATEIEN = ['scenes', 'golden_lion_scenes', 'schatzinsel_scenes',
   'spanischer_hafen_scenes', 'schmugglernest_scenes', 'artefakthandel_scenes',
   'riffinsel_scenes', 'grabesinsel_scenes', 'abspann_scenes', 'arena_scenes'];
 
-/* Die Fundstellen-Logik aus dem Bogen schneiden und mit gesetztem Zustand
-   ausfuehren. Die Zustandsvariablen stehen im Bogen weiter oben; sie werden
-   hier davorgesetzt, damit der geschnittene Teil fuer sich laeuft. */
 const ladenCode = 'let aktuelleSzene = null, szeneGehoert = false;\n' +
-  schnitt('function alleSzenen()', 'function renderTags()') +
-  '\nfunction setzeOrt(sz, gehoert) { aktuelleSzene = sz; szeneGehoert = gehoert; }';
-
+  schnitt('function alleSzenen()', 'function renderTags()');
 const lctx = { Object, Array, String, console };
 vm.createContext(lctx);
 SZENEN_DATEIEN.forEach(function (d) {
@@ -316,45 +310,82 @@ SZENEN_DATEIEN.forEach(function (d) {
 });
 vm.runInContext(ladenCode, lctx);
 
-/* Zuerst: Gibt es ueberhaupt Haendler? Eine Kennzeichnung, die nirgends
-   gesetzt ist, waere eine Sperre ohne Ausweg - niemand koennte je kaufen. */
-const mitLaden = Object.keys(lctx.alleSzenen()).filter(function (id) {
-  return lctx.laedenDerSzene(id).length > 0;
+const alleLaeden = [];
+Object.keys(lctx.alleSzenen()).forEach(function (id) {
+  lctx.laedenDerSzene(id).forEach(function (l) { alleLaeden.push({ szene: id, l: l }); });
 });
-chk('es gibt überhaupt Händler-Orte', mitLaden.length > 0, mitLaden);
-chk('Grimsgate ist einer davon', lctx.laedenDerSzene('1.1').length === 2,
-  lctx.laedenDerSzene('1.1'));
-chk('Markt und Krämer, beide benannt',
-  lctx.laedenDerSzene('1.1').join('|').indexOf('Markt') >= 0 &&
-  lctx.laedenDerSzene('1.1').join('|').indexOf('Krämer') >= 0, lctx.laedenDerSzene('1.1'));
-chk('der spanische Hafen auch', lctx.laedenDerSzene('7.1').length === 1, lctx.laedenDerSzene('7.1'));
-chk('das Schmugglernest auch', lctx.laedenDerSzene('8.1').length === 1, lctx.laedenDerSzene('8.1'));
-chk('auf dem Schiff dagegen nicht', lctx.laedenDerSzene('2.1').length === 0);
-chk('auf der Schatzinsel auch nicht', lctx.laedenDerSzene('4.1').length === 0);
+chk('es gibt überhaupt Händler', alleLaeden.length > 0, alleLaeden.length);
+chk('Grimsgate hat zwei', lctx.laedenDerSzene('1.1').length === 2);
+chk('der spanische Hafen einen', lctx.laedenDerSzene('7.1').length === 1);
+chk('das Schmugglernest einen', lctx.laedenDerSzene('8.1').length === 1);
+chk('auf dem Schiff keinen', lctx.laedenDerSzene('2.1').length === 0);
+chk('auf der Schatzinsel keinen', lctx.laedenDerSzene('4.1').length === 0);
 chk('eine unbekannte Szene ergibt nichts', lctx.laedenDerSzene('99.9').length === 0);
-chk('und keine Szene bricht nicht', lctx.laedenDerSzene(null).length === 0);
 
-lctx.setzeOrt('1.1', true);
-chk('beim Krämer ist Einkaufen möglich', lctx.ladenMoeglich() === true);
-lctx.setzeOrt('2.1', true);
-chk('auf See nicht', lctx.ladenMoeglich() === false);
-/* Ohne Verbindung wird NICHT gesperrt: Wir wissen dann nicht, wo die Gruppe
-   steht, und eine Sperre aus Unwissen waere schlimmer als ein offener Laden -
-   der Bogen soll offline benutzbar bleiben. */
-lctx.setzeOrt(null, false);
-chk('ohne Verbindung bleibt er offen', lctx.ladenMoeglich() === true);
+/* Der tragende Punkt: Jede Ware muss es wirklich geben. Beim Schreiben der
+   Sortimente habe ich eine ID erfunden ("verbandszeug_platzhalter") - genau
+   das fängt diese Prüfung. Ein Laden mit einer toten ID zeigt sie einfach
+   nicht an, und niemand merkt, dass die Ware fehlt. */
+let toteWaren = [];
+alleLaeden.forEach(function (e) {
+  (e.l.waren || []).forEach(function (id) {
+    if (!R.AUSR_BY_ID[id]) toteWaren.push(e.szene + ': ' + id);
+  });
+});
+chk('jede Ware gibt es wirklich', toteWaren.length === 0, toteWaren);
+chk('jeder Laden hat einen Namen',
+  alleLaeden.every(function (e) { return !!e.l.name; }));
+chk('jeder Laden sagt, was er führt',
+  alleLaeden.every(function (e) { return !!e.l.was; }));
+chk('und führt überhaupt etwas',
+  alleLaeden.every(function (e) { return (e.l.waren || []).length > 0; }),
+  alleLaeden.filter(function (e) { return !(e.l.waren || []).length; }).map(function (e) { return e.l.name; }));
 
-chk('der Katalog ist im Quelltext hinter dem Schalter',
-  BOGEN.indexOf('if (!ladenOffen)') >= 0 && BOGEN.indexOf('ladenAufschlagen()') >= 0);
-chk('ein Szenenwechsel schließt ihn wieder',
-  BOGEN.indexOf('aktuelleSzene = neu; ladenOffen = false;') >= 0);
-chk('die Szene wird nur gelesen, nie geschrieben',
-  BOGEN.indexOf("db.ref('currentScene').on(") >= 0 &&
-  BOGEN.indexOf("db.ref('currentScene').set") < 0);
+/* Die Sortimente sollen sich unterscheiden - sonst waere die Trennung eine
+   Behauptung. */
+function waren(szene, name) {
+  const l = lctx.laedenDerSzene(szene).filter(function (x) { return x.name.indexOf(name) >= 0; })[0];
+  return l ? l.waren : [];
+}
+const kraemer = waren('1.1', 'Krämer'), markt = waren('1.1', 'Markt');
+chk('Krämer und Markt führen Verschiedenes',
+  kraemer.join(',') !== markt.join(','));
+chk('der Krämer führt Werkzeug und Vorrat',
+  kraemer.indexOf('seil') >= 0 && kraemer.indexOf('laterne') >= 0 && kraemer.indexOf('proviant') >= 0);
+chk('aber keine Kriegswaffen', kraemer.indexOf('saebel') < 0 && kraemer.indexOf('muskete') < 0, kraemer);
+chk('der Markt führt Klingen', markt.indexOf('saebel') >= 0);
+/* Schusswaffen gibt es in der ganzen Kampagne nur bei den Schmugglern -
+   das ist eine Aussage ueber die Welt, nicht nur ueber eine Liste. */
+const mitPulver = alleLaeden.filter(function (e) {
+  return (e.l.waren || []).some(function (id) {
+    return ['pistole', 'tromblon', 'muskete'].indexOf(id) >= 0;
+  });
+});
+chk('Schusswaffen nur im Schmugglernest',
+  mitPulver.length === 1 && mitPulver[0].szene === '8.1',
+  mitPulver.map(function (e) { return e.szene + '/' + e.l.name; }));
+
+console.log('');
+console.log('=== GEKAUFT WIRD AUF DER KARTE ===');
+chk('die Karte hat einen Laden im Ort-Fenster', KARTE.indexOf('id="ladenBox"') >= 0);
+chk('er wird beim Öffnen eines Ortes gezeichnet', KARTE.indexOf('zeichneLaden(marker)') >= 0);
+chk('er nennt den Geldstand', KARTE.indexOf('Du hast <b>') >= 0);
+/* Gekauft wird NICHT direkt in die Figur geschrieben - derselbe Grund wie bei
+   der Uebergabe durch die Regie. */
+chk('ein Kauf geht ins Postfach, nicht in die Figur',
+  /figuren\/' \+ k \+ '\/zuteilung'\)\.push/.test(KARTE), 'kauf-pfad');
+chk('die Karte schreibt NICHT ausr oder muenzen',
+  !/db\.ref\('figuren\/[^']*'\)\.update/.test(KARTE) &&
+  KARTE.indexOf("'/muenzen').set") < 0);
+chk('der Bogen wird im Voraus geladen, damit Käufe ankommen',
+  KARTE.indexOf('setTimeout(bogenLaden') >= 0);
+chk('der Bogen bietet selbst keinen Katalog mehr',
+  BOGEN.indexOf('onclick="kaufen(') < 0 && BOGEN.indexOf('function kaufen(') < 0);
+chk('sondern sagt, wo gekauft wird', BOGEN.indexOf('Eingekauft wird beim Händler') >= 0);
 
 console.log('');
 console.log('=== WAS DIE SPIELLEITUNG ÜBERGIBT, KOMMT AN ===');
-const zCode = schnitt('function zuteilungAnnehmen(', 'function ladenAufschlagen()');
+const zCode = schnitt('function zuteilungAnnehmen(', 'function muenzenAendern(');
 const geschrieben = [];
 let gespeichert = 0, gezeichnet = 0;
 const zctx = {
@@ -420,7 +451,33 @@ zctx.zuteilungAnnehmen({ i: { art: 'gegenstand', id: 'messer' } });
 chk('vor dem ersten Lesen wird nichts angenommen', gespeichert === g2 && zctx.F.ausr.length === 2);
 zctx.ladeBereit = true;
 
+/* ---- Der Kauf vom Laden auf der Karte ----
+   Der Laden prueft das Geld auch, aber er sieht einen Stand, der eine
+   Sekunde alt sein kann. Massgeblich ist der Bogen: Hier steht die Figur. */
+zctx.F = { ausr: [], muenzen: 300 };
+zctx.zuteilungAnnehmen({ k1: { art: 'kauf', id: 'saebel' } });   // 250 M.
+chk('ein Kauf bucht ab', zctx.F.muenzen === 50, zctx.F.muenzen);
+chk('und legt die Ware in den Bogen', zctx.F.ausr.indexOf('saebel') >= 0);
+
+const vorKauf = JSON.stringify(zctx.F);
+zctx.zuteilungAnnehmen({ k2: { art: 'kauf', id: 'muskete' } });  // 500 M., hat 50
+chk('zu teuer wird NICHT gekauft', JSON.stringify(zctx.F) === vorKauf, zctx.F);
+chk('und das Postfach trotzdem geräumt',
+  geschrieben.indexOf('REMOVE figuren/anna/zuteilung') >= 0);
+
+/* Zwei Kaeufe auf einmal, von denen nur der erste bezahlbar ist: Der erste
+   geht durch, der zweite nicht - und das Geld reicht genau fuer einen. */
+zctx.F = { ausr: [], muenzen: 260 };
+zctx.zuteilungAnnehmen({ a1: { art: 'kauf', id: 'saebel' },
+                         a2: { art: 'kauf', id: 'saebel' } });
+chk('von zwei gleichen geht nur der bezahlbare durch',
+  zctx.F.ausr.length === 1 && zctx.F.muenzen === 10,
+  { ausr: zctx.F.ausr, m: zctx.F.muenzen });
+chk('Geld geht dabei nie ins Minus', zctx.F.muenzen >= 0);
+
 chk('der Spieler erfährt davon', BOGEN.indexOf('Von der Spielleitung') >= 0);
+chk('und erfährt auch, wenn das Geld nicht reichte',
+  BOGEN.indexOf('reicht dein Geld nicht') >= 0);
 chk('erst eintragen, dann räumen',
   BOGEN.indexOf('speichern();') < BOGEN.indexOf("'/zuteilung').remove()"),
   { speichern: BOGEN.indexOf('speichern();'), remove: BOGEN.indexOf("'/zuteilung').remove()") });

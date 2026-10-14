@@ -355,16 +355,13 @@ let F = leereFigur();
 let META = { name:'', spieler:'' };
 let db = null, syncBereit = false, syncTimer = null;
 
-/* ---------- Der Laden ----------
-   Eingekauft wird dort, wo es etwas zu kaufen gibt: beim Kraemer, auf dem
-   Markt. Der Katalog ist deshalb zu, solange die Gruppe woanders steht -
-   vorher stand er immer offen, auch mitten auf See.
-   Aufgemacht wird er vom SPIELER, nicht von der Spielleitung (Hendriks
-   Vorgabe): Sie muss nicht fuer jeden Einzelnen etwas freischalten, und wer
-   nicht einkaufen will, bekommt den Katalog gar nicht erst zu sehen.
-   "ladenOffen" liegt nur im Speicher dieser Seite - wohin die Gruppe geht,
-   steht in der Datenbank, aber ob jemand den Laden aufschlaegt, geht
-   niemanden etwas an. */
+/* ---------- Kein Laden mehr in diesem Fenster ----------
+   Eingekauft wird AM ORT auf der Karte - im Kraemerladen, auf dem Markt -,
+   und jeder Haendler fuehrt sein eigenes Sortiment (Feld "laden" am Marker
+   seiner Szene). Ein Katalog im Charakterfenster ist ein Menue; ein Laden an
+   einem Ort ist eine Szene. (Hendriks Vorgabe, 14.10.2026.)
+   Dieser Bogen kennt die Szene trotzdem - aber nur, um zu SAGEN, wo gekauft
+   werden kann. Gekauft wird hier nicht mehr. */
 /* ---------- Was die Spielleitung uebergibt ----------
    Sie schreibt NICHT in die Figur, sondern legt es daneben:
      figuren/{schluessel}/zuteilung/{id}
@@ -376,8 +373,7 @@ let db = null, syncBereit = false, syncTimer = null;
    raeumt das Postfach. Es gibt damit weiterhin genau einen Schreiber auf der
    Figur. Dasselbe Muster wie bei der Wuerfel-Anfrage. */
 let aktuelleSzene = null;   // null = noch nichts gehoert
-let szeneGehoert = false;   // haben wir ueberhaupt je einen Wert bekommen?
-let ladenOffen = false;
+let szeneGehoert = false;   // haben wir je einen Wert bekommen? (nur fuer die Anzeige)
 let netzOffen = false;
 /* Die Adresse dieser Figur - sie IST ihr Pfad. Steht sie im Browser,
    wird sie benutzt; sonst gilt die alte Spielerkennung weiter, damit
@@ -444,7 +440,7 @@ function beobachteVerbindung() {
     db.ref('currentScene').on('value', function (s) {
       const neu = s.val() || null;
       szeneGehoert = true;
-      if (neu !== aktuelleSzene) { aktuelleSzene = neu; ladenOffen = false; }
+      if (neu !== aktuelleSzene) aktuelleSzene = neu;
       renderAlles();
     }, function () { szeneGehoert = false; });
 
@@ -958,15 +954,6 @@ function laedenDerSzene(szeneId) {
                    .map(function (m) { return m.laden; });
 }
 
-/* Darf der Katalog gezeigt werden?
-   Ohne Verbindung wird NICHT gesperrt: Dann wissen wir nicht, wo die Gruppe
-   steht, und eine Sperre aus Unwissen waere schlimmer als ein offener Laden -
-   der Bogen soll offline benutzbar bleiben. */
-function ladenMoeglich() {
-  if (!szeneGehoert) return true;
-  return laedenDerSzene(aktuelleSzene).length > 0;
-}
-
 function renderTags() {
   const t = F.tal.map(function (i) {
     const x = TAL_BY_ID[i];
@@ -1248,44 +1235,20 @@ function renderAusruestung() {
       }).join('')
     : '<div class="leer">Du trägst nichts.</div>';
 
-  /* Zu, offen, oder gar nicht hier - drei Zustaende, und jeder sagt, warum. */
+  /* Gekauft wird NICHT mehr hier, sondern beim Haendler auf der Karte -
+     im Kraemerladen, auf dem Markt. Der Bogen sagt nur noch, wo das geht.
+     Grund (Hendriks Vorgabe): Ein Katalog im Charakterfenster ist ein Menue;
+     ein Laden an einem Ort ist eine Szene. Was ein Haendler fuehrt, steht
+     am Marker seiner Szene (Feld "laden"), nicht hier. */
   const laeden = laedenDerSzene(aktuelleSzene);
-  if (!ladenMoeglich()) {
-    document.getElementById('laden').innerHTML =
-      '<div class="ladenzu"><b>Hier gibt es nichts zu kaufen.</b>' +
-      'Ausrüstung bekommst du bei einem Händler — auf einem Markt oder beim Krämer. ' +
-      'Sobald ihr dort seid, kannst du den Laden hier aufschlagen.</div>';
-    return;
-  }
-  if (!ladenOffen) {
-    const wo = laeden.length
-      ? (laeden.length === 1 ? laeden[0] : laeden.slice(0, -1).join(', ') + ' und ' + laeden[laeden.length - 1])
-      : null;
-    document.getElementById('laden').innerHTML =
-      '<div class="ladenzu">' +
-      (wo ? '<b>' + esc(wo) + '</b>Hier kannst du einkaufen.'
-          : '<b>Keine Verbindung</b>Wo ihr gerade seid, weiß diese Seite nicht — ' +
-            'der Laden bleibt dir trotzdem offen.') +
-      '<button class="btn gold" onclick="ladenAufschlagen()">Laden aufschlagen</button></div>';
-    return;
-  }
-
-  document.getElementById('laden').innerHTML = AUSR_ARTEN.map(function (art) {
-    return '<div class="gruppe"><div class="gruppe-h">' + art + '</div>' +
-      ausruestungDerArt(art).map(function (a) {
-        const zuTeuer = (F.muenzen || 0) < (a.preis || 0);
-        const werte = [];
-        if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
-        if (a.reichweite) werte.push('Reichw. ' + a.reichweite);
-        if (a.ruest) werte.push('Rob. +' + a.ruest);
-        werte.push(a.gew + ' Gew.');
-        return '<div class="zeile"><div class="n">' + esc(a.n) +
-          '<div class="d">' + esc(a.d) + '</div></div>' +
-          '<div class="z">' + werte.join(' · ') + ' · <b>' + a.preis + '</b> M.</div>' +
-          '<button class="btn" ' + (zuTeuer ? 'disabled title="zu teuer"' : '') +
-            ' onclick="kaufen(\'' + a.id + '\')">Kaufen</button></div>';
-      }).join('') + '</div>';
-  }).join('');
+  document.getElementById('laden').innerHTML =
+    '<div class="ladenzu">' +
+    (laeden.length
+      ? '<b>' + esc(laeden.join(' · ')) + '</b>Hier könnt ihr einkaufen — ' +
+        'öffne den Ort auf der Karte, der Laden steht dort.'
+      : '<b>Eingekauft wird beim Händler</b>Such auf der Karte den Krämer oder einen Markt. ' +
+        'Dort steht, was es gibt, und dort wird gekauft.') +
+    '</div>';
 }
 
 /* Eine Uebergabe annehmen. Erst eintragen und speichern, DANN das Postfach
@@ -1294,10 +1257,23 @@ function renderAusruestung() {
 function zuteilungAnnehmen(post) {
   const ids = Object.keys(post || {});
   if (!ids.length || !ladeBereit) return;
-  const erzaehlt = [];
+  const erzaehlt = [], abgelehnt = [];
   ids.forEach(function (k) {
     const z = post[k] || {};
-    if (z.art === 'gegenstand' && AUSR_BY_ID[z.id]) {
+    if (z.art === 'kauf' && AUSR_BY_ID[z.id]) {
+      /* Der Laden auf der Karte prueft das Geld auch, aber er sieht einen
+         Stand, der eine Sekunde alt sein kann. Massgeblich ist diese Stelle:
+         Hier steht die Figur, und hier wird abgebucht. Reicht es nicht, wird
+         der Kauf verworfen statt ins Minus zu gehen. */
+      const a = AUSR_BY_ID[z.id];
+      if ((F.muenzen || 0) < (a.preis || 0)) {
+        abgelehnt.push(a.n + ' — dafür reicht dein Geld nicht');
+      } else {
+        F.muenzen = (F.muenzen || 0) - (a.preis || 0);
+        F.ausr.push(z.id);
+        erzaehlt.push(a.n + ' gekauft (−' + a.preis + ' M.)');
+      }
+    } else if (z.art === 'gegenstand' && AUSR_BY_ID[z.id]) {
       F.ausr.push(z.id);
       erzaehlt.push(AUSR_BY_ID[z.id].n);
     } else if (z.art === 'nehmen') {
@@ -1309,14 +1285,13 @@ function zuteilungAnnehmen(post) {
       erzaehlt.push((d >= 0 ? '+' : '') + d + ' Münzen');
     }
   });
-  if (!erzaehlt.length) {
+  if (!erzaehlt.length && !abgelehnt.length) {
     // Nichts Brauchbares drin - trotzdem raeumen, sonst bleibt es liegen.
     db.ref('figuren/' + codeJetzt() + '/zuteilung').remove().catch(function () {});
     return;
   }
-  speichern();
-  renderAlles();
-  zeigeUebergabe(erzaehlt);
+  if (erzaehlt.length) { speichern(); renderAlles(); }
+  zeigeUebergabe(erzaehlt.concat(abgelehnt));
   db.ref('figuren/' + codeJetzt() + '/zuteilung').remove().catch(function () {});
 }
 
@@ -1335,20 +1310,14 @@ function zeigeUebergabe(liste) {
   zeigeUebergabe._t = setTimeout(function () { el.className = ''; }, 6000);
 }
 
-function ladenAufschlagen() { ladenOffen = true; renderAlles(); }
-
 function muenzenAendern(d) {
   F.muenzen = Math.max(0, (F.muenzen || 0) + d);
   speichern(); renderAlles();
 }
-function kaufen(id) {
-  const a = AUSR_BY_ID[id];
-  if (!a) return;
-  if ((F.muenzen || 0) < (a.preis || 0)) return;
-  F.muenzen = (F.muenzen || 0) - (a.preis || 0);
-  F.ausr.push(id);
-  speichern(); renderAlles();
-}
+/* kaufen() stand hier und ist entfallen: Gekauft wird am Ort auf der Karte,
+   und der Kauf kommt als Eintrag im Postfach an (siehe zuteilungAnnehmen,
+   Fall "kauf"). Dort wird auch das Geld geprueft - das ist die massgebliche
+   Stelle, weil hier die Figur steht. */
 function ablegen(i) {
   const a = AUSR_BY_ID[F.ausr[i]];
   if (!a) { F.ausr.splice(i, 1); speichern(); renderAlles(); return; }

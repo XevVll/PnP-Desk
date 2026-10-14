@@ -317,6 +317,35 @@
     font-size: 22px; color: var(--gold); margin: 0 0 10px; font-weight: 400;
   }
   #overlayDesc { font-size: 14.5px; line-height: 1.6; color: var(--ink); margin: 0; }
+
+  /* ---------- Laden im Ort-Overlay ----------
+     Eingekauft wird dort, wo der Haendler steht - nicht in einem Menue im
+     Charakterfenster. Der Marker bringt sein Sortiment selbst mit
+     (Feld "laden" in der Szenendatei). (Hendriks Vorgabe, 14.10.2026.) */
+  #ladenBox {
+    margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px;
+  }
+  #ladenBox h3 {
+    font-family: Georgia, serif; font-size: 15px; color: var(--gold);
+    letter-spacing: .04em; margin: 0 0 2px;
+  }
+  #ladenBox .was { font-size: 12.5px; color: var(--ink-dim); font-style: italic; margin-bottom: 10px; }
+  #ladenBox .geld { font-size: 12.5px; color: var(--ink-dim); margin-bottom: 8px; }
+  #ladenBox .geld b { color: var(--gold); font-weight: 400; }
+  #ladenBox .ware {
+    display: flex; align-items: baseline; gap: 10px; padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  #ladenBox .ware .n { flex: 1; min-width: 7rem; font-size: 13.5px; }
+  #ladenBox .ware .n small { display: block; font-size: 11.5px; color: var(--ink-dim); line-height: 1.45; }
+  #ladenBox .ware .w { font-size: 12px; color: var(--ink-dim); white-space: nowrap; }
+  #ladenBox .ware button {
+    flex: none; background: transparent; border: 1px solid var(--line); color: var(--ink-dim);
+    border-radius: 4px; padding: 3px 11px; font-family: Georgia, serif; font-size: 12px; cursor: pointer;
+  }
+  #ladenBox .ware button:hover:not(:disabled) { border-color: var(--gold); color: var(--ink); }
+  #ladenBox .ware button:disabled { opacity: .35; cursor: default; }
+  #ladenBox .hinw { font-size: 12px; color: var(--ink-dim); font-style: italic; margin-top: 10px; line-height: 1.5; }
   #overlayClose {
     position: absolute; top: 14px; right: 18px; z-index: 10;
     background: none; border: none; color: var(--ink-dim);
@@ -671,6 +700,7 @@
       <div id="overlayBody">
         <h2 id="overlayTitle"></h2>
         <p id="overlayDesc"></p>
+        <div id="ladenBox" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -977,12 +1007,18 @@
             name: roh.name || '',
             attr: fig.attr || {},
             fert: fig.fert || {},
+            // Fuer den Laden am Ort: was die Figur hat und was sie schon traegt.
+            muenzen: (roh.muenzen == null) ? 0 : roh.muenzen,
+            ausr: fig.ausr || [],
             // Wunden und Überladung senken keine Würfelstufe mehr, sie ziehen
             // flach ab - dieselbe Funktion, die auch der Heldenbrief nutzt.
             abzug: (typeof wundenAbzug === 'function') ? wundenAbzug(fig) : 0
           };
         }
         if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
+        // Der Laden zeigt Muenzen und Getragenes - beides aendert sich, wenn
+        // der Bogen einen Kauf verbucht hat.
+        if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
       }, function () { meineFigur = null; if (wuerfelLeiste) wuerfelLeiste.neuZeichnen(); });
     }
 
@@ -1971,6 +2007,77 @@
       });
     }
 
+    /* ---------- Der Laden am Ort ----------
+       Gekauft wird NICHT direkt in die Figur geschrieben, sondern in ihr
+       Postfach figuren/{k}/zuteilung gelegt. Grund: heldenbrief.html liest
+       die Figur genau einmal und schreibt danach seine eigene Fassung hoch,
+       samt ausr und muenzen - ein Schreibzugriff von hier waere beim
+       naechsten Klick des Spielers lautlos weg. Der Bogen verbucht den Kauf,
+       prueft dabei das Geld und raeumt das Postfach.
+       Dass der Bogen dafuer laufen muss, ist der Grund, warum sein Rahmen
+       weiter unten im Voraus geladen wird. */
+    function kaufen(id) {
+      const k = figurSchluessel();
+      if (!k || !db || !meineFigur) return;
+      const a = (typeof AUSR_BY_ID !== 'undefined') ? AUSR_BY_ID[id] : null;
+      if (!a) return;
+      if ((meineFigur.muenzen || 0) < (a.preis || 0)) return;
+      db.ref('figuren/' + k + '/zuteilung').push({
+        art: 'kauf', id: id, von: 'Laden', ts: Date.now()
+      }).catch(function () { /* ohne Verbindung geht kein Handel */ });
+    }
+
+    function zeichneLaden(marker) {
+      const box = document.getElementById('ladenBox');
+      if (!box) return;
+      const l = marker && marker.laden;
+      if (!l || typeof AUSR_BY_ID === 'undefined') { box.style.display = 'none'; return; }
+      box.style.display = '';
+
+      if (!meineFigur) {
+        box.innerHTML = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
+          '<div class="was">' + escHtml(l.was || '') + '</div>' +
+          '<div class="hinw">Du hast noch keine Figur — erst erschaffen, dann einkaufen.</div>';
+        return;
+      }
+
+      const geld = meineFigur.muenzen || 0;
+      const waren = (l.waren || []).map(function (id) { return AUSR_BY_ID[id]; })
+                                   .filter(function (a) { return !!a; });
+      let h = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
+        '<div class="was">' + escHtml(l.was || '') + '</div>' +
+        '<div class="geld">Du hast <b>' + geld + '</b> Münzen.</div>';
+
+      h += waren.map(function (a) {
+        const zuTeuer = geld < (a.preis || 0);
+        const werte = [];
+        if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
+        if (a.ruest) werte.push('Rob. +' + a.ruest);
+        werte.push(a.gew + ' Gew.');
+        werte.push(a.preis + ' M.');
+        return '<div class="ware"><div class="n">' + escHtml(a.n) +
+          '<small>' + escHtml(a.d) + '</small></div>' +
+          '<div class="w">' + werte.join(' · ') + '</div>' +
+          '<button data-kauf="' + escHtml(a.id) + '"' +
+          (zuTeuer ? ' disabled title="zu teuer"' : '') + '>Kaufen</button></div>';
+      }).join('');
+
+      h += '<div class="hinw">Gekauftes landet in deinem Heldenbrief. ' +
+        'Ablegen und verkaufen geht dort, nicht hier.</div>';
+      box.innerHTML = h;
+    }
+
+    function escHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+
+    document.addEventListener('click', function (ev) {
+      const t = ev.target.closest ? ev.target.closest('[data-kauf]') : null;
+      if (t && !t.disabled) kaufen(t.dataset.kauf);
+    });
+
     let currentOverlayMarker = null;
     function openOverlay(marker) {
       overlayTitle.textContent = marker.title || '';
@@ -1988,6 +2095,7 @@
         const descText = (variant && variant.desc) || marker.desc || '';
 
         overlayDesc.textContent = descText;
+        zeichneLaden(marker);
         clearSubMarkers();
 
         if (imgSrc) {
@@ -2132,8 +2240,16 @@
       const iframe = document.getElementById('charSheetFrame');
       let loaded = false;
 
+      /* Der Bogen wird im Voraus geladen, nicht erst beim Aufklappen.
+         Er ist der einzige Schreiber auf der Figur und verbucht damit die
+         Kaeufe aus dem Laden am Ort - laege er bis zum ersten Aufklappen
+         brach, bliebe ein Kauf einfach liegen, ohne dass jemand sieht warum.
+         Kostet eine zusaetzliche Seitenladung je Spieler. */
+      function bogenLaden() { if (!loaded) { iframe.src = 'heldenbrief.html'; loaded = true; } }
+      setTimeout(bogenLaden, 1200);   // erst die Karte, dann der Bogen
+
       function openDrawer() {
-        if (!loaded) { iframe.src = 'heldenbrief.html'; loaded = true; }
+        bogenLaden();
         drawer.classList.add('open');
         backdrop.classList.add('open');
       }
