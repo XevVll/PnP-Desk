@@ -17,6 +17,11 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
 .topbar{position:sticky;top:0;z-index:120;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
 .tbin{max-width:960px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+/* Im Rahmen (Charakterfach der Karte) sitzt das Schliessen-Kreuz des Drawers
+   oben rechts und lag genau auf dem Hub-Knopf - der war dadurch nicht mehr
+   anklickbar. Nur im Rahmen Platz lassen; fuer sich allein braucht die Seite
+   ihn nicht. */
+.imRahmen .tbin{padding-right:3.2rem}
 .brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.92rem;letter-spacing:.13em;white-space:nowrap}
 .badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.1rem .55rem;white-space:nowrap}
 .badge.gold{border-color:var(--gold);color:var(--gold)}
@@ -188,10 +193,14 @@ textarea:focus{border-color:var(--gold)}
     <span class="badge" id="bCode" title="Deine Figur hängt an Name und Sitzung — melde dich auf jedem Gerät mit demselben Namen an">—</span>
 
     <span style="flex:1"></span>
-    <a class="btn" href="charaktererstellung.html">Figur ändern</a>
+    <a class="btn" href="charaktererstellung.html" target="_top">Figur ändern</a>
     <button class="btn gefahr" onclick="figurLoeschenFragen()"
       title="Diese Figur endgültig löschen">Figur löschen</button>
-    <a class="btn" href="index.html">Hub</a>
+    <!-- target="_top": Der Bogen laeuft auf der Karte in einem iframe. Ohne
+         das wuerde nur der Rahmen ins Hub springen - der Spieler saesse dann
+         vor einer Karte, in deren Charakterfach das Hub steckt. Steht die
+         Seite fuer sich, verhaelt sich _top wie ein normaler Link. -->
+    <a class="btn" href="index.html" target="_top">Hub</a>
   </div>
   <div class="tabs">
     <div class="tab on" onclick="zeigeTab(0,this)">Bogen</div>
@@ -843,6 +852,14 @@ function tagFeld(name, art, text) {
     ' data-tipn="' + esc(name) + '" data-tipk="' + esc(art === 'tal' ? 'Talent' : 'Schwäche') +
     '" data-tipt="' + esc(text) + '">' + esc(name) + '</span>';
 }
+
+/* Laeuft die Seite im Charakterfach der Karte? Der Zugriff auf window.top
+   kann bei fremder Herkunft werfen - dann ist es erst recht ein Rahmen. */
+(function imRahmen() {
+  var drin;
+  try { drin = window.top !== window.self; } catch (e) { drin = true; }
+  if (drin && document.body) document.body.classList.add('imRahmen');
+})();
 
 function renderTags() {
   const t = F.tal.map(function (i) {

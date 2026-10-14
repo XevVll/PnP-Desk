@@ -236,7 +236,10 @@ function sitzungsSperre(titel, text, knopfText, knopfZiel) {
       '<div style="font-family:' + "'Cinzel',serif" + ';font-size:1.5rem;color:#c9a84c;' +
         'letter-spacing:.06em;margin-bottom:.9rem">' + titel + '</div>' +
       '<p style="font-size:.92rem;line-height:1.7;color:#cfc8ba">' + text + '</p>' +
-      (knopfText ? '<a href="' + knopfZiel + '" style="display:inline-block;margin-top:1.4rem;' +
+      /* target="_top": Die Sperre erscheint auch im Charakterfach der Karte,
+         also in einem iframe. Ohne das fuehrte "Zum Hub" nur den Rahmen
+         dorthin, und der Spieler saesse weiter auf der Karte. */
+      (knopfText ? '<a href="' + knopfZiel + '" target="_top" style="display:inline-block;margin-top:1.4rem;' +
         'font-family:' + "'Cinzel',serif" + ';font-size:.75rem;letter-spacing:.08em;' +
         'padding:.5rem 1.1rem;border:1px solid #c9a84c;color:#c9a84c;border-radius:5px;' +
         'text-decoration:none">' + knopfText + '</a>' : '') +

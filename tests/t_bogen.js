@@ -58,7 +58,30 @@ chk('und zeigt auf das Hub', /id="zumHub"[^>]*href="index\.html"/.test(KARTE),
 chk('er ist ein echter Link, kein onclick',
   /<a id="zumHub"/.test(KARTE) && !/id="zumHub"[^>]*onclick/.test(KARTE));
 const zHub = zIndex(KARTE, '#zumHub {');
-chk('er liegt über dem offenen Bogen', zHub > zDrawer, { hub: zHub, drawer: zDrawer });
+/* Zuerst lag er UEBER dem Bogen, damit der Weg hinaus nie verstellt ist -
+   im Bild klebte er dann auf dessen Kopfzeile. Jetzt darunter. Verstellt ist
+   der Weg trotzdem nicht: Der Bogen hat seinen eigenen Hub-Knopf, und der
+   fuehrt die GANZE Seite dorthin (target="_top"). Beides gehoert zusammen -
+   deshalb steht die Pruefung dafuer direkt daneben. */
+chk('er liegt unter dem offenen Bogen', zHub < zBack && zHub < zDrawer,
+  { hub: zHub, backdrop: zBack, drawer: zDrawer });
+chk('aber über der Karte selbst', zHub > 100, zHub);
+chk('dafür führt der Hub-Knopf IM Bogen die ganze Seite',
+  /<a class="btn" href="index\.html" target="_top">Hub<\/a>/.test(BOGEN),
+  (BOGEN.match(/<a class="btn" href="index\.html"[^>]*>/) || [])[0]);
+chk('ebenso "Figur ändern"',
+  /href="charaktererstellung\.html" target="_top"/.test(BOGEN));
+/* Dieselbe Falle traf die Sitzungssperre: Sie erscheint auch im Rahmen. */
+const SITZUNG = fs.readFileSync(path.join(BASIS, 'js/sitzung.js'), 'utf8');
+chk('und die Sitzungssperre ebenso',
+  SITZUNG.indexOf('target=\"_top\"') >= 0 &&
+  SITZUNG.indexOf('knopfZiel') >= 0);
+/* Das Schliessen-Kreuz des Drawers lag auf dem Hub-Knopf des Bogens. */
+chk('im Rahmen bleibt Platz fürs Schließen-Kreuz',
+  BOGEN.indexOf('.imRahmen .tbin{padding-right') >= 0);
+chk('und die Klasse wird nur im Rahmen gesetzt',
+  BOGEN.indexOf('window.top !== window.self') >= 0 &&
+  BOGEN.indexOf("classList.add('imRahmen')") >= 0);
 /* In der Vorschau der Spielleitung hat ein Spieler-Hub nichts zu suchen -
    dieselbe Regel wie fuer Wuerfelleiste und Bogen. */
 chk('in der Vorschau ausgeblendet', KARTE.indexOf('.preview-mode #zumHub') >= 0);

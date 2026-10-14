@@ -566,11 +566,16 @@
      Oben links, weil dort als einziger Ecke nichts liegt - unten links die
      Wuerfelleiste, unten rechts der Ton, rechts die Charakterleiste, links
      mittig der Bogen-Griff.
-     z-index 380: ueber dem offenen Bogen (370), damit der Weg hinaus nie
-     verstellt ist. In der Vorschau der Spielleitung ausgeblendet - sie
-     gehoert nicht ins Spieler-Hub. */
+     z-index 340: bewusst UNTER dem Bogen (Backdrop 360, Drawer 370). Zuerst
+     lag er darueber, damit der Weg hinaus nie verstellt ist - im Bild klebte
+     er dann aber auf der Kopfzeile des aufgeschlagenen Bogens.
+     Verstellt ist der Weg trotzdem nicht: Der Bogen hat seinen eigenen
+     Hub-Knopf, und der fuehrt die GANZE Seite dorthin, nicht nur den Rahmen
+     (target="_top", siehe heldenbrief.html). (Hendriks Vorgabe.)
+     In der Vorschau der Spielleitung ausgeblendet - sie gehoert nicht ins
+     Spieler-Hub. */
   #zumHub {
-    position: fixed; top: 14px; left: 14px; z-index: 380;
+    position: fixed; top: 14px; left: 14px; z-index: 340;
     display: inline-flex; align-items: center; gap: 7px;
     background: rgba(15,12,8,0.82); border: 1px solid var(--line);
     border-radius: 20px; padding: 7px 14px;

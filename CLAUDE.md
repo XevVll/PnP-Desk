@@ -126,6 +126,37 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 9) — Der Hub-Knopf geht unter den Bogen, der im Bogen führt hinaus
+- **Hendriks Meldung mit Screenshot:** Der neue Hub-Knopf der Karte klebte auf der Kopfzeile des
+  aufgeschlagenen Bogens. Er soll **dahinter verschwinden** — und der Hub-Knopf **im Bogen** soll
+  die **ganze Seite** ins Hub führen, nicht nur das Charakterfach.
+- **Ich hatte ihn absichtlich nach oben gelegt** (z-index 380 über dem Drawer 370), mit der
+  Begründung „der Weg hinaus darf nie verstellt sein“. Die Begründung war richtig, der Schluss
+  falsch: **Der Bogen hat seinen eigenen Hub-Knopf.** Der Weg hinaus ist also gar nicht verstellt
+  — er führte nur an die falsche Stelle. Jetzt z-index **340**, unter Backdrop und Drawer.
+- **`target="_top"` für die Links des Bogens.** Der Bogen läuft auf der Karte in einem **iframe**.
+  Ohne das sprang nur der Rahmen ins Hub — der Spieler säße dann vor einer Karte, in deren
+  Charakterfach das Hub steckt. Betroffen waren **drei** Stellen, nicht eine:
+  - der Hub-Knopf und **„Figur ändern“** in `heldenbrief.html`,
+  - **`sitzungsSperre()`** in `js/sitzung.js` — die Sperre erscheint ebenfalls im Charakterfach,
+    und ihr „Zum Hub“ hätte den Spieler genauso im Rahmen gelassen. Diese dritte Stelle war
+    nicht gemeldet, hat aber denselben Fehler.
+  - Steht die Seite für sich, verhält sich `_top` wie ein normaler Link — es gibt also keinen
+    zweiten Fall zu pflegen.
+- **Dritter Fund aus demselben Screenshot, nicht gemeldet:** Das **Schließen-Kreuz des Drawers**
+  (oben rechts) lag **genau auf dem Hub-Knopf** des Bogens — im Bild nur noch als „Hu…“ zu sehen.
+  Der Knopf war damit nicht anklickbar, also ausgerechnet der Weg, den Hendrik benutzen wollte.
+  Die Kopfzeile lässt jetzt Platz, **aber nur im Rahmen** (`.imRahmen`, gesetzt über
+  `window.top !== window.self`) — für sich allein braucht die Seite ihn nicht.
+- **Getestet: 57 Prüfungen in `tests/t_bogen.js`, 0 Fehler** (6 neue). Die Ebenenprüfung ist
+  **umgedreht** statt entfernt: Der Knopf muss jetzt nachweislich **unter** Backdrop und Drawer
+  liegen, aber weiterhin über der Karte. Direkt daneben steht die Prüfung auf `target="_top"` —
+  die beiden gehören zusammen, und wer das eine zurücknimmt, soll über das andere stolpern.
+- **Wieder in die Heredoc-Falle getappt**, zum wiederholten Mal: Ein maskiertes Anführungszeichen
+  in einem Python-Skript per Bash-Heredoc zerlegte die Testzeile und machte die Datei unparsebar.
+  Erst beim zweiten Anlauf den im Projekt dokumentierten Weg genommen (Write-Werkzeug,
+  Backslash über `chr(92)`).
+
 ### 2026-10-14 (Fortsetzung 8) — Klick auf ein Talent öffnet die ganze Erklärung
 - **Hendriks Vorgabe:** Man soll ein Talent bzw. eine Schwäche auch **anklicken** können und
   dann ein richtiges Overlay bekommen.
