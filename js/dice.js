@@ -163,6 +163,15 @@ function initDiceRoller(db, options) {
   let eingeklappt = false;
   let anzahl = 1;
   let explodiert = true;
+  /* "Privat" ist eine HALTUNG, keine Einzelentscheidung: Wer verdeckt wuerfelt,
+     tut das fast immer. Der Haken stand frueher im Markup und wurde bei jedem
+     Neuzeichnen - also nach JEDEM Wurf - wieder leer gerendert; man musste ihn
+     vor jedem Wurf neu setzen. Jetzt traegt ihn der Zustand, und er ueberlebt
+     auch das Neuladen der Seite. (Hendriks Meldung, 14.10.2026.) */
+  let privat = allowPrivate && (function () {
+    try { return localStorage.getItem('korsaren_wuerfel_privat') === '1'; }
+    catch (e) { return false; }
+  })();
   let letztes = null;           // zuletzt gewürfelte Probe, für die Anzeige
   let anfrage = null;           // Bitte der Spielleitung, aus Firebase
   let anfrageSchluessel = null; // Figurenschlüssel, auf dem der Lauscher hängt
@@ -209,8 +218,12 @@ function initDiceRoller(db, options) {
   }
 
   function istPrivat() {
-    const box = document.getElementById('dicePrivate');
-    return allowPrivate && !!(box && box.checked);
+    return allowPrivate && privat;
+  }
+  function setzePrivat(an) {
+    privat = !!an;
+    try { localStorage.setItem('korsaren_wuerfel_privat', privat ? '1' : '0'); }
+    catch (e) { /* ohne Speicher gilt die Wahl nur fuer diese Sitzung */ }
   }
 
   function schreibeFeed(eintrag) {
@@ -320,7 +333,8 @@ function initDiceRoller(db, options) {
       'explodiert</button>';
     if (allowPrivate) {
       h += '<label class="wl-priv" title="Bleibt in diesem Browser, geht nie über die Datenbank">' +
-        '<input type="checkbox" id="dicePrivate"> privat</label>';
+        '<input type="checkbox" id="dicePrivate"' + (privat ? ' checked' : '') +
+        '> privat</label>';
     }
     return h + '</div>';
   }
@@ -424,6 +438,10 @@ function initDiceRoller(db, options) {
   const feedEl = document.createElement('div');
   feedEl.id = 'diceFeed';
   document.body.appendChild(feedEl);
+
+  leisteEl.addEventListener('change', function (ev) {
+    if (ev.target && ev.target.id === 'dicePrivate') setzePrivat(ev.target.checked);
+  });
 
   leisteEl.addEventListener('click', function (ev) {
     const t = ev.target.closest('button, .wl-wer');

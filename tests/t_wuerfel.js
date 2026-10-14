@@ -20,7 +20,7 @@ let f = 0, anzahl = 0;
 const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n + (c ? '' : '  <<< ' + JSON.stringify(x))); if (!c) f++; };
 
 /* ---------- Umgebung ---------- */
-function bau() {
+function bau(speicher) {
   const nachId = {};
   function knoten(tag) {
     const n = {
@@ -46,7 +46,8 @@ function bau() {
   const db = { sitzung: 'test', ref: ref };
   const ctx = {
     Math, Object, String, Array, Number, parseInt, Date, console, setTimeout,
-    localStorage: { _d: { korsaren_playername: 'Marie' }, getItem(k) { return this._d[k] || null; }, setItem(k, v) { this._d[k] = v; } },
+    localStorage: { _d: Object.assign({ korsaren_playername: 'Marie' }, speicher || {}),
+                    getItem(k) { return this._d[k] || null; }, setItem(k, v) { this._d[k] = v; } },
     firebase: { database: { ServerValue: { TIMESTAMP: 1 } } },
     document: { head: head, body: body, createElement: knoten, getElementById(id) { return nachId[id] || null; } }
   };
@@ -64,8 +65,8 @@ const FIGUR = {
   fert: { 'Kämpfen': 3, 'Segeln': 2, 'Aufmerksamkeit': 2 }
 };
 
-function start(figur, kontext, opt) {
-  const u = bau();
+function start(figur, kontext, opt, speicher) {
+  const u = bau(speicher);
   u.figur = figur;
   u.kontext = kontext || { szene: '4.1', ort: 'hoehle' };
   u.handle = u.ctx.initDiceRoller(u.db, Object.assign({
@@ -73,6 +74,12 @@ function start(figur, kontext, opt) {
     holeKontext: function () { return u.kontext; }
   }, opt || {}));
   u.markup = function () { return u.nachId['wuerfelLeiste']._html; };
+  // Den Privat-Haken so umlegen, wie es ein Mensch tut: ueber das change-
+  // Ereignis. Direkt in den Zustand zu greifen wuerde genau den Weg
+  // ueberspringen, der hier gepruefet werden soll.
+  u.privat = function (an) {
+    u.nachId['wuerfelLeiste'].on_change({ target: { id: 'dicePrivate', checked: !!an } });
+  };
   u.klick = function (treffer) {
     // Den Klick-Handler der Leiste mit einem passenden Ziel aufrufen.
     u.nachId['wuerfelLeiste'].on_click({ target: { closest: function () { return treffer; } } });
@@ -229,11 +236,47 @@ console.log('');
 console.log('=== PRIVATER WURF DER SPIELLEITUNG ===');
 u = start(FIGUR, null, { allowPrivate: true });
 chk('Privat-Haken nur dort', u.markup().indexOf('dicePrivate') >= 0);
-u.nachId['dicePrivate'] = { checked: true };
+chk('Spielerleiste hat ihn nicht', start(FIGUR).markup().indexOf('dicePrivate') < 0);
+u.privat(true);
 u.geschrieben.length = 0;
 u.klick({ dataset: { wert: 'Kämpfen', stufe: '3' } });
 chk('geht NICHT über die Datenbank', u.geschrieben.length === 0, u.geschrieben.map(g => g.p));
 chk('und nicht ins Protokoll', u.geschrieben.filter(g => g.p && g.p.indexOf('/protokoll') >= 0).length === 0);
+
+/* Hendriks Meldung vom 14.10.2026: Der Haken ging nach jedem Wurf wieder raus,
+   weil er im Markup stand und bei jedem Neuzeichnen leer gerendert wurde. Wer
+   fast immer verdeckt würfelt, musste ihn vor JEDEM Wurf neu setzen. */
+chk('Haken steht nach dem Wurf noch', u.markup().indexOf('id="dicePrivate" checked') >= 0,
+  u.markup().slice(u.markup().indexOf('dicePrivate') - 40, u.markup().indexOf('dicePrivate') + 40));
+u.geschrieben.length = 0;
+u.klick({ dataset: { frei: '6' } });
+chk('auch der zweite Wurf bleibt privat', u.geschrieben.length === 0, u.geschrieben.map(g => g.p));
+u.klick({ dataset: { ex: '1' } });   // irgendein anderes Neuzeichnen
+chk('und überlebt jedes Neuzeichnen', u.markup().indexOf('id="dicePrivate" checked') >= 0);
+
+// Abwählen wirkt sofort, nicht erst beim nächsten Zeichnen.
+u.privat(false);
+u.geschrieben.length = 0;
+u.klick({ dataset: { wert: 'Kämpfen', stufe: '3' } });
+chk('abgewählt geht der Wurf wieder raus', u.geschrieben.length > 0, u.geschrieben.map(g => g.p));
+chk('und der Haken ist leer', u.markup().indexOf('id="dicePrivate" checked') < 0);
+
+// Die Wahl ueberlebt das Neuladen: eine frische Leiste im selben Browser.
+let u2 = start(FIGUR, null, { allowPrivate: true });
+u2.ctx.localStorage._d['korsaren_wuerfel_privat'] = '1';
+u2 = start(FIGUR, null, { allowPrivate: true }, u2.ctx.localStorage._d);
+chk('nach dem Neuladen steht er wieder', u2.markup().indexOf('id="dicePrivate" checked') >= 0);
+u2.geschrieben.length = 0;
+u2.klick({ dataset: { frei: '8' } });
+chk('und wirkt auch wirklich', u2.geschrieben.length === 0, u2.geschrieben.map(g => g.p));
+
+/* Die Spielerleiste darf den Merker NICHT erben - allowPrivate ist dort aus,
+   und ein Spieler soll nicht heimlich wuerfeln koennen. */
+const u3 = start(FIGUR, null, {}, { korsaren_wuerfel_privat: '1' });
+u3.geschrieben.length = 0;
+u3.klick({ dataset: { frei: '8' } });
+chk('Spieler würfelt trotz Merker öffentlich', u3.geschrieben.length > 0,
+  u3.geschrieben.map(g => g.p));
 
 console.log('');
 console.log('OK: ' + (anzahl - f) + '   FEHLER: ' + f);
