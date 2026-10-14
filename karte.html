@@ -703,6 +703,8 @@
 <script src="js/arena_scenes.js"></script>
   <script src="js/exploration_graphs.js"></script>
   <script src="js/characters.js"></script>
+  <script src="js/identitaet.js"></script>
+  <script src="js/regelwerk.js"></script>
   <script src="js/dice.js"></script>
 
   <script>
@@ -908,7 +910,49 @@
     }
     let openMarkerRef = null; // aktuell gesetzter Präsenz-Ref, zum sauberen Aufräumen
 
+    // Die Würfelleiste braucht beides: WER würfelt (die Figur) und WO
+    // (Szene + Ort). Beides weiß diese Seite ohnehin - der Ort ist genau
+    // der Marker, dessen Overlay gerade offen ist.
+    let aktuelleSzene = null;
+    let aktuellerOrt = null;
+    let meineFigur = null;      // { schluessel, name, attr, fert, abzug }
+    let figurRef = null;
+    let wuerfelLeiste = null;
+
+    function figurSchluessel() {
+      const n = (typeof spielerName === 'function') ? spielerName() : '';
+      const k = (typeof spielerKennung === 'function') ? spielerKennung(n) : '';
+      return k || null;
+    }
+
+    function beobachteFigur() {
+      const k = figurSchluessel();
+      if (figurRef) { figurRef.off(); figurRef = null; }
+      meineFigur = null;
+      if (!k || !db) { if (wuerfelLeiste) wuerfelLeiste.neuZeichnen(); return; }
+      figurRef = db.ref('figuren/' + k);
+      figurRef.on('value', function (snap) {
+        const roh = snap.val();
+        if (!roh || typeof istFigurEcht !== 'function' || !istFigurEcht(roh)) {
+          meineFigur = null;
+        } else {
+          const fig = (typeof alsFigur === 'function') ? alsFigur(roh) : roh;
+          meineFigur = {
+            schluessel: k,
+            name: roh.name || '',
+            attr: fig.attr || {},
+            fert: fig.fert || {},
+            // Wunden und Überladung senken keine Würfelstufe mehr, sie ziehen
+            // flach ab - dieselbe Funktion, die auch der Heldenbrief nutzt.
+            abzug: (typeof wundenAbzug === 'function') ? wundenAbzug(fig) : 0
+          };
+        }
+        if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
+      }, function () { meineFigur = null; if (wuerfelLeiste) wuerfelLeiste.neuZeichnen(); });
+    }
+
     function clearOpenMarker() {
+      aktuellerOrt = null;
       if (openMarkerRef) {
         openMarkerRef.onDisconnect().cancel();
         openMarkerRef.remove();
@@ -918,6 +962,8 @@
 
     function setOpenMarker(sceneId, markerId) {
       clearOpenMarker();
+      aktuellerOrt = markerId || null;
+      if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
       // Im Admin-eigenen Vorschau-iframe (?preview=1) nicht mitzählen - sonst
       // würde ein Marker-Klick des Spielleiters in seiner eigenen Live-
       // Vorschau die Zählung für echte Spieler verfälschen.
@@ -2217,10 +2263,16 @@
             'Zum Hub', 'index.html');
         });
       }
-      initDiceRoller(db);
+      wuerfelLeiste = initDiceRoller(db, {
+        holeFigur:   function () { return meineFigur; },
+        holeKontext: function () { return { szene: aktuelleSzene, ort: aktuellerOrt }; }
+      });
+      beobachteFigur();
 
       db.ref('currentScene').on('value', function (snapshot) {
         const sceneId = snapshot.val() || getFallbackDefaultScene();
+        aktuelleSzene = sceneId;
+        if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
         statusEl.textContent = 'Verbunden';
         statusEl.className = 'connected';
         setTimeout(function () { statusEl.classList.add('hidden'); }, 1200);

@@ -104,7 +104,15 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = sitzungsDbJetzt(firebase.database());
   zeigeSitzung();
-  initDiceRoller(db, { allowPrivate: true });
+  // Die Spielleitung hat keine eigene Figur - sie fordert Proben an, statt
+  // sie zu werfen (siehe regie_figuren.html). Hier bleiben die freien Würfel
+  // für Statisten, Schaden und Zufallstabellen, dazu der Privat-Haken.
+  // Der Ort wandert mit der im Baum geöffneten Szene mit.
+  initDiceRoller(db, {
+    allowPrivate: true,
+    holeFigur:   function () { return null; },
+    holeKontext: function () { return { szene: viewState.szene, ort: null }; }
+  });
 
   db.ref('currentScene').on('value', function (snapshot) {
     liveScene = snapshot.val() || DEFAULT_SCENE;
