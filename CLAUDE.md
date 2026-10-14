@@ -110,6 +110,38 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 5) — Das Regelwerk stand noch auf W100 (Bibel §4 umgeschrieben)
+- **Hendriks Einwand, und er sitzt:** „Du sollst die Regel im Regelwerk nachlesen, nicht im
+  Code.“ Ich hatte die Explosionsregel über 200.000 Würfe „bewiesen“ — also die Umsetzung
+  gegen sich selbst geprüft. Ein Messwert sagt, **was** der Code tut, nie **ob er recht hat**.
+- **Beim Nachschlagen kam der eigentliche Fund:** Bibel §4 beschrieb noch das **W100-System**.
+  Seit dem Systemwechsel am 07.09.2026 war das die **falsche Auskunft** — fünf Wochen lang, und
+  als offener Punkt zwar vermerkt, aber nirgends sichtbar, wo jemand nachliest. Explodierende
+  Würfel und der Wild Die kamen dort überhaupt nicht vor. **Es gab also nichts nachzulesen.**
+- **Die Regel selbst hat Hendrik beigebracht** (Suchergebnis zu Savage Worlds). Sie bestätigt
+  alle fünf Punkte, und die Engine trifft jeden: Ass bei der Höchstzahl **dieses** Würfels ·
+  Kettenreaktion mit Addition · Wild Die als **separater W6**, unabhängig explodierend · das
+  **höhere** der beiden Gesamtergebnisse zählt · Zielwert 4, je volle 4 eine Steigerung.
+- **Bibel §4 neu geschrieben**, jetzt das tatsächlich gespielte System: 4.1 Die Probe ·
+  **4.2 Explodierende Würfel** · **4.3 Der Wild Die** · 4.4 Erschwernisse, Wunden, Bennies ·
+  4.5 Ränge · 4.6 das alte W100 · 4.7 Weiteres. Mit dem ausdrücklichen Satz, dass bei einem
+  Widerspruch **die Bibel gilt und nicht der Code**.
+  - **Die Verwechslung steht als Regel drin**, nicht nur als Fehlerbericht: Maßgeblich ist die
+    Höchstzahl **dieses einen Würfels**, nicht die des eigenen Werts — wer W8 hat, dessen Wild
+    Die ist trotzdem ein W6 und explodiert bei einer 6.
+  - **Das alte W100-System ist nicht gelöscht, sondern nach 4.6 verschoben.** Es beschreibt
+    weiterhin echten Code: `js/arena.js` rechnet unverändert danach. Es zu entfernen hätte den
+    Endkampf undokumentiert gelassen.
+  - Die **Archetypen** (§4.3 alt) sind als entfallen gekennzeichnet; ihr Design-Ziel — jede
+    Figur bekommt einmal ihren großen Moment — bleibt stehen.
+- **Jede Zahl im neuen Text gegen `js/regelwerk.js` nachgerechnet** (Zielwert 4, Schritt 4,
+  Wild Die W6, ungelernt W4−2, Kettendeckel 50, 3 Bennies, höchstens 3 Wunden) — eine
+  Regeldoku, die falsche Zahlen nennt, ist schlimmer als keine.
+- **Damit ist der offene Punkt vom 07.09.2026 geschlossen** („Bibel 4.1/4.2 ist ebenfalls noch
+  nicht umgeschrieben“).
+- **[OFFEN] bleibt die Arena.** `js/arena.js` rechnet weiter nach W100 — jetzt wenigstens an
+  einer Stelle dokumentiert, statt als Widerspruch zwischen zwei Systemen herumzuliegen.
+
 ### 2026-10-14 (Fortsetzung 4) — „Explodiert schon bei 6“: die Regel stimmte, die Anzeige log
 - **Hendriks Meldung mit Screenshot:** „Obwohl ich d8 habe, explodiert der Würfel schon bei
   einer 6.“
@@ -1760,7 +1792,7 @@ es gab nichts, worauf man die Figur weiterführt.
   `GUT_AB_8`-Frage offen und das System nicht am Tisch erprobt ist.
 - **[OFFEN]** `js/arena.js` rechnet weiter nach W100 (`arenaSchwellen`/`arenaBand`). Der Umbau
   gehört **vor** den geplanten Arena-Umbau (feste Zugreihenfolge, Spieler übernehmen Figuren per
-  Code), sonst wird zweimal gebaut. Bibel 4.1/4.2 ist ebenfalls noch nicht umgeschrieben.
+  Code), sonst wird zweimal gebaut. (Bibel 4.1/4.2 ist am 14.10.2026 umgeschrieben.)
 
 ### 2026-08-25 — Firebase-Sicherheitsregeln als Datei (Testmodus lief ab)
 - **Anlass:** Hendriks Meldung, der Firebase-Zugang laufe ab. Ursache sind die

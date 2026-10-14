@@ -169,7 +169,73 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 
 ## 4. Regelwerk-Kern
 
-### 4.1 Probensystem (d100)
+> **Stand 14.10.2026.** Die Figuren spielen seit dem 07.09.2026 **Savage Worlds**, nicht mehr
+> das W100-System. Dieser Abschnitt stand bis heute noch auf W100 und war damit die falsche
+> Auskunft — aufgefallen, als die Regel zu den explodierenden Würfeln nachgeschlagen werden
+> sollte und hier nichts stand. Das alte System ist nicht gelöscht, sondern nach **4.6**
+> verschoben: `js/arena.js` rechnet weiterhin danach.
+>
+> Die Umsetzung liegt in `js/regelwerk.js`. Dieser Abschnitt ist die **Regel**, der Code ihre
+> Ausführung — bei einem Widerspruch gilt, was hier steht.
+
+### 4.1 Die Probe
+
+Ein Wert ist eine **Würfelstufe**: W4 · W6 · W8 · W10 · W12. Gewürfelt wird dieser eine
+Würfel — **es wird nichts addiert und nichts zusammengezählt.**
+
+- **Zielwert ist immer 4.** Nicht der Wert bestimmt die Schwelle, sondern die Aufgabe bestimmt
+  einen Modifikator; der Zielwert bleibt 4.
+- **Je volle 4 Punkte über dem Zielwert eine Steigerung** (also ab 8 eine, ab 12 zwei, ab 16
+  drei). Eine Steigerung verbessert den Erfolg bzw. macht im Kampf mehr Schaden.
+- **Ungelernt** wird W4 mit **−2** geworfen — nicht „gar kein Würfel“. Eine ungelernte Probe
+  kann also gelingen, nur selten.
+
+**Bänder:** `Erfolg mit Steigerung` · `Erfolg` · `Misserfolg` · `Kritischer Patzer`.
+
+### 4.2 Explodierende Würfel („Ass“)
+
+- **Zeigt ein Würfel seine höchstmögliche Augenzahl, hat er ein Ass geworfen** — eine 4 beim
+  W4, eine 6 beim W6, eine 8 beim W8, eine 12 beim W12.
+- **Dieser Würfel wird sofort erneut geworfen und das Ergebnis addiert.**
+- **Kettenreaktion:** Zeigt der neue Wurf wieder die Höchstzahl, geht es weiter — theoretisch
+  unbegrenzt. (Der Code deckelt die Kette bei 50 Würfen gegen eine Endlosschleife.)
+
+**Entscheidend, und am Tisch die häufigste Verwechslung:** Maßgeblich ist die Höchstzahl
+**dieses einen Würfels**, nicht die des eigenen Werts. Wer Willenskraft W8 hat, dessen Wild Die
+ist trotzdem ein W6 und explodiert folglich bei einer **6**. Das ist kein Fehler.
+(Genau so gemeldet am 14.10.2026 — siehe CLAUDE.md.)
+
+### 4.3 Der Wild Die
+
+- Jede **Heldenfigur** (Wild Card) wirft bei jeder Probe zusätzlich einen **separaten W6**.
+- Dieser W6 hängt **nicht** am eigenen Wert — er ist bei W4 derselbe wie bei W12.
+- **Beide Würfel explodieren unabhängig voneinander.**
+- **Gewertet wird das höhere der beiden Gesamtergebnisse**, nie die Summe.
+- **Statisten** (Extras) haben keinen Wild Die.
+- **Kritischer Patzer:** beide Würfel zeigen eine natürliche 1.
+
+Der Wild Die ist das Einzige, was eine Spielerfigur von einem Statisten trennt, und er trägt bei
+niedrigen Werten am meisten: Auf W4 gelingt eine Probe mit ihm zu 62,5 % statt zu 25 %.
+
+### 4.4 Erschwernisse, Wunden, Bennies
+
+- **Erschwernisse sind flache Modifikatoren** (−2, −4 …), keine gesenkten Würfelstufen und
+  keine erhöhten Zielzahlen. „Du brauchst eine 8“ **ist** −4, weil der Zielwert immer 4 bleibt.
+- **Jede Wunde zieht flach 1 ab** (höchstens 3), ebenso Überladung.
+  „Angeschlagen“ kostet **keinen** Abzug — das ist eine Zeitstrafe.
+- **Bennies:** 3 je Sitzung (mit dem Talent *Glückspilz* 4). Einer davon wiederholt eine
+  misslungene Probe vollständig; das bessere Ergebnis zählt.
+
+### 4.5 Ränge und Steigerungen
+
+Novize → Erfahren → Veteran → Heroisch → Legendär, je vier Steigerungen ein Rang. Am Rang
+hängen die Talente. Neue Figuren sind **Novize**, sofern die Spielleitung je Sitzung nichts
+anderes freigibt; erspielte Steigerungen können den Rang nur **heben**, nie senken.
+
+### 4.6 ⚠ Das alte W100-System — nur noch in der Arena
+
+Die **Kampf-Arena des Endkampfs** (`js/arena.js`, Szene `15.1`) rechnet weiterhin nach diesem
+System. Es gilt **nicht** mehr für Figuren­proben, und die Umstellung steht aus.
 
 `Schwelle = Wert × 10`
 
@@ -181,30 +247,22 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 | Misserfolg | Rest |
 
 **Beispiel** (Wert 5 + Mastery, Schwelle 50): 1–25 Gut · 26–50 Normal · 51–75 Schlecht ·
-76–100 Miss.
+76–100 Miss. **Ohne Mastery** entfällt das Band „Schlechter Erfolg“ — es fällt in den
+Misserfolg, die Zahlenschwellen verschieben sich dabei **nicht**. **Bedrängnis:** jeder
+zusätzliche Angreifer verschiebt das Ergebnis um ein Band nach unten.
 
-**Ohne Mastery** (Rohling) entfällt das Band „Schlechter Erfolg" — es fällt in den Misserfolg.
-Die Zahlenschwellen selbst verschieben sich dabei **nicht**.
+**Entfallen:** Die vier **Archetypen** (Seemann/Gelehrter/Fuchs/Schatten) sind am 06.09.2026
+ersatzlos gestrichen worden — ein Paket, das Werte vorab füllt, überspringt genau den Weg der
+geführten Erschaffung. Das Design-Ziel dahinter bleibt gültig: **jede Figur soll über den
+Abenteuerbogen mindestens einmal ihren großen Moment bekommen.**
 
-### 4.2 Mastery
-- Fertigkeiten: schaltet bei Wert 4 frei, kostet 3 EP
-- Grundwerte: schaltet bei GW 5 frei
-- Mastery verschiebt keine Schwellen, sie schaltet lediglich das Band „Schlechter Erfolg" frei
+### 4.7 Weiteres
 
-### 4.3 Archetypen
-Vier Archetypen: **Seemann · Gelehrter · Fuchs · Schatten**
-Jeder kostet exakt 30 EP, dazu 10 freie EP zur Individualisierung.
-
-Design-Ziel: Über den gesamten Abenteuerbogen soll **jeder der vier Archetypen mindestens
-einmal seinen großen Moment** bekommen. (Beispiel: Der Gelehrte bekommt seinen bei der
-Entschlüsselung der Ritual-Schriftrollen nach dem Artefakthandel.)
-
-### 4.4 Weitere Mechaniken
-- **Bedrängnis:** Jeder zusätzliche Angreifer verschiebt das Ergebnis um ein Band nach unten.
-- **Fortschritt** ist an Fertigkeitsschwellen gekoppelt, nicht direkt kaufbar — soll sich
-  verdient und nicht linear anfühlen.
+- **Fortschritt** ist an Steigerungen gekoppelt, nicht direkt kaufbar — soll sich verdient und
+  nicht linear anfühlen.
 - **Meiern / Liar's Dice** (Tavernen-Würfelspiel): `!roll 2d6`, Paare schlagen Summen,
-  (2,1) „Mariner" schlägt alles.
+  (2,1) „Mariner“ schlägt alles.
+
 
 ---
 
