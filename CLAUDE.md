@@ -110,6 +110,28 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 4) — „Explodiert schon bei 6“: die Regel stimmte, die Anzeige log
+- **Hendriks Meldung mit Screenshot:** „Obwohl ich d8 habe, explodiert der Würfel schon bei
+  einer 6.“
+- **Nachgerechnet, nicht geschätzt — und die Regel ist richtig:** Explodiert war nicht sein
+  Wertwürfel, sondern der **Wild Die**, und der ist **immer ein d6**, egal ob der eigene Wert d4
+  oder d12 ist. Über 40.000 Würfe je Stufe: **kein einziger Nachwurf bei einer anderen Zahl als
+  der eigenen Höchstzahl**, keine Zahl außerhalb des Würfels.
+- **Falsch war die Anzeige.** Dort stand ein blankes „**explodiert!**“ — das liest sich als
+  Aussage über den eigenen Würfel, und der Zusatz „Wild Die: d6“ ging daneben unter. Zwei
+  Änderungen:
+  - Die Explosion **nennt ihre Zahl**: „d6 6 + 4 = 10 **explodiert bei 6**“. Damit beantwortet die
+    Zeile die Frage „warum bei 6?“ selbst.
+  - Der Wild Die heißt jetzt „**Wild Die (immer d6)**“. Das steht **fest da und nicht nur als
+    Tooltip**: Die Verwechslung mit dem eigenen Wert passiert genau in dem Moment, in dem man das
+    Ergebnis liest, und dort greift niemand zur Maus. Der Tooltip erklärt zusätzlich, wozu der
+    Würfel überhaupt da ist.
+- **Getestet: 78 Prüfungen in `t_wuerfel.js`, 0 Fehler** (18 neue). Geprüft wird beides — die
+  Regel und der Text, den sie erzeugt. **Hendriks Wurf ist dabei exakt nachgestellt** (Willenskraft
+  d8 zeigt 7, der Wild Die explodiert auf 6 und wirft 4 nach), indem die Zufallszahlen gesetzt
+  werden: Die Zeile nennt die 6, der Wertwürfel explodiert nachweislich **nicht**, und ein blankes
+  „explodiert!“ kommt nirgends mehr vor.
+
 ### 2026-10-14 (Fortsetzung 3) — Der Privat-Haken bleibt stehen
 - **Hendriks Meldung:** „Wenn ich einen Wurf als SL privat stelle, geht der Haken nach dem Wurf
   sofort wieder raus … ich würde öfter privat als öffentlich.“

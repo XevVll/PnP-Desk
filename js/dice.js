@@ -136,6 +136,7 @@ const DICE_STIL = [
   '#wuerfelLeiste .wl-zeile.aus{opacity:.45}',
   '#wuerfelLeiste .wl-zeile em{font-style:normal;color:#e6ddc7}',
   '#wuerfelLeiste .wl-zaehlt{color:#5fae9f;font-size:10px;letter-spacing:.05em}',
+  '#wuerfelLeiste .wl-fest{font-size:10.5px;color:#8a8172}',
   '#wuerfelLeiste .wl-deut{color:#e6ddc7;font-size:12px;margin-top:3px}',
   '#wuerfelLeiste .wl-b-steigerung{color:#e8c96a}#wuerfelLeiste .wl-b-erfolg{color:#5fae9f}',
   '#wuerfelLeiste .wl-b-miss{color:#a89d81}#wuerfelLeiste .wl-b-patzer{color:#c0504a}',
@@ -338,9 +339,15 @@ function initDiceRoller(db, options) {
     }
     return h + '</div>';
   }
+  /* Jeder Wuerfel explodiert bei SEINER eigenen Hoechstzahl - der Wild Die ist
+     immer ein d6, also bei 6, auch wenn der eigene Wert d8 oder d12 ist. Genau
+     das stand hier als blankes "explodiert!" und wurde als Aussage ueber den
+     eigenen Wuerfel gelesen ("obwohl ich d8 habe, explodiert er schon bei 6").
+     Die Zahl steht deshalb dabei. (Hendriks Meldung, 14.10.2026.) */
   function kette(w, seiten) {
     const k = w.teile.length > 1 ? w.teile.join(' + ') + ' = ' + w.summe : String(w.summe);
-    return 'd' + seiten + ' <em>' + k + '</em>' + (w.teile.length > 1 ? ' explodiert!' : '');
+    return 'd' + seiten + ' <em>' + k + '</em>' +
+      (w.teile.length > 1 ? ' explodiert bei ' + seiten : '');
   }
   function chip(name, stufe) {
     return '<button type="button" class="wl-chip" data-wert="' + esc(name) +
@@ -364,7 +371,13 @@ function initDiceRoller(db, options) {
         kette(r.wert, r.seiten) +
         (r.zaehlt === 'wert' ? ' <span class="wl-zaehlt">— zählt</span>' : '') + '</div>';
     if (r.wildWurf) {
-      h += '<div class="wl-zeile' + (r.zaehlt === 'wild' ? '' : ' aus') + '">Wild Die: ' +
+      /* "(immer d6)" steht fest da und nicht nur als Tooltip: Die Verwechslung
+         mit dem eigenen Wert passiert genau in dem Moment, in dem man das
+         Ergebnis liest, und dort greift niemand zur Maus. */
+      h += '<div class="wl-zeile' + (r.zaehlt === 'wild' ? '' : ' aus') +
+        '" title="Jede Heldenfigur wirft zusätzlich diesen Würfel, unabhängig vom eigenen ' +
+        'Wert. Der höhere der beiden zählt.">Wild Die <span class="wl-fest">(immer d' +
+        r.wildSeiten + ')</span>: ' +
         kette(r.wildWurf, r.wildSeiten) +
         (r.zaehlt === 'wild' ? ' <span class="wl-zaehlt">— zählt</span>' : '') + '</div>';
     }

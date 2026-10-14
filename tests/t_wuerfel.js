@@ -233,6 +233,49 @@ u.lauscher['figuren/marie/anfrage#value']({ val: () => ({ wert: 'Kämpfen', mod:
 chk('eine Bitte klappt von selbst auf', u.markup().indexOf('bittet um') >= 0);
 
 console.log('');
+console.log('=== JEDER WUERFEL EXPLODIERT BEI SEINER EIGENEN HOECHSTZAHL ===');
+/* Hendriks Meldung vom 14.10.2026: "Obwohl ich d8 habe, explodiert der Wuerfel
+   schon bei einer 6." Die Regel war richtig - explodiert war der WILD DIE, und
+   der ist immer ein d6. Falsch war die Anzeige: ein blankes "explodiert!" las
+   sich als Aussage ueber den eigenen Wuerfel. Geprueft wird deshalb beides:
+   die Regel und der Text, den sie erzeugt. */
+const RW2 = require(path.join(BASIS, 'js/regelwerk.js'));
+[4, 6, 8, 10, 12].forEach(function (seiten) {
+  let fremd = 0, bereich = 0;
+  for (let i = 0; i < 40000; i++) {
+    const w = RW2.wuerfelWurf(seiten);
+    // Jedes Teilergebnis AUSSER dem letzten muss die Hoechstzahl sein.
+    for (let k = 0; k < w.teile.length - 1; k++) if (w.teile[k] !== seiten) fremd++;
+    if (w.teile.some(function (t) { return t < 1 || t > seiten; })) bereich++;
+  }
+  chk('d' + seiten + ': wirft nur bei ' + seiten + ' erneut', fremd === 0, fremd);
+  chk('d' + seiten + ': keine Zahl ausserhalb', bereich === 0, bereich);
+});
+chk('der Wild Die ist immer d6', RW2.wurf(5, {}).wildSeiten === 6 && RW2.wurf(1, {}).wildSeiten === 6);
+chk('der Wertwuerfel folgt der Stufe', RW2.wurf(5, {}).seiten === RW2.wuerfelSeiten(5));
+
+/* Jetzt genau Hendriks Wurf nachstellen: Willenskraft d8 zeigt 7, der Wild Die
+   explodiert auf 6 und wirft 4 nach. Die Zufallszahlen werden dafuer gesetzt. */
+u = start(FIGUR, null, { allowPrivate: true });
+(function () {
+  const folge = [0.80, 0.90, 0.55];   // d8 -> 7 ; d6 -> 6, dann 4
+  let i = 0;
+  const echt = u.ctx.Math;
+  u.ctx.Math = Object.create(echt);
+  u.ctx.Math.random = function () { return i < folge.length ? folge[i++] : 0.4; };
+  u.klick({ dataset: { wert: 'Willenskraft', stufe: '3' } });
+  u.ctx.Math = echt;
+})();
+const erg = u.markup();
+chk('der Wurf ist der gemeldete', erg.indexOf('d8 <em>7</em>') >= 0 &&
+  erg.indexOf('d6 <em>6 + 4 = 10</em>') >= 0, erg.slice(erg.indexOf('wl-erg'), erg.indexOf('wl-deut')));
+chk('die Explosion nennt ihre Zahl', erg.indexOf('explodiert bei 6') >= 0);
+chk('der WERT-Wuerfel explodiert nicht', erg.indexOf('explodiert bei 8') < 0);
+chk('kein blankes "explodiert!" mehr', erg.indexOf('explodiert!') < 0);
+chk('der Wild Die sagt, dass er immer d6 ist', erg.indexOf('(immer d6)') >= 0);
+chk('und er ist es, der zaehlt', erg.indexOf('zählt') >= 0);
+
+console.log('');
 console.log('=== PRIVATER WURF DER SPIELLEITUNG ===');
 u = start(FIGUR, null, { allowPrivate: true });
 chk('Privat-Haken nur dort', u.markup().indexOf('dicePrivate') >= 0);
