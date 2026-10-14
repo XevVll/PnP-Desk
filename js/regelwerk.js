@@ -555,7 +555,14 @@ function alsFigur(roh) {
   f.attributImRang = !!roh.attributImRang;
   f.muenzen = (roh.muenzen == null) ? STARTGELD : roh.muenzen;
   f.angeschlagen = !!roh.angeschlagen;
-  f.wunden = Math.max(0, Math.min(MAX_WUNDEN, roh.wunden || 0));
+  /* MAX_WUNDEN + 1, nicht MAX_WUNDEN: Die vierte Wunde IST der Zustand
+     "ausser Gefecht" - ausserGefecht() prueft genau auf > MAX_WUNDEN, und
+     wundenAbzug() klemmt ohnehin selbst nochmal. Wer hier auf 3 klemmt,
+     loescht den Zustand bei jedem Laden still weg: Der Heldenbrief setzt 4
+     (setWunden(4)), nach dem naechsten Oeffnen stand die Figur wieder mit
+     drei Wunden im Spiel. Gefunden 14.10.2026.
+  */
+  f.wunden = Math.max(0, Math.min(MAX_WUNDEN + 1, roh.wunden || 0));
   f.benniesUebrig = (roh.benniesUebrig == null) ? null : roh.benniesUebrig;
   f.notizen = roh.notizen || '';
   return f;

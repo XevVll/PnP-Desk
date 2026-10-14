@@ -56,6 +56,51 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .brief span{font-size:.75rem;color:#cfc8ba;line-height:1.55}
 .brief .fehlt{color:var(--gray);font-style:italic}
 .alt{font-size:.62rem;color:var(--gray);font-style:italic;margin-top:.5rem;text-align:right}
+
+/* ---- Anfordern ---- */
+.w.kl{cursor:pointer;transition:border-color .15s}
+.w.kl:hover{border-color:var(--gold)}
+.w.kl.gewaehlt{border-color:var(--gold);background:var(--lgold)}
+.ersch{display:flex;gap:.2rem;align-items:center}
+.ersch .e{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.06em;border:1px solid var(--border);
+  background:transparent;color:var(--gray);border-radius:4px;padding:.2rem .45rem;cursor:pointer;line-height:1.3}
+.ersch .e b{display:block;font-size:.52rem;color:var(--gray);font-weight:400}
+.ersch .e.on{border-color:var(--gold);background:var(--lgold);color:var(--gold)}
+.ersch .e.on b{color:var(--gold)}
+.anf{margin-top:.5rem;border:1px solid rgba(201,168,76,.45);background:var(--lgold);border-radius:5px;
+  padding:.45rem .6rem;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.anf .t{font-size:.74rem;flex:1;min-width:8rem}
+.anf .t b{font-family:'Cinzel',serif;color:var(--gold)}
+.wartet{margin-top:.5rem;border:1px dashed rgba(42,157,143,.6);border-radius:5px;padding:.35rem .6rem;
+  font-size:.72rem;color:#8fe0d6;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.wartet .t{flex:1;min-width:8rem}
+.wartet button{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
+  border:1px solid rgba(255,255,255,.2);color:var(--gray);border-radius:4px;padding:.16rem .5rem;cursor:pointer}
+.wartet button:hover{border-color:var(--gold);color:var(--ink)}
+
+/* ---- Protokoll ---- */
+.pszene{margin-bottom:1.1rem}
+.pszene>h3{font-family:'Cinzel',serif;color:var(--gold);font-size:.84rem;letter-spacing:.08em;
+  border-bottom:1px solid var(--border);padding-bottom:.25rem;margin-bottom:.45rem}
+.port{margin:0 0 .7rem .2rem}
+.port>h4{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.12em;color:var(--gray);
+  text-transform:uppercase;margin-bottom:.25rem}
+.pz{display:flex;gap:.5rem;align-items:baseline;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+  flex-wrap:wrap}
+.pz .l{flex:1;min-width:10rem;font-size:.78rem}
+.pz .l b{font-family:'Cinzel',serif;font-size:.78rem}
+.pz .r{font-size:.72rem;font-family:'Cinzel',serif;letter-spacing:.04em}
+.pz .r.b-steigerung{color:#8fe0d6}.pz .r.b-erfolg{color:var(--teal)}
+.pz .r.b-miss{color:var(--gray)}.pz .r.b-patzer{color:#e08080}
+.pz .k{background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:4px;
+  font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.06em;padding:.12rem .45rem;cursor:pointer}
+.pz .k:hover{border-color:var(--gold);color:var(--ink)}
+.pz .k.hat{border-color:rgba(42,157,143,.6);color:#8fe0d6}
+.pnotiz{padding:.1rem 0 .35rem 1rem;font-size:.78rem;color:#8fe0d6;font-style:italic;line-height:1.55}
+.pedit{padding:.25rem 0 .45rem 1rem;display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
+.pedit input{flex:1;min-width:11rem;font-family:'Libre Baskerville',Georgia,serif;font-size:.78rem;
+  background:rgba(0,0,0,.3);color:var(--ink);border:1px solid var(--border);border-radius:4px;padding:.3rem .5rem}
+.pedit input:focus{outline:none;border-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -63,7 +108,10 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <div class="topbar">
   <div class="brand">⚓ FIGUREN AM TISCH</div>
   <span class="badge" id="anzahl">—</span>
+  <div class="ersch" id="erschLeiste"></div>
   <span style="flex:1"></span>
+  <button class="btn on" id="btnFiguren" onclick="setzeAnsicht('figuren')">Figuren</button>
+  <button class="btn" id="btnProtokoll" onclick="setzeAnsicht('protokoll')">Würfe</button>
   <button class="btn on" id="btnBrief" onclick="toggleBrief()">Steckbrief</button>
   <button class="btn" id="btnAlle" onclick="toggleAlle()">alle Fertigkeiten</button>
 </div>
@@ -79,6 +127,19 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
+<!-- Nur fuer die Klartext-Namen im Protokoll: ein Wurf traegt "4.1" und
+     "schiffswrack", vorlesbar ist aber erst "Schatzinsel - Die gestrandete
+     Golden Lion". -->
+<script src="js/scenes.js"></script>
+<script src="js/golden_lion_scenes.js"></script>
+<script src="js/schatzinsel_scenes.js"></script>
+<script src="js/spanischer_hafen_scenes.js"></script>
+<script src="js/schmugglernest_scenes.js"></script>
+<script src="js/artefakthandel_scenes.js"></script>
+<script src="js/riffinsel_scenes.js"></script>
+<script src="js/grabesinsel_scenes.js"></script>
+<script src="js/abspann_scenes.js"></script>
+<script src="js/arena_scenes.js"></script>
 <script>
 /* ==========================================================
    FIGUREN AM TISCH — Uebersicht fuer die Spielleitung
@@ -94,13 +155,38 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
    bekannt ist. Diese Seite zeigt Geheimnisse der Figuren; sie
    gehoert nicht in die Haende der Spieler.
 
-   Nur lesend. Geaendert wird eine Figur ausschliesslich von
-   ihrem Spieler im Assistenten - sonst gaebe es zwei Quellen
-   fuer denselben Wert.
+   Die Werte sind nur lesend. Geaendert wird eine Figur
+   ausschliesslich von ihrem Spieler im Assistenten - sonst gaebe
+   es zwei Quellen fuer denselben Wert.
+   SEIT 10/2026 schreibt die Seite trotzdem an zwei Stellen, und
+   beide fassen die Figur selbst nicht an:
+     figuren/{schluessel}/anfrage          - eine Bitte zu wuerfeln
+     sitzungen/{sid}/protokoll/{id}/notiz  - der Kommentar der SL
+   Eine Anforderung ist eine Nachricht an den Spieler, keine
+   Aenderung an seiner Figur; gewuerfelt wird weiterhin bei ihm.
    ========================================================== */
 
 let figuren = {};
 let zeigeBrief = true, zeigeAlle = false;
+
+let db = null;
+let ansicht = 'figuren';   // 'figuren' | 'protokoll'
+let erschwernis = 0;       // gilt fuer die naechste Anforderung
+let menu = null;           // {pid, wert} - offenes Anforderungs-Menue
+let protokoll = {};        // Firebase-Schluessel -> Wurfzeile
+let kommentiert = null;    // Schluessel der Zeile, die gerade kommentiert wird
+
+/* Die vier Stufen, die am Tisch wirklich vorkommen. Savage Worlds
+   erschwert ueber flache Modifikatoren, nicht ueber hoehere Zielzahlen -
+   "du brauchst eine 8" IST -4, weil das Ziel immer 4 ist. Deshalb steht
+   beides am Knopf: der Modifikator, mit dem gerechnet wird, und die Zahl,
+   die die Spielleitung vorliest. */
+const ERSCHWERNISSE = [
+  { mod:  2, n: 'leicht' },
+  { mod:  0, n: 'normal' },
+  { mod: -2, n: 'schwer' },
+  { mod: -4, n: 'sehr schwer' }
+];
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -108,10 +194,63 @@ function esc(s) {
   });
 }
 
+/* ---------- Klartext-Namen fuer das Protokoll ----------
+   Dieselbe Sammlung wie in karte.html, nur fuer Namen: Szenen-Label und
+   Marker-Titel. Einmal beim Laden aufgebaut, danach ein reiner Lookup. */
+const SZENEN_LABEL = {};
+const ORT_TITEL = {};
+(function sammleNamen() {
+  const quellen = [
+    typeof SCENES !== 'undefined' ? SCENES : null,
+    typeof GOLDEN_LION_SCENES !== 'undefined' ? GOLDEN_LION_SCENES : null,
+    typeof SCHATZINSEL_SCENES !== 'undefined' ? SCHATZINSEL_SCENES : null,
+    typeof SPANISCHER_HAFEN_SCENES !== 'undefined' ? SPANISCHER_HAFEN_SCENES : null,
+    typeof SCHMUGGLERNEST_SCENES !== 'undefined' ? SCHMUGGLERNEST_SCENES : null,
+    typeof ARTEFAKTHANDEL_SCENES !== 'undefined' ? ARTEFAKTHANDEL_SCENES : null,
+    typeof RIFFINSEL_SCENES !== 'undefined' ? RIFFINSEL_SCENES : null,
+    typeof GRABESINSEL_SCENES !== 'undefined' ? GRABESINSEL_SCENES : null,
+    typeof ABSPANN_SCENES !== 'undefined' ? ABSPANN_SCENES : null,
+    typeof ARENA_SCENES !== 'undefined' ? ARENA_SCENES : null
+  ];
+  const basen = [typeof GOLDEN_LION_MARKERS_BASE !== 'undefined' ? GOLDEN_LION_MARKERS_BASE : null];
+  basen.forEach(function (b) {
+    if (!b) return;
+    Object.keys(b).forEach(function (id) { if (b[id] && b[id].title) ORT_TITEL[id] = b[id].title; });
+  });
+  quellen.forEach(function (q) {
+    if (!q) return;
+    Object.keys(q).forEach(function (sid) {
+      const sz = q[sid] || {};
+      if (sz.label) SZENEN_LABEL[sid] = sz.label;
+      (sz.markers || []).forEach(function (m) {
+        if (m && m.id && m.title) ORT_TITEL[m.id] = m.title;
+      });
+    });
+  });
+})();
+
+function szenenLabel(id) {
+  if (!id) return 'Ohne Szene';
+  return SZENEN_LABEL[id] ? SZENEN_LABEL[id] + ' (' + id + ')' : id;
+}
+function ortTitel(id) {
+  if (!id) return 'Nicht an einem Ort';
+  return ORT_TITEL[id] || id;
+}
+
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
-    const db = sitzungsDbJetzt(firebase.database());
+    db = sitzungsDbJetzt(firebase.database());
+    if (db.sitzung) {
+      /* Das Protokoll liegt NICHT unter dem Spielstand, sondern direkt an der
+         Sitzung - es ist das Gedaechtnis des Abends und soll einen
+         Szenenwechsel oder ein Zuruecksetzen des Spielstands ueberleben. */
+      db.ref('sitzungen/' + db.sitzung + '/protokoll').on('value', function (s) {
+        protokoll = s.val() || {};
+        if (ansicht === 'protokoll') render();
+      }, function () { protokoll = {}; });
+    }
     db.ref('figuren').on('value', function (s) {
       figuren = s.val() || {};
       render();
@@ -134,8 +273,77 @@ function warnung(t) {
    js/regelwerk.js gewandert, weil der Heldenbrief dieselbe
    Normalisierung braucht - zwei Kopien waeren zwei Wahrheiten. */
 
-function wertChip(name, stufe) {
-  return '<span class="w d' + stufe + '">' + esc(name) + ' <b>' + DLBL[stufe] + '</b></span>';
+/* Jeder Wert ist anklickbar - ein Klick fordert ihn an. Die Seite war
+   bisher bewusst rein lesend, und das bleibt sie fuer die FIGUR: Eine
+   Anforderung aendert keinen einzigen Wert, sie legt eine Bitte daneben.
+   Gewuerfelt wird weiterhin ausschliesslich beim Spieler. */
+function wertChip(name, stufe, pid) {
+  const offen = menu && menu.pid === pid && menu.wert === name;
+  return '<span class="w kl d' + stufe + (offen ? ' gewaehlt' : '') +
+    '" data-pid="' + esc(pid) + '" data-wert="' + esc(name) +
+    '" title="anfordern">' + esc(name) + ' <b>' + DLBL[stufe] + '</b></span>';
+}
+
+function zeichneErschwernis() {
+  document.getElementById('erschLeiste').innerHTML =
+    ERSCHWERNISSE.map(function (e) {
+      return '<button class="e' + (e.mod === erschwernis ? ' on' : '') +
+        '" data-ersch="' + e.mod + '">' + (e.mod > 0 ? '+' : '') + e.mod +
+        '<b>nötig ' + (ZIELZAHL - e.mod) + '</b></button>';
+    }).join('');
+}
+
+/* ---------- Anfordern ----------
+   Geschrieben wird nach figuren/{schluessel}/anfrage. Die Wuerfelleiste des
+   Spielers horcht dort und zeigt den Wert gross an; sie raeumt die Bitte
+   selbst weg, sobald gewuerfelt wurde. */
+function anfordern(pids, wertName) {
+  if (!db) return;
+  const paket = {};
+  pids.forEach(function (pid) {
+    paket['figuren/' + pid + '/anfrage'] =
+      { wert: wertName, mod: erschwernis, von: 'Spielleitung', ts: Date.now() };
+  });
+  menu = null;
+  db.ref().update(paket).catch(function (e) {
+    warnung('Die Anforderung ging nicht durch: ' + (e && e.message ? e.message : 'unbekannt'));
+  });
+  render();
+}
+
+function anfrageWeg(pid) {
+  if (!db) return;
+  menu = null;
+  db.ref('figuren/' + pid + '/anfrage').remove().catch(function () {});
+  render();
+}
+
+/* Wer kann diesen Wert ueberhaupt? Eine Gruppenprobe geht an jede Figur,
+   auch an die ungelernte - genau das ist der Sinn: Alle versuchen es, und
+   wer es nicht kann, wuerfelt d4-2. Ausser Gefecht wird uebersprungen. */
+function gruppe() {
+  return Object.keys(figuren).filter(function (pid) {
+    const f = alsFigur(figuren[pid] || {});
+    return !ausserGefecht(f);
+  });
+}
+
+function anfrageBlock(pid, roh) {
+  const a = roh.anfrage;
+  if (!a) return '';
+  return '<div class="wartet"><span class="t">Wartet auf <b>' + esc(a.wert) + '</b> — nötig ' +
+    (ZIELZAHL - (a.mod || 0)) + (a.mod ? ' (' + (a.mod > 0 ? '+' : '') + a.mod + ')' : '') +
+    '</span><button data-weg="' + esc(pid) + '">zurücknehmen</button></div>';
+}
+
+function menuBlock(pid) {
+  if (!menu || menu.pid !== pid) return '';
+  const n = gruppe().length;
+  return '<div class="anf"><span class="t"><b>' + esc(menu.wert) + '</b> anfordern — nötig ' +
+    (ZIELZAHL - erschwernis) + '</span>' +
+    '<button class="btn" data-einzeln="1">nur diese Figur</button>' +
+    '<button class="btn" data-alle="1">von allen (' + n + ')</button>' +
+    '<button class="btn" data-abbruch="1">✕</button></div>';
 }
 
 function alterText(ts) {
@@ -148,7 +356,99 @@ function alterText(ts) {
   return 'vor ' + Math.floor(h / 24) + ' Tagen';
 }
 
+/* ---------- Protokoll ----------
+   Nach Szene und Ort gruppiert, damit daraus eine Zusammenfassung des Abends
+   wird und nicht eine Liste von Zahlen. Die Reihenfolge innerhalb eines Orts
+   bleibt die des Abends. */
+function protokollZeilen() {
+  return Object.keys(protokoll).map(function (k) {
+    const z = protokoll[k] || {};
+    return { k: k, szene: z.szene || '', ort: z.ort || '', spieler: z.spieler || '—',
+             figur: z.figur || '', wert: z.wert || '', stufe: z.stufe || 0,
+             band: z.band || 'miss', roh: z.roh, ziel: z.ziel,
+             steigerungen: z.steigerungen || 0, notiz: z.notiz || '', ts: z.ts || 0 };
+  }).sort(function (a, b) { return a.ts - b.ts; });
+}
+
+function bandKurz(z) {
+  let t = BAND_NAMEN[z.band] || z.band;
+  if (z.band === 'steigerung' && z.steigerungen > 1) t += ' ×' + z.steigerungen;
+  if (z.roh !== undefined && z.roh !== null) t += ' · ' + z.roh + ' gegen ' + z.ziel;
+  return t;
+}
+
+function notizSichern(k, text) {
+  kommentiert = null;
+  if (db && db.sitzung) {
+    db.ref('sitzungen/' + db.sitzung + '/protokoll/' + k + '/notiz')
+      .set(String(text || '').trim()).catch(function () {});
+  }
+  render();
+}
+
+function renderProtokoll() {
+  const zeilen = protokollZeilen();
+  document.getElementById('anzahl').textContent =
+    zeilen.length === 1 ? '1 Wurf' : zeilen.length + ' Würfe';
+
+  if (!zeilen.length) {
+    document.getElementById('inhalt').innerHTML =
+      '<div class="leer">Noch kein Wurf in dieser Sitzung.<br>' +
+      (db && db.sitzung
+        ? 'Sobald ein Spieler würfelt, erscheint er hier — mit Szene und Ort.'
+        : 'Es ist keine Sitzung gewählt. Das Protokoll hängt an der Sitzung.') +
+      '</div>';
+    return;
+  }
+
+  // Szene -> Ort -> Zeilen, Reihenfolge nach erstem Auftreten.
+  const szenen = [];
+  const sIdx = {}, oIdx = {};
+  zeilen.forEach(function (z) {
+    if (sIdx[z.szene] === undefined) { sIdx[z.szene] = szenen.length; szenen.push({ id: z.szene, orte: [] }); }
+    const sz = szenen[sIdx[z.szene]];
+    const ok = z.szene + '|' + z.ort;
+    if (oIdx[ok] === undefined) { oIdx[ok] = sz.orte.length; sz.orte.push({ id: z.ort, zeilen: [] }); }
+    sz.orte[oIdx[ok]].zeilen.push(z);
+  });
+
+  let h = '';
+  szenen.forEach(function (sz) {
+    h += '<div class="pszene"><h3>' + esc(szenenLabel(sz.id)) + '</h3>';
+    sz.orte.forEach(function (o) {
+      h += '<div class="port"><h4>' + esc(ortTitel(o.id)) + '</h4>';
+      o.zeilen.forEach(function (z) {
+        h += '<div class="pz"><span class="l"><b>' + esc(z.spieler) + '</b>' +
+             (z.figur ? ' <span style="color:var(--gray)">(' + esc(z.figur) + ')</span>' : '') +
+             ' · ' + esc(z.wert) + ' ' + (DLBL[z.stufe] || '—') + '</span>' +
+             '<span class="r b-' + esc(z.band) + '">' + esc(bandKurz(z)) + '</span>' +
+             '<button class="k' + (z.notiz ? ' hat' : '') + '" data-komm="' + esc(z.k) + '">' +
+             (z.notiz ? 'notiert' : '+ Notiz') + '</button></div>';
+        if (kommentiert === z.k) {
+          h += '<div class="pedit"><input id="kommFeld" value="' + esc(z.notiz) +
+               '" placeholder="Was ist an dieser Stelle passiert?" maxlength="300">' +
+               '<button class="btn" data-sichern="' + esc(z.k) + '">sichern</button>' +
+               '<button class="btn" data-kabbruch="1">abbrechen</button></div>';
+        } else if (z.notiz) {
+          h += '<div class="pnotiz">' + esc(z.notiz) + '</div>';
+        }
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+  document.getElementById('inhalt').innerHTML = h;
+
+  if (kommentiert !== null) {
+    const feld = document.getElementById('kommFeld');
+    if (feld) { feld.focus(); if (feld.select) feld.select(); }
+  }
+}
+
 function render() {
+  zeichneErschwernis();
+  if (ansicht === 'protokoll') { renderProtokoll(); return; }
+
   const ids = Object.keys(figuren);
   document.getElementById('anzahl').textContent =
     ids.length === 1 ? '1 Figur' : ids.length + ' Figuren';
@@ -164,10 +464,10 @@ function render() {
     const roh = figuren[pid] || {};
     const f = alsFigur(roh);
 
-    const attr = ATTRIBUTE.map(function (a) { return wertChip(a.name, f.attr[a.name] || 1); }).join('');
+    const attr = ATTRIBUTE.map(function (a) { return wertChip(a.name, f.attr[a.name] || 1, pid); }).join('');
     const fert = FERTIGKEITEN
       .filter(function (s) { return zeigeAlle || (f.fert[s.name] || 0) > 0; })
-      .map(function (s) { return wertChip(s.name, f.fert[s.name] || 0); }).join('') ||
+      .map(function (s) { return wertChip(s.name, f.fert[s.name] || 0, pid); }).join('') ||
       '<span class="brief fehlt" style="font-size:.72rem">nichts gelernt</span>';
 
     const tal = f.tal.map(function (i) {
@@ -233,12 +533,56 @@ function render() {
         '<div class="sl">Fertigkeiten</div><div class="werte">' + fert + '</div>' +
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
         (traegt ? '<div class="sl">Trägt</div><div class="tags">' + traegt + '</div>' : '') +
+        menuBlock(pid) +
+        anfrageBlock(pid, roh) +
         brief +
         '<div class="alt">' + alterText(roh.aktualisiert) + '</div>' +
       '</div>' +
     '</div>';
   }).join('') + '</div>';
 }
+
+function setzeAnsicht(a) {
+  ansicht = a;
+  menu = null; kommentiert = null;
+  document.getElementById('btnFiguren').classList.toggle('on', a === 'figuren');
+  document.getElementById('btnProtokoll').classList.toggle('on', a === 'protokoll');
+  render();
+}
+
+document.addEventListener('click', function (ev) {
+  const t = ev.target.closest('[data-ersch],[data-pid][data-wert],[data-einzeln],[data-alle],' +
+    '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch]');
+  if (!t) return;
+
+  if (t.dataset.ersch !== undefined) {
+    erschwernis = parseInt(t.dataset.ersch, 10);
+    render(); return;
+  }
+  if (t.dataset.wert !== undefined && t.dataset.pid !== undefined) {
+    // Nochmal derselbe Wert schliesst das Menue wieder.
+    menu = (menu && menu.pid === t.dataset.pid && menu.wert === t.dataset.wert)
+      ? null : { pid: t.dataset.pid, wert: t.dataset.wert };
+    render(); return;
+  }
+  if (t.dataset.einzeln && menu) { anfordern([menu.pid], menu.wert); return; }
+  if (t.dataset.alle && menu)    { anfordern(gruppe(), menu.wert); return; }
+  if (t.dataset.abbruch)         { menu = null; render(); return; }
+  if (t.dataset.weg !== undefined) { anfrageWeg(t.dataset.weg); return; }
+  if (t.dataset.komm !== undefined) { kommentiert = t.dataset.komm; render(); return; }
+  if (t.dataset.sichern !== undefined) {
+    const feld = document.getElementById('kommFeld');
+    notizSichern(t.dataset.sichern, feld ? feld.value : ''); return;
+  }
+  if (t.dataset.kabbruch) { kommentiert = null; render(); return; }
+});
+
+// Enter sichert, Escape bricht ab - wer am Tisch tippt, greift nicht zur Maus.
+document.addEventListener('keydown', function (ev) {
+  if (!ev.target || ev.target.id !== 'kommFeld') return;
+  if (ev.key === 'Enter') notizSichern(kommentiert, ev.target.value);
+  else if (ev.key === 'Escape') { kommentiert = null; render(); }
+});
 
 function toggleBrief() {
   zeigeBrief = !zeigeBrief;
@@ -255,7 +599,15 @@ render();
 initFirebase();
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { setFiguren: function (f) { figuren = f; render(); }, alsFigur, render };
+  module.exports = {
+    setFiguren: function (f) { figuren = f; render(); },
+    setProtokoll: function (p) { protokoll = p; render(); },
+    setDb: function (d) { db = d; },
+    setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe,
+    protokollZeilen, bandKurz, szenenLabel, ortTitel,
+    alsFigur, render,
+    zustand: function () { return { ansicht, erschwernis, menu, kommentiert }; }
+  };
 }
 </script>
 </body>

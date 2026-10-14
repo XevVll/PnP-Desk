@@ -42,6 +42,13 @@ let players = {};       // { [pcId]: {name} }
 let pcRuf = {};         // { [pcId]: { [npcKey]: tier(0-4) } }
 let charStatus = {};    // { [charKey]: Freitext } - siehe charKeyFor(), global statt pro Szene
 let questDone = {};     // { [fbKey(sceneId)]: { [triggerId]: true } } - SL-Ermessen, Bibel 2.9
+/* Das Wurfprotokoll. Liegt NICHT unter dem Spielstand, sondern direkt an der
+   Sitzung (sitzungen/{sid}/protokoll) - es ist das Gedaechtnis des Abends und
+   soll einen Szenenwechsel oder ein Zuruecksetzen ueberleben. Jede Zeile traegt
+   ihre Szene und ihren Ort, deshalb laesst sich der Export daraus bauen.
+   Geschrieben wird es von js/dice.js (der Wurf) und regie_figuren.html (die
+   Notiz); hier wird es nur gelesen. */
+let protokoll = {};
 let vOpenNodes = new Set();
 let vShowAdd = null;    // 'npc' | 'pc' | null
 
@@ -136,6 +143,15 @@ try {
   db.ref('pcRuf').on('value', function (s) { pcRuf = s.val() || {}; renderAll(); });
   db.ref('charStatus').on('value', function (s) { charStatus = s.val() || {}; renderAll(); });
   db.ref('questDone').on('value', function (s) { questDone = s.val() || {}; renderAll(); });
+  /* Absoluter Pfad: Das Protokoll haengt an der Sitzung, nicht am Spielstand -
+     die Huelle laesst "sitzungen/..." deshalb unveraendert durch. Kein
+     renderAll(): Das Protokoll erscheint nur im Export, und ein Wurf je
+     Sekunde soll nicht die ganze Regie neu zeichnen. */
+  if (db.sitzung) {
+    db.ref('sitzungen/' + db.sitzung + '/protokoll')
+      .on('value', function (s) { protokoll = s.val() || {}; },
+          function () { protokoll = {}; });
+  }
 } catch (e) {
   statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft. Bitte js/firebase-config.js prüfen.';
   statusEl.className = 'status error';
@@ -1396,7 +1412,72 @@ function reputationSection() {
   });
   return blocks;
 }
-function buildSessionExportMarkdown(scopeAllScenes, regieSnapshot) {
+/* ---------- Die Wuerfe ----------
+   Reine Funktion wie der uebrige Export: nimmt das Protokoll entgegen, statt
+   es zu lesen - so ist sie offline pruefbar. Gruppiert nach Szene und Ort, in
+   zeitlicher Reihenfolge, und nennt den Kommentar der Spielleitung, falls
+   einer da ist. Die Zahl allein sagt nach zwei Wochen nichts; der Kommentar
+   ist das, was den Wurf zur Erinnerung macht. */
+function wuerfeSection(sceneIds, protokollSnapshot) {
+  const snap = protokollSnapshot || {};
+  const zeilen = Object.keys(snap).map(function (k) { return snap[k] || {}; })
+    .filter(function (z) { return z.wert; })
+    .sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+  if (!zeilen.length) return '';
+
+  const erlaubt = {};
+  sceneIds.forEach(function (id) { erlaubt[id] = true; });
+
+  let md = '';
+  sceneIds.forEach(function (sceneId) {
+    const derSzene = zeilen.filter(function (z) { return (z.szene || '') === sceneId; });
+    if (!derSzene.length) return;
+    md += '### ' + getSceneLabel(sceneId) + '\n\n';
+    /* Reihenfolge der Orte: wie sie auf der Karte stehen, nicht wie zufaellig
+       gewuerfelt wurde - der Export soll sich lesen wie die Szene. */
+    const marker = getMarkersForScene(sceneId) || [];
+    const gruppen = marker.map(function (m) { return { id: m.id, titel: m.title }; });
+    gruppen.push({ id: '', titel: 'Nicht an einem Ort' });
+    /* Ein Wurf kann einen Ort tragen, den die Szene nicht (mehr) kennt -
+       umbenannter Marker, geloeschter Sub-Ort, Wurf aus einer frueheren
+       Fassung. Ohne diese Zeilen faellt er stillschweigend aus dem Export,
+       und das ist schlimmer als eine haessliche Ueberschrift. */
+    const bekannt = {};
+    gruppen.forEach(function (g) { bekannt[g.id] = true; });
+    derSzene.forEach(function (z) {
+      const o = z.ort || '';
+      if (bekannt[o]) return;
+      bekannt[o] = true;
+      gruppen.push({ id: o, titel: o });
+    });
+    gruppen.forEach(function (g) {
+      const hier = derSzene.filter(function (z) { return (z.ort || '') === g.id; });
+      if (!hier.length) return;
+      md += '**' + g.titel + '**\n';
+      hier.forEach(function (z) {
+        md += '- ' + (z.spieler || '—') + (z.figur ? ' (' + z.figur + ')' : '') +
+          ' · ' + z.wert + ' ' + (DLBL[z.stufe] || '—') + ' — ' +
+          (BAND_NAMEN[z.band] || z.band || '?') +
+          (z.band === 'steigerung' && z.steigerungen > 1 ? ' ×' + z.steigerungen : '') +
+          ((z.roh === undefined || z.roh === null) ? '' : ' (' + z.roh + ' gegen ' + z.ziel + ')') + '\n';
+        const notiz = ((z.notiz || '') + '').trim();
+        if (notiz) md += '  _' + notiz + '_\n';
+      });
+      md += '\n';
+    });
+  });
+
+  // Wuerfe aus Szenen ausserhalb des gewaehlten Bereichs schweigend zu
+  // verlieren waere schlimmer als eine Zeile zu viel.
+  const draussen = zeilen.filter(function (z) { return !erlaubt[z.szene || '']; }).length;
+  if (draussen && md) {
+    md += '_' + draussen + (draussen === 1 ? ' weiterer Wurf' : ' weitere Würfe') +
+      ' aus anderen Szenen — über „alle Szenen“ zu sehen._\n\n';
+  }
+  return md;
+}
+
+function buildSessionExportMarkdown(scopeAllScenes, regieSnapshot, protokollSnapshot) {
   const snap = regieSnapshot || {};
   const sceneIds = scopeAllScenes ? getAllSceneEntries().map(function (e) { return e.id; }) : [viewState.szene];
   const sceneLabels = sceneIds.map(getSceneLabel).join(', ');
@@ -1455,6 +1536,11 @@ function buildSessionExportMarkdown(scopeAllScenes, regieSnapshot) {
 
   md += '## Notizen zu Orten\n\n';
   md += notesMd || '_Keine Ort-Notizen im gewählten Bereich._\n\n';
+
+  md += '## Würfe\n\n';
+  const wuerfeMd = wuerfeSection(sceneIds,
+    protokollSnapshot === undefined ? protokoll : protokollSnapshot);
+  md += wuerfeMd || '_Keine Würfe im gewählten Bereich._\n\n';
 
   md += '## Charakter-Status\n\n';
   const statusLines = characterStatusSection();

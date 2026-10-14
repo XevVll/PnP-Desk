@@ -11,6 +11,11 @@ Für die **Kampf-Arena des Endkampfs** (`15.1`) gibt es das ebenso ausführliche
 zentrale Design-Regel, dass die Arena nur bestimmt, *wie teuer* der Weg wird, nicht *ob* die
 Kernbeats des Finales geschehen. Vor jeder Arbeit an der Arena lesen.
 
+> **Würfelsystem fertig (14.10.2026):** Leiste beim Spieler, Anforderung und Protokoll in der
+> Regie, Würfe im Session-Export. Offen am Regelsystem bleibt der **Abenteuertext**
+> (311 alte Wertenamen in `js/regie.js`, 24 verwaiste „Schlechter Erfolg"-Passagen) und
+> **`js/arena.js`**, das weiter nach W100 rechnet.
+>
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
 > an diesem Strang gearbeitet wird). Der **Schatzinsel-Szenen-Durchgang** ist seit August 2026
@@ -104,6 +109,68 @@ Hendrik entwickelt Story-Inhalte selbst — keine proaktiven Inhaltsvorschläge 
 Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfinden.
 
 ## Changelog
+
+### 2026-10-14 — Die Spielleitung fordert Würfe an, und das Protokoll trägt den Abend
+- **Zweite Hälfte des Würfel-Umbaus** (die Leiste stand seit gestern, `js/dice.js`). Gebaut nach
+  Hendriks „passt. So bitte einbauen" — alles davon in `regie_figuren.html`.
+- **Jeder Wert ist anklickbar und fordert den Wurf an.** Ein Klick öffnet zwei Wege: **nur diese
+  Figur** oder **von allen (n)**. Geschrieben wird nach `figuren/{schlüssel}/anfrage`; die Leiste
+  des Spielers horcht dort, zeigt den Wert groß an und **räumt die Bitte selbst weg**, sobald
+  gewürfelt wurde.
+  - Die Gruppenanforderung geht ausdrücklich **auch an die Figur, die den Wert nicht gelernt
+    hat** — sie würfelt dann d4−2. Bliebe die Bitte aus, wüsste der Spieler aus dem Ausbleiben,
+    dass er hier nichts kann.
+  - Eine offene Bitte steht an der Karte („Wartet auf **Kämpfen** — nötig 8 (−4)") und lässt sich
+    **zurücknehmen**.
+- **Erschwernis als Modifikator UND als vorgelesene Zahl, am selben Knopf:** `+2 nötig 2 ·
+  0 nötig 4 · −2 nötig 6 · −4 nötig 8`. Das ist keine Doppelung, sondern der Punkt: In Savage
+  Worlds **ist** „du brauchst eine 8" der Modifikator −4, weil das Ziel immer 4 bleibt. Stehen
+  die beiden Zahlen nicht beieinander, rechnet die Spielleitung mit der einen und liest die
+  andere vor — genau der Fehler, der am 13.10. im Heldenbrief gefunden wurde.
+- **Das Protokoll ist das Gedächtnis des Abends.** Eigene Ansicht „Würfe", gruppiert nach
+  **Szene → Ort**, in zeitlicher Reihenfolge, Szenen- und Ortsnamen im Klartext.
+  - Es liegt unter `sitzungen/{sid}/protokoll`, **nicht** unter dem Spielstand — damit übersteht
+    es einen Szenenwechsel und ein Zurücksetzen. Kein neuer Top-Level-Pfad, **keine
+    Regeländerung** nötig.
+  - **Jeder Wurf lässt sich kommentieren** (`notiz`). Die Zahl allein sagt nach zwei Wochen
+    nichts; der Kommentar ist das, was den Wurf zur Erinnerung macht. Enter sichert, Escape
+    bricht ab — der Betrachter zeigt ohnehin kein `prompt()`, und wer am Tisch tippt, greift
+    nicht zur Maus.
+- **Die Seite war bewusst rein lesend, und bleibt es für die FIGUR.** Sie schreibt jetzt an genau
+  zwei Stellen, und beide fassen keinen Wert an: die **Bitte** daneben und die **Notiz** am Wurf.
+  Eine Anforderung ist eine Nachricht an den Spieler, keine Änderung an seiner Figur — gewürfelt
+  wird weiterhin ausschließlich bei ihm. Per Test erhoben über **alle** Schreibzugriffe, die
+  tatsächlich stattfinden, nicht über eine Liste bekannter Stellen.
+- **Neuer Abschnitt „Würfe" im Session-Export** (`wuerfeSection()` in `js/regie_vault.js`), in der
+  schon bestehenden Struktur Szene → Ort, mit dem Kommentar als eingerückte Kursivzeile. Reine
+  Funktion wie der übrige Export, also offline prüfbar.
+  - **Die Ortsreihenfolge folgt der Karte, nicht der Uhrzeit** — der Export soll sich lesen wie
+    die Szene.
+  - Würfe aus Szenen **außerhalb** des gewählten Bereichs werden gezählt und benannt statt
+    verschwiegen („3 weitere Würfe aus anderen Szenen").
+- **Echter Fehler im Regelwerk gefunden, älter als diese Arbeit:** `alsFigur()` klemmte `wunden`
+  auf `MAX_WUNDEN` (3), während `ausserGefecht()` ausdrücklich auf **> 3** prüft und
+  `wundenAbzug()` ohnehin selbst klemmt. **Der Zustand „außer Gefecht" war damit nach jedem Laden
+  der Figur still weg** — der Heldenbrief setzt 4 (`setWunden(4)`), beim nächsten Öffnen stand die
+  Figur wieder mit drei Wunden im Spiel, und die SL-Übersicht zeigte das Abzeichen nie. Aufgefallen
+  ist es erst, weil die Gruppenanforderung die Figur überspringen soll. Auf `MAX_WUNDEN + 1`
+  korrigiert; die Prüfung schlägt auf dem alten Code nachweislich an.
+- **Zwei eigene Fehler im Export, beide vom Test gefunden:**
+  1. **Ein Wurf an einem Ort, den die Szene nicht (mehr) kennt, fiel stillschweigend aus dem
+     Export** (umbenannter Marker, gelöschter Sub-Ort). Genau die Lücke, gegen die der Zähler für
+     fremde *Szenen* schon abgesichert war. Unbekannte Orte bekommen jetzt ihre eigene Gruppe.
+  2. „3 weitere **Wurfe**" — falsche Mehrzahl, Umlaut fehlte.
+- **Getestet: 671 Prüfungen über sechs Skripte** (neues `tests/t_regie_wuerfel.js` mit 106).
+  Die Seite wird dabei **wirklich ausgeführt**, nicht nur geparst — dieselbe Begründung wie bei
+  `t_wuerfel.js`: Ein nackter Bezeichner ist gültiges JavaScript und knallt erst zur Laufzeit.
+  `wuerfeSection()` wird **aus dem Quelltext von `js/regie_vault.js` geschnitten** statt
+  nachgebaut, sonst liefen Export und Anzeige auseinander. In `t_figuren.js` fällt weiterhin die
+  eine bekannte Prüfung durch („vor dem ersten Ergebnis ist die Kachel zu"), unverändert seit dem
+  13.10.
+- **[OFFEN] Das Protokoll ist für Spieler nicht verborgen.** `sitzungen` ist als Ganzes lesbar —
+  über die Browser-Konsole käme ein Spieler an die Notizen. Dasselbe Schutzniveau wie bei den
+  SL-Seiten, die allein durch ihre unbekannte Adresse geschützt sind. Eine echte Trennung bräuchte
+  die anonyme Anmeldung, die ohnehin aussteht.
 
 ### 2026-10-14 (Fortsetzung) — Fehler: Wurf und Schwelle widersprachen sich
 - **Hendriks Fund an der Würfelleisten-Vorschau:** Bei −4 stand dort „Wert: d6 5 … Ergebnis 1 …
