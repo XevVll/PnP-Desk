@@ -254,6 +254,28 @@ const RW2 = require(path.join(BASIS, 'js/regelwerk.js'));
 chk('der Wild Die ist immer d6', RW2.wurf(5, {}).wildSeiten === 6 && RW2.wurf(1, {}).wildSeiten === 6);
 chk('der Wertwuerfel folgt der Stufe', RW2.wurf(5, {}).seiten === RW2.wuerfelSeiten(5));
 
+/* Die schaerfere Frage, und Hendriks eigentliche: Ist der Wuerfel, der als d6
+   BESCHRIFTET ist, auch wirklich einer? Eine falsche Beschriftung saehe exakt
+   so aus wie der gemeldete Fehler. Deshalb nicht die Beschriftung gegen die
+   Konstante pruefen, sondern gegen die tatsaechlich gefallenen Augenzahlen. */
+[1, 2, 3, 4, 5].forEach(function (stufe) {
+  let maxWert = 0, maxWild = 0;
+  const gesehenWild = {};
+  for (let i = 0; i < 60000; i++) {
+    const r = RW2.wurf(stufe, {});
+    if (r.wert.erste > maxWert) maxWert = r.wert.erste;
+    if (r.wildWurf.erste > maxWild) maxWild = r.wildWurf.erste;
+    gesehenWild[r.wildWurf.erste] = 1;
+  }
+  const r0 = RW2.wurf(stufe, {});
+  chk('Stufe ' + stufe + ': Wertwuerfel zeigt, was draufsteht (d' + r0.seiten + ')',
+    maxWert === r0.seiten, maxWert);
+  chk('Stufe ' + stufe + ': Wild Die zeigt, was draufsteht (d' + r0.wildSeiten + ')',
+    maxWild === r0.wildSeiten, maxWild);
+  chk('Stufe ' + stufe + ': Wild Die nutzt alle sechs Seiten',
+    Object.keys(gesehenWild).length === 6, Object.keys(gesehenWild));
+});
+
 /* Jetzt genau Hendriks Wurf nachstellen: Willenskraft d8 zeigt 7, der Wild Die
    explodiert auf 6 und wirft 4 nach. Die Zufallszahlen werden dafuer gesetzt. */
 u = start(FIGUR, null, { allowPrivate: true });

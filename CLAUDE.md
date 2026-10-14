@@ -126,7 +126,13 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
     Tooltip**: Die Verwechslung mit dem eigenen Wert passiert genau in dem Moment, in dem man das
     Ergebnis liest, und dort greift niemand zur Maus. Der Tooltip erklärt zusätzlich, wozu der
     Würfel überhaupt da ist.
-- **Getestet: 78 Prüfungen in `t_wuerfel.js`, 0 Fehler** (18 neue). Geprüft wird beides — die
+- **Auf Hendriks Nachfrage („Ist das sicher?“) ein zweites Mal gemessen**, und diesmal die
+  schärfere Frage: Ist der Würfel, der als d6 **beschriftet** ist, auch wirklich einer? Eine
+  falsche Beschriftung hätte exakt wie der gemeldete Fehler ausgesehen. Geprüft wird deshalb
+  nicht die Beschriftung gegen die Konstante, sondern gegen die **tatsächlich gefallenen
+  Augenzahlen**: Der Wertwürfel zeigt 1..4 / 1..8 / 1..12 je nach Stufe, der Wild Die bleibt bei
+  **1..6 und nutzt alle sechs Seiten** — auf jeder Stufe.
+- **Getestet: 93 Prüfungen in `t_wuerfel.js`, 0 Fehler** (33 neue). Geprüft wird beides — die
   Regel und der Text, den sie erzeugt. **Hendriks Wurf ist dabei exakt nachgestellt** (Willenskraft
   d8 zeigt 7, der Wild Die explodiert auf 6 und wirft 4 nach), indem die Zufallszahlen gesetzt
   werden: Die Zeile nennt die 6, der Wertwürfel explodiert nachweislich **nicht**, und ein blankes
