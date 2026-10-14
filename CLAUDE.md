@@ -110,6 +110,27 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 
 ## Changelog
 
+### 2026-10-14 (Fortsetzung 3) — Der Privat-Haken bleibt stehen
+- **Hendriks Meldung:** „Wenn ich einen Wurf als SL privat stelle, geht der Haken nach dem Wurf
+  sofort wieder raus … ich würde öfter privat als öffentlich.“
+- **Ursache:** Der Haken lebte **nur im Markup**. `istPrivat()` las ihn per `getElementById` aus
+  dem DOM, und `zeichneLeiste()` zeichnet die Leiste nach **jedem** Wurf neu — dabei wurde die
+  Checkbox jedes Mal leer gerendert. Er musste also vor jedem einzelnen Wurf neu gesetzt werden.
+- **Behoben:** „Privat“ ist jetzt ein **Zustand**, kein DOM-Fund. Er wird im Markup gesetzt,
+  über das `change`-Ereignis gepflegt und in `localStorage.korsaren_wuerfel_privat` gemerkt —
+  **er überlebt damit auch das Neuladen der Seite**. Das ist die ehrlichere Abbildung: Verdeckt zu
+  würfeln ist eine Haltung, keine Einzelentscheidung.
+- **Die Spielerleiste erbt den Merker NICHT.** `allowPrivate` wird ausschließlich von
+  `regie_vault.js` gesetzt; ein im selben Browser gesetzter Merker macht einen Spielerwurf nicht
+  heimlich. Steht als eigene Prüfung da, weil der Schlüssel im localStorage für beide Seiten
+  derselbe ist.
+- **Getestet: 60 Prüfungen in `t_wuerfel.js`, 0 Fehler** (9 neue). Der Haken wird dabei so
+  umgelegt, wie ein Mensch es tut — über das `change`-Ereignis, nicht durch Griff in den Zustand;
+  sonst prüfte der Test genau den Weg nicht, um den es geht. Darunter: er steht nach dem Wurf
+  noch, der zweite Wurf bleibt privat, er überlebt jedes Neuzeichnen und das Neuladen, Abwählen
+  wirkt sofort — und ein Spieler würfelt trotz gesetztem Merker öffentlich. **Mit dem alten
+  Verhalten gegengeprüft:** drei der Prüfungen schlagen dann an.
+
 ### 2026-10-14 (Fortsetzung 2) — Die fünf Würfel standen im Zickzack
 - **Hendriks Meldung mit Screenshot:** „Die 4 und die 12 sind nicht auf der gleichen Höhe."
 - **Ursache:** Jede Form trug ihren **eigenen** Mittelpunkt (`mitte`), und der war der
