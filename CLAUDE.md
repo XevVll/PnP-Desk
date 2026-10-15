@@ -126,6 +126,63 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 4) — Markup ohne Stil, und ein Kauf, der schwieg
+- **Hendriks Screenshot** zeigte drei Dinge auf einmal im Heldenbrief, dazu eine Vorgabe:
+  „Das ist noch buggy — und beim Kaufen sollte es ein Feedback geben, dass dieser Gegenstand
+  gekauft wurde.“
+- **1. „[object Object] · [object Object]“.** Das Feld `laden` am Marker ist seit dem
+  14.10.2026 ein **Objekt** (`{ name, was, gruppen }`), der Bogen las es noch als Namen.
+  - **Behoben in der ANZEIGE, nicht in der Funktion.** Mein erster Anlauf ließ
+    `laedenDerSzene()` Namen zurückgeben — und brach damit die Prüfungen, die daraus das
+    Sortiment lesen. **Der Test hatte recht:** Die Funktion liefert den *Laden*, nicht seinen
+    Namen. Jetzt gibt es ein `ladenName(l)` daneben, das beide Schreibweisen verträgt.
+- **2. Drei Blöcke liefen als nackter Fließtext ineinander** („Ladungen0−+Du trägst keine
+  Schusswaffe“). **Ursache: Markup ohne Stil.** Die Klassen `.lad`, `.ladenzu` und
+  `#uebergabe` standen im HTML — **im Stylesheet gab es sie nie.** Die Übergabe-Meldung der
+  Spielleitung hängte deshalb unformatiert unter der Seite statt als Einblendung darüber.
+  - **Das ist eine eigene Fehlerklasse:** Ungültiges CSS ist ein Fehler, **fehlendes CSS ist
+    nur unsichtbar.** Nichts im Projekt hat je in diese Richtung geschaut.
+  - **Neue Prüfung in `tests/t_syntax.js`, und sie gilt für JEDE Seite:** Zu jeder benutzten
+    Klasse muss das Stylesheet eine Regel haben. **15 von 15 Seiten sauber** — nach vier
+    weiteren Funden, die dabei herausfielen: `.btn-sm` im Heldenbrief (der Bennie-Knopf sollte
+    kleiner sein und war es nie), **`class="btn"` am neuen Lösen-Knopf des Regie-Hubs** (dort
+    heißt die Klasse `klein` — mein eigener Fehler von vorhin), sowie `.nsc-werte` und
+    `.fehlt` in `besatzung.html`.
+  - Die Klasse `sitzLink` von vorhin ist **ersatzlos weg**: Sie war nur ein Haken zum Finden,
+    und `[data-ziel]` sagt dasselbe, ohne eine Klasse ohne Stil zu hinterlassen.
+- **3. Beim Kaufen passierte sichtbar nichts** — und das lag in der Natur der Sache: Der Klick
+  legt die Ware ins **Postfach**, verbucht wird sie im **Bogen**, und der steht zugeklappt
+  hinter der Karte. Ein zu teurer Klick tat sogar **buchstäblich gar nichts** (`return` ohne
+  Meldung).
+  - **Jetzt drei Zustände im Laden selbst**, wo gerade geklickt wurde:
+    „*Säbel — wird verbucht …*“ → „**Gekauft: Säbel (−250 M.)**“ → oder, nach 8 Sekunden,
+    „Säbel wurde nicht verbucht. Schlag deinen Heldenbrief auf.“ Zu teuer sagt jetzt, woran es
+    liegt, mit beiden Zahlen.
+  - **Der mittlere Zustand ist der ehrliche:** „wird verbucht“ ist genau das, was in dem Moment
+    stimmt. **Gemeldet wird der Erfolg erst, wenn die Ware wirklich in der Figur steht** — und
+    zwar über die **Stückzahl des Gegenstands**, nicht über den Geldstand: Eine Übergabe der
+    Spielleitung kann im selben Moment ebenfalls Münzen bewegen.
+- **Getestet: 146 Prüfungen in `t_bogen.js`, 55 in `t_syntax.js`, 0 Fehler** (1010 über zehn
+  Skripte). Der Kauf-Code wird **aus `karte.html` geschnitten und wirklich ausgeführt**, mit
+  allen drei Ausgängen — darunter der Fall **zweimal dasselbe Stück**, bei dem der zweite Kauf
+  nicht vom ersten bestätigt werden darf.
+- **Drei eigene Fehler beim Bauen, alle gefunden:**
+  1. **Die Gegenprobe zur CSS-Prüfung schlug zweimal nicht an**, und beide Male war die
+     *Probe* falsch, nicht die Prüfung: `.ladenzu` enthält `.lad`, und ich hatte nur **eine**
+     von fünf `.lad`-Regeln umbenannt. Seitdem muss hinter dem Namen ein Zeichen stehen, das
+     kein Namenszeichen ist (`.w.d4` zählt für `w`, `.ladenzu` **nicht** für `lad`). Mit allen
+     entfernten Regeln schlägt sie nachweislich an. **Merke: Eine Gegenprobe, die nicht
+     anschlägt, kann auch eine schlechte Probe sein.**
+  2. **Das erste Suchmuster las Variablennamen als Klassen** (`schritt`, `erschwernis`,
+     `selectedNodeId`): `class="st' + (i === schritt ? …` läuft bis zum nächsten `"`, also
+     mitten durch den JavaScript-Code. Es endet jetzt am ersten Anführungszeichen beider Sorten.
+  3. **`let kaufMeld` im `vm` ist von außen nicht als `ctx.kaufMeld` sichtbar** — dieselbe
+     Falle wie am 05.09.2026. Der Test liest den Zustand jetzt über Funktionen, die im Kontext
+     selbst stehen.
+- **[OFFEN] Zwei geöffnete Bögen desselben Spielers** könnten eine Postfach-Zeile beide
+  verbuchen — beim Kauf hieße das **zweimal zahlen**. Unverändert seit dem 14.10.; die neue
+  Rückmeldung macht es immerhin sichtbar.
+
 ### 2026-10-15 (Fortsetzung 3) — Fehler: die gesetzte Sitzung blieb nicht
 - **Hendriks Meldung:** „Irgendwie bleibt die gesetzte Sitzung nicht. Ich werde ständig von der
   Sitzung Test wieder in die pnpgang geholt.“

@@ -137,7 +137,7 @@ button.gefahr{border-color:#c05555;color:#c05555}
        alle Werkzeug-Links ihr folgen - deshalb konnte die Regie in einer
        anderen Sitzung stehen als der Hub anzeigte. -->
   <span class="badge" id="festBadge" title="Was DIESER Browser zeigt">—</span>
-  <button class="btn" id="festLoesen" onclick="festLoesen()" style="display:none"
+  <button class="klein" id="festLoesen" onclick="festLoesen()" style="display:none"
     title="Festlegung aufheben — dieser Browser folgt dann wieder der laufenden Sitzung">Festlegung lösen</button>
   <span style="flex:1"></span>
 </div></div>
@@ -153,13 +153,13 @@ button.gefahr{border-color:#c05555;color:#c05555}
              Festlegung zu verlassen: Vorher fuehrte "Regie" dorthin, wo dieser
              Browser zuletzt war - auch wenn der Hub daneben eine andere
              Sitzung als laufend anzeigte. Genau das war der gemeldete Fehler. -->
-        <a class="wz sitzLink" data-ziel="regie.html" href="regie.html" target="_blank">🎬 Regie</a>
-        <a class="wz sitzLink" data-ziel="regie_figuren.html" href="regie_figuren.html" target="_blank">🧑‍🤝‍🧑 Figuren</a>
-        <a class="wz sitzLink" data-ziel="arena_admin.html" href="arena_admin.html" target="_blank">⚔ Schlachtfeld</a>
+        <a class="wz" data-ziel="regie.html" href="regie.html" target="_blank">🎬 Regie</a>
+        <a class="wz" data-ziel="regie_figuren.html" href="regie_figuren.html" target="_blank">🧑‍🤝‍🧑 Figuren</a>
+        <a class="wz" data-ziel="arena_admin.html" href="arena_admin.html" target="_blank">⚔ Schlachtfeld</a>
         <a class="wz" href="graph_editor.html" target="_blank">🧭 Graph-Editor</a>
         <a class="wz" href="besatzung.html" target="_blank">⚓ Besatzung</a>
         <a class="wz" href="codex.html" target="_blank">📖 Codex</a>
-        <a class="wz sitzLink" data-ziel="karte.html" href="karte.html" target="_blank">🗺️ Spieleransicht</a>
+        <a class="wz" data-ziel="karte.html" href="karte.html" target="_blank">🗺️ Spieleransicht</a>
       </div>
     </div>
   </div>
@@ -334,7 +334,7 @@ function zeichneKopf() {
 
   // Die Links zeigen, wohin sie fuehren - nicht wohin sie vielleicht fuehren.
   const ziel = fest || aktiv || '';
-  Array.prototype.forEach.call(document.querySelectorAll('.sitzLink'), function (a) {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ziel]'), function (a) {
     const basis = a.dataset.ziel;
     a.href = ziel ? basis + '?sitzung=' + encodeURIComponent(ziel) : basis;
     a.title = ziel ? 'Öffnet die Sitzung „' + name(ziel) + '"'

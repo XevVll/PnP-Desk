@@ -137,6 +137,7 @@ textarea:focus{border-color:var(--gold)}
 .wegbtn{border:none;background:transparent;color:var(--gray);cursor:pointer;font-size:.95rem;padding:0 .25rem;line-height:1}
 .wegbtn:hover{color:#e05555}
 .btn{padding:.34rem .85rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;border:1px solid rgba(201,168,76,.4);cursor:pointer;font-weight:600;background:transparent;color:var(--gold);transition:all .18s;text-decoration:none;display:inline-block}
+.btn-sm{padding:.22rem .6rem;font-size:.6rem}
 .btn.gefahr{border-color:#c05555;color:#c05555}
 .btn.gefahr:hover{background:rgba(192,85,85,.12)}
 .btn:hover:not(:disabled){background:var(--lgold)}
@@ -146,6 +147,40 @@ textarea:focus{border-color:var(--gold)}
 .hint{font-size:.72rem;color:var(--gray);font-style:italic;line-height:1.55;margin-top:.5rem}
 .leer{color:var(--gray);font-style:italic;font-size:.8rem;padding:.6rem 0}
 .msg{font-size:.78rem;font-style:italic;margin-top:.5rem;min-height:1.1rem}
+
+/* ── Ladungen, Laden-Hinweis, Übergabe ──
+   Diese drei Blöcke trugen seit ihrem Einbau Markup, aber keinen Stil:
+   Die Klassen standen im HTML, im Stylesheet gab es sie nicht. Am Tisch
+   lief dadurch alles in einer Zeile zusammen ("Ladungen0−+Du trägst …").
+   Gemeldet am 15.10.2026 mit Screenshot. */
+.lad{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;
+  padding:.6rem .9rem;border-bottom:1px solid var(--border);background:rgba(201,168,76,.04)}
+.lad>b{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.12em;
+  color:var(--gold);text-transform:uppercase}
+.lad .z{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--ink);min-width:1.4rem;text-align:center}
+.lad button{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);
+  background:transparent;color:var(--gold);cursor:pointer;font-size:.85rem;line-height:1;padding:0}
+.lad button:hover{background:var(--lgold)}
+.lad .t{flex:1 1 100%;font-size:.72rem;color:var(--gray);font-style:italic;line-height:1.5}
+.lad .t b{color:var(--amber);font-style:normal}
+.lad.leer{background:rgba(202,103,2,.08)}
+.lad.leer .z{color:var(--amber)}
+
+.ladenzu{font-size:.78rem;color:var(--gray);line-height:1.6}
+.ladenzu b{display:block;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;
+  color:var(--gold);margin-bottom:.15rem;text-transform:none}
+
+/* Die Übergabe hängt am body, nicht in einer Karte - sie muss auch über
+   einem gescrollten Bogen zu sehen sein. */
+#uebergabe{position:fixed;left:50%;bottom:1rem;transform:translate(-50%,160%);
+  z-index:400;max-width:min(26rem,calc(100vw - 2rem));
+  background:var(--surface);border:1px solid var(--gold);border-radius:6px;
+  box-shadow:0 8px 28px rgba(0,0,0,.55);padding:.55rem .85rem;
+  font-size:.8rem;color:var(--ink);line-height:1.5;
+  opacity:0;transition:transform .3s,opacity .3s;pointer-events:none}
+#uebergabe.auf{transform:translate(-50%,0);opacity:1}
+#uebergabe b{display:block;font-family:'Cinzel',serif;font-size:.62rem;
+  letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:.1rem}
 </style>
 </head>
 <body>
@@ -258,7 +293,7 @@ textarea:focus{border-color:var(--gold)}
       <div class="card-body" id="getragen"></div>
     </div>
     <div class="card">
-      <div class="card-hdr">Kaufen <span class="card-hdr-sub">Klick legt den Gegenstand an und zieht den Preis ab</span></div>
+      <div class="card-hdr">Einkaufen <span class="card-hdr-sub">gekauft wird beim Händler auf der Karte</span></div>
       <div class="card-body" id="laden"></div>
     </div>
   </div>
@@ -907,6 +942,17 @@ function laedenDerSzene(szeneId) {
                    .map(function (m) { return m.laden; });
 }
 
+/* ACHTUNG: "laden" war bis zum 14.10.2026 ein blosser Name und ist seitdem
+   ein Objekt ({ name, was, gruppen }). Wer den Laden ANZEIGT, muss das
+   wissen - sonst steht da "[object Object]", und genau das stand da
+   (Hendriks Screenshot vom 15.10.2026). Die Funktion oben liefert
+   weiterhin den LADEN, nicht seinen Namen: Was ein Haendler fuehrt,
+   wird an anderer Stelle gebraucht. */
+function ladenName(l) {
+  if (!l) return 'Laden';
+  return (typeof l === 'string') ? l : (l.name || 'Laden');
+}
+
 function renderTags() {
   const t = F.tal.map(function (i) {
     const x = TAL_BY_ID[i];
@@ -1102,7 +1148,7 @@ function renderAusruestung() {
   document.getElementById('laden').innerHTML =
     '<div class="ladenzu">' +
     (laeden.length
-      ? '<b>' + esc(laeden.join(' · ')) + '</b>Hier könnt ihr einkaufen — ' +
+      ? '<b>' + esc(laeden.map(ladenName).join(' · ')) + '</b>Hier könnt ihr einkaufen — ' +
         'öffne den Ort auf der Karte, der Laden steht dort.'
       : '<b>Eingekauft wird beim Händler</b>Such auf der Karte den Krämer oder einen Markt. ' +
         'Dort steht, was es gibt, und dort wird gekauft.') +

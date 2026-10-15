@@ -333,6 +333,13 @@ chk('Grimsgate hat zwei', lctx.laedenDerSzene('1.1').length === 2);
 chk('der spanische Hafen einen', lctx.laedenDerSzene('7.1').length === 1);
 chk('das Schmugglernest einen', lctx.laedenDerSzene('8.1').length === 1);
 chk('auf dem Schiff keinen', lctx.laedenDerSzene('2.1').length === 0);
+/* Der Screenshot vom 15.10.2026 zeigte "[object Object]": Das Feld "laden"
+   ist seit dem 14.10. ein Objekt, die Anzeige las es noch als Namen. */
+chk('jeder Laden hat einen Namen zum Anzeigen',
+  alleLaeden.every(function (x) { return lctx.ladenName(x.l) && lctx.ladenName(x.l).indexOf('[object') < 0; }),
+  alleLaeden.map(function (x) { return lctx.ladenName(x.l); }));
+chk('auch die alte Schreibweise als blosser Name',
+  lctx.ladenName('Alter Laden') === 'Alter Laden' && lctx.ladenName(null) === 'Laden');
 chk('auf der Schatzinsel keinen', lctx.laedenDerSzene('4.1').length === 0);
 chk('eine unbekannte Szene ergibt nichts', lctx.laedenDerSzene('99.9').length === 0);
 
@@ -611,6 +618,75 @@ chk('die Kugelform bringt keine fertigen Ladungen', zctx.F.ladungen === 0, zctx.
 chk('erst eintragen, dann räumen',
   BOGEN.indexOf('speichern();') < BOGEN.indexOf("'/zuteilung').remove()"),
   { speichern: BOGEN.indexOf('speichern();'), remove: BOGEN.indexOf("'/zuteilung').remove()") });
+
+console.log('');
+console.log('=== DER KAUF MELDET SICH ===');
+/* Hendriks Meldung vom 15.10.2026: Beim Kaufen passierte sichtbar nichts.
+   Das lag in der Natur der Sache - der Klick legt die Ware ins Postfach,
+   verbucht wird sie im Bogen, und der steht zugeklappt hinter der Karte.
+   Geprueft wird deshalb der ganze Weg, ausgefuehrt statt gelesen. */
+const kcode = (function () {
+  const a = KARTE.indexOf('let kaufOffen'), b = KARTE.indexOf('let ladenFaecherOffen');
+  if (a < 0 || b < 0) { console.log('FAIL Kauf-Code nicht gefunden'); process.exit(1); }
+  return KARTE.slice(a, b);
+})();
+
+let gepusht = null, schluessel = 0;
+const kctx = {
+  console, setTimeout, clearTimeout, Object,
+  AUSR_BY_ID: R.AUSR_BY_ID,
+  figurSchluessel: () => 'anna',
+  currentOverlayMarker: null,          // kein Neuzeichnen noetig
+  zeichneLaden: () => {},
+  meineFigur: { muenzen: 300, ausr: [] },
+  db: { ref: () => ({ push: o => { gepusht = o; const k = 'k' + (++schluessel);
+          return { key: k, catch: () => {} }; } }) }
+};
+vm.createContext(kctx);
+vm.runInContext(kcode, kctx);
+/* "let kaufMeld" im vm ist von aussen NICHT als kctx.kaufMeld sichtbar -
+   dieselbe Falle wie am 05.09.2026 beim State S. Also ueber Funktionen
+   lesen, die im Kontext selbst stehen. */
+vm.runInContext('globalThis.meldLesen = function () { return kaufMeld; };' +
+                'globalThis.offenLesen = function () { return kaufOffen; };', kctx);
+const meld = () => kctx.meldLesen();
+
+/* 1. Zu teuer: Vorher tat der Klick GAR NICHTS - kein Kauf, keine Antwort. */
+kctx.meineFigur = { muenzen: 10, ausr: [] };
+kctx.kaufen('saebel');
+chk('zu teuer sagt, woran es liegt',
+  meld() && meld().art === 'schlecht' &&
+  meld().text.indexOf('250') >= 0, meld());
+chk('und schickt nichts ins Postfach', gepusht === null, gepusht);
+
+/* 2. Der normale Weg: erst "wird verbucht", dann die Bestaetigung - und
+      die kommt erst, wenn die Ware wirklich in der Figur steht. */
+kctx.meineFigur = { muenzen: 300, ausr: [] };
+kctx.kaufen('saebel');
+chk('der Kauf geht ins Postfach', gepusht && gepusht.art === 'kauf' && gepusht.id === 'saebel', gepusht);
+chk('und der Spieler sieht sofort, dass etwas passiert',
+  meld().art === 'warte' && meld().text.indexOf('verbucht') >= 0, meld());
+/* Eine Figur-Aenderung ohne die Ware bestaetigt NICHTS - sonst meldete
+   jede Uebergabe der Spielleitung einen fremden Kauf als erledigt. */
+kctx.meineFigur = { muenzen: 300, ausr: ['messer'] };
+kctx.kaufPruefen();
+chk('eine fremde Änderung bestätigt nichts', meld().art === 'warte', meld());
+kctx.meineFigur = { muenzen: 50, ausr: ['messer', 'saebel'] };
+kctx.kaufPruefen();
+chk('steht die Ware in der Figur, ist es gekauft',
+  meld().art === 'gut' && meld().text.indexOf('250') >= 0, meld());
+chk('und nichts bleibt offen', Object.keys(kctx.offenLesen()).length === 0, kctx.offenLesen());
+
+/* 3. Zweimal dasselbe Stueck: Der zweite Kauf darf nicht vom ersten
+      bestaetigt werden - deshalb zaehlt der Test die STUECKZAHL. */
+kctx.meineFigur = { muenzen: 300, ausr: ['saebel'] };
+kctx.kaufen('saebel');
+kctx.kaufPruefen();
+chk('ein zweites gleiches Stück wartet auf sich selbst',
+  meld().art === 'warte', meld());
+kctx.meineFigur = { muenzen: 50, ausr: ['saebel', 'saebel'] };
+kctx.kaufPruefen();
+chk('und wird erst beim zweiten Stück bestätigt', meld().art === 'gut', meld());
 
 console.log('');
 console.log('=== AUCH DIE REGIE SIEHT, WAS EIN TALENT TUT ===');

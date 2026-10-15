@@ -331,6 +331,13 @@
   }
   #ladenBox .was { font-size: 12.5px; color: var(--ink-dim); font-style: italic; margin-bottom: 10px; }
   #ladenBox .geld { font-size: 12.5px; color: var(--ink-dim); margin-bottom: 8px; }
+  /* Die Rueckmeldung zum Kauf. Sie steht IM Laden, nicht als fluechtiger
+     Hinweis irgendwo: Hier hat der Spieler gerade geklickt, hier schaut er hin. */
+  #ladenBox .kaufmeld { font-size: 12.5px; line-height: 1.5; border-radius: 4px;
+    padding: 6px 9px; margin-bottom: 9px; border: 1px solid var(--gold); color: var(--ink); }
+  #ladenBox .kaufmeld.warte { border-color: rgba(201,168,76,.35); color: var(--ink-dim); font-style: italic; }
+  #ladenBox .kaufmeld.gut { border-color: #4caf7d; color: #8fe0b4; }
+  #ladenBox .kaufmeld.schlecht { border-color: #ca6702; color: #e0a060; }
   #ladenBox .geld b { color: var(--gold); font-weight: 400; }
   #ladenBox .ware {
     display: flex; align-items: baseline; gap: 10px; padding: 5px 0;
@@ -1036,7 +1043,8 @@
         }
         if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
         // Der Laden zeigt Muenzen und Getragenes - beides aendert sich, wenn
-        // der Bogen einen Kauf verbucht hat.
+        // der Bogen einen Kauf verbucht hat. Genau daran erkennen wir ihn.
+        kaufPruefen();
         if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
       }, function () { meineFigur = null; if (wuerfelLeiste) wuerfelLeiste.neuZeichnen(); });
     }
@@ -2035,15 +2043,80 @@
        prueft dabei das Geld und raeumt das Postfach.
        Dass der Bogen dafuer laufen muss, ist der Grund, warum sein Rahmen
        weiter unten im Voraus geladen wird. */
+    /* ---------- Rueckmeldung zum Kauf ----------
+       Ein Kauf schreibt NICHT in die Figur, sondern ins Postfach; verbucht
+       wird er vom Heldenbrief, der als einziger auf der Figur schreibt.
+       Sichtbar war davon nichts: Der Klick tat scheinbar gar nichts, und
+       der Bogen mit der Bestaetigung steht zugeklappt hinter der Karte.
+
+       Deshalb drei Zustaende statt keinem - und der mittlere ist ehrlich:
+       "wird verbucht" ist genau das, was in dem Moment stimmt. Gemeldet
+       wird der Erfolg erst, wenn die Ware wirklich in der Figur steht. */
+    let kaufOffen = {};        // Postfach-Schluessel -> was wir erwarten
+    let kaufMeld = null;       // { text, art } - wird im Laden gezeichnet
+
+    function zaehleGetragen(id) {
+      return ((meineFigur && meineFigur.ausr) || []).filter(function (x) { return x === id; }).length;
+    }
+
+    function kaufSagen(text, art) {
+      kaufMeld = { text: text, art: art };
+      clearTimeout(kaufSagen._t);
+      // Die gute Nachricht darf gehen, die Frage nach dem Geld bleibt stehen.
+      if (art === 'gut') kaufSagen._t = setTimeout(function () {
+        kaufMeld = null;
+        if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
+      }, 6000);
+      if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
+    }
+
+    /* Laeuft bei jeder Aenderung an der Figur: Steht die erwartete Ware
+       jetzt darin, ist der Kauf verbucht. Ueber die GETRAGENE Ware statt
+       ueber das Geld, weil eine Uebergabe der Spielleitung im selben
+       Moment ebenfalls Muenzen bewegen kann. */
+    function kaufPruefen() {
+      Object.keys(kaufOffen).forEach(function (key) {
+        const o = kaufOffen[key];
+        if (zaehleGetragen(o.id) <= o.vorher) return;
+        clearTimeout(o.frist);
+        delete kaufOffen[key];
+        kaufSagen('Gekauft: ' + o.name + ' (−' + o.preis + ' M.)', 'gut');
+      });
+    }
+
     function kaufen(id) {
       const k = figurSchluessel();
       if (!k || !db || !meineFigur) return;
       const a = (typeof AUSR_BY_ID !== 'undefined') ? AUSR_BY_ID[id] : null;
       if (!a) return;
-      if ((meineFigur.muenzen || 0) < (a.preis || 0)) return;
-      db.ref('figuren/' + k + '/zuteilung').push({
+      /* Der Laden sieht einen Geldstand, der eine Sekunde alt sein kann -
+         massgeblich prueft der Bogen. Hier wird trotzdem geprueft, damit
+         es eine Antwort gibt statt eines Klicks, der nichts tut. */
+      if ((meineFigur.muenzen || 0) < (a.preis || 0)) {
+        kaufSagen('Dafür reicht dein Geld nicht: ' + a.n + ' kostet ' + a.preis +
+                  ' M., du hast ' + (meineFigur.muenzen || 0) + '.', 'schlecht');
+        return;
+      }
+      const ref = db.ref('figuren/' + k + '/zuteilung').push({
         art: 'kauf', id: id, von: 'Laden', ts: Date.now()
-      }).catch(function () { /* ohne Verbindung geht kein Handel */ });
+      });
+      kaufOffen[ref.key] = {
+        id: id, name: a.n, preis: a.preis || 0, vorher: zaehleGetragen(id),
+        /* Bleibt es liegen, muss das jemand sagen. Haeufigster Grund: der
+           Bogen ist nicht erreichbar, dann verbucht niemand. */
+        frist: setTimeout(function () {
+          if (!kaufOffen[ref.key]) return;
+          delete kaufOffen[ref.key];
+          kaufSagen(a.n + ' wurde nicht verbucht. Schlag deinen Heldenbrief auf — ' +
+                    'dort wird gekauft, und er muss dafür offen gewesen sein.', 'schlecht');
+        }, 8000)
+      };
+      kaufSagen(a.n + ' — wird verbucht …', 'warte');
+      ref.catch(function () {
+        clearTimeout(kaufOffen[ref.key] && kaufOffen[ref.key].frist);
+        delete kaufOffen[ref.key];
+        kaufSagen('Keine Verbindung — der Kauf ist nicht angekommen.', 'schlecht');
+      });
     }
 
     /* Welche Schublade offen ist, liegt nur im Speicher dieser Seite - das
@@ -2074,7 +2147,9 @@
       const geld = meineFigur.muenzen || 0;
       let h = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
         '<div class="was">' + escHtml(l.was || '') + '</div>' +
-        '<div class="geld">Du hast <b>' + geld + '</b> Münzen.</div>';
+        '<div class="geld">Du hast <b>' + geld + '</b> Münzen.</div>' +
+        (kaufMeld ? '<div class="kaufmeld ' + kaufMeld.art + '">' +
+                    escHtml(kaufMeld.text) + '</div>' : '');
 
       function wareZeile(a) {
         const zuTeuer = geld < (a.preis || 0);

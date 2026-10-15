@@ -99,5 +99,53 @@ for (const name of MODULE) {
   }
 }
 console.log('Module geladen und Exporte geprueft: ' + mOk + '/' + MODULE.length);
+
+/* ==========================================================
+   JEDE BENUTZTE KLASSE HAT AUCH EINE REGEL
+   ----------------------------------------------------------
+   Am 15.10.2026 meldete Hendrik einen Screenshot, auf dem drei
+   Bloecke des Heldenbriefs als nackter Flietext ineinander
+   liefen ("Ladungen0-+Du traegst keine Schusswaffe"). Die
+   Ursache war nicht das Markup: Die Klassen standen im HTML,
+   im Stylesheet gab es sie schlicht nie. Das faellt beim
+   Schreiben nicht auf - ungueltiges CSS waere ein Fehler,
+   FEHLENDES CSS ist nur unsichtbar.
+
+   Geprueft wird deshalb die Richtung, die sonst niemand
+   prueft: Fuer jede Klasse, die eine Seite benutzt, muss ihr
+   Stylesheet eine Regel haben. Ein Praefix genuegt (.w deckt
+   .w.d4 ab), und Seiten, die js/marken.js laden, bekommen
+   dessen Stil dazugerechnet.
+   ========================================================== */
+let klOk = 0;
+for (const f of htmls) {
+  const s = fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const a = s.indexOf('<style>'), b = s.lastIndexOf('</style>');
+  let stil = (a >= 0 && b > a) ? s.slice(a, b) : '';
+  if (s.indexOf('js/marken.js') > 0) stil += fs.readFileSync(path.join(jsdir, 'marken.js'), 'utf8');
+
+  /* Nur bis zum ersten Anfuehrungszeichen lesen: In den Seiten steht
+     class="lad' + (... ? ' leer' : '') + '" - alles hinter dem ' gehoert
+     zum JavaScript, nicht zur Klassenliste. Ohne diese Grenze liest der
+     Test Variablennamen als Klassen. */
+  const benutzt = new Set();
+  (s.match(/class="[^"']*/g) || []).forEach(function (m) {
+    m.slice(7).split(/\s+/).forEach(function (k) {
+      if (/^[a-zA-Z][\w-]*$/.test(k)) benutzt.add(k);
+    });
+  });
+  /* Ein Praefix genuegt NICHT: ".ladenzu" enthaelt ".lad", deckt die Klasse
+     "lad" aber nicht ab. Deshalb muss hinter dem Namen etwas stehen, das
+     kein Namenszeichen ist - so zaehlt ".w.d4" und ".w:hover" fuer "w",
+     ".ladenzu" aber nicht fuer "lad". (Beim ersten Anlauf schlug die
+     Gegenprobe genau deshalb NICHT an.) */
+  const gedeckt = k => new RegExp('\.' + k + '(?![\w-])').test(stil);
+  const fehlt = [...benutzt].filter(k => !gedeckt(k));
+  if (fehlt.length) {
+    bad++;
+    console.log('FEHLER ' + f + ': Klasse ohne Regel im Stylesheet: ' + fehlt.join(', '));
+  } else { ok++; klOk++; }
+}
+console.log('Seiten ohne Klasse ins Leere: ' + klOk + '/' + htmls.length);
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);
