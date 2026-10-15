@@ -403,6 +403,15 @@ function dcls(i) { return ['d0','d1','d2','d3','d4','d5'][i] || 'd0'; }
    Schreibvorgangs nie, deshalb zeigt hier die Datenbank selbst den Zustand an. */
 function beobachteVerbindung() {
   try {
+    /* Was die Spielleitung erfunden hat, muss dieser Bogen kennen - sonst
+       traegt die Figur eine ID, zu der es nichts zu zeigen gibt, und der
+       Gegenstand verschwindet stillschweigend samt seinem Gewicht.
+       Nur lesend: Erfunden wird in der Regie. */
+    db.ref('eigeneWaren').on('value', function (s) {
+      eigeneWarenSetzen(s.val() || {});
+      renderAlles();
+    });
+
     db.ref('figuren/' + codeJetzt() + '/zuteilung').on('value', function (s) {
       zuteilungAnnehmen(s.val() || {});
     }, function () { /* kein Postfach, kein Problem */ });

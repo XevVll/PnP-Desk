@@ -653,6 +653,63 @@ chk('erst eintragen, dann räumen',
   { speichern: BOGEN.indexOf('speichern();'), remove: BOGEN.indexOf("'/zuteilung').remove()") });
 
 console.log('');
+console.log('=== EIGENE GEGENSTAENDE DER SPIELLEITUNG ===');
+/* Hendriks Vorgabe vom 15.10.2026: Die Spielleitung soll Gegenstaende
+   erfinden und vergeben koennen. Sie koennen nicht im Code stehen, also
+   liegen sie je Sitzung in der Datenbank und werden nachgetragen. */
+const wId = R.eigeneWareId('Jaguar-Säbel');
+chk('die Kennung ist als erfunden erkennbar', R.istEigeneWare(wId) && wId.indexOf('sl_') === 0, wId);
+chk('Umlaute werden umgeschrieben', wId.indexOf('saebel') > 0, wId);
+chk('eine Ware aus dem Regelwerk gilt nicht als erfunden', !R.istEigeneWare('saebel'));
+chk('zwei gleiche Namen geben zwei Kennungen',
+  R.eigeneWareId('Brief') !== R.eigeneWareId('Brief'));
+
+const wEin = R.eigeneWareEintragen({ id: wId, n: 'Jaguar-Säbel', d: 'Ein Jaguar ist eingraviert.',
+  art: 'Nahkampf', schaden: 3, gew: 5, preis: 400 });
+chk('sie laesst sich eintragen', !!wEin && R.AUSR_BY_ID[wId].n === 'Jaguar-Säbel');
+chk('und ist danach ganz normale Ware',
+  R.AUSRUESTUNG.indexOf(R.AUSR_BY_ID[wId]) >= 0 && R.AUSR_BY_ID[wId].schaden === 3);
+/* Der eigentliche Punkt: Traglast und Robustheit rechnen ohne Sonderweg
+   mit ihr, weil alles ueber AUSR_BY_ID laeuft. */
+const wFig = R.alsFigur({ ausr: [wId] });
+chk('sie wiegt in der Traglast mit', R.getragen(wFig) === 5, R.getragen(wFig));
+const wPanzer = R.eigeneWareEintragen({ id: R.eigeneWareId('Brustpanzer'), n: 'Alter Brustpanzer',
+  art: 'Schutz', ruest: 2, gew: 8, preis: 0 });
+chk('und hebt die Robustheit', R.robustheit(R.alsFigur({ ausr: [wPanzer.id] })) ===
+  R.robustheit(R.alsFigur({})) + 2);
+
+/* Regel 1: Nie eine Ware aus dem Regelwerk ueberschreiben. Sonst koennte
+   eine Sitzung den Saebel umdefinieren, und niemand faende den Grund. */
+chk('eine kanonische Ware wird nicht überschrieben',
+  R.eigeneWareEintragen({ id: 'saebel', n: 'Gefälscht', art: 'Nahkampf', gew: 1 }) === null &&
+  R.AUSR_BY_ID['saebel'].n === 'Säbel');
+chk('eine Kennung ohne Präfix wird abgelehnt',
+  R.eigeneWareEintragen({ id: 'eigenbau', n: 'X', art: 'Allerlei', gew: 1 }) === null);
+chk('ein halber Gegenstand wird abgelehnt',
+  R.eigeneWarePruefen({ id: R.eigeneWareId('x'), n: '   ' }) === null);
+/* Unsinnige Zahlen werden geklemmt statt uebernommen - eine Ware mit
+   Schaden 99 waere kein Gegenstand, sondern ein Fehler. */
+const wWild = R.eigeneWarePruefen({ id: R.eigeneWareId('Wild'), n: 'Wild', art: 'Quatsch',
+  schaden: 99, ruest: -4, gew: -3, preis: 1e9 });
+chk('Zahlen werden geklemmt', wWild.schaden === 5 && !wWild.ruest && wWild.gew === 0 &&
+  wWild.preis === 99999, wWild);
+chk('eine unbekannte Art fällt auf Allerlei zurück', wWild.art === 'Allerlei', wWild.art);
+
+/* Was die Spielleitung loescht, verschwindet - sonst wiegt eine
+   Karteileiche weiter, die niemand mehr sieht. */
+R.eigeneWarenSetzen({ a: { id: wId, n: 'Jaguar-Säbel', art: 'Nahkampf', schaden: 3, gew: 5 } });
+chk('der Säbel bleibt', !!R.AUSR_BY_ID[wId]);
+chk('der Panzer ist weg', R.AUSR_BY_ID[wPanzer.id] === undefined);
+chk('und wiegt auch nichts mehr', R.getragen(R.alsFigur({ ausr: [wPanzer.id] })) === 0);
+chk('die Liste traegt ihn nicht mehr',
+  R.AUSRUESTUNG.filter(a => a.id === wPanzer.id).length === 0);
+R.eigeneWarenSetzen({});
+chk('ein leerer Knoten räumt alles weg',
+  R.AUSRUESTUNG.filter(a => a.vonSl).length === 0 && R.AUSR_BY_ID[wId] === undefined);
+chk('das Regelwerk selbst ist unversehrt',
+  R.AUSRUESTUNG.length === 53 && !!R.AUSR_BY_ID['saebel'], R.AUSRUESTUNG.length);
+
+console.log('');
 console.log('=== DER KAUF MELDET SICH ===');
 /* Hendriks Meldung vom 15.10.2026: Beim Kaufen passierte sichtbar nichts.
    Das lag in der Natur der Sache - der Klick legt die Ware ins Postfach,

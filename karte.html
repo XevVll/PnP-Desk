@@ -1016,6 +1016,18 @@
       return k || null;
     }
 
+    /* Auch die Karte rechnet mit Ausruestung - ueber die Traglast in den
+       Wuerfelabzug. Ohne die erfundenen Waren waere eine Figur hier
+       leichter als in ihrem Bogen. */
+    function beobachteEigeneWaren() {
+      if (!db || typeof eigeneWarenSetzen !== 'function') return;
+      db.ref('eigeneWaren').on('value', function (s) {
+        eigeneWarenSetzen(s.val() || {});
+        if (currentOverlayMarker) zeichneLaden(currentOverlayMarker);
+        if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
+      });
+    }
+
     function beobachteFigur() {
       const k = figurSchluessel();
       if (figurRef) { figurRef.off(); figurRef = null; }
@@ -2548,6 +2560,7 @@
         holeFigur:   function () { return meineFigur; },
         holeKontext: function () { return { szene: aktuelleSzene, ort: aktuellerOrt }; }
       });
+      beobachteEigeneWaren();
       beobachteFigur();
 
       db.ref('currentScene').on('value', function (snapshot) {

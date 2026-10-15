@@ -610,6 +610,112 @@ const AUSRUESTUNG = [
 const AUSR_BY_ID = {}; AUSRUESTUNG.forEach(function (a) { AUSR_BY_ID[a.id] = a; });
 function ausruestungDerArt(art) { return AUSRUESTUNG.filter(function (a) { return a.art === art; }); }
 
+/* ==========================================================
+   EIGENE GEGENSTAENDE DER SPIELLEITUNG
+   ----------------------------------------------------------
+   Der Jaguar-Saebel, ein Brief, die Kiste aus der Grotte: Nicht
+   alles, was eine Figur traegt, steht in dieser Datei - und es
+   kann auch nicht hier stehen, denn das hier ist Code und die
+   Spielleitung schreibt am Tisch keinen.
+
+   Deshalb liegen erfundene Gegenstaende JE SITZUNG in der
+   Datenbank (sitzungen/{sid}/stand/eigeneWaren) und werden beim
+   Laden hier dazugelegt. Danach sind sie ganz normale Ware:
+   Traglast, Robustheit und Verkauf rechnen ohne Sonderweg mit
+   ihnen, weil alles ueber AUSR_BY_ID laeuft.
+
+   ZWEI REGELN, die nicht verhandelbar sind:
+   1. Eine erfundene Ware ueberschreibt NIE eine aus dieser
+      Datei. Sonst koennte eine Sitzung den Saebel umdefinieren,
+      und niemand faende den Grund.
+   2. Eine Figur traegt weiterhin nur IDs. Ein Gegenstand, dessen
+      Beschreibung (noch) nicht geladen ist, verschwindet in der
+      Anzeige stillschweigend - deshalb muessen die Seiten erst
+      eintragen und dann zeichnen, nicht umgekehrt.
+   ========================================================== */
+const EIGENE_PRAEFIX = 'sl_';
+const EIGENE_WAREN = {};          // id -> true, nur die erfundenen
+
+/* Aus einem Namen eine ID machen, die niemandem in die Quere kommt.
+   Das Praefix ist nicht Zierde: Daran erkennt jeder Leser - und der
+   Code - dass die Ware nicht aus dem Regelwerk stammt. */
+function eigeneWareId(name) {
+  const kern = String(name || '').toLowerCase()
+    .replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe').replace(/[üÜ]/g, 'ue')
+    .replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '').slice(0, 24) || 'ware';
+  return EIGENE_PRAEFIX + kern + '_' + Math.random().toString(36).slice(2, 6);
+}
+
+function istEigeneWare(id) {
+  return String(id || '').indexOf(EIGENE_PRAEFIX) === 0;
+}
+
+/* Eine erfundene Ware pruefen und in die Form bringen, die der Rest
+   des Regelwerks erwartet. Gibt null zurueck, wenn sie unbrauchbar
+   ist - ein halber Gegenstand ist schlimmer als keiner. */
+function eigeneWarePruefen(roh) {
+  if (!roh || !roh.id || !istEigeneWare(roh.id)) return null;
+  const name = String(roh.n || '').trim();
+  if (!name) return null;
+  const zahl = function (v, min, max) {
+    const n = Math.round(Number(v) || 0);
+    return Math.max(min, Math.min(max, n));
+  };
+  const w = {
+    id: String(roh.id),
+    n: name.slice(0, 60),
+    d: String(roh.d || '').trim().slice(0, 400),
+    art: (AUSR_ARTEN.indexOf(roh.art) >= 0) ? roh.art : 'Allerlei',
+    gew: zahl(roh.gew, 0, 99),
+    preis: zahl(roh.preis, 0, 99999),
+    vonSl: true
+  };
+  /* Schaden und Robustheit sind Wuerfelstufen bzw. kleine Zahlen - was
+     darueber hinausgeht, waere keine Ware, sondern ein Fehler. Geklemmt
+     wird ab NULL und erst dann gesetzt: Eine negative Angabe heisst
+     "keine Ruestung", nicht "die kleinste". (Vorher machte eine -4 daraus
+     eine +1 - gefunden von der eigenen Pruefung.) */
+  const schaden = zahl(roh.schaden, 0, 5);  if (schaden) w.schaden = schaden;
+  const ruest   = zahl(roh.ruest,   0, 6);  if (ruest)   w.ruest   = ruest;
+  const schuss  = zahl(roh.schuss,  0, 99); if (schuss)  w.schuss  = schuss;
+  if (roh.reichweite) w.reichweite = String(roh.reichweite).slice(0, 20);
+  return w;
+}
+
+function eigeneWareEintragen(roh) {
+  const w = eigeneWarePruefen(roh);
+  if (!w) return null;
+  if (AUSR_BY_ID[w.id] && !EIGENE_WAREN[w.id]) return null;   // Regel 1
+  if (EIGENE_WAREN[w.id]) {
+    const i = AUSRUESTUNG.indexOf(AUSR_BY_ID[w.id]);
+    if (i >= 0) AUSRUESTUNG.splice(i, 1);
+  }
+  AUSRUESTUNG.push(w);
+  AUSR_BY_ID[w.id] = w;
+  EIGENE_WAREN[w.id] = true;
+  return w;
+}
+
+/* Den ganzen Knoten setzen: eintragen, was da ist, und wegraeumen,
+   was die Spielleitung geloescht hat. Eine Ware, die niemand mehr
+   kennt, soll nicht als Karteileiche weiterwiegen. */
+function eigeneWarenSetzen(knoten) {
+  const soll = {};
+  Object.keys(knoten || {}).forEach(function (k) {
+    const w = eigeneWareEintragen(knoten[k]);
+    if (w) soll[w.id] = true;
+  });
+  Object.keys(EIGENE_WAREN).forEach(function (id) {
+    if (soll[id]) return;
+    const i = AUSRUESTUNG.indexOf(AUSR_BY_ID[id]);
+    if (i >= 0) AUSRUESTUNG.splice(i, 1);
+    delete AUSR_BY_ID[id];
+    delete EIGENE_WAREN[id];
+  });
+  return Object.keys(EIGENE_WAREN).length;
+}
+
 /* Traglast haengt an der Staerke: doppelte Seitenzahl des Wuerfels.
    d4 = 8 · d6 = 12 · d8 = 16 · d10 = 20 · d12 = 24 */
 function traglast(figur) { return SIDES[figur.attr['Stärke'] || 1] * 2; }
@@ -1183,6 +1289,8 @@ if (typeof module !== 'undefined' && module.exports) {
     BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, rangJetzt, STECKBRIEF, CREW_STEPS,
     TALENT_KATEGORIEN, TALENTE, HANDICAPS, TAL_BY_ID, HND_BY_ID, talenteDerKategorie,
     AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, LADUNGEN_START, ausruestungDerArt,
+    EIGENE_PRAEFIX, EIGENE_WAREN, eigeneWareId, istEigeneWare,
+    eigeneWarePruefen, eigeneWareEintragen, eigeneWarenSetzen,
     traglast, getragen, ueberladen, ruestbonus, ausgabenMuenzen,
     leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,

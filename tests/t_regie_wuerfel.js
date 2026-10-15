@@ -62,14 +62,16 @@ function bau() {
       classList: { _s: new Set(), add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); },
                    toggle(c, an) { if (an) this._s.add(c); else this._s.delete(c); },
                    contains(c) { return this._s.has(c); } },
+      value: '', style: {},
       get innerHTML() { return n._html; }, set innerHTML(v) { n._html = v; },
       focus() { n._fokus = true; }, select() {}
     };
     nachId[id] = n;
     return n;
   }
-  ['anzahl', 'inhalt', 'fbNote', 'erschLeiste', 'btnFiguren', 'btnProtokoll', 'btnBrief', 'btnAlle']
-    .forEach(knoten);
+  ['anzahl', 'inhalt', 'fbNote', 'erschLeiste', 'btnFiguren', 'btnProtokoll', 'btnBrief', 'btnAlle',
+   'btnWerkstatt', 'werkstatt', 'wstMeld', 'wstName', 'wstText', 'wstArt', 'wstSchaden',
+   'wstRuest', 'wstGew', 'wstPreis'].forEach(knoten);
 
   const schreib = [];      // jeder Schreibzugriff, der stattfindet
   const lauscher = {};
@@ -91,6 +93,7 @@ function bau() {
     localStorage: { _d: {}, getItem(k) { return this._d[k] || null; }, setItem(k, v) { this._d[k] = v; },
                     removeItem(k) { delete this._d[k]; } },
     firebaseConfig: {},
+    confirm: function () { return ctx._confirm !== false; },
     firebase: { initializeApp() {}, database() { return {}; },
                 database_ServerValue: null },
     document: {
@@ -114,6 +117,12 @@ function bau() {
 
   const u = { ctx, db, nachId, schreib, lauscher };
   u.inhalt = () => nachId['inhalt']._html;
+  u.werkstatt = () => nachId['werkstatt']._html;
+  /* Felder ausfuellen wie ein Mensch: in die Eingabe schreiben, dann den
+     Knopf druecken - nicht die Werte direkt in den Zustand legen. */
+  u.fuelle = function (werte) {
+    Object.keys(werte).forEach(function (k) { nachId[k].value = String(werte[k]); });
+  };
   u.kopf = () => nachId['erschLeiste']._html;
   /* Klick auf ein Element mit diesen data-Attributen. closest() wird
      gestubbt, weil der Handler delegiert arbeitet. */
@@ -230,11 +239,13 @@ M3.uebergeben('anna', { art: 'nehmen', id: 'saebel' });
 M3.setzeAnsicht('protokoll');
 u.klick({ komm: 'p1' });
 u.klick({ sichern: 'p1' });
-/* Drei erlaubte Ziele, und alle drei liegen NEBEN der Figur, nicht in ihr:
-   die Bitte zu wuerfeln, die Notiz am Wurf, und seit 14.10.2026 das Postfach
-   fuer uebergebene Ausruestung. Der Kern der Regel bleibt derselbe: Kein
-   Schreibzugriff dieser Seite fasst einen WERT der Figur an. */
-const erlaubt = /^(figuren\/[a-z0-9_-]+\/(anfrage|zuteilung)|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz)$/;
+/* Vier erlaubte Ziele. Drei liegen NEBEN der Figur: die Bitte zu wuerfeln,
+   die Notiz am Wurf und das Postfach fuer uebergebene Ausruestung. Das
+   vierte (seit 15.10.2026) liegt gar nicht bei einer Figur, sondern bei
+   der SITZUNG: die Beschreibung eines erfundenen Gegenstands. Der Kern der
+   Regel bleibt unveraendert - kein Schreibzugriff dieser Seite fasst einen
+   WERT der Figur an. */
+const erlaubt = /^(figuren\/[a-z0-9_-]+\/(anfrage|zuteilung)|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz|eigeneWaren\/sl_[a-z0-9_]+)$/;
 chk('es wurde überhaupt geschrieben', u.schreib.length >= 4, u.schreib.length);
 chk('JEDER Schreibzugriff ist Anfrage oder Notiz',
   u.schreib.every(s => erlaubt.test(s.p)), u.schreib.filter(s => !erlaubt.test(s.p)).map(s => s.p));
@@ -520,5 +531,93 @@ chk('Export hat eine Würfe-Überschrift', VAULT.indexOf("'## Würfe") >= 0);
 chk('und einen Satz, wenn nichts da ist', VAULT.indexOf('Keine Würfe im gewählten Bereich') >= 0);
 
 console.log('');
+console.log('=== DIE WERKSTATT: EIGENE GEGENSTAENDE ===');
+/* Hendriks Vorgabe vom 15.10.2026: Die Spielleitung soll Gegenstaende
+   erstellen und einer Figur zuweisen koennen. Zwei Schritte, und das ist
+   Absicht: Die BESCHREIBUNG gehoert der Sitzung, die Uebergabe der Figur -
+   derselbe Gegenstand kann mehreren gegeben werden. */
+const W = bau();
+W.ctx.module.exports.setFiguren(FIGUREN);
+W.schreib.length = 0;
+
+chk('die Werkstatt ist zu, bis man sie aufmacht', W.werkstatt() === '', W.werkstatt());
+W.ctx.module.exports.toggleWerkstatt();
+chk('aufgeklappt steht ein Formular da',
+  W.werkstatt().indexOf('wstName') > 0 && W.werkstatt().indexOf('anlegen') > 0);
+chk('und noch nichts erfunden', W.werkstatt().indexOf('Noch nichts erfunden') > 0);
+chk('das Aufklappen schreibt nichts', W.schreib.length === 0, W.schreib);
+
+/* Ohne Namen gibt es nichts - und es wird gesagt, statt still zu scheitern. */
+W.fuelle({ wstName: '   ', wstText: 'x', wstArt: 'Nahkampf', wstSchaden: '3',
+           wstRuest: '0', wstGew: '5', wstPreis: '400' });
+W.ctx.module.exports.wareAnlegen();
+chk('ohne Namen wird nichts angelegt', W.schreib.length === 0, W.schreib);
+chk('und es steht da, warum', W.nachId['wstMeld'].textContent.indexOf('Namen') >= 0,
+  W.nachId['wstMeld'].textContent);
+
+W.fuelle({ wstName: 'Jaguar-Säbel', wstText: 'Ein Jaguar ist eingraviert.',
+           wstArt: 'Nahkampf', wstSchaden: '3', wstRuest: '0', wstGew: '5', wstPreis: '400' });
+W.ctx.module.exports.wareAnlegen();
+chk('genau EIN Schreibzugriff', W.schreib.length === 1, W.schreib);
+const gw = W.schreib[0];
+chk('und zwar auf die Waren der Sitzung', gw.p.indexOf('eigeneWaren/sl_') === 0, gw.p);
+chk('nicht auf eine Figur', gw.p.indexOf('figuren/') < 0, gw.p);
+chk('mit allem, was der Gegenstand ist',
+  gw.v.n === 'Jaguar-Säbel' && gw.v.schaden === 3 && gw.v.gew === 5 && gw.v.preis === 400 &&
+  gw.v.art === 'Nahkampf' && gw.v.vonSl === true, gw.v);
+
+/* Jetzt kommt die Ware ueber die Datenbank zurueck - erst dann gibt es
+   sie wirklich. Die Seite traegt sie ein und zeichnet neu. */
+const wid = gw.p.split('/')[1];
+W.lauscher['eigeneWaren']({ val: () => ({ [wid]: gw.v }) });
+chk('danach steht sie in der Liste', W.werkstatt().indexOf('Jaguar-Säbel') > 0);
+/* "const AUSR_BY_ID" im vm ist von aussen NICHT als ctx-Eigenschaft
+   sichtbar - also ueber die Seite selbst fragen. */
+const wListe = W.ctx.module.exports.eigeneListe();
+chk('und ist ganz normale Ware',
+  wListe.length === 1 && wListe[0].id === wid && wListe[0].schaden === 3, wListe);
+/* Der eigentliche Zweck: Sie laesst sich uebergeben - und steht dafuer
+   OBEN in der Auswahl, nicht hinter sechs Warenarten. */
+const wgb = W.ctx.module.exports.gebenBlock('anna', FIGUREN.anna);
+chk('sie steht in der Übergabe-Auswahl', wgb.indexOf(wid) > 0);
+chk('und zwar ganz oben', wgb.indexOf('Von der Spielleitung') > 0 &&
+  wgb.indexOf('Von der Spielleitung') < wgb.indexOf('<optgroup label="Nahkampf"'));
+chk('die Ware des Regelwerks steht nicht doppelt da',
+  (wgb.match(new RegExp(wid, 'g')) || []).length === 1);
+
+W.schreib.length = 0;
+W.ctx.module.exports.uebergeben('anna', { art: 'gegenstand', id: wid });
+chk('übergeben wird wie jede andere Ware auch',
+  W.schreib.length === 1 && W.schreib[0].p === 'figuren/anna/zuteilung' &&
+  W.schreib[0].v.id === wid, W.schreib);
+
+/* Loeschen fragt nach - und sagt dazu, wer sie traegt. */
+W.schreib.length = 0;
+W.ctx._confirm = false;
+W.ctx.module.exports.wareWeg(wid);
+chk('eine abgelehnte Rückfrage löscht nichts', W.schreib.length === 0, W.schreib);
+W.ctx._confirm = true;
+W.ctx.module.exports.wareWeg(wid);
+chk('bestätigt wird sie gelöscht',
+  W.schreib.length === 1 && W.schreib[0].op === 'remove' &&
+  W.schreib[0].p === 'eigeneWaren/' + wid, W.schreib);
+W.lauscher['eigeneWaren']({ val: () => ({}) });
+chk('danach ist sie überall weg',
+  W.ctx.module.exports.eigeneListe().length === 0 &&
+  W.werkstatt().indexOf('Noch nichts erfunden') > 0);
+
+/* Zum Schluss, was am Firebase-Versprechen haengt: Das loest erst auf,
+   wenn der synchrone Lauf durch ist - vorher stuende hier noch die
+   vorige Meldung. */
+Promise.resolve().then(function () {
+  chk('der Spielleitung wird der Gegenstand bestätigt',
+    W.nachId['wstMeld'].textContent.indexOf('angelegt') > 0, W.nachId['wstMeld'].textContent);
+  chk('und das Namensfeld ist wieder leer', W.nachId['wstName'].value === '');
+  schluss();
+});
+
+function schluss() {
+console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);
+}

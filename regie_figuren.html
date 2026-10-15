@@ -16,6 +16,27 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
 .topbar{position:sticky;top:0;z-index:100;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px);display:flex;align-items:center;gap:.8rem;padding:.55rem 1rem;flex-wrap:wrap}
 .brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.95rem;letter-spacing:.13em}
+/* Die Werkstatt: ein Gegenstand, den es im Regelwerk nicht gibt. */
+.wst{background:var(--card);border:1px solid var(--gold);border-radius:6px;
+  padding:.8rem .9rem;margin-bottom:1rem}
+.wst h3{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.1em;color:var(--gold);
+  margin:0 0 .2rem;text-transform:uppercase}
+.wst .wh{font-size:.72rem;color:var(--gray);font-style:italic;line-height:1.5;margin-bottom:.6rem}
+.wst-f{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.wst-f label{font-size:.68rem;color:var(--gray);display:flex;flex-direction:column;gap:.15rem}
+.wst-f input,.wst-f select{font-family:inherit;font-size:.76rem;padding:.25rem .4rem;
+  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+.wst-f input.lang{min-width:15rem}
+.wst-liste{margin-top:.7rem;display:flex;flex-wrap:wrap;gap:.35rem}
+.wst-w{display:flex;align-items:center;gap:.35rem;border:1px solid var(--line);
+  border-radius:11px;padding:.1rem .3rem .1rem .6rem;font-size:.74rem}
+.wst-w b{font-weight:400;color:var(--gold)}
+.wst-w .x{cursor:pointer;color:var(--gray);padding:0 .2rem}
+.wst-w .x:hover{color:#e05555}
+.wst-meld{font-size:.72rem;margin-top:.5rem;min-height:1rem}
+.wst .mini{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
+  border:1px solid var(--border);color:var(--gray);border-radius:4px;padding:.24rem .6rem;cursor:pointer}
+.wst .mini:hover{border-color:var(--gold);color:var(--ink)}
 .badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.1rem .55rem}
 .btn{padding:.34rem .8rem;border-radius:5px;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;border:1px solid rgba(201,168,76,.4);cursor:pointer;font-weight:600;background:transparent;color:var(--gold);transition:all .18s}
 .btn:hover{background:var(--lgold)}
@@ -132,12 +153,15 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   <span style="flex:1"></span>
   <button class="btn on" id="btnFiguren" onclick="setzeAnsicht('figuren')">Figuren</button>
   <button class="btn" id="btnProtokoll" onclick="setzeAnsicht('protokoll')">Würfe</button>
+  <button class="btn" id="btnWerkstatt" onclick="toggleWerkstatt()"
+    title="Einen Gegenstand erfinden, den es im Regelwerk nicht gibt">+ Gegenstand</button>
   <button class="btn on" id="btnBrief" onclick="toggleBrief()">Steckbrief</button>
   <button class="btn" id="btnAlle" onclick="toggleAlle()">alle Fertigkeiten</button>
 </div>
 
 <div class="wrap">
   <div class="fbnote" id="fbNote"></div>
+  <div id="werkstatt"></div>
   <div id="inhalt"></div>
 </div>
 
@@ -272,6 +296,15 @@ function initFirebase() {
         if (ansicht === 'protokoll') render();
       }, function () { protokoll = {}; });
     }
+    /* Die erfundenen Waren ZUERST: Eine Figur traegt nur IDs, und ein
+       Gegenstand ohne Beschreibung verschwindet in der Anzeige
+       stillschweigend. Also erst eintragen, dann zeichnen. */
+    db.ref('eigeneWaren').on('value', function (s) {
+      eigeneWarenSetzen(s.val() || {});
+      zeichneWerkstatt();
+      render();
+    });
+
     db.ref('figuren').on('value', function (s) {
       figuren = s.val() || {};
       render();
@@ -374,11 +407,143 @@ function uebergeben(pid, eintrag) {
   });
 }
 
+/* ==========================================================
+   WERKSTATT - EIGENE GEGENSTAENDE
+   ----------------------------------------------------------
+   Nicht alles, was eine Figur traegt, steht im Regelwerk: der
+   Jaguar-Saebel, ein Brief, die Kiste aus der Grotte. Bis jetzt
+   konnte die Spielleitung nur vergeben, was js/regelwerk.js
+   kennt - alles andere musste der Spieler sich selbst eintippen.
+
+   Ein erfundener Gegenstand liegt JE SITZUNG in der Datenbank
+   (eigeneWaren) und wird von allen Seiten beim Laden ins
+   Regelwerk nachgetragen. Damit ist er ganz normale Ware:
+   Traglast, Robustheit und Verkauf rechnen ohne Sonderweg mit
+   ihm.
+
+   WICHTIG: Angelegt wird die BESCHREIBUNG - vergeben wird
+   danach wie bisher ueber das Postfach. Das sind zwei Schritte,
+   und das ist Absicht: Derselbe Gegenstand kann mehreren Figuren
+   gegeben werden, und die Beschreibung gehoert der Sitzung,
+   nicht einer Figur. */
+let werkstattAuf = false;
+
+function toggleWerkstatt() {
+  werkstattAuf = !werkstattAuf;
+  document.getElementById('btnWerkstatt').classList.toggle('on', werkstattAuf);
+  zeichneWerkstatt();
+}
+
+function eigeneListe() {
+  return AUSRUESTUNG.filter(function (a) { return a.vonSl; })
+                    .sort(function (a, b) { return a.n.localeCompare(b.n, 'de'); });
+}
+
+function zeichneWerkstatt() {
+  const el = document.getElementById('werkstatt');
+  if (!el) return;
+  if (!werkstattAuf) { el.innerHTML = ''; return; }
+
+  const arten = AUSR_ARTEN.map(function (a) {
+    return '<option value="' + esc(a) + '">' + esc(a) + '</option>';
+  }).join('');
+  /* Schaden ist eine Wuerfelstufe, kein Bonus - in diesem System wird
+     nichts addiert (Bibel 4.1). "keiner" ist der Normalfall. */
+  const stufen = '<option value="0">keiner</option>' +
+    [1, 2, 3, 4, 5].map(function (i) {
+      return '<option value="' + i + '">' + DLBL[i] + '</option>';
+    }).join('');
+
+  const liste = eigeneListe();
+  el.innerHTML = '<div class="wst"><h3>Gegenstand erfinden</h3>' +
+    '<div class="wh">Was es im Regelwerk nicht gibt. Er gilt in dieser Sitzung und lässt ' +
+    'sich danach jeder Figur übergeben — unten bei „Übergeben“, ganz oben in der Liste.</div>' +
+    '<div class="wst-f">' +
+      '<label>Name<input id="wstName" class="lang" maxlength="60" placeholder="Jaguar-Säbel"></label>' +
+      '<label>Art<select id="wstArt">' + arten + '</select></label>' +
+      '<label>Schaden<select id="wstSchaden">' + stufen + '</select></label>' +
+      '<label>Robustheit<input id="wstRuest" type="number" min="0" max="6" value="0" style="width:4rem"></label>' +
+      '<label>Gewicht<input id="wstGew" type="number" min="0" max="99" value="1" style="width:4rem"></label>' +
+      '<label>Wert (M.)<input id="wstPreis" type="number" min="0" step="10" value="0" style="width:5.5rem"></label>' +
+    '</div>' +
+    '<div class="wst-f" style="margin-top:.4rem">' +
+      '<label style="flex:1">Beschreibung<input id="wstText" class="lang" style="width:100%" ' +
+      'maxlength="400" placeholder="Ein Jaguar ist in die Klinge geschnitten."></label>' +
+      '<button class="mini" onclick="wareAnlegen()" style="align-self:flex-end">anlegen</button>' +
+    '</div>' +
+    '<div class="wst-meld" id="wstMeld"></div>' +
+    (liste.length
+      ? '<div class="wst-liste">' + liste.map(function (a) {
+          return '<span class="wst-w"><b>' + esc(a.n) + '</b>' +
+            '<span style="color:var(--gray)">' + esc(a.art) +
+            (a.schaden ? ' · ' + DLBL[a.schaden] : '') +
+            (a.ruest ? ' · Rob. +' + a.ruest : '') + '</span>' +
+            '<span class="x" data-wareweg="' + esc(a.id) + '" ' +
+            'title="Beschreibung löschen">×</span></span>';
+        }).join('') + '</div>'
+      : '<div class="wh" style="margin:.6rem 0 0">Noch nichts erfunden.</div>') +
+    '</div>';
+}
+
+function wstMeld(text, gut) {
+  const m = document.getElementById('wstMeld');
+  if (m) { m.textContent = text; m.style.color = gut ? '#4caf7d' : 'var(--amber)'; }
+}
+
+function wareAnlegen() {
+  if (!db) { wstMeld('Keine Verbindung — ohne Datenbank gibt es den Gegenstand nirgends.', false); return; }
+  const v = function (id) { const e = document.getElementById(id); return e ? e.value : ''; };
+  const name = String(v('wstName')).trim();
+  if (!name) { wstMeld('Ohne Namen geht es nicht.', false); return; }
+  const roh = {
+    id: eigeneWareId(name), n: name, d: v('wstText'), art: v('wstArt'),
+    schaden: Number(v('wstSchaden')) || 0,
+    ruest: Number(v('wstRuest')) || 0,
+    gew: Number(v('wstGew')) || 0,
+    preis: Number(v('wstPreis')) || 0
+  };
+  /* Erst pruefen, dann schreiben: Ein halber Gegenstand in der Datenbank
+     waere schlimmer als gar keiner - er taucht ueberall auf und wiegt. */
+  const w = eigeneWarePruefen(roh);
+  if (!w) { wstMeld('Das ergibt keinen brauchbaren Gegenstand.', false); return; }
+  db.ref('eigeneWaren/' + w.id).set(w).then(function () {
+    wstMeld('„' + w.n + '" angelegt — jetzt unten bei einer Figur übergeben.', true);
+    const n = document.getElementById('wstName'); if (n) n.value = '';
+    const t = document.getElementById('wstText'); if (t) t.value = '';
+  }).catch(function (e) {
+    wstMeld('Ging nicht: ' + (e && e.message ? e.message : 'unbekannt'), false);
+  });
+}
+
+/* Die Beschreibung loeschen nimmt niemandem etwas aus der Hand: Die Figur
+   traegt die ID weiter. Sie zeigt den Gegenstand dann nicht mehr an - das
+   ist der Preis dafuer, dass Waren nicht in jeder Figur doppelt liegen.
+   Deshalb wird gefragt und gesagt, wer ihn traegt. */
+function wareWeg(id) {
+  if (!db) return;
+  const a = AUSR_BY_ID[id];
+  const traeger = Object.keys(figuren).filter(function (pid) {
+    return ((figuren[pid] && figuren[pid].ausr) || []).indexOf(id) >= 0;
+  }).length;
+  if (!confirm('„' + ((a && a.n) || id) + '" löschen?' +
+      (traeger ? '\n\nAchtung: ' + traeger + ' Figur(en) tragen ihn. Bei ihnen verschwindet er ' +
+                 'aus der Anzeige.' : ''))) return;
+  db.ref('eigeneWaren/' + id).remove();
+}
+
 function gebenBlock(pid, roh) {
   const offen = Object.keys(roh.zuteilung || {}).length;
-  const opt = AUSR_ARTEN.map(function (art) {
+  /* Das Erfundene steht OBEN: Wer es gerade angelegt hat, will es jetzt
+     vergeben und nicht erst durch sechs Warenarten scrollen. */
+  const eigen = eigeneListe();
+  const optEigen = eigen.length
+    ? '<optgroup label="Von der Spielleitung">' + eigen.map(function (a) {
+        return '<option value="' + esc(a.id) + '">' + esc(a.n) + '</option>';
+      }).join('') + '</optgroup>'
+    : '';
+  const opt = optEigen + AUSR_ARTEN.map(function (art) {
     return '<optgroup label="' + esc(art) + '">' +
-      AUSRUESTUNG.filter(function (a) { return a.art === art; }).map(function (a) {
+      AUSRUESTUNG.filter(function (a) { return a.art === art && !a.vonSl; }).map(function (a) {
         return '<option value="' + esc(a.id) + '">' + esc(a.n) +
           (a.preis ? ' (' + a.preis + ' M.)' : '') + '</option>';
       }).join('') + '</optgroup>';
@@ -633,7 +798,7 @@ function setzeAnsicht(a) {
 document.addEventListener('click', function (ev) {
   const t = ev.target.closest('[data-ersch],[data-pid][data-wert],[data-einzeln],[data-alle],' +
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
-    '[data-geben],[data-muenzgeben],[data-nehmen]');
+    '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg]');
   if (!t) return;
 
   if (t.dataset.ersch !== undefined) {
@@ -661,6 +826,7 @@ document.addEventListener('click', function (ev) {
     if (wert) uebergeben(t.dataset.muenzgeben, { art: 'muenzen', wert: wert });
     return;
   }
+  if (t.dataset.wareweg !== undefined) { wareWeg(t.dataset.wareweg); return; }
   if (t.dataset.nehmen !== undefined) {
     const teile = t.dataset.nehmen.split('|');
     uebergeben(teile[0], { art: 'nehmen', id: teile[1] });
@@ -701,6 +867,7 @@ if (typeof module !== 'undefined' && module.exports) {
     setProtokoll: function (p) { protokoll = p; render(); },
     setDb: function (d) { db = d; },
     setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe, uebergeben, gebenBlock,
+    toggleWerkstatt, zeichneWerkstatt, wareAnlegen, wareWeg, eigeneListe,
     protokollZeilen, bandKurz, szenenLabel, ortTitel,
     alsFigur, render,
     zustand: function () { return { ansicht, erschwernis, menu, kommentiert }; }

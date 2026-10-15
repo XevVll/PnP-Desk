@@ -126,6 +126,57 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 6) — Die Spielleitung erfindet Gegenstände
+- **Hendriks Vorgabe:** „Eine Möglichkeit, dass ich als SL eventuell auch Items erstellen kann
+  und diese einem Charakter zuweise.“
+- **Die Lücke war echt:** Übergeben konnte die Spielleitung seit dem 14.10. — aber nur, was
+  `js/regelwerk.js` kennt. Der **Jaguar-Säbel**, ein Brief, die Kiste aus der Grotte: alles,
+  was das Abenteuer selbst hervorbringt, musste der Spieler sich bisher selbst eintippen.
+- **Erfundene Waren können nicht im Code stehen** — das ist Code, und am Tisch schreibt
+  niemand welchen. Sie liegen deshalb **je Sitzung in der Datenbank**
+  (`sitzungen/{sid}/stand/eigeneWaren`) und werden beim Laden ins Regelwerk **nachgetragen**.
+  - **Danach sind sie ganz normale Ware:** Traglast, Robustheit und Verkauf rechnen **ohne
+    Sonderweg** mit ihnen, weil alles über `AUSR_BY_ID` läuft. Das ist der Grund für diesen
+    Weg — die Alternative wäre gewesen, den Gegenstand in die Figur zu schreiben, und dann
+    hätte **jede** Funktion, die Ausrüstung anfasst, zwei Fälle gekannt.
+  - **Kein neuer Top-Level-Pfad, keine Regeländerung:** `sitzungen` ist längst beschreibbar.
+- **Zwei Regeln, die nicht verhandelbar sind** (stehen so im Code):
+  1. **Eine erfundene Ware überschreibt NIE eine aus dem Regelwerk.** Sonst könnte eine
+     Sitzung den Säbel umdefinieren, und niemand fände den Grund. Die Kennung trägt dafür
+     das Präfix **`sl_`** — daran erkennt auch jeder Leser, woher sie stammt.
+  2. **Eine Figur trägt weiterhin nur IDs.** Ein Gegenstand, dessen Beschreibung nicht geladen
+     ist, verschwindet in der Anzeige **stillschweigend** (überall steht `if (a)`). Deshalb
+     tragen **alle drei** Seiten die Waren ein, **bevor** sie zeichnen — auch `karte.html`,
+     denn die Traglast geht dort in den Würfelabzug ein. Ohne das wäre eine Figur auf der
+     Karte leichter als in ihrem Bogen.
+- **Die Werkstatt in `regie_figuren.html`:** Knopf **„+ Gegenstand“** in der Kopfleiste, darunter
+  ein Formular (Name, Art, Schaden als **Würfelstufe**, Robustheit, Gewicht, Wert,
+  Beschreibung) und die Liste des schon Erfundenen zum Löschen.
+  - **Anlegen und Übergeben sind zwei Schritte, und das ist Absicht:** Die **Beschreibung**
+    gehört der Sitzung, die **Übergabe** der Figur. Derselbe Gegenstand lässt sich mehreren
+    geben — vier Dolche für vier Spieler sind ein Eintrag, nicht vier.
+  - In der Übergabe-Auswahl steht das Erfundene **ganz oben**: Wer es gerade angelegt hat,
+    will es jetzt vergeben und nicht erst durch sechs Warenarten scrollen.
+  - **Löschen fragt nach und sagt, wer ihn trägt.** Die Figur behält die ID; der Gegenstand
+    verschwindet dort nur aus der Anzeige. Das ist der Preis dafür, dass Waren nicht in jeder
+    Figur doppelt liegen — also wird es gesagt statt verschwiegen.
+- **Getestet: 168 Prüfungen in `t_bogen.js`, 141 in `t_regie_wuerfel.js`, 0 Fehler** (1062 über
+  zehn Skripte, 42 neue).
+  - **Der ganze Weg wird ausgeführt**, nicht gelesen: Formular ausfüllen → anlegen → die Ware
+    kommt über den Lauscher zurück → sie steht in der Auswahl → übergeben → löschen. Dazu,
+    dass sie **wirklich wiegt** und die **Robustheit hebt**.
+  - **Die Regel über die Schreibziele ist erweitert, nicht aufgeweicht:** Jetzt sind es vier,
+    das neue liegt **gar nicht bei einer Figur**, sondern bei der Sitzung. Die Prüfung „kein
+    Schreibzugriff fasst einen WERT der Figur an“ steht unverändert.
+- **Ein echter Fehler, gefunden von der eigenen Prüfung:** `ruest: -4` ist in JavaScript
+  **truthy** — der Wert wurde also auf das **Minimum 1** geklemmt, und aus einer unsinnigen
+  Angabe wurde eine Rüstung. Geklemmt wird jetzt **ab null** und erst danach gesetzt: Eine
+  negative Angabe heißt „keine Rüstung“, nicht „die kleinste“.
+- **Zwei vm-Fallen, beide bekannt, beide wieder getreten:** `const AUSR_BY_ID` im vm ist von
+  außen **nicht** als Kontext-Eigenschaft sichtbar (die Prüfung fragt jetzt die Seite selbst),
+  und die Erfolgsmeldung hängt am Firebase-Versprechen — sie steht erst, wenn der synchrone
+  Lauf durch ist. Diese beiden Prüfungen laufen deshalb am Ende in einem `.then`.
+
 ### 2026-10-15 (Fortsetzung 5) — Der Einkaufs-Hinweis im Bogen ist weg
 - **Hendriks Vorgabe:** „Der Hinweis zum Einkaufen im Charakterblatt unter Ausrüstung soll
   bitte weg.“ Ersatzlos entfernt.
