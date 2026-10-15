@@ -71,7 +71,7 @@ function bau() {
   }
   ['anzahl', 'inhalt', 'fbNote', 'erschLeiste', 'btnFiguren', 'btnProtokoll', 'btnBrief', 'btnAlle',
    'btnWerkstatt', 'werkstatt', 'wstMeld', 'wstName', 'wstText', 'wstArt', 'wstSchaden',
-   'wstRuest', 'wstGew', 'wstPreis'].forEach(knoten);
+   'wstRuest', 'wstGew', 'wstPreis', 'btnWaren'].forEach(knoten);
 
   const schreib = [];      // jeder Schreibzugriff, der stattfindet
   const lauscher = {};
@@ -94,10 +94,14 @@ function bau() {
                     removeItem(k) { delete this._d[k]; } },
     firebaseConfig: {},
     confirm: function () { return ctx._confirm !== false; },
+    clearTimeout: function () {},
     firebase: { initializeApp() {}, database() { return {}; },
                 database_ServerValue: null },
     document: {
-      getElementById(id) { return nachId[id] || null; },
+      /* Knoten, die erst beim Zeichnen entstehen (warenListe, warenZahl,
+         warenFeld), legt der Stub bei Bedarf an - sonst faende die Seite
+         ihre eigene frisch gezeichnete Liste nicht. */
+      getElementById(id) { return nachId[id] || (/^waren/.test(id) ? knoten(id) : null); },
       addEventListener(e, cb) { ctx.document['on_' + e] = cb; }
     }
   };
@@ -536,6 +540,116 @@ chk('unbekannter Ort geht nicht verloren',
 chk('Export ruft wuerfeSection auf', VAULT.indexOf('wuerfeSection(sceneIds') >= 0);
 chk('Export hat eine Würfe-Überschrift', VAULT.indexOf("'## Würfe") >= 0);
 chk('und einen Satz, wenn nichts da ist', VAULT.indexOf('Keine Würfe im gewählten Bereich') >= 0);
+
+console.log('');
+console.log('=== DIE WARENLISTE UND IHRE SUCHE ===');
+/* Hendriks Vorgabe vom 15.10.2026: eine Liste ALLER Gegenstaende mit
+   Textsuche - "vollumfaenglich, Buchstabenfolge muss im Wort vorkommen".
+   Also ausdruecklich KEINE Wortanfangs-Suche. */
+const L = bau();
+L.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+L.ctx.module.exports.setzeAnsicht('waren');
+const lh = () => L.nachId['inhalt']._html + L.nachId['warenListe']._html;
+
+chk('die Ansicht hat einen eigenen Knopf', L.nachId['btnWaren'].classList.contains('on'));
+chk('ein Suchfeld steht da', L.nachId['inhalt']._html.indexOf('id="warenFeld"') > 0);
+chk('alle Gegenstände sind gelistet',
+  L.nachId['warenZahl'].textContent.indexOf('53') === 0, L.nachId['warenZahl'].textContent);
+chk('nach Warenart gruppiert',
+  L.nachId['warenListe']._html.indexOf('Nahkampf') > 0 &&
+  L.nachId['warenListe']._html.indexOf('Allerlei') > 0);
+chk('mit Werten, nicht nur Namen',
+  /Schaden <b>d\d+<\/b>/.test(L.nachId['warenListe']._html) &&
+  /<b>\d+<\/b> M\./.test(L.nachId['warenListe']._html));
+
+/* Der Kern der Vorgabe: mitten im Wort. */
+const T = L.ctx.module.exports.warenTreffer;
+const ware = n => RW.AUSRUESTUNG.filter(a => a.n === n)[0];
+chk('„ulver" findet das Pulverhorn', T(ware('Pulverhorn mit Blei'), 'ulver'));
+chk('„aebel" findet den Säbel', T(ware('Säbel'), 'aebel'));
+chk('Groß und klein ist egal', T(ware('Säbel'), 'SÄBEL') && T(ware('Säbel'), 'säbel'));
+/* Umlaute: Wer "saebel" tippt, meint den Saebel - ohne das faende eine
+   deutsche Suche die halbe Liste nicht. */
+chk('Umlaute werden vereinheitlicht', T(ware('Säbel'), 'saebel'));
+chk('und andersherum auch', T(ware('Donnerbüchse'), 'buechse') &&
+  T(ware('Donnerbüchse'), 'büchse'));
+chk('ohne Suchtext passt alles', T(ware('Säbel'), ''));
+chk('was nicht passt, passt nicht', !T(ware('Säbel'), 'zzz'));
+
+/* Gesucht wird ueber ALLES, was an der Ware steht - nicht nur den Namen. */
+chk('auch die Beschreibung wird durchsucht',
+  RW.AUSRUESTUNG.some(a => a.n.toLowerCase().indexOf('laterne') < 0 && T(a, 'öl')),
+  'kein Treffer über die Beschreibung');
+chk('und die Warenart', T(ware('Säbel'), 'nahkampf'));
+
+/* Gesucht wird wirklich in der Ansicht, nicht nur in der Funktion. */
+L.ctx.module.exports.warenSuchen('ulver');
+const gefunden = L.nachId['warenListe']._html;
+/* Der Name steht im Treffer ZERLEGT da - "P<mark>ulver</mark>horn" -, weil
+   die Fundstelle markiert wird. Genau darauf wird geprüft; die erste
+   Fassung dieser Prüfung suchte nach dem ganzen Wort und schlug deshalb
+   an, obwohl die Liste stimmte. */
+chk('die Liste zeigt nur noch Treffer',
+  gefunden.indexOf('<mark>ulver</mark>') > 0 && gefunden.indexOf('horn mit Blei') > 0 &&
+  gefunden.indexOf('Säbel') < 0,
+  gefunden.slice(0, 220));
+chk('der Zähler sagt, wie viele', L.nachId['warenZahl'].textContent.indexOf('gefunden') > 0,
+  L.nachId['warenZahl'].textContent);
+/* Die Fundstelle wird markiert - sonst sucht man im Treffer noch einmal
+   mit den Augen. */
+chk('die Fundstelle ist markiert', gefunden.indexOf('<mark>ulver</mark>') > 0 ||
+  gefunden.indexOf('<mark>') > 0, gefunden.slice(0, 200));
+chk('leere Fächer fallen weg', gefunden.indexOf('Schutz') < 0, 'Schutz noch da');
+
+L.ctx.module.exports.warenSuchen('qqq');
+chk('ohne Treffer steht da, warum',
+  L.nachId['warenListe']._html.indexOf('Nichts gefunden') > 0);
+L.ctx.module.exports.warenSuchen('');
+chk('ein leeres Feld zeigt wieder alles',
+  L.nachId['warenZahl'].textContent.indexOf('53') === 0, L.nachId['warenZahl'].textContent);
+
+/* Das Markieren darf den Text nicht verfaelschen - es laeuft ueber die
+   normalisierte Fassung, ausgegeben wird das Original. */
+const H = L.ctx.module.exports.hervor;
+chk('markiert wird das Original, nicht die Suchform',
+  H('Säbel', 'saebel') === '<mark>Säbel</mark>', H('Säbel', 'saebel'));
+chk('ohne Suchtext bleibt der Text unberührt', H('Säbel', '') === 'Säbel');
+chk('mehrere Fundstellen werden alle markiert',
+  (H('Tau und Tauwerk', 'tau').match(/<mark>/g) || []).length === 2,
+  H('Tau und Tauwerk', 'tau'));
+chk('spitze Klammern bleiben maskiert', H('<b>x</b>', 'zzz').indexOf('&lt;b&gt;') === 0,
+  H('<b>x</b>', 'zzz'));
+
+/* Aus der Liste heraus vergeben: suchen, finden, geben. */
+chk('ohne Ziel steht kein Geben-Knopf', L.nachId['warenListe']._html.indexOf('data-wgeben') < 0);
+L.ctx.module.exports.warenZielSetzen('anna');
+chk('mit Ziel schon', L.nachId['warenListe']._html.indexOf('data-wgeben="saebel"') > 0);
+L.schreib.length = 0;
+L.klick({ wgeben: 'saebel' });
+chk('und die Übergabe geht ins Postfach',
+  L.schreib.length === 1 && L.schreib[0].p === 'figuren/anna/zuteilung' &&
+  L.schreib[0].v.id === 'saebel', L.schreib);
+chk('der Spielleitung wird es bestätigt',
+  L.nachId['fbNote'].textContent.indexOf('Säbel') > 0 &&
+  L.nachId['fbNote'].textContent.indexOf('Mara Quint') > 0, L.nachId['fbNote'].textContent);
+chk('und zwar nicht als Warnung', L.nachId['fbNote'].className !== 'fbnote warn',
+  L.nachId['fbNote'].className);
+
+/* Erfundene Waren stehen mit in der Liste - sonst muesste man zum Vergeben
+   doch wieder wissen, woher sie kommen. */
+L.lauscher['eigeneWaren']({ val: () => ({ x: { id: 'sl_brief_aaaa', n: 'Harwicks Brief',
+  d: 'Ein versiegelter Umschlag.', art: 'Allerlei', gew: 0, preis: 0 } }) });
+L.ctx.module.exports.setzeAnsicht('waren');
+chk('eine erfundene Ware steht in der Liste',
+  L.nachId['warenListe']._html.indexOf('Harwicks Brief') > 0);
+chk('und ist als solche gekennzeichnet',
+  L.nachId['warenListe']._html.indexOf('erfunden') > 0);
+L.ctx.module.exports.warenSuchen('sl_');
+chk('über das Präfix findet man sie alle',
+  L.nachId['warenListe']._html.indexOf('Harwicks Brief') > 0 &&
+  L.nachId['warenZahl'].textContent.indexOf('1 von') === 0,
+  L.nachId['warenZahl'].textContent);
+L.ctx.module.exports.warenSuchen('');
 
 console.log('');
 console.log('=== DIE AUSRUESTUNG SAGT, WAS SIE TUT ===');

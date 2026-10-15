@@ -126,6 +126,41 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 8) — Alle Gegenstände, durchsuchbar
+- **Hendriks Vorgabe:** eine Liste mit allen Items und Textsuche — „vollumfänglich,
+  Buchstabenfolge muss im Wort vorkommen“.
+- **Dritte Ansicht „Gegenstände“** in `regie_figuren.html`, neben Figuren und Würfen. Alle
+  **53** Waren (plus die erfundenen), **nach Warenart gruppiert** — 53 Stück am Stück liest
+  niemand — je mit Schaden, Reichweite, Schuss, Robustheit, Gewicht, Preis und Beschreibung.
+- **Die Suche ist ausdrücklich keine Wortanfangs-Suche:** `indexOf` auf der ganzen Zeichenkette.
+  „**ulver**“ findet das Pulverhorn, „**aebel**“ den Säbel.
+  - **Gesucht wird über alles, was an der Ware steht:** Name, Beschreibung, Art **und Kennung**.
+    Das Letzte ist kein Zufall — die erfundenen Waren tragen das Präfix `sl_`, also findet
+    „**sl_**“ sie alle auf einmal.
+  - **Umlaute werden vereinheitlicht** (ä→ae, ö→oe, ü→ue, ß→ss), in beide Richtungen: Wer
+    „saebel“ tippt, meint den Säbel, und wer „büchse“ tippt, findet sie auch. Ohne das
+    fände eine deutsche Suche die halbe Liste nicht.
+  - **Die Fundstelle wird markiert**, sonst sucht man im Treffer noch einmal mit den Augen.
+    Markiert wird auf der **normalisierten** Fassung, ausgegeben das **Original** — beide sind
+    gleich lang, also passen die Stellen.
+- **Aus der Liste heraus vergeben:** oben ein Feld „Übergeben an“, danach hat jede Zeile einen
+  **geben**-Knopf. Suchen, finden, geben — ohne vorher zu wissen, in welcher Warenart der
+  Gegenstand steckt. Ohne gewählte Figur erscheint der Knopf gar nicht erst.
+  - Dazu **`gutMeldung()`**: `warnung()` färbt rot und ist für Fehler da — eine gelungene
+    Übergabe ist keine Warnung, braucht aber eine Rückmeldung, sonst klickt man und nichts
+    geschieht sichtbar.
+- **Der Kopf wird einmal gezeichnet, die Liste danach für sich** (`warenListeZeichnen()` füllt
+  nur `#warenListe`). Hängte die Suche am allgemeinen `render()`, verlöre das Feld **bei jedem
+  Tastendruck den Fokus**.
+- **Getestet: 188 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (32 neue, 1110 über zehn
+  Skripte). Die Ansicht wird **wirklich gezeichnet und wirklich durchsucht**, nicht nur die
+  Suchfunktion aufgerufen: Liste filtert, Zähler stimmt, leere Fächer fallen weg, ohne Treffer
+  steht da warum, spitze Klammern bleiben maskiert, und die Übergabe landet im Postfach.
+- **Eine Prüfung war falsch, nicht der Code:** Ich suchte im Treffer nach „Pulverhorn“ — dort
+  steht aber **`P<mark>ulver</mark>horn`**, weil die Fundstelle markiert wird. Die Liste war die
+  ganze Zeit richtig. **Erst die Diagnose, dann das Urteil:** Ich habe die Fehlermeldung um den
+  tatsächlichen Inhalt erweitert, statt am Code zu drehen.
+
 ### 2026-10-15 (Fortsetzung 7) — Die Ausrüstung sagt, was sie tut
 - **Hendriks Frage:** „Kann ich irgendwie die Ausrüstung der Spieler sehen? Also auch was
   Items machen — Angriff/Schaden etc.“

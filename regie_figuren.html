@@ -44,6 +44,30 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .last{font-size:.66rem;color:var(--gray);margin:.15rem 0 .35rem}
 .last b{color:var(--ink);font-weight:400}
 .last .voll{color:var(--amber)}
+
+/* ── Warenliste ── */
+.wk{display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end;margin-bottom:.8rem;
+  padding-bottom:.7rem;border-bottom:1px solid var(--border)}
+.wk label{font-size:.66rem;color:var(--gray);display:flex;flex-direction:column;gap:.15rem}
+.wk input,.wk select{font-family:inherit;font-size:.8rem;padding:.3rem .45rem;
+  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+.wk input{min-width:16rem}
+.wk .zahl{font-size:.7rem;color:var(--gray);padding-bottom:.35rem}
+.wart{margin-bottom:1rem}
+.wart>h3{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.12em;color:var(--gold);
+  text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:.2rem;
+  margin-bottom:.3rem}
+.wz{display:flex;gap:.6rem;align-items:baseline;padding:.3rem .2rem;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.05)}
+.wz:hover{background:rgba(201,168,76,.05)}
+.wz .wn{flex:1;min-width:11rem;font-size:.82rem}
+.wz .wn small{display:block;font-size:.68rem;color:var(--gray);font-style:italic;line-height:1.5}
+.wz .wv{font-size:.72rem;font-family:'Cinzel',serif;color:var(--gray);white-space:nowrap}
+.wz .wv b{color:var(--ink);font-weight:400}
+.wz mark{background:rgba(201,168,76,.3);color:var(--ink);border-radius:2px}
+.wz .sl-ware{font-size:.6rem;color:var(--teal);border:1px solid var(--teal);
+  border-radius:9px;padding:0 .35rem}
+.wleer{color:var(--gray);font-style:italic;font-size:.8rem;padding:1rem 0}
 .wst .mini{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
   border:1px solid var(--border);color:var(--gray);border-radius:4px;padding:.24rem .6rem;cursor:pointer}
 .wst .mini:hover{border-color:var(--gold);color:var(--ink)}
@@ -163,6 +187,8 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   <span style="flex:1"></span>
   <button class="btn on" id="btnFiguren" onclick="setzeAnsicht('figuren')">Figuren</button>
   <button class="btn" id="btnProtokoll" onclick="setzeAnsicht('protokoll')">Würfe</button>
+  <button class="btn" id="btnWaren" onclick="setzeAnsicht('waren')"
+    title="Alle Gegenstände durchsuchen">Gegenstände</button>
   <button class="btn" id="btnWerkstatt" onclick="toggleWerkstatt()"
     title="Einen Gegenstand erfinden, den es im Regelwerk nicht gibt">+ Gegenstand</button>
   <button class="btn on" id="btnBrief" onclick="toggleBrief()">Steckbrief</button>
@@ -544,6 +570,145 @@ function wareWeg(id) {
 
 /* Der Vertrag aus js/marken.js an genau einer Stelle: class="tag" plus
    die fuenf data-tip*-Felder. Drei Aufrufer - Talent, Schwaeche, Gegenstand. */
+/* ==========================================================
+   WARENLISTE - ALLES, WAS ES GIBT
+   ----------------------------------------------------------
+   Hendriks Vorgabe vom 15.10.2026: eine Liste aller Gegenstaende
+   mit Textsuche. "Vollumfaenglich, Buchstabenfolge muss im Wort
+   vorkommen" - also KEINE Wortanfangs-Suche: "ulver" findet das
+   Pulverhorn, "aebel" den Saebel.
+
+   Gesucht wird ueber alles, was an einer Ware steht: Name,
+   Beschreibung, Art und die Kennung. Letztere, weil die
+   erfundenen Waren der Spielleitung ihr Praefix "sl_" tragen -
+   damit findet "sl_" sie alle auf einmal.
+   ========================================================== */
+let warenText = '';
+let warenZiel = '';     // an wen vergeben werden soll
+
+/* Kleinschreibung UND Umlaute vereinheitlichen: Wer "saebel" tippt, meint
+   den Saebel. Ohne das findet eine deutsche Suche die halbe Liste nicht. */
+function suchForm(x) {
+  return String(x == null ? '' : x).toLowerCase()
+    .replace(/[äÄ]/g, 'ae').replace(/[öÖ]/g, 'oe').replace(/[üÜ]/g, 'ue')
+    .replace(/ß/g, 'ss');
+}
+
+function warenTreffer(a, text) {
+  if (!text) return true;
+  const heu = suchForm([a.n, a.d, a.art, a.id].join(' '));
+  return heu.indexOf(suchForm(text)) >= 0;
+}
+
+/* Die gefundene Stelle wird markiert - sonst sucht man im Treffer noch
+   einmal mit den Augen. Markiert wird auf der NORMALISIERTEN Fassung,
+   ausgegeben aber das Original: gleiche Laenge, also passen die Stellen. */
+function hervor(roh, text) {
+  const t = suchForm(text);
+  if (!t) return esc(roh);
+  const h = suchForm(roh);
+  let aus = '', i = 0;
+  while (true) {
+    const k = h.indexOf(t, i);
+    if (k < 0) break;
+    aus += esc(roh.slice(i, k)) + '<mark>' + esc(roh.slice(k, k + t.length)) + '</mark>';
+    i = k + t.length;
+  }
+  return aus + esc(roh.slice(i));
+}
+
+/* warnung() faerbt rot und ist fuer Fehler da. Eine gelungene Uebergabe
+   ist keine Warnung - sie braucht trotzdem eine Rueckmeldung, sonst klickt
+   man und nichts geschieht sichtbar. */
+function gutMeldung(t) {
+  const n = document.getElementById('fbNote');
+  if (!n) return;
+  n.className = 'fbnote';
+  n.textContent = '✓ ' + t;
+  clearTimeout(gutMeldung._t);
+  gutMeldung._t = setTimeout(function () {
+    if (n.textContent.indexOf('✓') === 0) { n.textContent = ''; }
+  }, 6000);
+}
+
+function warenSuchen(v) {
+  warenText = String(v || '');
+  warenListeZeichnen();
+}
+function warenZielSetzen(v) { warenZiel = String(v || ''); warenListeZeichnen(); }
+
+function warenWerte(a) {
+  const w = [];
+  if (a.schaden) w.push('Schaden <b>' + DLBL[a.schaden] + '</b>');
+  if (a.reichweite) w.push('Reichw. <b>' + a.reichweite + '</b>');
+  if (a.schuss) w.push('<b>' + a.schuss + '</b> Schuss');
+  if (a.ruest) w.push('Rob. <b>+' + a.ruest + '</b>');
+  if (a.ladungen) w.push('<b>' + a.ladungen + '</b> Ladungen');
+  w.push('<b>' + (a.gew || 0) + '</b> Gew.');
+  w.push('<b>' + (a.preis || 0) + '</b> M.');
+  return w.join(' · ');
+}
+
+function warenListeZeichnen() {
+  const el = document.getElementById('warenListe');
+  if (!el) return;
+  const treffer = AUSRUESTUNG.filter(function (a) { return warenTreffer(a, warenText); });
+
+  const z = document.getElementById('warenZahl');
+  if (z) {
+    z.textContent = warenText
+      ? treffer.length + ' von ' + AUSRUESTUNG.length + ' gefunden'
+      : AUSRUESTUNG.length + ' Gegenstände';
+  }
+
+  if (!treffer.length) {
+    el.innerHTML = '<div class="wleer">Nichts gefunden. Gesucht wird in Name, ' +
+      'Beschreibung und Art — die Buchstabenfolge darf überall im Wort stehen.</div>';
+    return;
+  }
+
+  /* Nach Art gruppiert: 53 Gegenstaende am Stueck liest niemand. Leere
+     Faecher fallen bei einer Suche weg. */
+  el.innerHTML = AUSR_ARTEN.map(function (art) {
+    const drin = treffer.filter(function (a) { return a.art === art; });
+    if (!drin.length) return '';
+    return '<div class="wart"><h3>' + esc(art) + ' <span style="color:var(--gray)">(' +
+      drin.length + ')</span></h3>' +
+      drin.map(function (a) {
+        return '<div class="wz"><div class="wn">' + hervor(a.n, warenText) +
+          (a.vonSl ? ' <span class="sl-ware">erfunden</span>' : '') +
+          (a.d ? '<small>' + hervor(a.d, warenText) + '</small>' : '') + '</div>' +
+          '<div class="wv">' + warenWerte(a) + '</div>' +
+          (warenZiel
+            ? '<button class="mini" data-wgeben="' + esc(a.id) + '">geben</button>'
+            : '') +
+          '</div>';
+      }).join('') + '</div>';
+  }).join('');
+}
+
+function renderWaren() {
+  document.getElementById('anzahl').textContent = AUSRUESTUNG.length + ' Gegenstände';
+  const figOpt = Object.keys(figuren).map(function (pid) {
+    const n = (figuren[pid] && figuren[pid].name) || pid;
+    return '<option value="' + esc(pid) + '"' + (pid === warenZiel ? ' selected' : '') +
+      '>' + esc(n) + '</option>';
+  }).join('');
+  /* Der Kopf wird EINMAL gezeichnet, die Liste danach fuer sich. Sonst
+     verlaere das Suchfeld bei jedem Tastendruck den Fokus. */
+  document.getElementById('inhalt').innerHTML =
+    '<div class="wk">' +
+      '<label>Suchen<input id="warenFeld" type="search" placeholder="Buchstabenfolge, z. B. „ulver“" ' +
+        'value="' + esc(warenText) + '" oninput="warenSuchen(this.value)"></label>' +
+      '<label>Übergeben an<select onchange="warenZielSetzen(this.value)">' +
+        '<option value="">— niemanden —</option>' + figOpt + '</select></label>' +
+      '<span class="zahl" id="warenZahl"></span>' +
+    '</div><div id="warenListe"></div>';
+  warenListeZeichnen();
+  const feld = document.getElementById('warenFeld');
+  if (feld && warenText) { feld.focus(); feld.selectionStart = feld.selectionEnd = warenText.length; }
+}
+
 function markeChip(zusatz, id, art, name, einordnung, text, innen) {
   return '<span class="tag ' + zusatz + '" tabindex="0" role="button"' +
     ' data-tipid="' + esc(id) + '" data-tipart="' + esc(art) + '"' +
@@ -698,6 +863,7 @@ function renderProtokoll() {
 function render() {
   zeichneErschwernis();
   if (ansicht === 'protokoll') { renderProtokoll(); return; }
+  if (ansicht === 'waren') { renderWaren(); return; }
 
   const ids = Object.keys(figuren);
   document.getElementById('anzahl').textContent =
@@ -855,13 +1021,14 @@ function setzeAnsicht(a) {
   menu = null; kommentiert = null;
   document.getElementById('btnFiguren').classList.toggle('on', a === 'figuren');
   document.getElementById('btnProtokoll').classList.toggle('on', a === 'protokoll');
+  document.getElementById('btnWaren').classList.toggle('on', a === 'waren');
   render();
 }
 
 document.addEventListener('click', function (ev) {
   const t = ev.target.closest('[data-ersch],[data-pid][data-wert],[data-einzeln],[data-alle],' +
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
-    '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg]');
+    '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben]');
   if (!t) return;
 
   if (t.dataset.ersch !== undefined) {
@@ -890,6 +1057,17 @@ document.addEventListener('click', function (ev) {
     return;
   }
   if (t.dataset.wareweg !== undefined) { wareWeg(t.dataset.wareweg); return; }
+  /* Aus der Liste heraus vergeben: suchen, finden, geben - ohne vorher zu
+     wissen, in welcher Warenart der Gegenstand steckt. */
+  if (t.dataset.wgeben !== undefined) {
+    if (!warenZiel) return;
+    uebergeben(warenZiel, { art: 'gegenstand', id: t.dataset.wgeben });
+    const a = AUSR_BY_ID[t.dataset.wgeben];
+    const f = figuren[warenZiel];
+    gutMeldung(((a && a.n) || t.dataset.wgeben) + ' geht an ' +
+      ((f && f.name) || warenZiel) + ' — kommt an, sobald der Bogen offen ist.');
+    return;
+  }
   if (t.dataset.nehmen !== undefined) {
     const teile = t.dataset.nehmen.split('|');
     const a = AUSR_BY_ID[teile[1]];
@@ -935,6 +1113,7 @@ if (typeof module !== 'undefined' && module.exports) {
     setDb: function (d) { db = d; },
     setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe, uebergeben, gebenBlock,
     toggleWerkstatt, zeichneWerkstatt, wareAnlegen, wareWeg, eigeneListe,
+    warenSuchen, warenZielSetzen, warenTreffer, hervor, suchForm, warenWerte,
     protokollZeilen, bandKurz, szenenLabel, ortTitel,
     alsFigur, render,
     zustand: function () { return { ansicht, erschwernis, menu, kommentiert }; }
