@@ -126,6 +126,86 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 18) — Spieler laden ihr Charakterbild hoch, es steht links
+- **Hendriks Wunsch:** „Gibt es eine Möglichkeit, in der Spieler Bilder ihres Charakters
+  hochladen können und diese dann am linken Bildschirmrand teilen? (So wie ich mit NSC am
+  rechten Rand)“ — und nach Rückfrage: **über die Datenbank, Spieler laden selbst hoch.**
+- **Ohne Firebase Storage, und das ist der tragende Punkt.** Storage bräuchte ein zweites SDK
+  **und eigene Regeln, die von Hand in der Konsole zu veröffentlichen wären** — bis dahin
+  schlägt jeder Upload **still** fehl. Genau die Falle, die in diesem Repo mehrfach
+  dokumentiert ist.
+  - Stattdessen: Das Bild wird **im Browser des Spielers verkleinert** (Canvas → WebP,
+    450×600) und als Data-URI geschrieben. Nachgemessen an den vorhandenen Porträts
+    (Harwick 502×900 bei 85 KB) und an der Leiste, die höchstens `clamp(108px, 8vw, 220px)`
+    breit ist: 450×600 reicht auch bei doppelter Pixeldichte und landet bei **rund 14 KB**.
+- **Das Bild liegt NICHT in der Figur, sondern daneben — `pcLeiste/{schlüssel}`.** Drei Gründe,
+  und der erste allein genügt:
+  1. **`bogenFelder()` geht bei JEDER Änderung hoch**, entprellt mit 800 ms. Läge das Bild
+     darin, gingen bei jedem Klick auf einen Stepper ~50 KB durchs Netz — unbemerkt, für immer.
+  2. **Die Karte braucht nur Name und Bild.** Auf `figuren` zu horchen hieße, jedem Spieler bei
+     jeder Änderung an irgendeiner Figur deren Steckbrief, Notizen und Ausrüstung
+     mitzuschicken.
+  3. **Die Spielleitung darf ausblenden, ohne einen WERT der Figur anzufassen.** Der Bogen
+     bleibt ihr einziger Schreiber — dieselbe Linie wie bei Anfrage, Notiz und Postfach.
+  - **`pcLeiste` steht in `SITZUNGS_PFADE`**, liegt also unter `sitzungen/{sid}/stand/`.
+    **Kein neuer Top-Level-Pfad, also keine Regeländerung.**
+  - Beide Seiten schreiben per **`update()` auf eigene Schlüssel**: der Spieler `bild`/`name`,
+    die Spielleitung `aus`. Ein `set()` von einer Seite würde die andere mitlöschen.
+- **Die Leiste hängt NICHT an der Szene** — anders als die der NSC, und das ist Absicht: Ein
+  NSC betritt eine Szene und geht wieder, **die Spieler sind den ganzen Abend da.** Sie steht
+  also, sobald jemand ein Bild hochgeladen hat; einzelne nimmt die Spielleitung in
+  `regie_figuren.html` per Knopf von der Karte (beschriftet nach Zustand — „ausblenden“ bzw.
+  „einblenden“, sonst klickt man es versehentlich wieder an).
+  - **Links sitzt mittig der Bogen-Griff.** Ohne eigenen Abstand (`padding-left`) läge die
+    Leiste genau darüber, und der Griff wäre nicht mehr anklickbar. In der Vorschau der
+    Spielleitung ist der Griff ausgeblendet — dort fällt der Abstand weg.
+- **Beim Löschen einer Figur geht das Bild mit** (`figurLoeschen()`): **erst die Leiste, dann
+  die Figur.** Wer nur die Figur löscht, lässt das Porträt eines gelöschten Charakters an der
+  Karte hängen — und niemand findet mehr die Stelle, an der es abzuschalten wäre.
+- **Getestet: 1303 Prüfungen über elf Skripte** (46 neue), **ein** Fehlschlag — der bekannte
+  aus `t_figuren.js` („vor dem ersten Ergebnis ist die Kachel zu“), unverändert seit dem 13.10.
+  - **Die wichtigste Prüfung ist die billigste:** *das Bild reitet nicht in `bogenFelder()`
+    mit.* **Gegengeprüft** — baut man es dort ein, schlägt sie an, und mit ihr die Prüfung,
+    dass der Upload nach `pcLeiste` geht und nicht in die Figur.
+  - **Die stehende Regel ist erweitert, nicht aufgeweicht:** Jetzt sind **fünf** Ziele erlaubt,
+    aber die Prüfung „kein Schreibzugriff fasst einen WERT der Figur an“ steht unverändert —
+    **und der neue Zugriff wird in ihrem Block wirklich ausgeführt.** Eine Regel, die den
+    neuen Zugriff gar nicht auslöst, schützt vor ihm auch nicht. **Gegengeprüft:** Stellt man
+    den Umschalter auf `set()` auf den ganzen Knoten um, schlagen **vier** Prüfungen an.
+  - Dazu: der Spielername wird mit **`textContent`** gesetzt, nicht als HTML — er kommt von
+    einem Spieler, nicht aus dem Code; die Reihenfolge der Leiste ist **fest**, weil
+    `Object.keys` keine Zusage ist und eine springende Leiste unbrauchbar wäre; ohne WebP wird
+    **JPEG** genommen und nicht das PNG, das `toDataURL` stillschweigend liefert.
+  - **Ein Durchgang über alle drei Seiten** mit einer gemeinsamen gefälschten Datenbank:
+    hochladen → 14 KB unter `pcLeiste/anna`, `figuren/anna` **unberührt** → die Leiste zeigt
+    „Mara Quint“ → ausblenden → leer, **`bild` und `name` stehen noch** → einblenden → wieder da.
+- **Ein echter Fund am Werkzeug, nicht am Code:** Mein Ersetzungs-Helfer probierte „erst alles
+  LF, dann alles CRLF“. In `js/sitzung.js` steht aber wörtlich `'eigeneWaren',\n  'kampf'\r\n`
+  — **die Zeilenenden wechseln MITTEN IM BLOCK.** So etwas findet er nie und bricht ab (die
+  Datei blieb unversehrt, das `assert` steht vor dem Schreiben). Der Helfer maskiert jetzt
+  **jede Zeile einzeln** und erlaubt dazwischen `\r?\n`; geschrieben wird mit dem Zeilenende,
+  das an der **Fundstelle** steht — so ändert eine Ersetzung keine fremde Zeile.
+  **Merke, schärfer als bisher:** Nicht „das“ Zeilenende einer Datei bestimmen, auch nicht
+  „beide probieren“ — eine einzelne Stelle kann beide enthalten.
+- **Drei eigene Fehler beim Bauen, alle gefunden, bevor etwas falsch wurde:**
+  1. **Ein Testname war schon vergeben** (`gezeichnet`) — dieselbe Sorte Zusammenstoß wie
+     `lctx`/`W`/`gb` zuvor.
+  2. **Der Schnitt endete am Wort „STEIGERUNG“** und damit **mitten in einem Kommentar** — der
+     geschnittene Code war unparsebar. Jetzt endet er am Kommentar-Anfang.
+  3. **Eine veraltete Erwartung in `t_figuren.js`:** Sie verlangte „genau ein Löschvorgang“,
+     während jetzt zwei Knoten geräumt werden. Sie prüft jetzt, dass der Zähler **nicht
+     wächst** statt auf einer festen Zahl zu stehen — eine feste Zahl hing am Aufbau, nicht am
+     Verhalten. Drei neue Prüfungen dazu, darunter die **Reihenfolge** erst Bild, dann Figur.
+- **[OFFEN] Zwei Geräte desselben Spielers.** Lädt jemand auf dem Handy ein Bild hoch, während
+  der Bogen auf dem Laptop offen steht, gewinnt der zuletzt geschriebene Stand. Für ein Feld,
+  das man einmal setzt, ist das kein Problem — es steht hier nur, damit niemand es später für
+  übersehen hält.
+- **[OFFEN] Kein Zuschnitt durch den Spieler.** Geschnitten wird fest auf 3:4, waagerecht
+  mittig und senkrecht oben (bei einem Porträt sitzt der Kopf oben). Wer ein Querformat
+  hochlädt, bekommt dessen Mitte. Ein Rahmen zum Verschieben wäre der nächste Schritt, falls
+  es am Tisch stört.
+
+
 ### 2026-10-15 (Fortsetzung 17) — „Ungelernt“ sagt jetzt, was es heißt
 - **Hendriks Frage am Screenshot:** „Test hat keinen Kampf-Skill. Worauf würfelt er?“ Dort
   stand **„KÄMPFEN — · NÖTIG 8“**.

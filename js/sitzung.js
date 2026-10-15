@@ -46,7 +46,7 @@ var SITZUNGS_PFADE = [
   'hiddenMarkersLive', 'markerVariant', 'openMarkers', 'diceRolls',
   'gmTimer', 'players', 'pcRuf', 'questDone', 'extraNpcs', 'extraGhosts',
   'regie', 'graphState', 'arenaState', 'figuren', 'termine', 'eigeneWaren',
-  'kampf'
+  'kampf', 'pcLeiste'
 ];
 
 /* Bewusst global und NICHT je Sitzung: der Zeiger selbst, die
@@ -498,7 +498,15 @@ function figurLoeschen(db, sid, schluessel, fertig) {
   try { localStorage.removeItem(figurCacheKey(sid)); } catch (e) {}
   vergissFigurCode(sid);
   if (!db) { fertig(null); return; }
-  db.ref('figuren/' + schluessel).remove()
+  /* ERST die Leiste, DANN die Figur. Das Bild liegt nicht IN der Figur,
+     sondern daneben (pcLeiste) - wer nur die Figur loescht, laesst das
+     Portraet eines geloeschten Charakters an der Karte haengen, und
+     niemand faende mehr die Stelle, an der es abzuschalten waere.
+     Bricht es dazwischen ab, ist das Bild weg und die Figur noch da -
+     das ist der harmlosere halbe Zustand. */
+  db.ref('pcLeiste/' + schluessel).remove()
+    .catch(function () { /* kein Bild da - die Figur geht trotzdem */ })
+    .then(function () { return db.ref('figuren/' + schluessel).remove(); })
     .then(function () { fertig(null); })
     .catch(function (e) { fertig(e || new Error('Löschen fehlgeschlagen')); });
 }

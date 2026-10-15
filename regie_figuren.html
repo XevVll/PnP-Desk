@@ -42,6 +42,13 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .tag.ausr .zu{cursor:pointer;color:var(--gray);padding:0 .15rem;border-radius:3px}
 .tag.ausr .zu:hover{color:#e05555;background:rgba(224,85,85,.12)}
 .last{font-size:.66rem;color:var(--gray);margin:.15rem 0 .35rem}
+/* Das Charakterbild des Spielers. Klein - es geht hier nur darum, zu
+   sehen, WELCHES Bild an der Karte steht, nicht es zu betrachten. */
+.pcbild{display:flex;gap:.5rem;align-items:center}
+.pcbild img{width:42px;height:56px;object-fit:cover;object-position:top;
+  border:1px solid rgba(201,168,76,.3);border-radius:4px;background:#000;display:block}
+.pcbild.aus img{opacity:.35;filter:grayscale(1)}
+.pcbild-t{display:flex;flex-direction:column;gap:.25rem;font-size:.66rem;color:var(--gray)}
 .last b{color:var(--ink);font-weight:400}
 .last .voll{color:var(--amber)}
 
@@ -311,6 +318,11 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
 let figuren = {};
 let zeigeBrief = true, zeigeAlle = false;
+/* Name und Bild der Spielerfiguren fuer die linke Leiste auf der Karte.
+   Liegt neben der Figur (pcLeiste), nicht darin - siehe heldenbrief.html.
+   Von hier wird AUSSCHLIESSLICH das Feld "aus" geschrieben: Der Bogen
+   des Spielers bleibt der einzige Schreiber auf seinen Werten. */
+let pcLeiste = {};
 
 let db = null;
 let ansicht = 'figuren';   // 'figuren' | 'protokoll'
@@ -417,6 +429,11 @@ function initFirebase() {
       zeichneWerkstatt();
       render();
     });
+
+    db.ref('pcLeiste').on('value', function (s) {
+      pcLeiste = s.val() || {};
+      render();
+    }, function () { pcLeiste = {}; });
 
     db.ref('figuren').on('value', function (s) {
       figuren = s.val() || {};
@@ -967,6 +984,33 @@ function eigenenGegnerAnlegen() {
   kampfRef().update(paket).catch(function (e) { warnung('Ging nicht: ' + e); });
   kampfLog((n > 1 ? n + ' × ' : '') + name + ' tritt auf' +
     (waffe ? ' — ' + waffe.n : '') + ' (' + stufe.n.toLowerCase() + ').', 'auf');
+}
+
+/* Ein Bild von der Karte nehmen - und wieder hinstellen. Geschrieben
+   wird GENAU EIN Feld per update(): "bild" und "name" gehoeren dem
+   Spieler, und ein set() von hier wuerde sie mitloeschen. */
+function pcBildUmschalten(pid) {
+  const v = pcLeiste[pid] || {};
+  if (!v.bild || !db) return;
+  db.ref('pcLeiste/' + pid + '/aus').set(!v.aus)
+    .catch(function (e) { warnung('Ging nicht: ' + e); });
+}
+
+/* Der Block an der Figurenkarte. Ohne hochgeladenes Bild steht dort
+   nichts - eine Ueberschrift ohne Inhalt waere Zierde. */
+function pcBildBlock(pid) {
+  const v = pcLeiste[pid] || {};
+  if (!v.bild) return '';
+  const aus = !!v.aus;
+  return '<div class="sl">Bild auf der Karte</div>' +
+    '<div class="pcbild' + (aus ? ' aus' : '') + '">' +
+      '<img src="' + esc(v.bild) + '" alt="' + esc(v.name || pid) + '">' +
+      '<div class="pcbild-t">' +
+        '<div>' + (aus ? 'ausgeblendet' : 'steht am linken Rand') + '</div>' +
+        '<button class="mini" data-pcbild="' + esc(pid) + '">' +
+          (aus ? 'einblenden' : 'ausblenden') + '</button>' +
+      '</div>' +
+    '</div>';
 }
 
 function gegnerWeg(gid) {
@@ -1936,6 +1980,7 @@ function render() {
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
         (traegt ? '<div class="sl">Trägt</div>' + last +
                   '<div class="tags">' + traegt + '</div>' : '') +
+        pcBildBlock(pid) +
         gebenBlock(pid, roh) +
         menuBlock(pid) +
         anfrageBlock(pid, roh) +
@@ -1966,8 +2011,10 @@ document.addEventListener('click', function (ev) {
     '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben],' +
     '[data-kausteilen],[data-kneu],[data-kegneu],[data-kende],[data-kangriff],[data-kgilt],' +
     '[data-kschaden],[data-gschaden],[data-klogweg],[data-gseite],[data-tok],' +
-    '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran]');
+    '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran],[data-pcbild]');
   if (!t) return;
+
+  if (t.dataset.pcbild !== undefined) { pcBildUmschalten(t.dataset.pcbild); return; }
 
   if (t.dataset.ersch !== undefined) {
     erschwernis = parseInt(t.dataset.ersch, 10);
@@ -2092,6 +2139,8 @@ initFirebase();
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     setFiguren: function (f) { figuren = f; render(); },
+    setPcLeiste: function (p) { pcLeiste = p; render(); },
+    pcBildUmschalten, pcBildBlock,
     setProtokoll: function (p) { protokoll = p; kampfPruefeWuerfe(); render(); },
     setDb: function (d) { db = d; },
     setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe, uebergeben, gebenBlock,
