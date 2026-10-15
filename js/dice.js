@@ -35,7 +35,9 @@
 // Sitzungs-Hülle - die Sitzung muss selbst in den Pfad.
 //
 // ---- Anforderung der Spielleitung ----
-//   figuren/{schluessel}/anfrage = { wert, mod, von, ts }
+//   figuren/{schluessel}/anfrage = { wert, mod, von, ts, grund? }
+//                                 oder, seit 15.10.2026:
+//     { art:'schaden', wuerfel:[{stufe,was}], grund, von, ts }
 // Bewusst am Figurenknoten und NICHT als eigener Top-Level-Pfad: Ein neuer
 // Pfad müsste in SITZUNGS_PFADE UND in firebase-rules.json stehen und von Hand
 // veröffentlicht werden. "figuren" ist beides längst. Überschrieben wird die
@@ -123,6 +125,7 @@ const DICE_STIL = [
   '#wuerfelLeiste .wl-bitte{border:1px solid #e8c96a;background:rgba(232,201,106,.12);',
   '  border-radius:8px;padding:8px 10px;margin-bottom:8px}',
   '#wuerfelLeiste .wl-bk{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#e8c96a}',
+  '#wuerfelLeiste .wl-bg{font-size:12px;color:#fefcf8;margin:2px 0 1px}',
   '#wuerfelLeiste .wl-bt{font-size:13px;margin:2px 0 6px}',
   '#wuerfelLeiste .wl-bt b{color:#e8c96a;font-weight:400}',
   '#wuerfelLeiste .wl-jetzt{background:#e8c96a;border:1px solid #e8c96a;color:#1a130b;',
@@ -289,6 +292,39 @@ function initDiceRoller(db, options) {
     zeichneLeiste();
   }
 
+  /* Ein angeforderter Schadenswurf. Anders als ein freier Würfel steht er
+     IM PROTOKOLL: Er ist die Antwort auf eine Bitte und gehört zum Abend -
+     und nur so findet der Kampfmodus ihn wieder. Freie Würfel bleiben
+     draußen, die sind Zufall und Beiwerk. */
+  function wuerfleSchaden() {
+    const name = ensurePlayerName();
+    if (!name || !anfrage || anfrage.art !== 'schaden') return;
+    const teile = (anfrage.wuerfel || []).map(function (w) {
+      const e = freierWurf(wuerfelSeiten(w.stufe));
+      return { was: w.was || '', stufe: w.stufe, summe: e.summe, kette: e.teile || null };
+    });
+    let summe = 0;
+    teile.forEach(function (t) { summe += t.summe; });
+    letztes = null;
+
+    schreibeFeed({
+      name: name, probe: 'Schaden',
+      band: null, ergebnis: summe, total: summe,
+      results: teile.map(function (t) { return t.summe; })
+    });
+    const f = holeFigur() || {};
+    schreibeProtokoll({
+      spieler: name, figur: f.name || '', wert: 'Schaden', stufe: 0,
+      band: null, roh: summe, ziel: 0, steigerungen: 0,
+      grund: anfrage.grund || ''
+    });
+    if (anfrageSchluessel) {
+      db.ref('figuren/' + anfrageSchluessel + '/anfrage').remove().catch(function () {});
+      anfrage = null;
+    }
+    zeichneLeiste();
+  }
+
   /* ---------- Anforderung der Spielleitung ---------- */
   // Der Lauscher hängt am Schlüssel der eigenen Figur und zieht um, sobald
   // sich der Name ändert - sonst liefe er auf einer fremden Figur weiter.
@@ -409,13 +445,32 @@ function initDiceRoller(db, options) {
       '</div>';
 
     if (anfrage && f) {
-      const st = stufeAus(f, anfrage.wert);
-      const mod = anfrage.mod || 0;
-      h += '<div class="wl-bitte"><div class="wl-bk">Die Spielleitung bittet um</div>' +
-        '<div class="wl-bt"><b>' + esc(anfrage.wert) + ' ' + DLBL[st] + '</b> — nötig ' +
-        (ZIELZAHL - mod) +
-        (f.abzug ? ', deine Wunden ziehen ' + f.abzug + ' ab' : '') + '</div>' +
-        '<button type="button" class="wl-jetzt" data-bitte="1">Würfeln</button></div>';
+      /* Der Grund steht DRIN, nicht daneben: "Kämpfen, nötig 4" sagt nicht,
+         worum es geht - und am Tisch wird genau danach gefragt. Kommt die
+         Bitte aus dem Kampfmodus, trägt sie "Angriff auf Anselm Frei 1". */
+      const grund = anfrage.grund
+        ? '<div class="wl-bg">' + esc(anfrage.grund) + '</div>' : '';
+      if (anfrage.art === 'schaden') {
+        /* Ein Schadenswurf ist KEINE Probe: kein Zielwert, kein Wild Die,
+           und die Wunden ziehen nichts ab - der Säbel wird nicht stumpfer,
+           weil man blutet. Deshalb eine eigene Darstellung. */
+        const liste = (anfrage.wuerfel || []).map(function (w) {
+          return esc(w.was || '') + ' ' + DLBL[w.stufe];
+        }).join(' + ');
+        h += '<div class="wl-bitte"><div class="wl-bk">Die Spielleitung bittet um</div>' +
+          grund +
+          '<div class="wl-bt"><b>Schaden</b> — ' + (liste || '—') + '</div>' +
+          '<button type="button" class="wl-jetzt" data-schaden="1">Würfeln</button></div>';
+      } else {
+        const st = stufeAus(f, anfrage.wert);
+        const mod = anfrage.mod || 0;
+        h += '<div class="wl-bitte"><div class="wl-bk">Die Spielleitung bittet um</div>' +
+          grund +
+          '<div class="wl-bt"><b>' + esc(anfrage.wert) + ' ' + DLBL[st] + '</b> — nötig ' +
+          (ZIELZAHL - mod) +
+          (f.abzug ? ', deine Wunden ziehen ' + f.abzug + ' ab' : '') + '</div>' +
+          '<button type="button" class="wl-jetzt" data-bitte="1">Würfeln</button></div>';
+      }
     }
 
     if (letztes) h += ergebnisBlock();
@@ -468,6 +523,7 @@ function initDiceRoller(db, options) {
       zeichneLeiste(); return;
     }
     if (t.dataset.frei) { wuerfleFrei(parseInt(t.dataset.frei, 10)); return; }
+    if (t.dataset.schaden) { wuerfleSchaden(); return; }
     if (t.dataset.bitte) {
       const f = holeFigur();
       if (anfrage && f) wuerfleWert(anfrage.wert, stufeAus(f, anfrage.wert), anfrage.mod || 0);

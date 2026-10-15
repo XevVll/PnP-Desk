@@ -92,6 +92,18 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .kansage b{color:var(--gold);font-weight:400}
 .kansage .wirk{margin-top:.4rem;font-size:.9rem;color:var(--ink)}
 .kleer{color:var(--gray);font-style:italic;font-size:.8rem;padding:1rem 0;line-height:1.6}
+.klog{margin-top:1rem;border-top:1px solid var(--border);padding-top:.6rem}
+.klog>h3{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;color:var(--gray);
+  text-transform:uppercase;margin-bottom:.35rem;display:flex;gap:.6rem;align-items:baseline}
+.klz{display:flex;gap:.5rem;align-items:baseline;font-size:.76rem;padding:.16rem 0;
+  border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5}
+.klz .kr{font-family:'Cinzel',serif;font-size:.62rem;color:var(--gray);min-width:3.2rem}
+.klz .kx{flex:1}
+.klz b{color:var(--ink);font-weight:400}
+.klz.treffer b.w{color:#e08080}
+.klz.daneben{opacity:.6}
+.klz.runde{color:var(--gold);font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.08em;
+  border-bottom-color:rgba(201,168,76,.25);margin-top:.3rem}
 .wst .mini{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
   border:1px solid var(--border);color:var(--gray);border-radius:4px;padding:.24rem .6rem;cursor:pointer}
 .wst .mini:hover{border-color:var(--gold);color:var(--ink)}
@@ -866,6 +878,7 @@ function gegnerAnlegen() {
     };
   }
   kampfRef().update(paket).catch(function (e) { warnung('Gegner anlegen ging nicht: ' + e); });
+  kampfLog(n > 1 ? n + ' × ' + v.name + ' treten auf.' : v.name + ' tritt auf.', 'auf');
 }
 
 function gegnerWeg(gid) {
@@ -908,6 +921,8 @@ function kampfAusteilen() {
     dran: 0,
     ansage: null
   });
+  kampfLog('Runde ' + ((kampf.runde || 0) + 1) + ' — Karten ausgeteilt.' +
+    (erg.mischenNoetig ? ' Ein Joker ist gefallen, das Deck wird neu gemischt.' : ''), 'runde');
 }
 
 function kampfDran(i) {
@@ -946,6 +961,7 @@ function angriffAnsagen() {
         grund: 'Angriff auf ' + z.name, ts: Date.now() };
     db.ref().update(paket).catch(function (e) { warnung('Die Bitte ging nicht durch: ' + e); });
     kampfRef('ansage').set(ansage);
+    kampfLog(a.name + ' greift ' + z.name + ' an — Kämpfen, nötig ' + z.parade + '.', 'ansage');
   } else {
     /* Gegner wuerfeln wir selbst - und zwar sofort. Ein NSC wartet auf
        niemanden. */
@@ -954,6 +970,10 @@ function angriffAnsagen() {
     ansage.band = r.band;
     ansage.roh = r.roh;
     kampfRef('ansage').set(ansage);
+    const traf = (r.band === 'erfolg' || r.band === 'steigerung');
+    kampfLog(a.name + ' greift ' + z.name + ' an (nötig ' + z.parade + '): ' + r.roh +
+      ' — ' + (traf ? (r.band === 'steigerung' ? 'Treffer mit Steigerung' : 'Treffer') : 'daneben') + '.',
+      traf ? 'treffer' : 'daneben');
   }
 }
 
@@ -984,9 +1004,17 @@ function wirkungGilt() {
   if (!an || !db) return;
   const z = kampfFinde(an.ziel);
   if (!z) return;
-  const w = wirkung(Number(kampfSchaden) || 0, z.robustheit,
+  const ausProtokoll = schadenErgebnis();
+  const zahl = (ausProtokoll !== null) ? ausProtokoll : Number(kampfSchaden) || 0;
+  const w = wirkung(zahl, z.robustheit,
     { angeschlagen: z.angeschlagen, wunden: z.wunden, extra: z.extra });
-  if (w.text === 'keine Wirkung') { kampfSchaden = ''; kampfRef('ansage').remove(); return; }
+  if (w.text === 'keine Wirkung') {
+    kampfLog(zahl + ' Schaden gegen Robustheit ' + z.robustheit + ' — ' + z.name +
+      ' steckt es weg.', 'daneben');
+    kampfSchaden = ''; kampfRef('ansage').remove(); return;
+  }
+  kampfLog(zahl + ' Schaden gegen Robustheit ' + z.robustheit + ' — ' +
+    z.name + ': ' + w.text + '.', 'treffer');
 
   if (z.typ === 'gegner') {
     kampfRef().update({
@@ -1008,6 +1036,76 @@ function wirkungGilt() {
 }
 
 function ansageWeg() { if (db) kampfRef('ansage').remove(); kampfSchaden = ''; }
+
+/* ---------- Das Kampflog ----------
+   Was passiert ist, in der Reihenfolge, in der es passiert ist. Es liegt
+   beim Kampfstand und verschwindet mit ihm: Ein Gefecht ist zu Ende, wenn
+   es zu Ende ist. Was den Abend überdauern soll, steht ohnehin schon im
+   PROTOKOLL - dort landet jeder Wurf samt Szene und Ort, und dorthin
+   gehört auch der Kommentar. Zwei Gedächtnisse für dieselbe Sache wären
+   eins zu viel; dieses hier ist das kurze für den laufenden Kampf. */
+function kampfLog(text, art) {
+  if (!db) return;
+  kampfRef('log').push({
+    t: text, art: art || '', runde: kampf.runde || 0, ts: Date.now()
+  }).catch(function () { /* das Log ist Beiwerk - ein Treffer gilt auch ohne */ });
+}
+
+function kampfLogZeilen() {
+  const l = kampf.log || {};
+  return Object.keys(l).map(function (k) { return l[k]; })
+    .filter(function (z) { return z && z.t; })
+    .sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+}
+
+/* Womit schlägt er zu? Die beste getragene Nahkampfwaffe - und wenn er
+   keine hat, die bloßen Fäuste. Die Spielleitung kann es überstimmen,
+   aber in neun von zehn Fällen ist es genau das. */
+function waffeVon(t) {
+  if (!t || t.typ !== 'spieler' || !t.figur) return null;
+  const waffen = (t.figur.ausr || []).map(function (id) { return AUSR_BY_ID[id]; })
+    .filter(function (a) { return a && a.art === 'Nahkampf'; })
+    .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); });
+  return waffen[0] || AUSR_BY_ID['faust'] || null;
+}
+
+/* Die Bitte um den Schadenswurf. Sie geht denselben Weg wie die Probe -
+   und der Bogen würfelt sie als das, was sie ist: kein Zielwert, kein
+   Wild Die, und die Wunden ziehen nichts ab. */
+function schadenAnfordern() {
+  const an = ansageErgebnis();
+  if (!an || !db) return;
+  const a = kampfFinde(an.wer);
+  if (!a || a.typ !== 'spieler') return;
+  const waffe = waffeVon(a);
+  const wuerfel = schadensWuerfel(a.figur, waffe, { steigerung: an.band === 'steigerung' });
+  const paket = {};
+  paket['figuren/' + a.pid + '/anfrage'] = {
+    art: 'schaden', wuerfel: wuerfel, von: 'Spielleitung',
+    grund: 'Schaden an ' + an.zielName + (waffe ? ' · ' + waffe.n : ''),
+    ts: Date.now()
+  };
+  db.ref().update(paket).catch(function (e) { warnung('Die Bitte ging nicht durch: ' + e); });
+  kampfRef('ansage').update({ stand: 'schaden', schadenTs: Date.now() });
+  kampfLog(a.name + ' trifft ' + an.zielName +
+    (an.band === 'steigerung' ? ' mit Steigerung' : '') + ' — Schadenswurf angefordert.', 'treffer');
+}
+
+/* Und zurück kommt er über das Protokoll - genau wie die Probe. Ein
+   angeforderter Schadenswurf steht dort drin; freie Würfel nicht. */
+function schadenErgebnis() {
+  const an = kampf.ansage;
+  if (!an || an.stand !== 'schaden') return null;
+  const a = kampfFinde(an.wer);
+  if (!a || a.typ !== 'spieler') return null;
+  const z = Object.keys(protokoll).map(function (k) { return protokoll[k]; })
+    .filter(function (x) {
+      return x && x.wert === 'Schaden' && (x.ts || 0) >= (an.schadenTs || an.ts) &&
+        (x.figur === a.name || x.spieler === (figuren[a.pid] || {}).spieler);
+    })
+    .sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); })[0];
+  return z ? z.roh : null;
+}
 
 
 /* ---------- Zeichnen ---------- */
@@ -1063,13 +1161,23 @@ function kampfAnsageHtml() {
                                               : 'Daneben') + '</b>' +
       ' (Wurf ' + an.roh + ')';
     if (getroffen) {
-      h += '<br>Robustheit ' + an.robustheit + ' — Schaden würfeln' +
-        (stg ? ' <b>plus 1W6 für die Steigerung</b>' : '') + ' und hier eintragen: ' +
-        '<input id="kSchaden" type="number" style="width:4.5rem" value="' + esc(kampfSchaden) +
+      const a = kampfFinde(an.wer);
+      const ausProtokoll = schadenErgebnis();
+      const zahl = (ausProtokoll !== null) ? String(ausProtokoll) : kampfSchaden;
+      h += '<br>Robustheit ' + an.robustheit + ' — Schaden' +
+        (stg ? ' <b>plus 1W6 für die Steigerung</b>' : '') + ': ';
+      /* Bei einem Spieler fragen wir ihn; einen Gegner würfeln wir selbst,
+         und wer am Tisch laut vorliest, trägt die Zahl weiterhin ein. */
+      if (a && a.typ === 'spieler' && an.stand !== 'schaden') {
+        h += '<button class="mini" data-kschaden="1">Schaden anfordern</button> oder ';
+      } else if (an.stand === 'schaden' && ausProtokoll === null) {
+        h += '<i>wartet auf den Schadenswurf …</i> ';
+      }
+      h += '<input id="kSchaden" type="number" style="width:4.5rem" value="' + esc(zahl) +
         '" oninput="schadenEintragen(this.value)">';
-      if (kampfSchaden !== '') {
+      if (zahl !== '' && zahl !== undefined) {
         const z = kampfFinde(an.ziel);
-        const w = z ? wirkung(Number(kampfSchaden) || 0, z.robustheit,
+        const w = z ? wirkung(Number(zahl) || 0, z.robustheit,
           { angeschlagen: z.angeschlagen, wunden: z.wunden, extra: z.extra }) : null;
         if (w) h += ' → <b>' + esc(w.text) + '</b> ' +
           (w.text === 'keine Wirkung' ? '' : '<button class="mini" data-kgilt="1">gilt</button>');
@@ -1119,8 +1227,29 @@ function renderKampf() {
     '</div>' +
     kampfAnsageHtml() +
     kampfReiheHtml() +
+    kampfLogHtml() +
     (alle.length ? '' : '<div class="kleer">Niemand im Kampf. Leg oben Gegner an — ' +
       'die Spieler kommen von selbst dazu, sobald sie eine Figur haben.</div>');
+}
+
+function kampfLogHtml() {
+  const z = kampfLogZeilen();
+  if (!z.length) return '';
+  /* Neueste oben: Im Gefecht interessiert, was gerade passiert ist, nicht
+     wie es anfing. Nachlesen kann man trotzdem - die Runde steht dran. */
+  return '<div class="klog"><h3>Kampflog ' +
+    '<button class="mini" data-klogweg="1">leeren</button></h3>' +
+    z.map(function (e) {
+      return '<div class="klz ' + esc(e.art || '') + '">' +
+        '<span class="kr">' + (e.runde ? 'Runde ' + e.runde : '—') + '</span>' +
+        '<span class="kx">' + esc(e.t) + '</span></div>';
+    }).join('') + '</div>';
+}
+
+function kampfLogLeeren() {
+  if (!db) return;
+  if (!confirm('Kampflog leeren? Die Würfe selbst bleiben im Protokoll stehen.')) return;
+  kampfRef('log').remove();
 }
 
 function kampfWahl(feld, wert) {
@@ -1452,6 +1581,7 @@ document.addEventListener('click', function (ev) {
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
     '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben],' +
     '[data-kausteilen],[data-kneu],[data-kende],[data-kangriff],[data-kgilt],' +
+    '[data-kschaden],[data-klogweg],' +
     '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran]');
   if (!t) return;
 
@@ -1487,8 +1617,10 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.kneu !== undefined)       { gegnerAnlegen(); return; }
   if (t.dataset.kende !== undefined)      { kampfBeenden(); return; }
   if (t.dataset.kangriff !== undefined)   { angriffAnsagen(); return; }
+  if (t.dataset.kschaden !== undefined)   { schadenAnfordern(); return; }
   if (t.dataset.kgilt !== undefined)      { wirkungGilt(); return; }
   if (t.dataset.kweg !== undefined)       { ansageWeg(); return; }
+  if (t.dataset.klogweg !== undefined)    { kampfLogLeeren(); return; }
   if (t.dataset.gweg !== undefined)       { gegnerWeg(t.dataset.gweg); return; }
   if (t.dataset.gang !== undefined) {
     const g = (kampf.gegner || {})[t.dataset.gang] || {};
@@ -1556,6 +1688,8 @@ if (typeof module !== 'undefined' && module.exports) {
     warenSuchen, warenZielSetzen, warenTreffer, hervor, suchForm, warenWerte,
     gegnerAnlegen, gegnerWeg, gegnerZustand, kampfAusteilen, kampfBeenden,
     angriffAnsagen, ansageErgebnis, wirkungGilt, ansageWeg, kampfWahl,
+    schadenAnfordern, schadenErgebnis, waffeVon,
+    kampfLog, kampfLogZeilen, kampfLogLeeren,
     kampfAlle, kampfFinde, schadenEintragen,
     setKampf: function (k) { kampf = k; render(); },
     kampfStand: function () { return kampf; },

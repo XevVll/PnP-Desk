@@ -570,21 +570,25 @@ C.nachId['kVorlage'] = { id: 'kVorlage', value: 'anselm', style: {}, classList: 
 C.nachId['kAnzahl'] = { id: 'kAnzahl', value: '3', style: {}, classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
 C.schreib.length = 0;
 C.ctx.module.exports.gegnerAnlegen();
-chk('drei Gegner auf einmal', C.schreib.length === 3, C.schreib.map(x => x.p));
+/* Der Log-Eintrag schreibt mit - er gehoert dazu und wird hier getrennt. */
+const neueG = C.schreib.filter(x => x.p.indexOf('kampf/gegner/') === 0);
+chk('drei Gegner auf einmal', neueG.length === 3, C.schreib.map(x => x.p));
 chk('und zwar unter dem Kampfstand der Sitzung',
-  C.schreib.every(x => x.p.indexOf('kampf/gegner/') === 0), C.schreib.map(x => x.p));
+  neueG.every(x => x.p.indexOf('kampf/gegner/') === 0), C.schreib.map(x => x.p));
+chk('und es steht im Kampflog', C.schreib.some(x => x.p === 'kampf/log'),
+  C.schreib.map(x => x.p));
 chk('sie heißen durchnummeriert',
-  C.schreib.map(x => x.v.name).join(' · ') === 'Anselm Frei 1 · Anselm Frei 2 · Anselm Frei 3',
-  C.schreib.map(x => x.v.name));
+  neueG.map(x => x.v.name).join(' · ') === 'Anselm Frei 1 · Anselm Frei 2 · Anselm Frei 3',
+  neueG.map(x => x.v.name));
 /* Die Werte kommen aus dem Blatt in js/npcs.js - hier wird nichts erfunden. */
 chk('mit Parade und Robustheit aus dem Blatt',
-  C.schreib[0].v.parade === RW.parade(NPC.nscAlsFigur(NPC.NSC_MANNSCHAFT['anselm'])) &&
-  C.schreib[0].v.robustheit > 0, C.schreib[0].v);
-chk('ein Mannschaftsmitglied ist ein Statist', C.schreib[0].v.extra === true);
+  neueG[0].v.parade === RW.parade(NPC.nscAlsFigur(NPC.NSC_MANNSCHAFT['anselm'])) &&
+  neueG[0].v.robustheit > 0, neueG[0].v);
+chk('ein Mannschaftsmitglied ist ein Statist', neueG[0].v.extra === true);
 
 /* Den Stand so setzen, wie Firebase ihn zurueckspielen wuerde. */
 const gegner = {};
-C.schreib.forEach((x, i) => { gegner['g' + i] = x.v; });
+neueG.forEach((x, i) => { gegner['g' + i] = x.v; });
 C.ctx.module.exports.setKampf({ runde: 0, gegner: gegner });
 chk('danach stehen sie in der Liste', C.ctx.module.exports.kampfAlle().length === 7,
   C.ctx.module.exports.kampfAlle().length);
@@ -593,8 +597,12 @@ chk('danach stehen sie in der Liste', C.ctx.module.exports.kampfAlle().length ==
 C.schreib.length = 0;
 C.ctx.module.exports.kampfAusteilen();
 chk('Austeilen schreibt als EIN Sammel-Update',
-  C.schreib.every(x => x.op === 'update' && x.p.indexOf('kampf/') === 0),
+  C.schreib.filter(x => x.p !== 'kampf/log')
+           .every(x => x.op === 'update' && x.p.indexOf('kampf/') === 0),
   C.schreib.map(x => x.p));
+chk('und die Runde steht im Kampflog',
+  C.schreib.some(x => x.p === 'kampf/log' && (x.v.t + '').indexOf('Runde 1') === 0),
+  C.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t));
 const kfeld = n => (C.schreib.filter(x => x.p === 'kampf/' + n)[0] || {}).v;
 const aus = { reihe: kfeld('reihe'), runde: kfeld('runde') };
 /* Sechs, nicht sieben: Cord ist mit vier Wunden ausser Gefecht und
@@ -654,7 +662,46 @@ chk('und als Treffer gelesen', ch().indexOf('Treffer mit Steigerung') > 0);
 chk('mit dem Hinweis auf das zusätzliche W6', ch().indexOf('1W6') > 0);
 chk('und einem Feld für den Schaden', ch().indexOf('id="kSchaden"') > 0);
 
+/* ---- Der Schadenswurf wird angefordert, nicht abgetippt ----
+   Hendriks Nachtrag vom 15.10.2026: Bei einem Treffer soll die
+   Aufforderung zum Schadenswurf von selbst kommen. */
+chk('bei einem Treffer wird der Schaden angefordert', ch().indexOf('data-kschaden') > 0);
+C.schreib.length = 0;
+C.ctx.module.exports.schadenAnfordern();
+const sbitte = C.schreib.filter(x => x.p === 'figuren/anna/anfrage')[0];
+chk('die Bitte geht an den Spieler', !!sbitte, C.schreib.map(x => x.p));
+chk('und zwar als Schadenswurf, nicht als Probe',
+  sbitte && sbitte.v.art === 'schaden', sbitte && sbitte.v);
+/* Welche Wuerfel: die getragene Waffe plus Staerke, und wegen der
+   Steigerung ein W6 obendrauf. Alles aus dem Blatt, nichts erfunden. */
+chk('mit den Würfeln der getragenen Waffe',
+  sbitte && sbitte.v.wuerfel.length === 3 &&
+  sbitte.v.wuerfel.some(w => w.was === 'Stärke') &&
+  sbitte.v.wuerfel.some(w => w.was === 'Steigerung'),
+  sbitte && sbitte.v.wuerfel);
+chk('und er erfährt, wem er wehtut',
+  sbitte && sbitte.v.grund.indexOf('Anselm Frei 1') > 0, sbitte && sbitte.v.grund);
+chk('die Ansage merkt sich, dass sie wartet',
+  C.schreib.some(x => x.p === 'kampf/ansage/stand' && x.v === 'schaden'),
+  C.schreib.map(x => x.p));
+
+/* Der Schadenswurf kommt ueber das Protokoll zurueck - deshalb steht ein
+   ANGEFORDERTER Schadenswurf dort drin, ein freier Wuerfel nicht. */
+const ans2 = Object.assign({}, ansage, { stand: 'schaden', band: 'steigerung',
+  roh: 12, schadenTs: Date.now() });
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe, ansage: ans2 });
+chk('solange nichts kommt, wartet die Anzeige', ch().indexOf('wartet auf den Schadenswurf') > 0);
+C.ctx.module.exports.setProtokoll({ sch: { figur: 'Mara Quint', wert: 'Schaden',
+  roh: 9, ts: ans2.schadenTs + 20 } });
+chk('der Schadenswurf wird aufgegriffen',
+  C.ctx.module.exports.schadenErgebnis() === 9, C.ctx.module.exports.schadenErgebnis());
+chk('und die Wirkung steht da, ohne dass jemand tippt',
+  ch().indexOf('Wunde') > 0 && ch().indexOf('data-kgilt') > 0);
+
 /* ---- Die Wirkung wird vorgeschlagen, nicht eingetragen ---- */
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe, ansage: ansage });
+C.ctx.module.exports.setProtokoll({ neu: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 12, ts: ansage.ts + 50 } });
 C.ctx.module.exports.schadenEintragen('9');
 chk('die Wirkung steht als Vorschlag da',
   ch().indexOf('Wunde') > 0 && ch().indexOf('data-kgilt') > 0, ch().slice(0, 300));
@@ -687,6 +734,32 @@ chk('als Wunde, nicht als Wert in der Figur',
 chk('kein Schreibzugriff fasst einen WERT der Figur an',
   !C.schreib.some(x => /figuren\/[a-z]+\/(wunden|angeschlagen|attr|fert)/.test(x.p)),
   C.schreib.map(x => x.p));
+
+/* ---- Das Kampflog ----
+   Hendriks Nachtrag: "Und eine Art Kampflog brauche ich als Spielleiter
+   auch." Es liegt beim Kampfstand und verschwindet mit ihm - was den Abend
+   ueberdauern soll, steht im Protokoll. */
+C.ctx.module.exports.setKampf({ runde: 2, gegner: gegner, reihe: aus.reihe, log: {
+  a: { t: 'Runde 1 — Karten ausgeteilt.', art: 'runde', runde: 1, ts: 1000 },
+  b: { t: 'Mara Quint greift Anselm Frei 1 an.', art: 'ansage', runde: 1, ts: 2000 },
+  c: { t: '9 Schaden gegen Robustheit 5 — Anselm Frei 1: 1 Wunde.', art: 'treffer', runde: 2, ts: 3000 }
+} });
+const log = C.ctx.module.exports.kampfLogZeilen();
+chk('das Log hat Zeilen', log.length === 3, log.length);
+chk('die neueste steht oben', log[0].ts === 3000, log.map(z => z.ts));
+chk('es steht in der Ansicht', ch().indexOf('Kampflog') > 0 &&
+  ch().indexOf('greift Anselm Frei 1 an') > 0);
+chk('mit der Runde an jeder Zeile', ch().indexOf('Runde 2</span>') > 0, 'keine Rundenspalte');
+chk('und lässt sich leeren', ch().indexOf('data-klogweg') > 0);
+C.ctx.ctxConfirm = true;
+C.schreib.length = 0;
+C.ctx.module.exports.kampfLogLeeren();
+chk('leeren räumt genau das Log weg',
+  C.schreib.length === 1 && C.schreib[0].p === 'kampf/log' && C.schreib[0].op === 'remove',
+  C.schreib);
+/* Ein leeres Log zeigt gar nichts - eine leere Ueberschrift waere Zierde. */
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe });
+chk('ohne Einträge steht da auch nichts', ch().indexOf('Kampflog') < 0);
 
 console.log('');
 console.log('=== DIE WARENLISTE UND IHRE SUCHE ===');

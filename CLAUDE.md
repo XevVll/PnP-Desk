@@ -126,6 +126,41 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 11) — Die Bitte sagt, worum es geht; der Schaden kommt von selbst
+- **Drei Nachträge Hendriks nach dem ersten Blick auf den Kampfmodus:** In der Bitte soll
+  stehen, **wer wen angreift**; bei einem Treffer soll die **Aufforderung zum Schadenswurf**
+  von selbst kommen; und er braucht ein **Kampflog**.
+- **1. Der Grund steht jetzt IN der Bitte.** „Kämpfen — nötig 4“ sagt nicht, worum es geht, und
+  am Tisch wird genau danach gefragt. Die Würfelleiste zeigt darüber **„Angriff auf Anselm
+  Frei 1“**. Das Feld `grund` wurde schon seit gestern geschrieben — **angezeigt hat es
+  niemand.**
+- **2. Der Schadenswurf wird angefordert, nicht abgetippt.** Neue Art von Bitte:
+  `{ art:'schaden', wuerfel:[…], grund }`. Der Bogen würfelt sie als das, was sie ist —
+  **kein Zielwert, kein Wild Die, und die Wunden ziehen nichts ab**: Der Säbel wird nicht
+  stumpfer, weil man blutet.
+  - Welche Würfel, entscheidet das Blatt: **beste getragene Nahkampfwaffe + Stärke**, bei einer
+    Steigerung **+1W6**. Wer nichts trägt, schlägt mit der Faust.
+  - **Ein angeforderter Schadenswurf steht im PROTOKOLL**, ein freier Würfel nicht. Das ist
+    eine bewusste Änderung an der Regel von gestern („nur Wertproben“): Er ist die **Antwort
+    auf eine Bitte** und gehört zum Abend — und **nur so findet der Kampfmodus ihn wieder**.
+    Die Zahl erscheint dann von selbst in der Ansage, das Feld zum Abtippen bleibt für alles,
+    was am Tisch laut vorgelesen wird.
+- **3. Das Kampflog.** Unter der Reihenfolge, **neueste Zeile oben**, mit der Runde an jeder:
+  wer auftritt, welche Runde beginnt (samt Joker-Hinweis), wer wen angreift und mit welchem
+  Ergebnis, wie viel Schaden gegen welche Robustheit und was daraus folgte.
+  - **Es liegt beim Kampfstand und verschwindet mit ihm.** Ein Gefecht ist zu Ende, wenn es zu
+    Ende ist. **Was den Abend überdauern soll, steht ohnehin im Protokoll** — dort landet jeder
+    Wurf samt Szene, Ort und Kommentar. Zwei Gedächtnisse für dieselbe Sache wären eins zu
+    viel; dieses hier ist das kurze für den laufenden Kampf.
+  - Ein leeres Log zeigt **gar nichts** — eine leere Überschrift wäre Zierde.
+- **Getestet: 242 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (1242 über elf Skripte,
+  18 neue). Darunter: die Schadensbitte trägt **drei** Würfel (Waffe, Stärke, Steigerung), die
+  Ansage merkt sich, dass sie wartet, der Wurf wird aus dem Protokoll aufgegriffen **ohne dass
+  jemand tippt**, und das Leeren räumt **genau** das Log weg.
+- **Sechs Prüfungen brachen beim Einbau des Logs** — alle mit derselben Ursache und keine ein
+  echter Fehler: Sie zählen Schreibzugriffe, und das Log schreibt mit. Sie trennen den
+  Log-Eintrag jetzt ab, statt ihn mitzuzählen — **und prüfen ihn gleich mit.**
+
 ### 2026-10-15 (Fortsetzung 10) — Der Kampfmodus steht
 - **Vierte Ansicht in `regie_figuren.html`:** Figuren · Würfe · Gegenstände · **Kampf**. Die
   Spieler bekommen **nichts Neues zu sehen** — nur die Bitte in ihrer Würfelleiste, die es seit
