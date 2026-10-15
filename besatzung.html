@@ -972,6 +972,27 @@ function filterCards(rank, btn){
           ' data-tipt="' + esc(x.d) + '">' + esc(x.n) + '</span>';
       }).join('') + '</div>';
     }
+    /* Was er traegt. Seit dem 15.10.2026 haben die bekannten Leute
+       Ausruestung - sie gehoert auf die Karte, nicht nur in den
+       Kampfmodus. Dieselben Marken wie Talente: Klick erklaert. */
+    if ((e.ausr || []).length) {
+      h += '<div class="nsc-marken"><b>Trägt</b>' + e.ausr.map(function (id) {
+        var a = AUSR_BY_ID[id];
+        if (!a) return '<span class="nsc-tag">' + esc(id) + '</span>';
+        var kurz = [];
+        if (a.schaden) kurz.push(DLBL[a.schaden]);
+        if (a.reichweite) kurz.push('Reichw. ' + a.reichweite);
+        if (a.ruest) kurz.push('+' + a.ruest);
+        var einordnung = a.art + ' · ' + (a.gew || 0) + ' Gew. · ' + (a.preis || 0) + ' M.';
+        return '<span class="nsc-tag tag" tabindex="0" role="button"' +
+          ' data-tipid="' + esc(id) + '" data-tipart="ausr"' +
+          ' data-tipn="' + esc(a.n) + '"' +
+          ' data-tipk="' + esc(einordnung) + '"' +
+          ' data-tipt="' + esc(a.d || '') + '">' + esc(a.n) +
+          (kurz.length ? ' <span style="opacity:.7">' + esc(kurz.join(' · ')) + '</span>' : '') +
+          '</span>';
+      }).join('') + '</div>';
+    }
     h += marken(e.tal, 'Talente', TAL_BY_ID);
     h += marken(e.hnd, 'Schw\u00e4chen', HND_BY_ID);
     if (e.notiz) h += '<p class="nsc-notiz">' + esc(e.notiz) + '</p>';

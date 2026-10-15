@@ -157,6 +157,40 @@ function jokerBonus(teilnehmer) {
 }
 
 /* ==========================================================
+   1b. SELBSTGEBAUTE GEGNER
+   ----------------------------------------------------------
+   Nicht jeder Gegner steht in js/npcs.js. Ein Hafenschlaeger,
+   drei Wachen, der Anfuehrer einer Bande - die braucht man am
+   Tisch in zehn Sekunden, nicht als ausgearbeitetes Blatt.
+
+   Zwei Stufen reichen, und das ist Absicht: Der Unterschied,
+   den man am Tisch wirklich macht, ist "faellt beim ersten
+   Treffer" gegen "haelt etwas aus". Alles dazwischen ist
+   Feinmechanik, die niemand vorliest.
+
+   Die Waffe kommt aus der normalen Ausruestungsliste - ein
+   Gegner mit Saebel schlaegt mit demselben d6 zu wie ein
+   Spieler mit Saebel.
+   ========================================================== */
+const GEGNER_STUFEN = [
+  { id: 'schwach', n: 'Schwach',
+    d: 'Matrose, Wache, Schläger — ein Statist: die erste Wunde nimmt ihn raus.',
+    extra: true,
+    attr: { 'Geschicklichkeit': 2, 'Verstand': 1, 'Willenskraft': 1,
+            'Stärke': 2, 'Konstitution': 2 },
+    fert: { 'Kämpfen': 2, 'Schießen': 1, 'Aufmerksamkeit': 1 } },
+  { id: 'stark', n: 'Stark',
+    d: 'Anführer, Veteran, Leibwache — ein Wild Card: drei Wunden und ein Wild Die.',
+    extra: false,
+    attr: { 'Geschicklichkeit': 3, 'Verstand': 2, 'Willenskraft': 2,
+            'Stärke': 3, 'Konstitution': 3 },
+    fert: { 'Kämpfen': 3, 'Schießen': 2, 'Aufmerksamkeit': 2, 'Einschüchtern': 2 } }
+];
+function gegnerStufe(id) {
+  return GEGNER_STUFEN.filter(function (x) { return x.id === id; })[0] || GEGNER_STUFEN[0];
+}
+
+/* ==========================================================
    2. DER ANGRIFF
    ----------------------------------------------------------
    "Roll a Fighting skill roll and compare it to the opponent's
@@ -286,6 +320,7 @@ if (typeof module !== 'undefined' && module.exports) {
     KAMPF_REGELN, KARTEN_FARBEN, KARTEN_WERTE, JOKER_WERT, JOKER_BONUS,
     neuesDeck, mischen, kartenText, kartenVergleich, austeilen, jokerBonus,
     FERN_BAENDER, band, bandMod, nahkampfMoeglich,
+    GEGNER_STUFEN, gegnerStufe,
     angriffsMod, fernkampfMod, wirkung, schadensWuerfel
   };
 }

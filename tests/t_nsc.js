@@ -222,7 +222,7 @@ const bctx = {
   console,
   NSC: N.NSC, NSC_MANNSCHAFT: N.NSC_MANNSCHAFT,
   TAL_BY_ID: R.TAL_BY_ID, HND_BY_ID: R.HND_BY_ID,
-  DLBL: R.DLBL, ATTR_NAMEN: R.ATTR_NAMEN, RAENGE: R.RAENGE,
+  DLBL: R.DLBL, ATTR_NAMEN: R.ATTR_NAMEN, RAENGE: R.RAENGE, AUSR_BY_ID: R.AUSR_BY_ID,
   rangName: R.rangName, parade: R.parade, robustheit: R.robustheit,
   bennies: R.bennies, nscAlsFigur: N.nscAlsFigur,
   markenAktivieren: function () { aktiviert++; },
@@ -262,11 +262,26 @@ chk('jeder ist anklickbar und mit der Tastatur erreichbar',
     c.tag.indexOf('tabindex="0"') >= 0 && c.tag.indexOf('role="button"') >= 0));
 /* Die Art entscheidet, in welchem Verzeichnis das Overlay nachsieht - eine
    Verwechslung laesst den Zusatz still verschwinden. */
+const VERZEICHNIS = { tal: R.TAL_BY_ID, hnd: R.HND_BY_ID, ausr: R.AUSR_BY_ID };
 const falscheArt = chips.filter(c => {
   const id = feld(c.tag, 'tipid'), art = feld(c.tag, 'tipart');
-  return art === 'tal' ? !R.TAL_BY_ID[id] : !R.HND_BY_ID[id];
+  return !VERZEICHNIS[art] || !VERZEICHNIS[art][id];
 });
 chk('Art und Kennung passen zusammen', falscheArt.length === 0, falscheArt.slice(0, 3));
+
+/* Seit dem 15.10.2026 tragen die bekannten Leute auch Ausruestung - und
+   die steht auf ihrer Karte, nicht nur im Kampfmodus. */
+const ausrChips = chips.filter(c => feld(c.tag, 'tipart') === 'ausr');
+chk('die Ausrüstung steht auf den Karten', ausrChips.length >= 8, ausrChips.length);
+chk('und zwar nur, was es wirklich gibt',
+  ausrChips.every(c => !!R.AUSR_BY_ID[feld(c.tag, 'tipid')]));
+chk('jede Kernfigur trägt etwas',
+  ALLE.every(id => (N.NSC[id].ausr || []).length > 0),
+  ALLE.filter(id => !(N.NSC[id].ausr || []).length));
+/* Und das Blatt traegt es auch: Ohne das waere die Zuordnung Zierde. */
+chk('das Blatt kennt die Ausrüstung',
+  (N.nscAlsFigur(N.NSC['wat']).ausr || []).indexOf('enteraxt') >= 0,
+  N.nscAlsFigur(N.NSC['wat']).ausr);
 chk('die Wirkung steht wirklich drin, nicht nur der Name',
   chips.every(c => feld(c.tag, 'tipt') === null ||
     feld(c.tag, 'tipt').length > 10));

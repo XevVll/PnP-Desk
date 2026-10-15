@@ -393,7 +393,9 @@ function initFirebase() {
       db.ref('sitzungen/' + db.sitzung + '/protokoll').on('value', function (s) {
         protokoll = s.val() || {};
         /* Auch der Kampf haengt daran: Der Wurf des Spielers kommt ueber
-           das Protokoll zurueck, dort steht er mit Figur, Wert und Band. */
+           das Protokoll zurueck, dort steht er mit Figur, Wert und Band.
+           Erst festhalten und ins Log schreiben, dann zeichnen. */
+        kampfPruefeWuerfe();
         if (ansicht === 'protokoll' || ansicht === 'kampf') render();
       }, function () { protokoll = {}; });
     }
@@ -404,6 +406,9 @@ function initFirebase() {
        ein versehentliches Neuladen mitten im Gefecht nicht das Gefecht ist. */
     db.ref('kampf').on('value', function (s) {
       kampf = s.val() || {};
+      /* Auch hier: Ein Wurf kann VOR der Ansage angekommen sein, wenn die
+         Spielleitung langsamer klickt als der Spieler wuerfelt. */
+      kampfPruefeWuerfe();
       if (ansicht === 'kampf') render();
     }, function () { kampf = {}; });
 
@@ -849,6 +854,7 @@ function kampfGegner() {
       kaempfen: x.kaempfen || 0, schiessen: x.schiessen || 0,
       band: Math.max(0, Math.min(2, x.band || 0)),
       staerke: x.staerke || 1, schaden: x.schaden || 2,
+      waffe: x.waffe || '', fernwaffe: x.fernwaffe || '',
       /* Ein angelegter NSC ist zunaechst Feind. Umstellen macht ihn zum
          Verbuendeten - damit braucht es keinen dritten Typ, und Cormac
          kann im Finale mitkaempfen, ohne eine Spielerfigur zu sein. */
@@ -910,16 +916,51 @@ function gegnerAnlegen() {
          und wer Abstand will, zieht sie zurueck. */
       band: 0,
       schiessen: blatt.fert['Schießen'] || 0,
-      /* Fuer den Schadenswurf: Staerke steht im Blatt, eine Waffe nicht -
-         NSC tragen keine Ausruestung. d6 ist der Aufschlag (Saebel,
-         Entermesser, Knueppel) und laesst sich am Gegner aendern. */
+      /* Die Waffe kommt aus dem Blatt: Seit dem 15.10.2026 tragen die
+         bekannten Leute Ausruestung, und damit schlaegt Wat mit seiner
+         Enteraxt zu statt mit einem Allerweltswuerfel. */
       staerke: blatt.attr['Stärke'] || 1,
-      schaden: 2,
+      waffe: (nahWaffeVon(blatt) || {}).id || '',
+      schaden: (nahWaffeVon(blatt) || {}).schaden || 2,
+      fernwaffe: (fernWaffeVon(blatt) || {}).id || '',
       angeschlagen: false, wunden: 0, raus: false
     };
   }
   kampfRef().update(paket).catch(function (e) { warnung('Gegner anlegen ging nicht: ' + e); });
   kampfLog(n > 1 ? n + ' × ' + v.name + ' treten auf.' : v.name + ' tritt auf.', 'auf');
+}
+
+/* Einen Gegner erfinden: Name, Stufe, Waffe. Mehr braucht es nicht -
+   und mehr waere auch nicht ehrlicher, denn ein Hafenschlaeger hat kein
+   Innenleben, das in Zahlen gehoert. */
+function eigenenGegnerAnlegen() {
+  if (!db) return;
+  const v = function (id) { const e = document.getElementById(id); return e ? e.value : ''; };
+  const name = String(v('egName')).trim() || 'Gegner';
+  const stufe = gegnerStufe(v('egStufe'));
+  const waffe = AUSR_BY_ID[v('egWaffe')] || null;
+  const n = Math.max(1, Math.min(12, Math.round(Number(v('egAnzahl')) || 1)));
+  const blatt = alsFigur({ attr: stufe.attr, fert: stufe.fert });
+  const fern = waffe && waffe.art === 'Fernkampf';
+  const paket = {};
+  for (let i = 0; i < n; i++) {
+    paket['gegner/' + 'e' + Date.now().toString(36) + i] = {
+      name: name + (n > 1 ? ' ' + (i + 1) : ''),
+      vorlage: stufe.id,
+      parade: parade(blatt), robustheit: robustheit(blatt),
+      kaempfen: blatt.fert['Kämpfen'] || 0,
+      schiessen: blatt.fert['Schießen'] || 0,
+      staerke: blatt.attr['Stärke'] || 1,
+      waffe: (waffe && !fern) ? waffe.id : '',
+      fernwaffe: fern ? waffe.id : '',
+      schaden: (waffe && waffe.schaden) || 2,
+      extra: stufe.extra, band: 0,
+      angeschlagen: false, wunden: 0, raus: false
+    };
+  }
+  kampfRef().update(paket).catch(function (e) { warnung('Ging nicht: ' + e); });
+  kampfLog((n > 1 ? n + ' × ' : '') + name + ' tritt auf' +
+    (waffe ? ' — ' + waffe.n : '') + ' (' + stufe.n.toLowerCase() + ').', 'auf');
 }
 
 function gegnerWeg(gid) {
@@ -1041,6 +1082,48 @@ function angriffAnsagen(art, vonId, zielId) {
   }
 }
 
+/* Einen Wurf im Protokoll finden: der erste passende NACH einem Zeitpunkt.
+   Vorher Gewuerfeltes gehoert nicht dazu - sonst beantwortet ein Wurf von
+   vorhin die Frage von jetzt. */
+function protokollWurf(t, wert, abTs) {
+  return Object.keys(protokoll).map(function (k) { return protokoll[k]; })
+    .filter(function (z) {
+      return z && z.wert === wert && (z.ts || 0) >= abTs &&
+        (z.figur === t.name || z.spieler === (figuren[t.pid] || {}).spieler);
+    })
+    .sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); })[0] || null;
+}
+
+/* Sobald ein Wurf des Spielers hereinkommt, wird er FESTGEHALTEN und ins
+   Log geschrieben - einmal. Das passiert hier und nicht beim Zeichnen:
+   Eine Anzeige, die schreibt, schreibt bei jedem Neuzeichnen wieder.
+   Erkannt wird "schon erledigt" am Stand der Ansage, nicht an einer
+   Merkliste im Speicher - die waere nach einem Neuladen weg. */
+function kampfPruefeWuerfe() {
+  const an = kampf.ansage;
+  if (!an || !db) return;
+  const a = kampfFinde(an.wer);
+  if (!a || a.typ !== 'spieler') return;
+
+  if (an.stand === 'wartet') {
+    const z = protokollWurf(a, an.wert, an.ts);
+    if (!z) return;
+    kampfRef('ansage').update({ stand: 'gewuerfelt', band: z.band, roh: z.roh });
+    const traf = (z.band === 'erfolg' || z.band === 'steigerung');
+    kampfLog(a.name + ' würfelt ' + an.wert + ' gegen ' + an.zielName +
+      ' (nötig ' + (ZIELZAHL - an.mod) + '): ' + z.roh + ' — ' +
+      (traf ? (z.band === 'steigerung' ? 'Treffer mit Steigerung' : 'Treffer') : 'daneben') + '.',
+      traf ? 'treffer' : 'daneben');
+    return;
+  }
+  if (an.stand === 'schaden' && !an.schadenGelogt) {
+    const z = protokollWurf(a, 'Schaden', an.schadenTs || an.ts);
+    if (!z) return;
+    kampfRef('ansage').update({ schadenWert: z.roh, schadenGelogt: true });
+    kampfLog(a.name + ' würfelt Schaden: ' + z.roh + '.', 'treffer');
+  }
+}
+
 /* Der Wurf des Spielers kommt ueber das Protokoll zurueck: Dort steht er
    mit Figur, Wert und Band. Gesucht wird der erste passende Wurf NACH der
    Ansage - vorher Gewuerfeltes gehoert nicht dazu. */
@@ -1049,12 +1132,7 @@ function ansageErgebnis() {
   if (!an || an.stand !== 'wartet') return an && an.band ? an : null;
   const a = kampfFinde(an.wer);
   if (!a || a.typ !== 'spieler') return null;
-  const treffer = Object.keys(protokoll).map(function (k) { return protokoll[k]; })
-    .filter(function (z) {
-      return z && z.wert === an.wert && (z.ts || 0) >= an.ts &&
-        (z.figur === a.name || z.spieler === (figuren[a.pid] || {}).spieler);
-    })
-    .sort(function (x, y) { return (x.ts || 0) - (y.ts || 0) })[0];
+  const treffer = protokollWurf(a, an.wert, an.ts);
   if (!treffer) return null;
   return Object.assign({}, an, { stand: 'gewuerfelt', band: treffer.band, roh: treffer.roh });
 }
@@ -1122,6 +1200,17 @@ function kampfLogZeilen() {
     .sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
 }
 
+/* Die beste getragene Waffe einer Art. "Beste" heisst hier schlicht:
+   der hoechste Schadenswuerfel - wer zwei Klingen traegt, nimmt im Zweifel
+   die groessere. */
+function besteWaffe(blatt, art) {
+  return ((blatt && blatt.ausr) || []).map(function (id) { return AUSR_BY_ID[id]; })
+    .filter(function (a) { return a && a.art === art; })
+    .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); })[0] || null;
+}
+function nahWaffeVon(blatt) { return besteWaffe(blatt, 'Nahkampf'); }
+function fernWaffeVon(blatt) { return besteWaffe(blatt, 'Fernkampf'); }
+
 /* Kann der Angreifer ueberhaupt schiessen? "Wenn moeglich" heisst hier
    konkret: eine Fernkampfwaffe in der Hand UND Pulver dafuer - das ist die
    Munitionsregel aus Bibel 4.5, die bisher nur im Bogen stand. Geht es
@@ -1129,9 +1218,12 @@ function kampfLogZeilen() {
 function fernMoeglich(t) {
   if (!t) return { ok: false, grund: 'niemand gewählt' };
   if (t.typ === 'gegner') {
+    /* Eine Schusswaffe in der Hand UND die Fertigkeit dafuer. Ladungen
+       zaehlt bei NSC niemand mit - das erzaehlt die Spielleitung. */
+    if (!t.fernwaffe) return { ok: false, grund: t.name + ' trägt keine Schusswaffe' };
     return t.schiessen > 0
       ? { ok: true, wert: 'Schießen', stufe: t.schiessen }
-      : { ok: false, grund: t.name + ' hat keine Schusswaffe' };
+      : { ok: false, grund: t.name + ' kann nicht schießen' };
   }
   const waffen = ((t.figur && t.figur.ausr) || []).map(function (id) { return AUSR_BY_ID[id]; })
     .filter(function (a) { return a && a.art === 'Fernkampf'; });
@@ -1210,14 +1302,12 @@ function gegnerSchadenWuerfeln() {
 function schadenErgebnis() {
   const an = kampf.ansage;
   if (!an || an.stand !== 'schaden') return null;
+  /* Der festgehaltene Wert gilt: Er ueberlebt ein Neuladen, das Protokoll
+     wird irgendwann abgeraeumt. */
+  if (an.schadenWert !== undefined && an.schadenWert !== null) return an.schadenWert;
   const a = kampfFinde(an.wer);
   if (!a || a.typ !== 'spieler') return null;
-  const z = Object.keys(protokoll).map(function (k) { return protokoll[k]; })
-    .filter(function (x) {
-      return x && x.wert === 'Schaden' && (x.ts || 0) >= (an.schadenTs || an.ts) &&
-        (x.figur === a.name || x.spieler === (figuren[a.pid] || {}).spieler);
-    })
-    .sort(function (x, y) { return (x.ts || 0) - (y.ts || 0); })[0];
+  const z = protokollWurf(a, 'Schaden', an.schadenTs || an.ts);
   return z ? z.roh : null;
 }
 
@@ -1342,6 +1432,29 @@ function renderKampf() {
       '<button class="mini" data-kneu="1">anlegen</button>' +
       '<button class="mini" data-kende="1">Kampf beenden</button>' +
     '</div>' +
+    /* Daneben der selbstgebaute: Name, stark oder schwach, eine Waffe. */
+    '<div class="kk">' +
+      '<label>Eigener Gegner<input id="egName" placeholder="Hafenschläger" ' +
+        'style="min-width:9rem"></label>' +
+      '<label>Stufe<select id="egStufe">' +
+        GEGNER_STUFEN.map(function (st) {
+          return '<option value="' + esc(st.id) + '" title="' + esc(st.d) + '">' +
+            esc(st.n) + '</option>';
+        }).join('') + '</select></label>' +
+      '<label>Waffe<select id="egWaffe">' +
+        '<option value="">bloße Fäuste</option>' +
+        ['Nahkampf', 'Fernkampf'].map(function (art) {
+          return '<optgroup label="' + art + '">' +
+            AUSRUESTUNG.filter(function (a) { return a.art === art && a.id !== 'faust'; })
+              .map(function (a) {
+                return '<option value="' + esc(a.id) + '">' + esc(a.n) +
+                  ' (' + DLBL[a.schaden] + ')</option>';
+              }).join('') + '</optgroup>';
+        }).join('') + '</select></label>' +
+      '<label>Anzahl<input id="egAnzahl" type="number" min="1" max="12" value="1" ' +
+        'style="width:3.5rem"></label>' +
+      '<button class="mini" data-kegneu="1">anlegen</button>' +
+    '</div>' +
     '<div class="kk">' +
       '<label>Angreifer' + wahl('kAngreifer', kampfAngreifer) + '</label>' +
       '<label>Ziel' + wahl('kZiel', kampfZiel) + '</label>' +
@@ -1371,7 +1484,11 @@ function kampfToken(t) {
   const kann = gew ? null : fernMoeglich(kampfFinde(kampfGewaehlt));
   const zielbar = !!kampfGewaehlt && !gew && !t.raus &&
     t.seite !== (kampfFinde(kampfGewaehlt) || {}).seite;
+  const w = t.typ === 'gegner'
+    ? (AUSR_BY_ID[t.waffe] || AUSR_BY_ID[t.fernwaffe] || null)
+    : nahWaffeVon(t.figur);
   const werte = 'P' + t.parade + ' · R' + t.robustheit +
+    (w ? ' · ' + w.n : '') +
     (t.typ === 'gegner' ? (t.extra ? ' · Statist' : ' · Wild Card') : '');
   return '<div class="ktok ' + (t.seite === 'held' ? 'freund' : 'feind') +
     (gew ? ' gewaehlt' : '') + (zielbar ? ' ziel' : '') + (t.raus ? ' raus' : '') + '"' +
@@ -1811,7 +1928,7 @@ document.addEventListener('click', function (ev) {
   const t = ev.target.closest('[data-ersch],[data-pid][data-wert],[data-einzeln],[data-alle],' +
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
     '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben],' +
-    '[data-kausteilen],[data-kneu],[data-kende],[data-kangriff],[data-kgilt],' +
+    '[data-kausteilen],[data-kneu],[data-kegneu],[data-kende],[data-kangriff],[data-kgilt],' +
     '[data-kschaden],[data-gschaden],[data-klogweg],[data-gseite],[data-tok],' +
     '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran]');
   if (!t) return;
@@ -1846,6 +1963,7 @@ document.addEventListener('click', function (ev) {
      wissen, in welcher Warenart der Gegenstand steckt. */
   if (t.dataset.kausteilen !== undefined) { kampfAusteilen(); return; }
   if (t.dataset.kneu !== undefined)       { gegnerAnlegen(); return; }
+  if (t.dataset.kegneu !== undefined)     { eigenenGegnerAnlegen(); return; }
   if (t.dataset.kende !== undefined)      { kampfBeenden(); return; }
   if (t.dataset.kangriff !== undefined)   { angriffAnsagen(); return; }
   if (t.dataset.kschaden !== undefined)   { schadenAnfordern(); return; }
@@ -1938,7 +2056,7 @@ initFirebase();
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     setFiguren: function (f) { figuren = f; render(); },
-    setProtokoll: function (p) { protokoll = p; render(); },
+    setProtokoll: function (p) { protokoll = p; kampfPruefeWuerfe(); render(); },
     setDb: function (d) { db = d; },
     setzeAnsicht, anfordern, anfrageWeg, notizSichern, gruppe, uebergeben, gebenBlock,
     toggleWerkstatt, zeichneWerkstatt, wareAnlegen, wareWeg, eigeneListe,
@@ -1946,11 +2064,12 @@ if (typeof module !== 'undefined' && module.exports) {
     gegnerAnlegen, gegnerWeg, gegnerZustand, kampfAusteilen, kampfBeenden,
     angriffAnsagen, ansageErgebnis, wirkungGilt, ansageWeg, kampfWahl,
     schadenAnfordern, schadenErgebnis, waffeVon, gegnerSchadenWuerfeln,
-    kampfLog, kampfLogZeilen, kampfLogLeeren,
+    eigenenGegnerAnlegen, besteWaffe, nahWaffeVon, fernWaffeVon,
+    kampfLog, kampfLogZeilen, kampfLogLeeren, kampfPruefeWuerfe, protokollWurf,
     kampfFeldHtml, kampfToken, tokenKlick, tokenZiehen, tokenFallen,
     bandFallen, seiteWechseln, fernMoeglich,
     kampfAlle, kampfFinde, schadenEintragen,
-    setKampf: function (k) { kampf = k; render(); },
+    setKampf: function (k) { kampf = k; kampfPruefeWuerfe(); render(); },
     kampfStand: function () { return kampf; },
     protokollZeilen, bandKurz, szenenLabel, ortTitel,
     alsFigur, render,

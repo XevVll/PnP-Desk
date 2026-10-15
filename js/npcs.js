@@ -60,6 +60,8 @@ const NSC = {
      Gebildeter als die meisten an Bord, führt ohne laute Worte. */
   harwick: {
     name: 'James Harwick', rolle: 'Kapitän der Golden Lion',
+    /* Kapitaen mit Kaperbrief: Saebel an der Seite, Pistole im Guertel. */
+    ausr: ['saebel', 'pistole'],
     wild: true, rang: 2,              // Veteran
     attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 4, 'Stärke': 3, 'Konstitution': 3 },
     fert: {
@@ -80,6 +82,9 @@ const NSC = {
      aber er denkt mit den Händen. */
   cormac: {
     name: 'Cormac Daly', rolle: 'Quartiermeister',
+    /* Kaempft besser als sein Kapitaen (Kampf 7 gegen 6) und fuehrt die
+       Enterkommandos - zwei Klingen, eine davon fuer den engen Raum. */
+    ausr: ['entermesser', 'saebel'],
     wild: true, rang: 2,
     attr: { 'Geschicklichkeit': 3, 'Verstand': 2, 'Willenskraft': 3, 'Stärke': 4, 'Konstitution': 4 },
     fert: {
@@ -98,6 +103,9 @@ const NSC = {
      Seefahrt 7. Schmächtig, rastlos, loses Mundwerk. */
   tom: {
     name: 'Tom Fletcher', rolle: 'Steuermann',
+    /* Steuermann, loses Mundwerk, kein Schlaeger - was er traegt, passt in
+       den Guertel und hilft auch beim Tauwerk. */
+    ausr: ['messer', 'wurfmesser'],
     wild: true, rang: 1,             // Erfahren
     attr: { 'Geschicklichkeit': 4, 'Verstand': 3, 'Willenskraft': 3, 'Stärke': 2, 'Konstitution': 2 },
     fert: {
@@ -118,6 +126,9 @@ const NSC = {
      hatte die Fertigkeit gar nicht. */
   dirk: {
     name: 'Dirk van Hoorn', rolle: 'Kanonenmeister',
+    /* Kanonenmeister. Wer Geschuetze richtet, trifft auch auf Entfernung;
+       die Muskete ist die groesste Reichweite, die es hier gibt. */
+    ausr: ['muskete', 'messer'],
     wild: true, rang: 2,
     attr: { 'Geschicklichkeit': 3, 'Verstand': 3, 'Willenskraft': 2, 'Stärke': 3, 'Konstitution': 3 },
     fert: {
@@ -135,6 +146,9 @@ const NSC = {
      Menschenkenntnis 7. Der einzige, der mehr redet als handelt. */
   francesco: {
     name: 'Francesco Benedetto Almeida', rolle: 'Dolmetscher, Händler, Gelegenheitslügner',
+    /* Drei Namen, drei Paesse. Wer so reist, traegt nichts Offenes, aber
+       immer etwas dabei. */
+    ausr: ['messer', 'pistole'],
     wild: true, rang: 1,
     attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 4, 'Stärke': 1, 'Konstitution': 1 },
     fert: {
@@ -154,6 +168,9 @@ const NSC = {
      INT 1 ist Kanon und bleibt bei d4. */
   wat: {
     name: 'Walter „Wat“ Crozier', rolle: 'Waffenmeister',
+    /* Der Brocken, der am Waldrand den Holztrupp fuehrt und zeigt, wo die
+       Axt ansetzen muss (js/regie.js). Dieselbe Axt nimmt er mit an Bord. */
+    ausr: ['enteraxt'],
     wild: true, rang: 2,
     attr: { 'Geschicklichkeit': 3, 'Verstand': 1, 'Willenskraft': 2, 'Stärke': 4, 'Konstitution': 4 },
     fert: {
@@ -172,6 +189,9 @@ const NSC = {
      einflussreichsten Männer an Bord. */
   josiah: {
     name: 'Josiah Pryce', rolle: 'Schiffskoch',
+    /* Koch und Feldscher, Kampf 1. Sein Messer ist Werkzeug, keine Waffe -
+       dass es trotzdem schneidet, ist ein Nebeneffekt. */
+    ausr: ['messer'],
     wild: true, rang: 1,
     attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 4, 'Stärke': 3, 'Konstitution': 2 },
     fert: {
@@ -192,6 +212,9 @@ const NSC = {
      Er ist KEIN Teil der Besatzung und erscheint erst in 13.1. */
   seelenloser: {
     name: 'Der Seelenlose', rolle: 'Wächter der Grabesinsel',
+    /* Er fuehrt die Toten und schlaegt selbst zu. Die Klinge ist das
+       Wenigste an ihm - gefaehrlich ist, was dahintersteht. */
+    ausr: ['saebel'],
     wild: true, rang: 4,              // Legendär
     attr: { 'Geschicklichkeit': 4, 'Verstand': 4, 'Willenskraft': 5, 'Stärke': 5, 'Konstitution': 5 },
     fert: {
@@ -267,6 +290,9 @@ function nscAlsFigur(eintrag) {
     fert: eintrag.fert || {},
     tal: eintrag.tal || [],
     hnd: eintrag.hnd || [],
+    /* Ohne diese Zeile bleibt jede Waffe im Datensatz liegen: Das Blatt
+       traegt dann nichts, und die Robustheit rechnet ohne Ruestung. */
+    ausr: eintrag.ausr || [],
     rang: eintrag.rang || 0,
     startRang: eintrag.rang || 0
   });

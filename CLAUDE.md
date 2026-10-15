@@ -126,6 +126,46 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 15) — Waffen für die Bekannten, Gegner von der Stange, Würfe im Log
+- **Drei Vorgaben Hendriks:** den bekannten Leuten Ausrüstung geben · eigene Gegner bauen
+  können („stark oder schwach und eine Waffe in die Hand“) · und: „Die Würfelergebnisse stehen
+  nicht im Kampflog.“
+- **1. Die acht Kernfiguren tragen jetzt etwas** — und zwar **abgeleitet aus ihrer Rolle, die im
+  Kanon steht**; die Waffen selbst stehen dort nämlich nirgends (nachgesehen in `besatzung.html`,
+  `js/regie.js` und der Bibel):
+  - **Wat die Enteraxt** — er führt am Waldrand den Holztrupp und zeigt, wo die Axt ansetzen
+    muss (`js/regie.js`). **Dirk die Muskete** — wer Geschütze richtet, trifft auch auf
+    Entfernung. **Josiah nur ein Messer** — Kampf 1, das Ding ist Werkzeug. Harwick Säbel und
+    Pistole, Cormac zwei Klingen, Francesco etwas Verstecktes, Tom Messer und Wurfmesser.
+  - Sie stehen auch **auf der Karte in `besatzung.html`**, mit demselben Klick-Overlay wie
+    Talente — eine Ausrüstung, die nur im Kampfmodus auftaucht, ist halb da.
+  - **Ein Fehler kam dabei heraus, den die Prüfung gefangen hat:** `nscAlsFigur()` hat `ausr`
+    **gar nicht übernommen**. Die frisch vergebenen Waffen lagen damit im Datensatz und kamen
+    nirgends an — Wat hätte weiter mit einem Allerweltswürfel zugeschlagen.
+- **2. Eigene Gegner: Name, Stufe, Waffe, Anzahl.** Zwei Stufen, und das ist Absicht — der
+  Unterschied, den man am Tisch wirklich macht, ist „fällt beim ersten Treffer“ gegen „hält
+  etwas aus“:
+  - **Schwach** (Parade 5, Robustheit 5, Kämpfen d6, **Statist**) · **Stark** (Parade 6,
+    Robustheit 6, Kämpfen d8, **Wild Card**). Die Werte rechnet `parade()`/`robustheit()` aus,
+    nichts ist eingetippt.
+  - Die Waffe kommt aus der **normalen Ausrüstungsliste** — ein Gegner mit Säbel schlägt mit
+    demselben d6 zu wie ein Spieler mit Säbel. Eine Schusswaffe landet im Feld `fernwaffe`, und
+    **ohne Schusswaffe schießt niemand**, auch wenn er es könnte.
+- **3. Die Würfe des Spielers standen nicht im Log**, und der Grund erklärt den schiefen
+  Eindruck: Die Würfe, die das Panel **selbst** wirft (Gegner), schrieb es mit; die des Spielers
+  kommen über das **Protokoll** herein — und dort hat sie niemand mitgeschrieben.
+  - Neu ist **`kampfPruefeWuerfe()`**, aufgerufen vom Lauscher: Sobald ein Wurf hereinkommt,
+    wird er **festgehalten** (an der Ansage, nicht in einer Merkliste im Speicher — die wäre
+    nach einem Neuladen weg) und **einmal** ins Log geschrieben.
+  - **Das passiert im Lauscher und nicht beim Zeichnen.** Eine Anzeige, die schreibt, schreibt
+    bei jedem Neuzeichnen wieder — und das Protokoll ändert sich ständig.
+- **Getestet: 308 Prüfungen in `t_regie_wuerfel.js`, 60 in `t_nsc.js`, 0 Fehler** (1300 über elf
+  Skripte, 33 neue). Darunter ausdrücklich, dass der Wurf **genau einmal** im Log landet, auch
+  wenn dasselbe Protokoll dreimal hereinkommt.
+- **Die Prüfung „Art und Kennung passen zusammen“ kannte nur zwei Arten** und schlug bei der
+  neuen dritten (`ausr`) an. Sie geht jetzt über ein Verzeichnis statt über ein Entweder-oder —
+  die nächste Art bricht sie nicht mehr.
+
 ### 2026-10-15 (Fortsetzung 14) — Einen Gegner fragt niemand
 - **Hendriks Frage:** „Harwick hat Test getroffen. Wie wird jetzt der Schaden ausgerollt?“
   **Gar nicht** — da war nur das Zahlenfeld. Bei einem Spieler-Angriff fordert das Panel den

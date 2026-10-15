@@ -735,6 +735,66 @@ chk('kein Schreibzugriff fasst einen WERT der Figur an',
   !C.schreib.some(x => /figuren\/[a-z]+\/(wunden|angeschlagen|attr|fert)/.test(x.p)),
   C.schreib.map(x => x.p));
 
+/* ---- Die Würfe des Spielers landen im Log ----
+   Hendriks Meldung vom 15.10.2026: "Die Würfelergebnisse stehen nicht im
+   Kampflog." Die Würfe, die das Panel selbst wirft (Gegner), standen drin;
+   die des Spielers kommen über das Protokoll - und dort hat sie niemand
+   mitgeschrieben. */
+const P = bau();
+P.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+P.ctx.module.exports.setzeAnsicht('kampf');
+P.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        staerke: 3, schaden: 2, extra: false, band: 0 } } });
+P.schreib.length = 0;
+P.ctx.module.exports.angriffAnsagen('nah', 'p:anna', 'g:h1');
+const pAnsage = P.schreib.filter(x => x.p === 'kampf/ansage')[0].v;
+P.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        staerke: 3, schaden: 2, extra: false, band: 0 } }, ansage: pAnsage });
+
+P.schreib.length = 0;
+P.ctx.module.exports.setProtokoll({ w: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 11, ts: pAnsage.ts + 10 } });
+const wLog = P.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t);
+chk('der Wurf des Spielers steht im Log', wLog.length === 1, wLog);
+chk('mit der Zahl und dem Ergebnis',
+  wLog[0] && wLog[0].indexOf('11') > 0 && wLog[0].indexOf('Treffer mit Steigerung') > 0, wLog[0]);
+chk('und mit dem, was nötig war', wLog[0] && wLog[0].indexOf('nötig 6') > 0, wLog[0]);
+/* Festgehalten wird er auch - sonst waere er nach einem Neuladen weg. */
+chk('das Ergebnis wird an der Ansage festgehalten',
+  P.schreib.some(x => x.p === 'kampf/ansage/band' && x.v === 'steigerung'),
+  P.schreib.map(x => x.p));
+
+/* Und zwar GENAU EINMAL: Das Protokoll aendert sich staendig, eine Anzeige,
+   die dabei schreibt, schreibt jedes Mal wieder. */
+P.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3, extra: false, band: 0 } },
+  ansage: Object.assign({}, pAnsage, { stand: 'gewuerfelt', band: 'steigerung', roh: 11 }) });
+P.schreib.length = 0;
+P.ctx.module.exports.setProtokoll({ w: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 11, ts: pAnsage.ts + 10 } });
+P.ctx.module.exports.setProtokoll({ w: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 11, ts: pAnsage.ts + 10 } });
+chk('aber nur einmal', P.schreib.filter(x => x.p === 'kampf/log').length === 0,
+  P.schreib.map(x => x.p));
+
+/* Dasselbe fuer den Schadenswurf. */
+const sAnsage = Object.assign({}, pAnsage, { stand: 'schaden', band: 'steigerung',
+  roh: 11, schadenTs: pAnsage.ts + 50 });
+P.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3, extra: false, band: 0 } },
+  ansage: sAnsage });
+P.schreib.length = 0;
+P.ctx.module.exports.setProtokoll({ s: { figur: 'Mara Quint', wert: 'Schaden',
+  roh: 9, ts: sAnsage.schadenTs + 5 } });
+const sLog = P.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t);
+chk('der Schadenswurf steht ebenfalls im Log', sLog.length === 1, sLog);
+chk('mit seiner Zahl', sLog[0] && sLog[0].indexOf('9') > 0, sLog[0]);
+chk('und wird festgehalten',
+  P.schreib.some(x => x.p === 'kampf/ansage/schadenWert' && x.v === 9),
+  P.schreib.map(x => x.p));
+
 /* ---- Das Kampflog ----
    Hendriks Nachtrag: "Und eine Art Kampflog brauche ich als Spielleiter
    auch." Es liegt beim Kampfstand und verschwindet mit ihm - was den Abend
@@ -830,6 +890,95 @@ chk('der Schadenswurf wird aufgegriffen',
   E.ctx.module.exports.schadenErgebnis() === 11, E.ctx.module.exports.schadenErgebnis());
 chk('und die Wirkung steht da', E.nachId['inhalt']._html.indexOf('Wunde') > 0 &&
   E.nachId['inhalt']._html.indexOf('data-kgilt') > 0);
+
+/* ---- Bekannte Leute tragen Ausrüstung, eigene Gegner baut man ----
+   Hendriks Vorgabe vom 15.10.2026: "Wir sollten den bekannten Leuten
+   durchaus Ausrüstung geben. Ich brauche aber auch die Möglichkeit Gegner
+   zu erstellen - das reicht, wenn ich zwischen stark und schwach wählen
+   kann und ihnen eine Waffe in die Hand drücken kann." */
+chk('jede Kernfigur trägt etwas',
+  Object.keys(NPC.NSC).every(id => (NPC.NSC[id].ausr || []).length > 0),
+  Object.keys(NPC.NSC).filter(id => !(NPC.NSC[id].ausr || []).length));
+chk('und zwar nur, was es wirklich gibt',
+  Object.keys(NPC.NSC).every(id => (NPC.NSC[id].ausr || [])
+    .every(w => !!RW.AUSR_BY_ID[w])),
+  Object.keys(NPC.NSC).filter(id => (NPC.NSC[id].ausr || [])
+    .some(w => !RW.AUSR_BY_ID[w])));
+/* Die Zuordnung folgt der Rolle, die im Kanon steht: Wat fuehrt den
+   Holztrupp mit der Axt, Dirk richtet Geschuetze. */
+chk('Wat trägt die Axt', (NPC.NSC['wat'].ausr || []).indexOf('enteraxt') >= 0);
+chk('Dirk die Muskete', (NPC.NSC['dirk'].ausr || []).indexOf('muskete') >= 0);
+chk('Josiah nur ein Messer',
+  (NPC.NSC['josiah'].ausr || []).join() === 'messer', NPC.NSC['josiah'].ausr);
+
+const WA = bau();
+WA.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+WA.ctx.module.exports.setzeAnsicht('kampf');
+/* Ein angelegter Wat bringt seine Axt mit, nicht einen Allerweltswuerfel. */
+WA.nachId['kVorlage'] = { id: 'kVorlage', value: 'wat', style: {},
+  classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
+WA.nachId['kAnzahl'] = { id: 'kAnzahl', value: '1', style: {},
+  classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
+WA.schreib.length = 0;
+WA.ctx.module.exports.gegnerAnlegen();
+const watG = WA.schreib.filter(x => x.p.indexOf('kampf/gegner/') === 0)[0];
+chk('ein bekannter Gegner bringt seine Waffe mit',
+  watG && watG.v.waffe === 'enteraxt' &&
+  watG.v.schaden === RW.AUSR_BY_ID['enteraxt'].schaden, watG && watG.v);
+chk('und seine Stärke aus dem Blatt', watG && watG.v.staerke >= 2, watG && watG.v.staerke);
+
+/* ---- Selbstgebaut ---- */
+['egName', 'egStufe', 'egWaffe', 'egAnzahl'].forEach(id => {
+  WA.nachId[id] = { id: id, value: '', style: {},
+    classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
+});
+WA.nachId['egName'].value = 'Hafenschläger';
+WA.nachId['egStufe'].value = 'schwach';
+WA.nachId['egWaffe'].value = 'belegnagel';
+WA.nachId['egAnzahl'].value = '3';
+WA.schreib.length = 0;
+WA.ctx.module.exports.eigenenGegnerAnlegen();
+const eigene = WA.schreib.filter(x => x.p.indexOf('kampf/gegner/') === 0);
+chk('drei Hafenschläger auf einmal', eigene.length === 3, eigene.length);
+chk('mit Namen und Nummer',
+  eigene.map(x => x.v.name).join(' · ') === 'Hafenschläger 1 · Hafenschläger 2 · Hafenschläger 3',
+  eigene.map(x => x.v.name));
+chk('schwach heißt Statist', eigene[0].v.extra === true);
+chk('mit den Werten der Stufe',
+  eigene[0].v.parade === 5 && eigene[0].v.robustheit === 5, eigene[0].v);
+chk('und dem Belegnagel in der Hand',
+  eigene[0].v.waffe === 'belegnagel' &&
+  eigene[0].v.schaden === RW.AUSR_BY_ID['belegnagel'].schaden, eigene[0].v);
+chk('es steht im Kampflog',
+  WA.schreib.some(x => x.p === 'kampf/log' && (x.v.t + '').indexOf('Belegnagel') > 0),
+  WA.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t));
+
+/* Stark ist ein Wild Card und haelt mehr aus. */
+WA.nachId['egName'].value = 'Anführer';
+WA.nachId['egStufe'].value = 'stark';
+WA.nachId['egWaffe'].value = 'saebel';
+WA.nachId['egAnzahl'].value = '1';
+WA.schreib.length = 0;
+WA.ctx.module.exports.eigenenGegnerAnlegen();
+const stark = WA.schreib.filter(x => x.p.indexOf('kampf/gegner/') === 0)[0];
+chk('stark heißt Wild Card', stark && stark.v.extra === false, stark && stark.v);
+chk('und ist härter als schwach',
+  stark && stark.v.parade > eigene[0].v.parade &&
+  stark.v.robustheit > eigene[0].v.robustheit, stark && stark.v);
+
+/* Eine Schusswaffe landet im richtigen Feld - sonst schiesst niemand. */
+WA.nachId['egName'].value = 'Schütze';
+WA.nachId['egWaffe'].value = 'muskete';
+WA.schreib.length = 0;
+WA.ctx.module.exports.eigenenGegnerAnlegen();
+const schuetze = WA.schreib.filter(x => x.p.indexOf('kampf/gegner/') === 0)[0];
+chk('eine Schusswaffe steht als Fernwaffe da',
+  schuetze && schuetze.v.fernwaffe === 'muskete' && !schuetze.v.waffe, schuetze && schuetze.v);
+/* Und wer keine hat, schiesst nicht - mit Begruendung. */
+const ohne = WA.ctx.module.exports.fernMoeglich({ typ: 'gegner', name: 'X',
+  schiessen: 3, fernwaffe: '' });
+chk('ohne Schusswaffe kein Schuss', ohne.ok === false &&
+  ohne.grund.indexOf('keine Schusswaffe') > 0, ohne);
 
 /* ---- Greift ein GEGNER an, würfelt die Spielleitung ----
    Hendriks Frage vom 15.10.2026: "Harwick hat Test getroffen. Wie wird
