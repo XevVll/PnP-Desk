@@ -206,5 +206,82 @@ const tot = ids.filter(id => !N.NSC[id] && !N.NSC_MANNSCHAFT[id]);
 chk('jeder Platzhalter zeigt auf ein Blatt', tot.length === 0, tot);
 
 console.log('');
+console.log('=== DIE MARKEN ERKLAEREN SICH, WIE IM SPIELERBOGEN ===');
+/* Die Seite wird WIRKLICH gerendert, nicht im Quelltext durchsucht: Ein
+   fehlendes data-tipart ist gueltiges HTML und faellt erst am Tisch auf,
+   wenn das Overlay leer bleibt. */
+const vm = require('vm');
+const bAnf = SEITE.lastIndexOf('(function () {');
+const bEnd = SEITE.indexOf('})();', bAnf);
+if (bAnf < 0 || bEnd < 0) { console.log('FAIL Renderblock nicht gefunden'); process.exit(1); }
+const bCode = SEITE.slice(bAnf, bEnd + 5);
+
+const gerendert = {};
+let aktiviert = 0;
+const bctx = {
+  console,
+  NSC: N.NSC, NSC_MANNSCHAFT: N.NSC_MANNSCHAFT,
+  TAL_BY_ID: R.TAL_BY_ID, HND_BY_ID: R.HND_BY_ID,
+  DLBL: R.DLBL, ATTR_NAMEN: R.ATTR_NAMEN, RAENGE: R.RAENGE,
+  rangName: R.rangName, parade: R.parade, robustheit: R.robustheit,
+  bennies: R.bennies, nscAlsFigur: N.nscAlsFigur,
+  markenAktivieren: function () { aktiviert++; },
+  Object,
+  document: {
+    querySelectorAll: () => ids.map(id => ({
+      dataset: { nsc: id },
+      set innerHTML(v) { gerendert[id] = v; }
+    }))
+  }
+};
+vm.createContext(bctx);
+vm.runInContext(bCode, bctx);
+
+chk('die Seite haengt die Marken-Mechanik ein', aktiviert === 1, aktiviert);
+chk('und bringt sie nicht als eigene Kopie mit',
+  SEITE.indexOf('function tagModalAuf(') < 0 && SEITE.indexOf('js/marken.js') > 0);
+chk('alle Platzhalter wurden gerendert',
+  Object.keys(gerendert).length === ids.length, Object.keys(gerendert).length);
+
+/* Jeder Chip muss den Vertrag aus js/marken.js tragen - alle fuenf Felder,
+   sonst zeigt das Overlay Leerstellen. */
+const chips = [];
+Object.keys(gerendert).forEach(id => {
+  const m = gerendert[id].match(/<span class="nsc-tag[^"]*"[^>]*>/g) || [];
+  m.forEach(t => chips.push({ figur: id, tag: t }));
+});
+chk('es stehen ueberhaupt Marken auf der Seite', chips.length >= 15, chips.length);
+const feld = (t, n) => { const m = t.match(new RegExp('data-' + n + '="([^"]*)"')); return m ? m[1] : null; };
+const unvollstaendig = chips.filter(c =>
+  !feld(c.tag, 'tipid') || !feld(c.tag, 'tipart') || !feld(c.tag, 'tipn') ||
+  !feld(c.tag, 'tipk') || !feld(c.tag, 'tipt'));
+chk('jeder Chip traegt alle fuenf Felder', unvollstaendig.length === 0,
+  unvollstaendig.slice(0, 3));
+chk('jeder ist anklickbar und mit der Tastatur erreichbar',
+  chips.every(c => c.tag.indexOf('class="nsc-tag tag"') >= 0 &&
+    c.tag.indexOf('tabindex="0"') >= 0 && c.tag.indexOf('role="button"') >= 0));
+/* Die Art entscheidet, in welchem Verzeichnis das Overlay nachsieht - eine
+   Verwechslung laesst den Zusatz still verschwinden. */
+const falscheArt = chips.filter(c => {
+  const id = feld(c.tag, 'tipid'), art = feld(c.tag, 'tipart');
+  return art === 'tal' ? !R.TAL_BY_ID[id] : !R.HND_BY_ID[id];
+});
+chk('Art und Kennung passen zusammen', falscheArt.length === 0, falscheArt.slice(0, 3));
+chk('die Wirkung steht wirklich drin, nicht nur der Name',
+  chips.every(c => feld(c.tag, 'tipt') === null ||
+    feld(c.tag, 'tipt').length > 10));
+/* Figurgebundene Talente muessen das sagen - sonst sucht jemand sie in der
+   Charaktererschaffung und findet sie nie. */
+const eigene = chips.filter(c => {
+  const id = feld(c.tag, 'tipid');
+  const x = R.TAL_BY_ID[id] || R.HND_BY_ID[id];
+  return x && x.nurNsc;
+});
+chk('es stehen einzigartige Marken auf der Seite', eigene.length >= 8, eigene.length);
+chk('und sie sagen, dass sie niemand waehlen kann',
+  eigene.every(c => feld(c.tag, 'tipk').indexOf('nur für diese Figur') >= 0),
+  eigene.map(c => feld(c.tag, 'tipk')).slice(0, 2));
+
+console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

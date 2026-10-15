@@ -21,6 +21,7 @@ const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n
 
 const KARTE = fs.readFileSync(path.join(BASIS, 'karte.html'), 'utf8');
 const BOGEN = fs.readFileSync(path.join(BASIS, 'heldenbrief.html'), 'utf8');
+const nlSep = String.fromCharCode(10);
 
 /* Den z-index einer Regel aus dem Stylesheet holen. Ohne Treffer wird
    abgebrochen statt 0 zurueckzugeben - ein stiller Nulltreffer haette
@@ -98,11 +99,12 @@ function schnitt(von, bis) {
   if (a < 0 || b < 0) { console.log('ABBRUCH: ' + von + ' nicht gefunden.'); process.exit(1); }
   return BOGEN.slice(a, b);
 }
-/* Alles von tagFeld() bis einschliesslich der Lauscher - also auch das
-   Overlay. Der Schnitt endet am Scroll-Lauscher, der letzten Zeile des
-   Blocks. */
-const code = schnitt('function tagFeld(', "document.addEventListener('scroll'") +
-  "document.addEventListener('scroll', tipWeg, true);";
+/* Die Chips kommen weiter aus heldenbrief.html, die Mechanik dahinter
+   aber aus js/marken.js: Sie wird seit dem 15.10.2026 geteilt, weil
+   besatzung.html dieselbe braucht. Beides zusammen in einen Kontext -
+   so prueft der Test weiterhin, was die Seite wirklich ausfuehrt. */
+const code = schnitt('function tagFeld(', '/* Die Marken-Mechanik') + nlSep +
+  fs.readFileSync(path.join(BASIS, 'js/marken.js'), 'utf8');
 
 const tagsEl = { innerHTML: '' };
 let tipEl = null, modalEl = null;
@@ -149,7 +151,8 @@ const ctx = {
       if (id === 'tagModal') return modalEl;
       return null;
     },
-    createElement: function () { return knoten(); },
+    createElement: function (tag) { var n = knoten(); n.tagName = tag; return n; },
+    head: { appendChild: function (e) { return e; } },
     body: {
       appendChild: function (el) {
         if (el.id === 'tagModal') modalEl = el; else tipEl = el;
@@ -160,6 +163,10 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(code, ctx);
+/* Seit die Mechanik in js/marken.js liegt, haengen die Lauscher nicht mehr
+   auf oberster Ebene, sondern in markenAktivieren(). Genau so macht es die
+   Seite auch - der Test muss es deshalb ebenso tun. */
+ctx.markenAktivieren();
 
 function feuer(art, ev) { (lauscher[art] || []).forEach(function (cb) { cb(ev); }); }
 function alsZiel(chip) { return { dataset: chip.dataset, closest: function () { return chip; } }; }
@@ -288,8 +295,15 @@ chk('auch ein unbekanntes Talent bricht nicht', modalEl.classList.contains('auf'
 chk('und erfindet keinen Zusatz', modalEl.querySelector('.zusatz').innerHTML === '' &&
   modalEl.querySelector('.zusatz').style.display === 'none');
 
+/* Steht seit der Auslagerung in js/marken.js, nicht mehr im Bogen. */
+const MARKEN = fs.readFileSync(path.join(BASIS, 'js/marken.js'), 'utf8');
 chk('das Hover-Feld weist auf den Klick hin',
-  BOGEN.indexOf('Anklicken für die ganze Erklärung') >= 0);
+  MARKEN.indexOf('Anklicken für die ganze Erklärung') >= 0);
+chk('die Mechanik liegt in einer geteilten Datei, nicht doppelt',
+  BOGEN.indexOf('function tagModalAuf(') < 0 &&
+  MARKEN.indexOf('function tagModalAuf(') > 0);
+chk('und der Bogen bindet sie ein',
+  BOGEN.indexOf('js/marken.js') > 0 && BOGEN.indexOf('markenAktivieren()') > 0);
 chk('die Chips sind als Knopf ausgewiesen', (tagsEl.innerHTML.match(/role="button"/g) || []).length > 0 ||
   BOGEN.indexOf('role="button"') >= 0);
 

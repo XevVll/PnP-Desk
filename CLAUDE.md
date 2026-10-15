@@ -126,6 +126,54 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 2) — Die Marken liegen jetzt in einer Datei
+- **Hendriks Vorgabe:** „Im Besatzungsbereich, lass mich bitte die Talente und Schwächen sehen,
+  wenn ich drauf klicke. Genau wie beim Spielerbogen.“
+- **Statt die Mechanik ein zweites Mal zu schreiben, ist sie herausgezogen:** neue
+  **`js/marken.js`** (Hover-Feld, Overlay, Lauscher, Stil). `heldenbrief.html` benutzt sie jetzt
+  ebenso, der eingebaute Code dort ist ersatzlos weg.
+  - **Der Grund ist nicht Ordnungsliebe, sondern die Lehre von `spielerKennung()`:** Zwei
+    Fassungen derselben Erklärung laufen auseinander — und dann sagt der Spielerbogen etwas
+    anderes über ein Talent als die Seite, auf die die Spielleitung am Tisch schaut.
+  - Der Vertrag steht im Dateikopf: Die Seite rendert ihre Chips mit `class="tag"` und
+    `data-tipid`/`-tipart`/`-tipn`/`-tipk`/`-tipt` und ruft **einmal** `markenAktivieren()` auf.
+    Alles Weitere macht die Datei, per **Delegation** — an 22 NSC-Blättern hängen sonst
+    Hunderte Einzel-Lauscher.
+- **`besatzung.html` zeigt damit dieselben zwei Stufen** wie der Bogen: Hovern nennt Name,
+  Einordnung und Wirkung, Klicken (oder Enter/Leertaste) öffnet die ganze Erklärung mit
+  Voraussetzungen, Mindestrang und der Bedeutung eines *Hakens*. Vorher stand dort nur ein
+  nativer `title` — der kommt nach einer Sekunde, bricht lange Texte schlecht um, und **auf
+  dem Tablet am Tisch gibt es ihn gar nicht.**
+  - **Die figurgebundenen Talente sagen jetzt, dass sie niemand wählen kann**
+    („· nur für diese Figur“ in der Einordnung, dazu ein eigener Absatz im Overlay). Ohne das
+    sucht jemand „Kein Gewissen“ in der Charaktererschaffung und findet es nie.
+  - Ein Talent, das es im Regelwerk nicht mehr gibt, steht als nackter Name da — ohne
+    erfundenen Zusatz, wie im Bogen.
+- **Getestet: 56 Prüfungen in `tests/t_nsc.js`, 0 Fehler** (10 neue), 963 über neun Skripte.
+  - **Der Renderblock von `besatzung.html` wird WIRKLICH ausgeführt** (`vm` + DOM-Stub), nicht
+    im Quelltext durchsucht: Ein fehlendes `data-tipart` ist gültiges HTML und fällt erst am
+    Tisch auf, wenn das Overlay leer bleibt. Geprüft wird jeder einzelne Chip — alle fünf
+    Felder, `tabindex`/`role`, und dass **Art und Kennung zusammenpassen** (`tal` muss in
+    `TAL_BY_ID` liegen). **Gegengeprüft:** Nimmt man `data-tipart` heraus, schlagen zwei
+    Prüfungen an.
+  - Dazu die Prüfung, dass die Seite die Mechanik **nicht als eigene Kopie** mitbringt — wer
+    sie dort wieder einbaut, soll darüber stolpern.
+  - `tests/t_bogen.js` schneidet die Chips weiter aus `heldenbrief.html`, lädt die Mechanik
+    aber aus `js/marken.js` — dieselben 135 Prüfungen laufen unverändert durch.
+- **Eigener Fehler, und er ist festzuhalten:** `besatzung.html` hat **gemischte Zeilenenden**
+  (856 CRLF, rund 105 LF — der NSC-Renderblock von heute kam als LF dazu). Mein Skript hat das
+  Zeilenende der Datei einmal bestimmt und daran alle Ersetzungen ausgerichtet; die eine, die
+  LF brauchte, fand nichts und das `assert` brach ab. **Die Datei blieb unversehrt**, weil
+  geschrieben wird erst am Ende. Merke, schärfer als der Eintrag von gestern: Nicht „das“
+  Zeilenende einer Datei bestimmen — es kann mehrere geben, also beide probieren.
+- **Bewusst NICHT angefasst:** `regie_figuren.html` zeigt weiter den Tooltip am Mauszeiger
+  (Begründung vom 14.10.: breites Raster am Rechner, ein Overlay stände beim Durchsehen
+  mehrerer Figuren im Weg). Jetzt, da die Mechanik geteilt ist, wäre es allerdings ein
+  Dreizeiler.
+- **Noch zu prüfen am Bildschirm:** Overlay und Hover-Feld tragen die dunklen Farben des
+  Bogens, `besatzung.html` ist eine helle Pergamentseite. „Genau wie beim Spielerbogen“ heißt
+  genau das — falls es dort fremd wirkt, sind es die Farbwerte in `MARKEN_STIL`.
+
 ### 2026-10-15 (Fortsetzung) — d12 trägt nur noch Der Seelenlose
 - **Hendriks Einwand, und er ist berechtigt:** „d12-Werte sind etwas zu stark in diesem Regelwerk,
   und hier hat nahezu jeder d12. Ich würde das lieber mit einzigartigen Talenten und Schwächen

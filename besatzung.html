@@ -893,6 +893,7 @@ function filterCards(rank, btn){
 
 <script src="js/regelwerk.js"></script>
 <script src="js/npcs.js"></script>
+<script src="js/marken.js"></script>
 <script>
 /* Die Spielwerte standen hier bis zum 15.10.2026 als festes Markup - im
    alten W100-System, also seit dem Systemwechsel im September falsch.
@@ -942,12 +943,28 @@ function filterCards(rank, btn){
       }).join('') +
       '</tbody></table></div>';
 
+    /* Dieselben data-tip*-Felder wie im Spielerbogen, und die Klasse "tag"
+       muss mit dran: Daran haengen die Lauscher aus js/marken.js. Die
+       Mechanik selbst steht nicht hier - sie wird geteilt. */
     function marken(ids, art, von) {
       if (!ids || !ids.length) return '';
       return '<div class="nsc-marken"><b>' + art + '</b>' + ids.map(function (id) {
         var x = von[id];
-        return '<span class="nsc-tag" title="' + esc(x ? x.d : '') + '">' +
-          esc(x ? x.n : id) + '</span>';
+        /* Ein Talent, das es im Regelwerk nicht mehr gibt, bricht die Seite
+           nicht - es steht als nackter Name da, ohne erfundenen Zusatz. */
+        if (!x) return '<span class="nsc-tag">' + esc(id) + '</span>';
+        var einordnung = (art === 'Talente')
+          ? x.kat + ' · ab ' + rangName(x.rang)
+          : (x.schwer ? 'schwer · 2 Punkte' : 'leicht · 1 Punkt') +
+            (x.haken ? ' · verpflichtet, senkt keinen Würfel' : '');
+        /* Figurgebunden: Wer das liest, soll es nicht in der Erschaffung suchen. */
+        if (x.nurNsc) einordnung += ' · nur für diese Figur';
+        return '<span class="nsc-tag tag" tabindex="0" role="button"' +
+          ' data-tipid="' + esc(id) + '"' +
+          ' data-tipart="' + (art === 'Talente' ? 'tal' : 'hnd') + '"' +
+          ' data-tipn="' + esc(x.n) + '"' +
+          ' data-tipk="' + esc(einordnung) + '"' +
+          ' data-tipt="' + esc(x.d) + '">' + esc(x.n) + '</span>';
       }).join('') + '</div>';
     }
     h += marken(e.tal, 'Talente', TAL_BY_ID);
@@ -955,6 +972,11 @@ function filterCards(rank, btn){
     if (e.notiz) h += '<p class="nsc-notiz">' + esc(e.notiz) + '</p>';
     el.innerHTML = h;
   });
+
+  /* Die Lauscher arbeiten per Delegation, die Reihenfolge waere also egal -
+     der Aufruf steht trotzdem hinter dem Rendern, damit beim Lesen klar
+     ist, worauf er sich bezieht. */
+  markenAktivieren();
 })();
 </script>
 </body>
