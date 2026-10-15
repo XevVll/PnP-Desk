@@ -1119,6 +1119,18 @@ function zuteilungAnnehmen(post) {
       const d = Math.round(Number(z.wert) || 0);
       F.muenzen = Math.max(0, (F.muenzen || 0) + d);
       erzaehlt.push((d >= 0 ? '+' : '') + d + ' Münzen');
+    } else if (z.art === 'wunde') {
+      /* Aus dem Kampfmodus der Spielleitung. Auch ein Treffer laeuft ueber
+         das Postfach: Der Bogen ist der einzige Schreiber auf dieser Figur,
+         ein direkter Zugriff der Regie waere beim naechsten Klick des
+         Spielers lautlos weg. */
+      const n = Math.max(1, Math.round(Number(z.wert) || 1));
+      F.wunden = Math.min(MAX_WUNDEN + 1, (F.wunden || 0) + n);
+      F.angeschlagen = true;        // eine Wunde macht immer auch angeschlagen
+      erzaehlt.push(n > 1 ? n + ' Wunden' : 'eine Wunde');
+    } else if (z.art === 'angeschlagen') {
+      F.angeschlagen = true;
+      erzaehlt.push('angeschlagen');
     }
   });
   if (!erzaehlt.length && !abgelehnt.length) {

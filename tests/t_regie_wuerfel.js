@@ -17,6 +17,9 @@
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const BASIS = path.join(__dirname, '..');
 const RW = require(path.join(BASIS, 'js/regelwerk.js'));
+global.alsFigur = RW.alsFigur;
+const NPC = require(path.join(BASIS, 'js/npcs.js'));
+const K = require(path.join(BASIS, 'js/kampf.js'));
 
 let f = 0, anzahl = 0;
 const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n + (c ? '' : '  <<< ' + JSON.stringify(x))); if (!c) f++; };
@@ -71,13 +74,14 @@ function bau() {
   }
   ['anzahl', 'inhalt', 'fbNote', 'erschLeiste', 'btnFiguren', 'btnProtokoll', 'btnBrief', 'btnAlle',
    'btnWerkstatt', 'werkstatt', 'wstMeld', 'wstName', 'wstText', 'wstArt', 'wstSchaden',
-   'wstRuest', 'wstGew', 'wstPreis', 'btnWaren'].forEach(knoten);
+   'wstRuest', 'wstGew', 'wstPreis', 'btnWaren', 'btnKampf'].forEach(knoten);
 
   const schreib = [];      // jeder Schreibzugriff, der stattfindet
   const lauscher = {};
   function ref(p) {
     return {
-      update(paket) { Object.keys(paket).forEach(k => schreib.push({ p: k, v: paket[k], op: 'update' })); return Promise.resolve(); },
+      update(paket) { Object.keys(paket).forEach(k => schreib.push({
+        p: (p ? p + '/' : '') + k, v: paket[k], op: 'update' })); return Promise.resolve(); },
       set(v) { schreib.push({ p: p, v: v, op: 'set' }); return Promise.resolve(); },
       push(v) { schreib.push({ p: p, v: v, op: 'push' }); return Promise.resolve({ key: 'k1' }); },
       remove() { schreib.push({ p: p, op: 'remove' }); return Promise.resolve(); },
@@ -114,6 +118,8 @@ function bau() {
   vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/sitzung.js'), 'utf8'), ctx);
   vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/identitaet.js'), 'utf8'), ctx);
   vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/regelwerk.js'), 'utf8'), ctx);
+  vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/npcs.js'), 'utf8'), ctx);
+  vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/kampf.js'), 'utf8'), ctx);
   SZENEN_DATEIEN.forEach(d => vm.runInContext(fs.readFileSync(path.join(BASIS, d), 'utf8'), ctx));
   // Die Hülle durch die Aufzeichnung ersetzen, BEVOR die Seite initFirebase() ruft.
   ctx.sitzungsDbJetzt = function () { return db; };
@@ -540,6 +546,147 @@ chk('unbekannter Ort geht nicht verloren',
 chk('Export ruft wuerfeSection auf', VAULT.indexOf('wuerfeSection(sceneIds') >= 0);
 chk('Export hat eine Würfe-Überschrift', VAULT.indexOf("'## Würfe") >= 0);
 chk('und einen Satz, wenn nichts da ist', VAULT.indexOf('Keine Würfe im gewählten Bereich') >= 0);
+
+console.log('');
+console.log('=== DER KAMPFMODUS ===');
+/* Hendriks Vorgabe vom 15.10.2026: Gegner anlegen, "Spieler A greift
+   Gegner 3 an", der Spieler wird zum Wuerfeln gefordert, das Interface
+   sieht nur die Spielleitung. Geprueft wird der GANZE Ablauf, ausgefuehrt
+   statt gelesen. */
+const C = bau();
+C.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+C.ctx.module.exports.setzeAnsicht('kampf');
+const ch = () => C.nachId['inhalt']._html;
+
+chk('die Ansicht hat einen eigenen Knopf', C.nachId['btnKampf'].classList.contains('on'));
+chk('die Spieler stehen von selbst drin',
+  C.ctx.module.exports.kampfAlle().filter(t => t.typ === 'spieler').length === 4,
+  C.ctx.module.exports.kampfAlle().length);
+chk('ohne Gegner und ohne Karten steht da, was zu tun ist',
+  ch().indexOf('Noch keine Reihenfolge') > 0);
+
+/* ---- Gegner anlegen ---- */
+C.nachId['kVorlage'] = { id: 'kVorlage', value: 'anselm', style: {}, classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
+C.nachId['kAnzahl'] = { id: 'kAnzahl', value: '3', style: {}, classList: { add(){}, remove(){}, toggle(){}, contains(){ return false; } } };
+C.schreib.length = 0;
+C.ctx.module.exports.gegnerAnlegen();
+chk('drei Gegner auf einmal', C.schreib.length === 3, C.schreib.map(x => x.p));
+chk('und zwar unter dem Kampfstand der Sitzung',
+  C.schreib.every(x => x.p.indexOf('kampf/gegner/') === 0), C.schreib.map(x => x.p));
+chk('sie heißen durchnummeriert',
+  C.schreib.map(x => x.v.name).join(' · ') === 'Anselm Frei 1 · Anselm Frei 2 · Anselm Frei 3',
+  C.schreib.map(x => x.v.name));
+/* Die Werte kommen aus dem Blatt in js/npcs.js - hier wird nichts erfunden. */
+chk('mit Parade und Robustheit aus dem Blatt',
+  C.schreib[0].v.parade === RW.parade(NPC.nscAlsFigur(NPC.NSC_MANNSCHAFT['anselm'])) &&
+  C.schreib[0].v.robustheit > 0, C.schreib[0].v);
+chk('ein Mannschaftsmitglied ist ein Statist', C.schreib[0].v.extra === true);
+
+/* Den Stand so setzen, wie Firebase ihn zurueckspielen wuerde. */
+const gegner = {};
+C.schreib.forEach((x, i) => { gegner['g' + i] = x.v; });
+C.ctx.module.exports.setKampf({ runde: 0, gegner: gegner });
+chk('danach stehen sie in der Liste', C.ctx.module.exports.kampfAlle().length === 7,
+  C.ctx.module.exports.kampfAlle().length);
+
+/* ---- Initiative ---- */
+C.schreib.length = 0;
+C.ctx.module.exports.kampfAusteilen();
+chk('Austeilen schreibt als EIN Sammel-Update',
+  C.schreib.every(x => x.op === 'update' && x.p.indexOf('kampf/') === 0),
+  C.schreib.map(x => x.p));
+const kfeld = n => (C.schreib.filter(x => x.p === 'kampf/' + n)[0] || {}).v;
+const aus = { reihe: kfeld('reihe'), runde: kfeld('runde') };
+/* Sechs, nicht sieben: Cord ist mit vier Wunden ausser Gefecht und
+   bekommt keine Karte. Wer nicht mehr mitkaempft, steht auch nicht in
+   der Reihenfolge - sonst wartet der Tisch auf einen Bewusstlosen. */
+chk('jeder noch Kampffähige bekommt eine Karte',
+  aus.reihe.length === 6 && aus.reihe.every(r => !!r.karte), aus.reihe.length);
+chk('wer außer Gefecht ist, bekommt keine',
+  !aus.reihe.some(r => r.id === 'p:cord'), aus.reihe.map(r => r.id));
+chk('die Runde zählt hoch', aus.runde === 1);
+chk('die Reihenfolge ist sortiert',
+  aus.reihe.every((r, i) => i === 0 || K.kartenVergleich(aus.reihe[i - 1].karte, r.karte) <= 0),
+  aus.reihe.map(r => K.kartenText(r.karte)));
+
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe, dran: 0 });
+chk('die Liste zeigt Karten und Zustand',
+  ch().indexOf('Parade') > 0 && ch().indexOf('Statist') > 0);
+chk('und wer dran ist, ist hervorgehoben', ch().indexOf('class="ki dran"') > 0);
+
+/* ---- Der Angriff ---- */
+C.ctx.module.exports.kampfWahl('kAngreifer', 'p:anna');
+C.ctx.module.exports.kampfWahl('kZiel', 'g:g0');
+C.schreib.length = 0;
+C.ctx.module.exports.angriffAnsagen();
+const bitte = C.schreib.filter(x => x.p === 'figuren/anna/anfrage')[0];
+chk('der Spieler wird zum Würfeln gefordert', !!bitte, C.schreib.map(x => x.p));
+chk('auf Kämpfen', bitte && bitte.v.wert === 'Kämpfen');
+/* Der Kern: Der Zielwert ist die PARADE des Gegners, nicht die 4 - und der
+   Modifikator darf ungerade sein. */
+const par = gegner.g0.parade;
+chk('mit dem Modifikator aus der Parade', bitte && bitte.v.mod === RW.ZIELZAHL - par,
+  { mod: bitte && bitte.v.mod, parade: par });
+chk('und er erfährt, worum es geht',
+  bitte && bitte.v.grund.indexOf('Anselm Frei 1') > 0, bitte && bitte.v.grund);
+chk('die Ansage liegt im Kampfstand',
+  C.schreib.some(x => x.p === 'kampf/ansage'), C.schreib.map(x => x.p));
+
+const ansage = C.schreib.filter(x => x.p === 'kampf/ansage')[0].v;
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe, ansage: ansage });
+chk('solange nichts gewürfelt ist, wartet die Anzeige',
+  ch().indexOf('wartet auf den Wurf') > 0);
+chk('ein fremder Wurf zählt nicht',
+  C.ctx.module.exports.setProtokoll({ x: { figur: 'Tom Ash', wert: 'Kämpfen',
+    band: 'erfolg', roh: 9, ts: ansage.ts + 10 } }) ||
+  C.ctx.module.exports.ansageErgebnis() === null, C.ctx.module.exports.ansageErgebnis());
+/* Auch ein Wurf VOR der Ansage gehoert nicht dazu - sonst beantwortet ein
+   alter Wurf die neue Frage. */
+C.ctx.module.exports.setProtokoll({ alt: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 12, ts: ansage.ts - 100 } });
+chk('und ein alter Wurf auch nicht', C.ctx.module.exports.ansageErgebnis() === null);
+
+C.ctx.module.exports.setProtokoll({ neu: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 12, ts: ansage.ts + 50 } });
+const erg = C.ctx.module.exports.ansageErgebnis();
+chk('der passende Wurf wird aufgegriffen', erg && erg.band === 'steigerung', erg);
+chk('und als Treffer gelesen', ch().indexOf('Treffer mit Steigerung') > 0);
+chk('mit dem Hinweis auf das zusätzliche W6', ch().indexOf('1W6') > 0);
+chk('und einem Feld für den Schaden', ch().indexOf('id="kSchaden"') > 0);
+
+/* ---- Die Wirkung wird vorgeschlagen, nicht eingetragen ---- */
+C.ctx.module.exports.schadenEintragen('9');
+chk('die Wirkung steht als Vorschlag da',
+  ch().indexOf('Wunde') > 0 && ch().indexOf('data-kgilt') > 0, ch().slice(0, 300));
+C.schreib.length = 0;
+chk('und schreibt von sich aus NICHTS', C.schreib.length === 0, C.schreib);
+
+C.ctx.module.exports.wirkungGilt();
+chk('erst der Klick trägt sie ein', C.schreib.length > 0);
+chk('beim Gegner direkt im Kampfstand',
+  C.schreib.some(x => x.p === 'kampf' && x.v['gegner/g0/wunden'] === 1) ||
+  C.schreib.some(x => (x.p + '').indexOf('gegner/g0') >= 0), C.schreib.map(x => x.p));
+/* Ein Statist ist mit der ersten Wunde draussen - genau das war der
+   Denkfehler, den t_kampf.js gefangen hat. */
+const raus = C.schreib.filter(x => x.p === 'kampf/gegner/g0/raus')[0];
+chk('und der Statist ist damit draußen', raus && raus.v === true,
+  C.schreib.map(x => x.p));
+
+/* ---- Ein Treffer auf einen SPIELER geht ins Postfach ---- */
+C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe,
+  ansage: { wer: 'g:g1', werName: 'Anselm Frei 2', ziel: 'p:anna', zielName: 'Mara Quint',
+            parade: 5, robustheit: 5, mod: -1, wert: 'Kämpfen',
+            ts: Date.now(), stand: 'gewuerfelt', band: 'erfolg', roh: 7 } });
+C.ctx.module.exports.schadenEintragen('9');
+C.schreib.length = 0;
+C.ctx.module.exports.wirkungGilt();
+const post = C.schreib.filter(x => x.p === 'figuren/anna/zuteilung')[0];
+chk('die Wunde des Spielers geht ins Postfach', !!post, C.schreib.map(x => x.p));
+chk('als Wunde, nicht als Wert in der Figur',
+  post && post.v.art === 'wunde' && post.v.wert === 1, post && post.v);
+chk('kein Schreibzugriff fasst einen WERT der Figur an',
+  !C.schreib.some(x => /figuren\/[a-z]+\/(wunden|angeschlagen|attr|fert)/.test(x.p)),
+  C.schreib.map(x => x.p));
 
 console.log('');
 console.log('=== DIE WARENLISTE UND IHRE SUCHE ===');

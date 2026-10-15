@@ -126,6 +126,58 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 10) — Der Kampfmodus steht
+- **Vierte Ansicht in `regie_figuren.html`:** Figuren · Würfe · Gegenstände · **Kampf**. Die
+  Spieler bekommen **nichts Neues zu sehen** — nur die Bitte in ihrer Würfelleiste, die es seit
+  dem 14.10. gibt. Damit kommt keine neue Spieler-Oberfläche dazu und nichts kann bei ihnen
+  kaputtgehen.
+- **Der Ablauf, wie Hendrik ihn beschrieben hat:**
+  1. **Gegner anlegen** aus den Blättern in `js/npcs.js` — Vorlage wählen, Anzahl, fertig
+     („Anselm Frei 1–3“). Parade, Robustheit und Kämpfen kommen **aus dem Blatt**, hier wird
+     nichts erfunden.
+  2. **Karten austeilen.** Neue Reihenfolge je Runde, Joker inbegriffen. **Wer außer Gefecht
+     ist, bekommt keine Karte** — sonst wartet der Tisch auf einen Bewusstlosen.
+  3. **„Angreifer → Ziel → Angriff ansagen."** Der Spieler bekommt die Bitte mit dem
+     **Modifikator aus der Parade des Ziels** und dem Satz, worum es geht („Angriff auf Anselm
+     Frei 1“). Ein **Gegner** würfelt sofort, der wartet auf niemanden.
+  4. **Der Wurf kommt über das Protokoll zurück** — dort steht er ohnehin mit Figur, Wert und
+     Band. Die Ansage liest ihn als **Treffer / Treffer mit Steigerung / Daneben**.
+  5. **Schaden eintragen**, die Wirkung steht als **Vorschlag** da — und **erst ein Klick auf
+     „gilt" trägt sie ein.**
+- **Drei Regeln bestimmen den Zuschnitt, und sie stehen so im Code:**
+  1. **Das Werkzeug rechnet, die Spielleitung entscheidet.** Nichts wird von selbst eingetragen.
+     Dieselbe Linie wie in `ARENA-ENDKAMPF.md`.
+  2. **Gegner gehören uns, Spieler nicht.** Der Gegnerzustand liegt unter
+     `sitzungen/{sid}/stand/kampf`. Eine Wunde beim **Spieler** geht über das **Postfach** —
+     sein Bogen ist der einzige Schreiber auf seiner Figur, ein direkter Zugriff wäre beim
+     nächsten Klick lautlos weg. `zuteilungAnnehmen()` kennt dafür jetzt `wunde` und
+     `angeschlagen`; der Spieler sieht „Von der Spielleitung · eine Wunde“.
+  3. **Der Kampfstand liegt in der Datenbank**, nicht nur im Browser der Spielleitung: Ein
+     versehentliches Neuladen mitten im Gefecht wäre sonst das Gefecht.
+- **Die Arena bleibt draußen** (Hendriks ausdrückliche Vorgabe). Kein Brett, keine Bewegung,
+  keine Felder — sie bleibt das Werkzeug für den Endkampf und rechnet weiter nach W100.
+- **Getestet: 224 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (1218 über elf Skripte, 66
+  neue). Der **ganze Ablauf wird ausgeführt**: Gegner anlegen → austeilen → ansagen → Wurf aus
+  dem Protokoll → Wirkung → „gilt". Darunter die drei, auf die es ankommt:
+  - **Ein fremder und ein ALTER Wurf beantworten die Ansage nicht** — sonst beantwortet ein
+    Wurf von vorhin die Frage von jetzt.
+  - **Vor dem Klick auf „gilt" wird nachweislich NICHTS geschrieben.**
+  - **Kein Schreibzugriff fasst einen Wert einer Spielerfigur an** — die Regel von gestern,
+    unverändert gültig, jetzt mit einer vierten erlaubten Stelle.
+- **Ein echter Fund an der eigenen Prüfumgebung:** Die gefälschte Datenbank **verschluckte den
+  Pfad des refs** — ein `update()` unter `db.ref('kampf')` wurde als `gegner/x` aufgezeichnet
+  statt als `kampf/gegner/x`. Firebase macht es andersherum, und **genau diese Pfade prüft die
+  Regel „kein Zugriff auf einen Wert der Figur“**. Der Stub war damit zu nachsichtig; jetzt
+  präfixiert er wie das Original.
+- **Zwei eigene Fehler, beide von den Prüfungen gefangen:** Ein Feldname, den es nicht gab
+  (`kaempfenStufe` statt `kaempfen`), und meine Erwartung „sieben Karten“, wo es **sechs** sein
+  müssen — Cord liegt mit vier Wunden außer Gefecht. Der Code hatte recht, die Erwartung nicht.
+- **[OFFEN] Bedrängnis** (mehrere Gegner an einem Ziel) rechnet noch niemand mit — bewusst
+  zurückgestellt, bis der Modus einmal am Tisch lief. Ebenso der **Schadenswurf des Spielers**:
+  Er würfelt ihn als freien Würfel, und die Spielleitung trägt die Zahl ein. Automatisch
+  aufgreifen ginge — freie Würfel stehen aber bewusst **nicht** im Protokoll, und aus dem Feed
+  den richtigen herauszufischen wäre Raten.
+
 ### 2026-10-15 (Fortsetzung 9) — Der Regel-Kern des Kampfmodus
 - **Hendriks Entscheidung:** Kampf als **eigener Modus** in `regie_figuren.html`, den **nur die
   Spielleitung sieht**. Gegner anlegen, „Spieler A greift Gegner 3 an“ sagen, der Spieler wird

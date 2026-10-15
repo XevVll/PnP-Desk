@@ -45,7 +45,8 @@ var SITZUNGS_PFADE = [
   'currentScene', 'sceneAudioFile', 'sceneCharacters', 'charStatus',
   'hiddenMarkersLive', 'markerVariant', 'openMarkers', 'diceRolls',
   'gmTimer', 'players', 'pcRuf', 'questDone', 'extraNpcs', 'extraGhosts',
-  'regie', 'graphState', 'arenaState', 'figuren', 'termine', 'eigeneWaren'
+  'regie', 'graphState', 'arenaState', 'figuren', 'termine', 'eigeneWaren',
+  'kampf'
 ];
 
 /* Bewusst global und NICHT je Sitzung: der Zeiger selbst, die
