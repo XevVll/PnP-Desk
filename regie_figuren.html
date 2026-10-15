@@ -848,6 +848,7 @@ function kampfGegner() {
       raus: !!x.raus, extra: x.extra !== false, vorlage: x.vorlage || '',
       kaempfen: x.kaempfen || 0, schiessen: x.schiessen || 0,
       band: Math.max(0, Math.min(2, x.band || 0)),
+      staerke: x.staerke || 1, schaden: x.schaden || 2,
       /* Ein angelegter NSC ist zunaechst Feind. Umstellen macht ihn zum
          Verbuendeten - damit braucht es keinen dritten Typ, und Cormac
          kann im Finale mitkaempfen, ohne eine Spielerfigur zu sein. */
@@ -909,6 +910,11 @@ function gegnerAnlegen() {
          und wer Abstand will, zieht sie zurueck. */
       band: 0,
       schiessen: blatt.fert['Schießen'] || 0,
+      /* Fuer den Schadenswurf: Staerke steht im Blatt, eine Waffe nicht -
+         NSC tragen keine Ausruestung. d6 ist der Aufschlag (Saebel,
+         Entermesser, Knueppel) und laesst sich am Gegner aendern. */
+      staerke: blatt.attr['Stärke'] || 1,
+      schaden: 2,
       angeschlagen: false, wunden: 0, raus: false
     };
   }
@@ -1174,6 +1180,31 @@ function schadenAnfordern() {
     (an.band === 'steigerung' ? ' mit Steigerung' : '') + ' — Schadenswurf angefordert.', 'treffer');
 }
 
+/* Greift ein GEGNER an, wuerfelt die Spielleitung seinen Schaden - er
+   wartet auf niemanden, und es gibt keinen Bogen, den man fragen koennte.
+   Gerechnet wird nach derselben Regel wie beim Spieler: Waffe + Staerke,
+   bei einer Steigerung +1W6, explodierend, ohne Wild Die. */
+function gegnerSchadenWuerfeln() {
+  const an = ansageErgebnis();
+  if (!an) return;
+  const a = kampfFinde(an.wer);
+  if (!a || a.typ !== 'gegner') return;
+  const wuerfel = schadensWuerfel(
+    { attr: { 'Stärke': a.staerke || 1 } },
+    { n: 'Waffe', art: an.art === 'fern' ? 'Fernkampf' : 'Nahkampf', schaden: a.schaden || 2 },
+    { steigerung: an.band === 'steigerung' });
+  const teile = wuerfel.map(function (w) {
+    return { was: w.was, stufe: w.stufe, summe: wurf(w.stufe, { wild: false }).roh };
+  });
+  let summe = 0;
+  teile.forEach(function (t) { summe += t.summe; });
+  kampfSchaden = String(summe);
+  kampfLog(a.name + ' würfelt Schaden: ' + summe + ' (' +
+    teile.map(function (t) { return t.was + ' ' + DLBL[t.stufe] + ': ' + t.summe; }).join(' + ') +
+    ')', 'treffer');
+  zeichneKampf();
+}
+
 /* Und zurück kommt er über das Protokoll - genau wie die Probe. Ein
    angeforderter Schadenswurf steht dort drin; freie Würfel nicht. */
 function schadenErgebnis() {
@@ -1256,6 +1287,11 @@ function kampfAnsageHtml() {
          und wer am Tisch laut vorliest, trägt die Zahl weiterhin ein. */
       if (a && a.typ === 'spieler' && an.stand !== 'schaden') {
         h += '<button class="mini" data-kschaden="1">Schaden anfordern</button> oder ';
+      } else if (a && a.typ === 'gegner') {
+        /* Einen Gegner fragt niemand - den würfelt die Spielleitung. */
+        h += '<button class="mini" data-gschaden="1">Schaden würfeln</button>' +
+          ' <span style="color:var(--gray);font-size:.68rem">(' +
+          esc(DLBL[a.schaden || 2]) + ' + Stärke ' + esc(DLBL[a.staerke || 1]) + ')</span> oder ';
       } else if (an.stand === 'schaden' && ausProtokoll === null) {
         h += '<i>wartet auf den Schadenswurf …</i> ';
       }
@@ -1776,7 +1812,7 @@ document.addEventListener('click', function (ev) {
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
     '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben],' +
     '[data-kausteilen],[data-kneu],[data-kende],[data-kangriff],[data-kgilt],' +
-    '[data-kschaden],[data-klogweg],[data-gseite],[data-tok],' +
+    '[data-kschaden],[data-gschaden],[data-klogweg],[data-gseite],[data-tok],' +
     '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran]');
   if (!t) return;
 
@@ -1813,6 +1849,7 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.kende !== undefined)      { kampfBeenden(); return; }
   if (t.dataset.kangriff !== undefined)   { angriffAnsagen(); return; }
   if (t.dataset.kschaden !== undefined)   { schadenAnfordern(); return; }
+  if (t.dataset.gschaden !== undefined)   { gegnerSchadenWuerfeln(); return; }
   if (t.dataset.kgilt !== undefined)      { wirkungGilt(); return; }
   if (t.dataset.kweg !== undefined)       { ansageWeg(); return; }
   if (t.dataset.klogweg !== undefined)    { kampfLogLeeren(); return; }
@@ -1908,7 +1945,7 @@ if (typeof module !== 'undefined' && module.exports) {
     warenSuchen, warenZielSetzen, warenTreffer, hervor, suchForm, warenWerte,
     gegnerAnlegen, gegnerWeg, gegnerZustand, kampfAusteilen, kampfBeenden,
     angriffAnsagen, ansageErgebnis, wirkungGilt, ansageWeg, kampfWahl,
-    schadenAnfordern, schadenErgebnis, waffeVon,
+    schadenAnfordern, schadenErgebnis, waffeVon, gegnerSchadenWuerfeln,
     kampfLog, kampfLogZeilen, kampfLogLeeren,
     kampfFeldHtml, kampfToken, tokenKlick, tokenZiehen, tokenFallen,
     bandFallen, seiteWechseln, fernMoeglich,

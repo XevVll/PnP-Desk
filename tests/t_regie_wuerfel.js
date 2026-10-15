@@ -831,6 +831,47 @@ chk('der Schadenswurf wird aufgegriffen',
 chk('und die Wirkung steht da', E.nachId['inhalt']._html.indexOf('Wunde') > 0 &&
   E.nachId['inhalt']._html.indexOf('data-kgilt') > 0);
 
+/* ---- Greift ein GEGNER an, würfelt die Spielleitung ----
+   Hendriks Frage vom 15.10.2026: "Harwick hat Test getroffen. Wie wird
+   jetzt der Schaden ausgerollt?" Gar nicht - es gab nur das Zahlenfeld.
+   Einen Gegner fragt niemand: Er hat keinen Bogen und wartet auf nichts. */
+const G = bau();
+G.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+G.ctx.module.exports.setzeAnsicht('kampf');
+G.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        staerke: 3, schaden: 2, extra: false, band: 0 } } });
+/* Harwick greift an - das wuerfelt die Seite sofort selbst. */
+G.schreib.length = 0;
+G.ctx.module.exports.angriffAnsagen('nah', 'g:h1', 'p:anna');
+const gAnsage = G.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('ein Gegner würfelt sofort', gAnsage && !!gAnsage.v.band, gAnsage && gAnsage.v);
+
+/* Auf einen Treffer hin muss ein Knopf da sein - und zwar ein anderer als
+   beim Spieler: "würfeln", nicht "anfordern". */
+G.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        staerke: 3, schaden: 2, extra: false, band: 0 } },
+  ansage: Object.assign({}, gAnsage.v, { band: 'steigerung', roh: 9 }) });
+const gh = () => G.nachId['inhalt']._html;
+chk('für den Gegner steht da „Schaden würfeln"',
+  gh().indexOf('data-gschaden') > 0 && gh().indexOf('Schaden würfeln') > 0);
+chk('und nicht „anfordern" — ihn fragt niemand', gh().indexOf('data-kschaden') < 0);
+chk('die Würfel stehen dabei', gh().indexOf('Stärke d8') > 0, 
+  gh().slice(gh().indexOf('Schaden würfeln'), gh().indexOf('Schaden würfeln') + 120));
+
+G.schreib.length = 0;
+G.ctx.module.exports.gegnerSchadenWuerfeln();
+chk('der Wurf steht im Kampflog',
+  G.schreib.some(x => x.p === 'kampf/log' && (x.v.t + '').indexOf('würfelt Schaden') > 0),
+  G.schreib.map(x => (x.v && x.v.t) || x.p));
+/* Waffe + Staerke + Steigerungs-W6 - drei Wuerfel, also mindestens 3. */
+const logZeile = G.schreib.filter(x => x.p === 'kampf/log')[0].v.t;
+chk('mit Waffe, Stärke und dem W6 der Steigerung',
+  logZeile.indexOf('Waffe') > 0 && logZeile.indexOf('Stärke') > 0 &&
+  logZeile.indexOf('Steigerung') > 0, logZeile);
+chk('und die Zahl steht danach im Feld', gh().indexOf('data-kgilt') > 0, 'keine Wirkung');
+
 /* ---- Die Aufstellung ----
    Hendriks Vorgabe: zwei Parteien stehen sich gegenueber, Ziehen ist ein
    Nahkampfangriff, Klick ein Fernkampfangriff - und die Gegner stehen in

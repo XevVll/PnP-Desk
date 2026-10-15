@@ -126,6 +126,28 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 14) — Einen Gegner fragt niemand
+- **Hendriks Frage:** „Harwick hat Test getroffen. Wie wird jetzt der Schaden ausgerollt?“
+  **Gar nicht** — da war nur das Zahlenfeld. Bei einem Spieler-Angriff fordert das Panel den
+  Schaden an; bei einem **Gegner** gab es diesen Weg nicht, und das ist eine echte Lücke:
+  **Ein Gegner hat keinen Bogen und wartet auf nichts.**
+- **Jetzt steht dort „Schaden würfeln“** statt „anfordern“, samt der Würfel, die geworfen
+  werden („d6 + Stärke d8“). Gerechnet wird nach **derselben Regel wie beim Spieler**: Waffe +
+  Stärke, bei einer Steigerung +1W6, explodierend, ohne Wild Die — dieselbe Funktion
+  (`schadensWuerfel()`), kein zweiter Weg.
+- **Dass NSC keine Waffe haben, ist der Grund für eine Vorgabe:** In `js/npcs.js` steht
+  Ausrüstung nicht — die Blätter tragen Attribute und Fertigkeiten. Ein angelegter Gegner
+  bringt deshalb **Stärke aus seinem Blatt** und **Schaden d6** als Aufschlag mit (Säbel,
+  Entermesser, Knüppel — das Gros dieser Kampagne). Beides steht am Gegner und ist damit
+  je Figur änderbar, statt im Code festzustehen.
+- **Der Wurf steht im Kampflog, aufgeschlüsselt:** „James Harwick würfelt Schaden: 14
+  (Waffe d6: 5 + Stärke d8: 6 + Steigerung d6: 3)“. Die Summe landet im Feld, die Wirkung
+  darunter — und **gilt erst mit dem Klick**, wie bei allem anderen auch.
+- **Getestet: 283 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (7 neue, 1288 über elf
+  Skripte). Darunter ausdrücklich, dass beim Gegner **„würfeln“ und nicht „anfordern“**
+  dasteht, dass alle drei Würfel im Log auftauchen und dass danach die Wirkung zum Bestätigen
+  bereitsteht.
+
 ### 2026-10-15 (Fortsetzung 13) — Zwei Fehler: ein Feldname zweimal vergeben, eine Feed-Zeile ohne Würfel
 - **Hendriks Meldung mit zwei Screenshots:** „Der Wurf wurde angefordert, scheint aber nicht
   übermittelt zu werden.“ Die Ansage blieb auf **„wartet auf den Wurf …“** stehen, obwohl das
