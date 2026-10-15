@@ -143,6 +143,11 @@ const FIGUREN = {
   bert: { name: 'Tom Ash', spieler: 'Bert', aktualisiert: Date.now(),
           attr: { 'Geschicklichkeit': 2, 'Verstand': 3, 'Willenskraft': 2, 'Stärke': 2, 'Konstitution': 2 },
           fert: { 'Aufmerksamkeit': 2 } },
+  /* Anna traegt etwas - fuer die Ausruestungs-Pruefungen weiter unten.
+     Pistole mit 0 Ladungen ist der haeufigere Fall am Tisch als man denkt. */
+  dora: { name: 'Ruth Vane', spieler: 'Dora', aktualisiert: Date.now(),
+          attr: { 'Geschicklichkeit': 3, 'Verstand': 2, 'Willenskraft': 2, 'Stärke': 2, 'Konstitution': 2 },
+          fert: { 'Schießen': 3 }, ausr: ['saebel', 'pistole', 'lederwams'], ladungen: 0 },
   cord: { name: 'Nell', spieler: 'Cord', aktualisiert: Date.now(), wunden: 4,
           attr: { 'Geschicklichkeit': 1, 'Verstand': 1, 'Willenskraft': 1, 'Stärke': 1, 'Konstitution': 1 },
           fert: {} }
@@ -152,8 +157,9 @@ console.log('=== DIE SEITE LÄUFT ÜBERHAUPT ===');
 let u = bau();
 const M = u.ctx.module.exports;
 M.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
-chk('drei Figuren gezeichnet', u.inhalt().indexOf('Mara Quint') >= 0 && u.inhalt().indexOf('Tom Ash') >= 0);
-chk('Zähler stimmt', u.nachId['anzahl'].textContent === '3 Figuren', u.nachId['anzahl'].textContent);
+chk('vier Figuren gezeichnet', u.inhalt().indexOf('Mara Quint') >= 0 &&
+  u.inhalt().indexOf('Tom Ash') >= 0 && u.inhalt().indexOf('Ruth Vane') >= 0);
+chk('Zähler stimmt', u.nachId['anzahl'].textContent === '4 Figuren', u.nachId['anzahl'].textContent);
 chk('keine Warnung', u.nachId['fbNote'].className !== 'fbnote warn', u.nachId['fbNote'].textContent);
 
 console.log('');
@@ -206,14 +212,15 @@ console.log('=== ANFORDERN: AN ALLE ===');
 u = bau(); const M2 = u.ctx.module.exports;
 M2.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
 chk('die außer Gefecht gesetzte Figur zählt nicht mit', M2.gruppe().indexOf('cord') < 0, M2.gruppe());
-chk('die beiden anderen schon', M2.gruppe().length === 2, M2.gruppe());
+chk('die drei anderen schon', M2.gruppe().length === 3, M2.gruppe());
 u.klick({ pid: 'anna', wert: 'Aufmerksamkeit' });
 u.schreib.length = 0;
 u.klick({ alle: '1' });
-chk('zwei Schreibzugriffe, einer je Figur', u.schreib.length === 2, u.schreib.map(s => s.p));
-chk('beide als EIN Sammel-Update', u.schreib.every(s => s.op === 'update'));
+chk('ein Schreibzugriff je Figur, die kann', u.schreib.length === 3, u.schreib.map(s => s.p));
+chk('alle als EIN Sammel-Update', u.schreib.every(s => s.op === 'update'));
 chk('Anna dabei', u.schreib.some(s => s.p === 'figuren/anna/anfrage'));
 chk('Bert dabei', u.schreib.some(s => s.p === 'figuren/bert/anfrage'));
+chk('Dora dabei', u.schreib.some(s => s.p === 'figuren/dora/anfrage'));
 chk('Cord NICHT dabei', !u.schreib.some(s => s.p === 'figuren/cord/anfrage'));
 /* Eine Gruppenprobe geht ausdrücklich auch an die Figur, die den Wert nicht
    gelernt hat - sie würfelt dann d4-2. Sonst wüsste der Spieler aus dem
@@ -529,6 +536,61 @@ chk('unbekannter Ort geht nicht verloren',
 chk('Export ruft wuerfeSection auf', VAULT.indexOf('wuerfeSection(sceneIds') >= 0);
 chk('Export hat eine Würfe-Überschrift', VAULT.indexOf("'## Würfe") >= 0);
 chk('und einen Satz, wenn nichts da ist', VAULT.indexOf('Keine Würfe im gewählten Bereich') >= 0);
+
+console.log('');
+console.log('=== DIE AUSRUESTUNG SAGT, WAS SIE TUT ===');
+/* Hendriks Frage vom 15.10.2026: "Kann ich irgendwie die Ausruestung der
+   Spieler sehen? Also auch was Items machen Angriff/Schaden etc."
+   Sichtbar war bisher nur der Name plus eine nackte Zahl. */
+const A = bau();
+A.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+const ah = A.inhalt();
+
+chk('die Ausrüstung steht da', ah.indexOf('Säbel') > 0 && ah.indexOf('Lederwams') > 0);
+chk('mit dem Schadenswürfel', /&gt;Säbel <span class="wert">d6/.test(ah) ||
+  ah.indexOf('>Säbel <span class="wert">d6') > 0,
+  (ah.match(/>Säbel <span class="wert">[^<]*/) || [])[0]);
+chk('die Rüstung mit ihrem Wert', /Lederwams <span class="wert">\+1/.test(ah));
+/* Bei einer Schusswaffe interessiert die Reichweite, nicht nur der Schaden -
+   sie entscheidet, ob der Schuss ueberhaupt moeglich ist. */
+chk('die Schusswaffe nennt Reichweite und Schuss',
+  /Steinschlosspistole <span class="wert">d6 · Reichw\. 5 · 1 Schuss/.test(ah),
+  (ah.match(/Steinschlosspistole <span class="wert">[^<]*/) || [])[0]);
+/* Jeder Gegenstand traegt den Marken-Vertrag - sonst erklaert ihn nichts. */
+const chips = ah.match(/data-tipart="ausr"/g) || [];
+chk('jeder Gegenstand ist erklärbar', chips.length === 3, chips.length);
+chk('und nennt seine Beschreibung', ah.indexOf('Kurz, schwer') > 0 || ah.indexOf('data-tipt="') > 0);
+
+/* Traglast und Ladungen kamen hier bisher GAR NICHT vor. Beides braucht
+   die Spielleitung im Kampf. */
+chk('die Traglast steht dabei', /Gewicht <b>\d+<\/b> von \d+/.test(ah),
+  (ah.match(/Gewicht <b>\d+<\/b> von \d+/) || [])[0]);
+chk('und die Ladungen', ah.indexOf('Ladungen') > 0);
+chk('ein Schütze ohne Pulver wird benannt', ah.indexOf('kann nicht schießen') > 0);
+/* Wer keine Schusswaffe traegt, braucht die Zeile auch nicht. */
+chk('ohne Schusswaffe keine Ladungszeile',
+  ah.split('Mara Quint')[1].split('Ruth Vane')[0].indexOf('Ladungen') < 0);
+
+/* Einziehen laeuft jetzt ueber das Kreuz UND fragt nach: Der Chip selbst
+   oeffnet die Erklaerung, ein Fehlgriff darf keine Waffe kosten. */
+chk('das Kreuz zieht ein, nicht der ganze Chip',
+  ah.indexOf('class="zu" data-nehmen="dora|saebel"') > 0);
+A.schreib.length = 0;
+A.ctx._confirm = false;
+A.klick({ nehmen: 'dora|saebel' });
+chk('eine abgelehnte Rückfrage zieht nichts ein', A.schreib.length === 0, A.schreib);
+A.ctx._confirm = true;
+A.klick({ nehmen: 'dora|saebel' });
+chk('bestätigt geht es ins Postfach',
+  A.schreib.length === 1 && A.schreib[0].p === 'figuren/dora/zuteilung' &&
+  A.schreib[0].v.art === 'nehmen' && A.schreib[0].v.id === 'saebel', A.schreib);
+
+/* Ein Gegenstand, den es nicht mehr gibt, wird GENANNT - sonst traegt die
+   Figur etwas, das niemand sieht. */
+A.ctx.module.exports.setFiguren({ xena: { name: 'X', spieler: 'X', attr: {}, fert: {},
+  ausr: ['sl_geloescht_aaaa'] } });
+chk('ein unbekannter Gegenstand verschwindet nicht stillschweigend',
+  A.inhalt().indexOf('sl_geloescht_aaaa') > 0 && A.inhalt().indexOf('unbekannt') > 0);
 
 console.log('');
 console.log('=== DIE WERKSTATT: EIGENE GEGENSTAENDE ===');

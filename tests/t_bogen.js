@@ -781,10 +781,20 @@ chk('und wird erst beim zweiten Stück bestätigt', meld().art === 'gut', meld()
 console.log('');
 console.log('=== AUCH DIE REGIE SIEHT, WAS EIN TALENT TUT ===');
 const REGIE = fs.readFileSync(path.join(BASIS, 'regie_figuren.html'), 'utf8');
-chk('die Chips tragen dort eine Erklärung',
-  /class="tag pos" title="/.test(REGIE) && /class="tag neg" title="/.test(REGIE));
+/* Seit dem 15.10.2026 dieselbe Mechanik wie im Spielerbogen - und damit
+   dieselbe Datei. Am 14.10. stand hier noch das Gegenteil (nativer title);
+   die Begruendung von damals traegt nicht, weil das Overlay auf KLICK
+   oeffnet und nicht beim Hovern. */
+chk('die Regie nutzt dieselbe Mechanik',
+  REGIE.indexOf('js/marken.js') > 0 && REGIE.indexOf('markenAktivieren()') > 0);
+chk('und bringt keine eigene Kopie mit', REGIE.indexOf('function tagModalAuf(') < 0);
+chk('der Vertrag steht an genau einer Stelle',
+  (REGIE.match(/data-tipid="/g) || []).length === 1, (REGIE.match(/data-tipid="/g) || []).length);
 chk('mit der Wirkung, nicht nur dem Namen', REGIE.indexOf('x.d') >= 0);
-chk('und der Mauszeiger sagt es an', REGIE.indexOf('cursor:help') >= 0);
+/* Der native title ist dort weg, wo die Mechanik greift - sonst stuenden
+   zwei Erklaerungen uebereinander. */
+chk('kein nativer Tooltip mehr an den Chips',
+  !/class="tag pos" title="/.test(REGIE) && !/class="tag neg" title="/.test(REGIE));
 
 console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);

@@ -1068,6 +1068,9 @@ function renderAusruestung() {
         if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
         if (a.reichweite) werte.push('Reichweite ' + a.reichweite);
         if (a.ruest) werte.push('Robustheit +' + a.ruest);
+        /* Dass die Waffe nach einem Schuss leer ist, stand hier nicht -
+           dabei ist genau das die Regel (Bibel 4.5). */
+        if (a.schuss) werte.push(a.schuss + ' Schuss');
         return '<div class="zeile"><div class="n">' + esc(a.n) +
           '<div class="d">' + esc(a.d) + '</div></div>' +
           '<div class="z">' + werte.join(' · ') + (werte.length ? ' · ' : '') + '<b>' + a.gew + '</b> Gew.</div>' +

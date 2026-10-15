@@ -34,6 +34,16 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wst-w .x{cursor:pointer;color:var(--gray);padding:0 .2rem}
 .wst-w .x:hover{color:#e05555}
 .wst-meld{font-size:.72rem;margin-top:.5rem;min-height:1rem}
+/* Getragenes: Der Chip selbst erklaert den Gegenstand, das Kreuz zieht ihn
+   ein. Vorher loeste JEDER Klick auf den Chip das Einziehen aus - ein
+   Fehlgriff kostete der Figur ihre Waffe, ohne Rueckfrage. */
+.tag.ausr{display:inline-flex;align-items:center;gap:.3rem;padding-right:.25rem}
+.tag.ausr .wert{color:var(--gray);font-size:.64rem}
+.tag.ausr .zu{cursor:pointer;color:var(--gray);padding:0 .15rem;border-radius:3px}
+.tag.ausr .zu:hover{color:#e05555;background:rgba(224,85,85,.12)}
+.last{font-size:.66rem;color:var(--gray);margin:.15rem 0 .35rem}
+.last b{color:var(--ink);font-weight:400}
+.last .voll{color:var(--amber)}
 .wst .mini{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.06em;background:transparent;
   border:1px solid var(--border);color:var(--gray);border-radius:4px;padding:.24rem .6rem;cursor:pointer}
 .wst .mini:hover{border-color:var(--gold);color:var(--ink)}
@@ -171,6 +181,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="js/sitzung.js"></script>
 <script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
+<script src="js/marken.js"></script>
 <!-- Nur fuer die Klartext-Namen im Protokoll: ein Wurf traegt "4.1" und
      "schiffswrack", vorlesbar ist aber erst "Schatzinsel - Die gestrandete
      Golden Lion". -->
@@ -531,6 +542,16 @@ function wareWeg(id) {
   db.ref('eigeneWaren/' + id).remove();
 }
 
+/* Der Vertrag aus js/marken.js an genau einer Stelle: class="tag" plus
+   die fuenf data-tip*-Felder. Drei Aufrufer - Talent, Schwaeche, Gegenstand. */
+function markeChip(zusatz, id, art, name, einordnung, text, innen) {
+  return '<span class="tag ' + zusatz + '" tabindex="0" role="button"' +
+    ' data-tipid="' + esc(id) + '" data-tipart="' + esc(art) + '"' +
+    ' data-tipn="' + esc(name) + '"' +
+    ' data-tipk="' + esc(einordnung) + '"' +
+    ' data-tipt="' + esc(text || '') + '">' + esc(name) + (innen || '') + '</span>';
+}
+
 function gebenBlock(pid, roh) {
   const offen = Object.keys(roh.zuteilung || {}).length;
   /* Das Erfundene steht OBEN: Wer es gerade angelegt hat, will es jetzt
@@ -699,23 +720,29 @@ function render() {
       .map(function (s) { return wertChip(s.name, f.fert[s.name] || 0, pid); }).join('') ||
       '<span class="brief fehlt" style="font-size:.72rem">nichts gelernt</span>';
 
-    /* Mit Erklaerung am Mauszeiger. Die Spielleitung muss im Zweifel sagen
-       koennen, was das Talent eines Spielers eigentlich tut - und hatte hier
-       bis 14.10.2026 nur den nackten Namen. */
+    /* Dieselbe Mechanik wie im Spielerbogen (js/marken.js): Hovern nennt
+       die Wirkung, Klicken oeffnet die ganze Erklaerung.
+
+       Am 14.10.2026 stand hier ausdruecklich das Gegenteil - "bewusst NICHT
+       in regie_figuren.html, ein Overlay stuende beim Durchsehen mehrerer
+       Figuren im Weg". Die Sorge war unbegruendet: Das Overlay oeffnet auf
+       KLICK, nicht beim Hovern, steht also nur im Weg, wenn man es ruft.
+       Und der native title, der hier stand, kommt erst nach einer Sekunde
+       und bricht lange Texte schlecht um - fuer eine Frage mitten im Kampf
+       taugt er nicht. */
     const tal = f.tal.map(function (i) {
       const x = TAL_BY_ID[i];
       if (!x) return '<span class="tag pos">' + esc(i) + '</span>';
       const rang = RAENGE[x.rang] ? RAENGE[x.rang].name : '';
-      return '<span class="tag pos" title="' + esc(x.kat + ' · ab ' + rang + '\n\n' + x.d) +
-        '">' + esc(x.n) + '</span>';
+      return markeChip('pos', x.id, 'tal', x.n, x.kat + ' · ab ' + rang +
+        (x.nurNsc ? ' · nur für diese Figur' : ''), x.d);
     }).join('');
     const hnd = f.hnd.map(function (i) {
       const x = HND_BY_ID[i];
       if (!x) return '<span class="tag neg">' + esc(i) + '</span>';
       const art = (x.schwer ? 'schwer · 2 Punkte' : 'leicht · 1 Punkt') +
         (x.haken ? ' · verpflichtet, senkt keinen Würfel' : '');
-      return '<span class="tag neg" title="' + esc(art + '\n\n' + x.d) + '">' +
-        esc(x.n) + '</span>';
+      return markeChip('neg', x.id, 'hnd', x.n, art, x.d);
     }).join('');
 
     /* Zustand ist fuer die SL am Tisch das Wichtigste ueberhaupt: wer haelt
@@ -731,13 +758,44 @@ function render() {
     const zustand = zTeile.length
       ? '<div class="sl">Zustand</div><div class="tags">' + zTeile.join('') + '</div>' : '';
 
+    /* Was ein Gegenstand TUT, nicht nur, dass er da ist (Hendriks Frage vom
+       15.10.2026). Die Kurzwerte stehen am Chip, alles Weitere im Overlay -
+       dieselbe Mechanik wie bei Talenten, dritte Art "ausr". */
     const traegt = (f.ausr || []).map(function (id) {
       const a = AUSR_BY_ID[id];
-      if (!a) return '';
-      const zus = a.schaden ? ' ' + DLBL[a.schaden] : (a.ruest ? ' +' + a.ruest : '');
-      return '<span class="tag weg" data-nehmen="' + esc(pid) + '|' + esc(id) +
-        '" title="anklicken: ' + esc(a.n) + ' wieder einziehen">' + esc(a.n) + zus + '</span>';
+      /* Ein Gegenstand, den es nicht (mehr) gibt, wird GENANNT statt
+         verschluckt: Sonst traegt die Figur etwas, das niemand sieht. */
+      if (!a) return '<span class="tag ausr" title="Diesen Gegenstand gibt es im Regelwerk ' +
+        'nicht - vermutlich eine gelöschte Erfindung der Spielleitung.">' + esc(id) +
+        ' <span class="wert">unbekannt</span>' +
+        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) + '">×</span></span>';
+      const kurz = [];
+      if (a.schaden) kurz.push(DLBL[a.schaden]);
+      /* Beschriftet, nicht nackt: Zwischen "d6" und "1 Schuss" ist eine
+         blanke 5 nicht zu deuten. */
+      if (a.reichweite) kurz.push('Reichw. ' + a.reichweite);
+      if (a.ruest) kurz.push('+' + a.ruest);
+      if (a.schuss) kurz.push(a.schuss + ' Schuss');
+      const einordnung = a.art + ' · ' + (a.gew || 0) + ' Gew. · ' + (a.preis || 0) + ' M.' +
+        (a.vonSl ? ' · von der Spielleitung' : '');
+      return markeChip('ausr', id, 'ausr', a.n, einordnung, a.d,
+        (kurz.length ? ' <span class="wert">' + esc(kurz.join(' · ')) + '</span>' : '') +
+        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) +
+        '" title="einziehen">×</span>');
     }).join('');
+
+    /* Traglast und Ladungen kamen hier bisher gar nicht vor - beides muss
+       die Spielleitung im Kampf wissen. Der Schuetze ohne Pulver ist der
+       haeufigere Fall, und niemand sieht es ihm an. */
+    const schuesse = (f.ausr || []).filter(function (id) {
+      return AUSR_BY_ID[id] && AUSR_BY_ID[id].schuss;
+    }).length;
+    const lastTeile = ['Gewicht <b>' + getragen(f) + '</b> von ' + traglast(f)];
+    if (schuesse) {
+      lastTeile.push('Ladungen <b' + ((f.ladungen || 0) ? '' : ' class="voll"') + '>' +
+        (f.ladungen || 0) + '</b>' + ((f.ladungen || 0) ? '' : ' — kann nicht schießen'));
+    }
+    const last = traegt ? '<div class="last">' + lastTeile.join(' · ') + '</div>' : '';
 
     const brief = zeigeBrief ? '<div class="sl">Steckbrief</div><div class="brief">' +
       STECKBRIEF.map(function (b) {
@@ -776,7 +834,8 @@ function render() {
         '<div class="sl">Attribute</div><div class="werte">' + attr + '</div>' +
         '<div class="sl">Fertigkeiten</div><div class="werte">' + fert + '</div>' +
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
-        (traegt ? '<div class="sl">Trägt</div><div class="tags">' + traegt + '</div>' : '') +
+        (traegt ? '<div class="sl">Trägt</div>' + last +
+                  '<div class="tags">' + traegt + '</div>' : '') +
         gebenBlock(pid, roh) +
         menuBlock(pid) +
         anfrageBlock(pid, roh) +
@@ -786,6 +845,10 @@ function render() {
     '</div>';
   }).join('') + '</div>';
 }
+
+/* Einmal je Seite. Die Lauscher arbeiten per Delegation, die Chips duerfen
+   also beliebig oft neu gezeichnet werden. */
+if (typeof markenAktivieren === 'function') markenAktivieren();
 
 function setzeAnsicht(a) {
   ansicht = a;
@@ -829,6 +892,10 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.wareweg !== undefined) { wareWeg(t.dataset.wareweg); return; }
   if (t.dataset.nehmen !== undefined) {
     const teile = t.dataset.nehmen.split('|');
+    const a = AUSR_BY_ID[teile[1]];
+    /* Gefragt wird, seit der Chip selbst die Erklaerung oeffnet: Das Kreuz
+       ist klein, und ein Fehlgriff kostete der Figur sonst ihre Waffe. */
+    if (!confirm('„' + ((a && a.n) || teile[1]) + '" wieder einziehen?')) return;
     uebergeben(teile[0], { art: 'nehmen', id: teile[1] });
     return;
   }

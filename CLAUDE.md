@@ -126,6 +126,52 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 7) — Die Ausrüstung sagt, was sie tut
+- **Hendriks Frage:** „Kann ich irgendwie die Ausrüstung der Spieler sehen? Also auch was
+  Items machen — Angriff/Schaden etc.“
+- **Sehen konnte er sie, verstehen nicht.** In `regie_figuren.html` stand je Gegenstand der
+  **Name plus eine nackte Zahl** („Säbel d6“), und der Mauszeiger sagte nur „anklicken, um
+  ihn einzuziehen“. **Nicht zu sehen waren:** Reichweite, Schusszahl, Gewicht, Wert, die
+  Beschreibung — und, am wichtigsten im Kampf, **Traglast und Ladungen**, die auf dieser Seite
+  überhaupt nicht vorkamen. Ein Schütze ohne Pulver sah aus wie jeder andere.
+- **Jetzt:**
+  - **Kurzwerte am Chip:** `Säbel d6` · `Steinschlosspistole d6 · Reichw. 5 · 1 Schuss` ·
+    `Lederwams +1`.
+  - **Eine Zeile darüber:** „Gewicht **8** von 12 · Ladungen **0** — kann nicht schießen.“
+    Die Ladungszeile erscheint nur bei einer Figur, die überhaupt eine Schusswaffe trägt.
+  - **Klick öffnet die ganze Erklärung** — dieselbe Mechanik wie im Spielerbogen, dritte Art
+    `ausr` in `js/marken.js`. Sie nennt Schaden, Reichweite, Schuss, Robustheit, Gewicht, Wert
+    und die Beschreibung, dazu den Satz, der am Tisch wirklich zählt: **Der Schadenswürfel ist
+    ein eigener Würfel, es wird nichts dazugezählt** (Bibel 4.1).
+- **Damit ist meine Festlegung vom 14.10. zurückgenommen**, und zwar ausdrücklich: Dort stand
+  „bewusst NICHT in `regie_figuren.html`, ein Overlay stünde beim Durchsehen mehrerer Figuren
+  ständig im Weg“. **Die Begründung trägt nicht** — das Overlay öffnet auf **Klick**, nicht
+  beim Hovern, steht also nur im Weg, wenn man es ruft. Talente und Schwächen laufen jetzt
+  ebenfalls darüber; der native `title`, der dort stand, kommt erst nach einer Sekunde und
+  bricht lange Texte schlecht um.
+- **Einziehen geht jetzt über ein Kreuz am Chip und fragt nach.** Vorher löste **jeder** Klick
+  auf den Chip das Einziehen aus — ein Fehlgriff kostete der Figur ihre Waffe, ohne Rückfrage.
+  Seit der Chip selbst die Erklärung öffnet, wäre das erst recht falsch.
+- **Ein Gegenstand, den es nicht mehr gibt, wird GENANNT statt verschluckt** („`sl_xyz`
+  unbekannt“). Vorher verschwand er stillschweigend — die Figur trug etwas, das niemand sah.
+  Betrifft genau den Fall, dass die Spielleitung eine erfundene Ware löscht.
+- **Nebenbei im Spielerbogen:** Die Liste nennt jetzt auch die **Schusszahl**. Dass eine Waffe
+  nach einem Schuss leer ist, ist die Regel (Bibel 4.5) und stand dort nicht.
+- **Getestet: 170 Prüfungen in `t_bogen.js`, 156 in `t_regie_wuerfel.js`, 0 Fehler** (1078 über
+  zehn Skripte, 16 neue). Die Seite wird dabei **wirklich gerendert**, mit einer Figur, die
+  Säbel, Pistole und Lederwams trägt — **und null Ladungen hat**, weil das am Tisch der
+  häufigere Fall ist, als man denkt.
+- **Zwei eigene Fehler, beide von den eigenen Prüfungen gefunden:**
+  1. **„d6 · 5 · 1 Schuss“** — die blanke 5 war die Reichweite und zwischen den beiden anderen
+     Angaben **nicht zu deuten**. Jetzt „Reichw. 5“.
+  2. **Der Marken-Vertrag stand an zwei Stellen**, weil ich den Gegenstands-Chip von Hand
+     gebaut hatte statt durch den gemeinsamen Bauer. Genau das sollte die Prüfung
+     „Vertrag an genau einer Stelle“ verhindern — und sie hat angeschlagen. `markeChip()`
+     nimmt jetzt einen Zusatz entgegen, alle drei Arten laufen durch ihn.
+  - Dazu vier Prüfungen mit **veralteten Erwartungen** (eine vierte Figur in der Vorlage
+    ändert Zähler und Gruppengröße) und zwei, in denen ich die Werte des Säbels schlicht falsch
+    erinnert hatte — d6, nicht d8. **Nachgesehen statt geraten**, dann korrigiert.
+
 ### 2026-10-15 (Fortsetzung 6) — Die Spielleitung erfindet Gegenstände
 - **Hendriks Vorgabe:** „Eine Möglichkeit, dass ich als SL eventuell auch Items erstellen kann
   und diese einem Charakter zuweise.“

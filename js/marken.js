@@ -24,8 +24,13 @@
 
    und ruft einmal markenAktivieren() auf. Alles Weitere -
    Lauscher, Feld, Overlay, Stil - macht diese Datei.
-   Erwartet TAL_BY_ID, HND_BY_ID, RAENGE, DLBL und
+   Erwartet TAL_BY_ID, HND_BY_ID, AUSR_BY_ID, RAENGE, DLBL und
    TALENT_KOSTEN aus js/regelwerk.js.
+
+   DREI ARTEN (data-tipart): "tal" Talent, "hnd" Schwaeche und
+   seit dem 15.10.2026 "ausr" ein Gegenstand. Letzteres, weil
+   die Spielleitung zwar sah, DASS eine Figur einen Saebel
+   traegt, aber nicht, was er tut.
    ========================================================== */
 
 const MARKEN_STIL = [
@@ -128,7 +133,9 @@ function tagModalAuf(chip) {
   tipWeg();                       // sonst klebt das Hover-Feld über dem Overlay
   const el = tagModal();
   const id = chip.dataset.tipid, art = chip.dataset.tipart;
-  const x = art === 'tal' ? TAL_BY_ID[id] : (art === 'hnd' ? HND_BY_ID[id] : null);
+  const x = art === 'tal' ? TAL_BY_ID[id]
+          : (art === 'hnd' ? HND_BY_ID[id]
+          : (art === 'ausr' ? AUSR_BY_ID[id] : null));
 
   el.querySelector('#tagModalName').textContent = chip.dataset.tipn;
   el.querySelector('.kat').textContent = chip.dataset.tipk;
@@ -142,6 +149,28 @@ function tagModalAuf(chip) {
     /* Figurgebundene Talente sagen das auch: Sonst sucht jemand sie in der
        Charaktererschaffung und findet sie nie. */
     if (x.nurNsc) zu += '<br><b>Nur für diese Figur.</b> Nicht wählbar — gehört zu ihr.';
+  } else if (x && art === 'ausr') {
+    /* Was der Gegenstand TUT, in der Reihenfolge, in der man am Tisch
+       danach fragt. Der Satz zum Schaden ist wichtiger als die Zahl:
+       In diesem System wird nichts addiert - die Waffe bringt ihren
+       EIGENEN Wuerfel mit (Bibel 4.1). */
+    const z = [];
+    if (x.schaden) z.push('<b>Schaden:</b> ' + markenEsc(DLBL[x.schaden]) +
+      ' — ein eigener Würfel, nichts wird dazugezählt.');
+    if (x.reichweite) z.push('<b>Reichweite:</b> ' + markenEsc(x.reichweite));
+    if (x.schuss) z.push('<b>Schuss:</b> ' + x.schuss +
+      ', dann nachladen. Jeder Schuss kostet eine Ladung aus dem Vorrat der Figur.');
+    if (x.ruest) z.push('<b>Robustheit:</b> +' + x.ruest + ', solange sie es trägt.');
+    if (x.ladungen) z.push('<b>Bringt ' + x.ladungen + ' Ladungen</b> mit.');
+    z.push('<b>Gewicht:</b> ' + (x.gew || 0) + ' · <b>Wert:</b> ' + (x.preis || 0) +
+      ' M. (Verkauf bringt die Hälfte.)');
+    if (!x.schaden && !x.ruest && !x.schuss && !x.ladungen) {
+      z.push('Mechanisch tut dieser Gegenstand nichts — er wiegt und ' +
+        'lässt sich verkaufen. Was sonst daraus wird, entscheidet die ' +
+        'Spielleitung oder niemand.');
+    }
+    if (x.vonSl) z.push('<b>Von der Spielleitung erfunden.</b> Gilt in dieser Sitzung.');
+    zu = z.join('<br>');
   } else if (x && art === 'hnd') {
     zu = x.haken
       ? '<b>Haken.</b> Diese Schwäche senkt keinen Würfel. Sie verpflichtet dich und gibt ' +
