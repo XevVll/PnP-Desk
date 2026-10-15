@@ -382,22 +382,44 @@ function loeschenPruefen() {
 
   /* ---- figurLoeschen wirklich ausfuehren ---- */
   const DB = { anna: { name: 'Mara' }, bert: { name: 'Finn' } };
+  /* Seit dem 15.10.2026 liegt das Charakterbild NEBEN der Figur
+     (pcLeiste). Loeschen muss beides mitnehmen - sonst haengt das
+     Portraet eines geloeschten Charakters weiter an der Karte. */
+  const BILDER = { anna: { bild: 'data:image/webp;base64,xx' }, bert: { bild: 'y' } };
   const log = [];
   const db = { ref: function (p) { return { remove: function () {
-    log.push(p); delete DB[p.replace('figuren/', '')]; return Promise.resolve(); } }; } };
+    log.push(p);
+    if (p.indexOf('pcLeiste/') === 0) delete BILDER[p.replace('pcLeiste/', '')];
+    else delete DB[p.replace('figuren/', '')];
+    return Promise.resolve();
+  } }; } };
   global.localStorage.setItem('kors_figur_korsaren', '{"F":{}}');
   S.setzeFigurCode('korsaren', 'anna');
   S.figurLoeschen(db, 'korsaren', 'anna', function (fehler) {
     t('Loeschen: kein Fehler', !fehler, fehler && fehler.message);
     t('Loeschen: der Knoten ist weg', !DB.anna, JSON.stringify(Object.keys(DB)));
     t('Loeschen: fremde Figuren bleiben', !!DB.bert);
+    t('Loeschen: das Charakterbild geht mit', !BILDER.anna, JSON.stringify(Object.keys(BILDER)));
+    t('Loeschen: fremde Bilder bleiben', !!BILDER.bert);
+    /* Die Reihenfolge ist Absicht und steht so im Code: ERST das Bild,
+       DANN die Figur. Bricht es dazwischen ab, ist das Bild weg und die
+       Figur noch da - der harmlosere halbe Zustand. Andersherum bliebe
+       ein Portraet stehen, zu dem es keine Figur mehr gibt. */
+    t('Loeschen: erst das Bild, dann die Figur',
+      log.indexOf('pcLeiste/anna') === 0 && log.indexOf('figuren/anna') === 1,
+      log.join(' , '));
     t('Loeschen: der lokale Rueckfall ist weg',
       global.localStorage.getItem('kors_figur_korsaren') === null);
     t('Loeschen: der gemerkte Schluessel ist weg', S.figurCode('korsaren') === '');
 
-    /* Ohne Schluessel darf nichts passieren. */
+    /* Ohne Schluessel darf nichts passieren. Geprueft wird, dass der
+       Zaehler NICHT WAECHST - nicht, dass er auf einer festen Zahl steht:
+       Ein Loeschvorgang raeumt seit dem 15.10.2026 zwei Knoten, und eine
+       feste Zahl haette genau daran gelegen statt am Verhalten. */
+    const vorher = log.length;
     S.figurLoeschen(db, 'korsaren', '', function (f2) {
-      t('ohne Schluessel wird nicht geloescht', !!f2 && log.length === 1, 'log=' + log.length);
+      t('ohne Schluessel wird nicht geloescht', !!f2 && log.length === vorher,
+        'log=' + log.length + ' vorher=' + vorher);
 
       /* Ein Fehler der Datenbank muss durchgereicht werden - sonst meldet
          die Seite Erfolg, obwohl die Figur noch da ist. */

@@ -148,6 +148,20 @@ textarea:focus{border-color:var(--gold)}
 .leer{color:var(--gray);font-style:italic;font-size:.8rem;padding:.6rem 0}
 .msg{font-size:.78rem;font-style:italic;margin-top:.5rem;min-height:1.1rem}
 
+/* ── Charakterbild ──
+   Die Vorschau hat dasselbe Seitenverhaeltnis wie die Leiste auf der
+   Karte (3:4). Wer hier ein Hochformat sieht, sieht dort kein Querformat. */
+.bild-zeile{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.bild-vor{width:96px;height:128px;flex:0 0 auto;border:1px solid var(--line);
+  border-radius:6px;background:#000;overflow:hidden;display:flex;
+  align-items:center;justify-content:center}
+.bild-vor img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.bild-leer{color:var(--gray);font-size:.68rem;text-align:center;padding:6px;line-height:1.35}
+.bild-steuer{flex:1 1 12rem;min-width:0;display:flex;flex-direction:column;gap:8px}
+.bild-knoepfe{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bild-stand{font-size:.74rem;color:var(--gray);min-height:1.1rem}
+.bild-stand.warn{color:#e0a55a}
+
 /* ── Ladungen, Laden-Hinweis, Übergabe ──
    Diese drei Blöcke trugen seit ihrem Einbau Markup, aber keinen Stil:
    Die Klassen standen im HTML, im Stylesheet gab es sie nicht. Am Tisch
@@ -242,6 +256,26 @@ textarea:focus{border-color:var(--gold)}
     <div class="card">
       <div class="card-hdr">Steckbrief</div>
       <div class="card-body"><div class="brief" id="brief"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">Dein Bild <span class="card-hdr-sub">sehen alle am Tisch</span></div>
+      <div class="card-body">
+        <div class="bild-zeile">
+          <div class="bild-vor" id="bildVor"></div>
+          <div class="bild-steuer">
+            <div class="bild-knoepfe">
+              <label class="btn btn-sm" for="bildDatei">Bild wählen</label>
+              <input id="bildDatei" type="file" accept="image/*" hidden
+                     onchange="bildGewaehlt(this)">
+              <button class="btn btn-sm" id="bildWeg" onclick="bildEntfernen()">entfernen</button>
+            </div>
+            <div class="bild-stand" id="bildStand"></div>
+            <div class="hint">Es wird in deinem Browser verkleinert, bevor es verschickt wird —
+              auf der Karte steht es klein am linken Rand, da reicht das.</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -591,6 +625,7 @@ function initFirebase() {
           renderAlles();
           clearTimeout(ladeFrist);
           ladeBereit = true;
+          bildHolen();
           return;
         }
         // Keine Figur. Ein Bogen ohne Figur ist ein leeres Blatt mit
@@ -925,6 +960,160 @@ function renderBrief() {
 function setNotizen(v) { F.notizen = v; speichern(); }
 
 /* ==========================================================
+   CHARAKTERBILD
+   ----------------------------------------------------------
+   Das Bild liegt NICHT in der Figur, sondern daneben, unter
+   pcLeiste/{schluessel}. Drei Gruende, und der erste genuegt:
+
+   1. bogenFelder() geht bei JEDER Aenderung hoch, entprellt mit
+      800 ms. Laege das Bild darin, gingen bei jedem Klick auf
+      einen Stepper ~50 KB durchs Netz.
+   2. karte.html braucht nur Namen und Bild, nicht Steckbrief,
+      Notizen und Ausruestung jeder Figur. So horcht die Karte
+      auf einen kleinen Knoten statt auf alle Figuren.
+   3. Die Spielleitung darf ausblenden (Feld "aus"), ohne einen
+      WERT der Figur anzufassen - der Bogen bleibt ihr einziger
+      Schreiber. Beide Seiten schreiben per update() auf eigene
+      Schluessel und koennen sich deshalb nicht ueberschreiben.
+
+   pcLeiste steht in SITZUNGS_PFADE, liegt also unter
+   sitzungen/{sid}/stand/ - KEIN neuer Top-Level-Pfad, also
+   auch keine Firebase-Regel, die von Hand zu veroeffentlichen
+   waere.
+   ========================================================== */
+
+// So gross, wie die Leiste auf der Karte es braucht: dort ist eine
+// Karte hoechstens 220 px breit, also reichen 450x600 auch auf einem
+// Bildschirm mit doppelter Pixeldichte. Alles darueber waere Ballast,
+// den jeder Spieler bei jedem Laden mit herunterzieht.
+const BILD_B = 450, BILD_H = 600;
+const BILD_MAX = 140 * 1024;   // Notbremse: so viel darf der Data-URI wiegen
+
+let meinBild = '';
+let bildMeldung = '';
+
+function renderBild() {
+  const vor = document.getElementById('bildVor');
+  const stand = document.getElementById('bildStand');
+  const weg = document.getElementById('bildWeg');
+  if (!vor || !stand || !weg) return;
+
+  vor.innerHTML = meinBild
+    ? '<img src="' + esc(meinBild) + '" alt="Dein Charakterbild">'
+    : '<span class="bild-leer">kein Bild</span>';
+  weg.disabled = !meinBild;
+
+  if (bildMeldung) {
+    stand.textContent = bildMeldung;
+    stand.className = 'bild-stand warn';
+    return;
+  }
+  stand.className = 'bild-stand';
+  stand.textContent = meinBild
+    ? 'Steht am linken Rand der Karte. (' + Math.round(meinBild.length / 1024) + ' KB)'
+    : 'Noch keins — ohne Bild steht dort nichts von dir.';
+}
+
+/* Verkleinern im Browser. Zugeschnitten wird auf 3:4 (cover), damit die
+   Leiste nicht entscheiden muss, was sie wegschneidet - und damit die
+   Vorschau hier zeigt, was dort ankommt. */
+function bildVerkleinern(img) {
+  const c = document.createElement('canvas');
+  c.width = BILD_B; c.height = BILD_H;
+  const ctx = c.getContext('2d');
+  const s = Math.max(BILD_B / img.width, BILD_H / img.height);
+  const b = img.width * s, h = img.height * s;
+  // Waagerecht mittig, senkrecht OBEN ansetzen: Bei einem Portraet ist
+  // der Kopf oben, und genau der soll im Ausschnitt bleiben.
+  ctx.drawImage(img, (BILD_B - b) / 2, 0, b, h);
+  // WebP ist kleiner; kann der Browser es nicht, liefert toDataURL
+  // stillschweigend PNG zurueck - dann lieber JPEG als ein PNG, das
+  // dreimal so schwer waere.
+  let u = c.toDataURL('image/webp', 0.82);
+  if (u.indexOf('data:image/webp') !== 0) u = c.toDataURL('image/jpeg', 0.82);
+  if (u.length > BILD_MAX) {
+    const art = u.indexOf('data:image/webp') === 0 ? 'image/webp' : 'image/jpeg';
+    u = c.toDataURL(art, 0.6);
+  }
+  return u;
+}
+
+function bildGewaehlt(input) {
+  const datei = input && input.files && input.files[0];
+  input.value = '';            // damit dieselbe Datei erneut waehlbar bleibt
+  if (!datei) return;
+  if (String(datei.type || '').indexOf('image/') !== 0) {
+    bildMeldung = 'Das ist kein Bild.'; renderBild(); return;
+  }
+  bildMeldung = 'wird verkleinert …'; renderBild();
+
+  const leser = new FileReader();
+  leser.onerror = function () { bildMeldung = 'Die Datei ließ sich nicht lesen.'; renderBild(); };
+  leser.onload = function () {
+    const img = new Image();
+    img.onerror = function () { bildMeldung = 'Das Bild ließ sich nicht öffnen.'; renderBild(); };
+    img.onload = function () {
+      let u;
+      try { u = bildVerkleinern(img); }
+      catch (e) { bildMeldung = 'Verkleinern ging nicht: ' + e; renderBild(); return; }
+      if (u.length > BILD_MAX) {
+        // Lieber sagen, dass es nicht geht, als es stillschweigend
+        // hochzuladen und die Datenbank damit vollzustellen.
+        bildMeldung = 'Das Bild bleibt auch verkleinert zu groß. Nimm ein einfacheres.';
+        renderBild(); return;
+      }
+      meinBild = u;
+      bildMeldung = '';
+      renderBild();
+      bildHoch();
+    };
+    img.src = leser.result;
+  };
+  leser.readAsDataURL(datei);
+}
+
+function bildEntfernen() {
+  if (!meinBild) return;
+  meinBild = '';
+  bildMeldung = '';
+  renderBild();
+  bildHoch();
+}
+
+/* Geschrieben wird mit update() auf genau zwei Schluessel - "aus"
+   gehoert der Spielleitung und darf hier nicht mitgeloescht werden. */
+function bildHoch() {
+  if (!db || !syncBereit || geloescht) return;
+  const paket = { bild: meinBild || null, name: META.name || '' };
+  try {
+    db.ref('pcLeiste/' + codeJetzt()).update(paket)
+      .then(function () {
+        bildMeldung = '';
+        renderBild();
+        setzeSync('gespeichert', '#4caf7d');
+      })
+      .catch(function (e) {
+        bildMeldung = 'Nicht gesendet: ' + (e && e.message ? e.message : e);
+        renderBild();
+      });
+  } catch (e) {
+    bildMeldung = 'Nicht gesendet: ' + e;
+    renderBild();
+  }
+}
+
+/* Beim Oeffnen einmal holen. Eigener Lesezugriff, weil das Bild
+   bewusst nicht in der Figur liegt. */
+function bildHolen() {
+  if (!db) { renderBild(); return; }
+  db.ref('pcLeiste/' + codeJetzt()).once('value').then(function (s) {
+    const v = s.val() || {};
+    meinBild = v.bild || '';
+    renderBild();
+  }).catch(function () { renderBild(); });
+}
+
+/* ==========================================================
    STEIGERUNG
    ========================================================== */
 function renderSteigerung() {
@@ -1187,6 +1376,7 @@ function renderAlles() {
   renderKopf();
   if (tab === 0) {
     renderAbgeleitet(); renderZustand(); renderWerte(); renderTags(); renderBrief();
+    renderBild();
     const n = document.getElementById('notizen');
     if (n && document.activeElement !== n) n.value = F.notizen || '';
   } else if (tab === 1) {
@@ -1207,7 +1397,13 @@ if (typeof module !== 'undefined' && module.exports) {
     getFigur: function () { return F; },
     setFigur: function (f) { F = alsFigur(f); renderAlles(); },
     setMeta:  function (m) { META = Object.assign(META, m); renderAlles(); },
-    zeigeTab: zeigeTab, bogenFelder: bogenFelder
+    zeigeTab: zeigeTab, bogenFelder: bogenFelder,
+    // Charakterbild - fuer tests/t_bogen.js
+    getBild: function () { return meinBild; },
+    setBild: function (b) { meinBild = b || ''; renderBild(); },
+    bildGewaehlt: bildGewaehlt, bildEntfernen: bildEntfernen,
+    bildVerkleinern: bildVerkleinern, bildHolen: bildHolen,
+    BILD_B: BILD_B, BILD_H: BILD_H, BILD_MAX: BILD_MAX
   };
 }
 </script>

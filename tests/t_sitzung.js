@@ -210,5 +210,27 @@ chk('sie faellt ohne Datenbank nicht um',
   (function () { try { S.sitzungBadge({ sitzung: 'x', echt: null }, 'sitzungBadge'); return true; } catch (e) { return false; } })());
 
 console.log('');
+console.log('=== DIE SPIELERBILDER GEHOEREN IN DIE SITZUNG ===');
+/* Das Charakterbild eines Spielers liegt unter pcLeiste. Dass dieser Pfad
+   in SITZUNGS_PFADE steht, ist keine Ordnungsfrage, sondern die ganze
+   Begruendung dafuer, dass KEINE Firebase-Regel von Hand veroeffentlicht
+   werden muss: Er landet damit unter sitzungen/{sid}/stand/, und
+   "sitzungen" ist laengst freigegeben. Faellt er aus der Liste, wird er
+   ein neuer Top-Level-Pfad - und jeder Upload schlaegt STILL fehl. */
+chk('pcLeiste ist ein Sitzungspfad', S.istSitzungsPfad('pcLeiste'));
+chk('und landet unter dem Sitzungsstand',
+  S.sitzungsPfad('test', 'pcLeiste/anna') === 'sitzungen/test/stand/pcLeiste/anna',
+  S.sitzungsPfad('test', 'pcLeiste/anna'));
+/* Zwei Sitzungen duerfen sich die Bilder nicht teilen - sonst steht in
+   Runde B das Portraet aus Runde A. */
+chk('zwei Sitzungen teilen sich kein Bild',
+  S.sitzungsPfad('a', 'pcLeiste/anna') !== S.sitzungsPfad('b', 'pcLeiste/anna'));
+/* Gegenprobe: Ein Pfad, der NICHT in der Liste steht, bleibt global -
+   genau das waere der stille Fehlschlag. */
+chk('ein unbekannter Pfad bliebe global',
+  S.sitzungsPfad('test', 'pcBilder/anna') === 'pcBilder/anna',
+  S.sitzungsPfad('test', 'pcBilder/anna'));
+
+console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

@@ -797,5 +797,234 @@ chk('kein nativer Tooltip mehr an den Chips',
   !/class="tag pos" title="/.test(REGIE) && !/class="tag neg" title="/.test(REGIE));
 
 console.log('');
-console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
-process.exit(f ? 1 : 0);
+console.log('=== DAS CHARAKTERBILD DES SPIELERS ===');
+/* Hendriks Wunsch vom 15.10.2026: Spieler laden ein Bild hoch, es steht
+   am LINKEN Rand - gegenueber den NSC der Spielleitung.
+
+   Geprueft wird der Code, den die Seite wirklich ausfuehrt: Der Block
+   wird aus heldenbrief.html geschnitten und mit einer gefaelschten
+   Leinwand und einer gefaelschten Datenbank laufen gelassen. Eine
+   nachgebaute Kopie wuerde genau das nicht pruefen. */
+const bildCode = schnitt('const BILD_B = 450', '/* ==========');
+
+/* Die GROESSTE Gefahr zuerst, und sie ist kein Schoenheitsfehler:
+   bogenFelder() geht bei JEDER Aenderung hoch, entprellt mit 800 ms.
+   Stuende das Bild darin, gingen bei jedem Klick auf einen Stepper
+   ~50 KB durchs Netz - und zwar fuer immer unbemerkt. */
+const felderQuelle = schnitt('function bogenFelder()', 'function nachFirebase()');
+chk('das Bild reitet NICHT in bogenFelder() mit',
+  felderQuelle.indexOf('bild') < 0, felderQuelle);
+
+let bdGemalt = null;      // was auf die Leinwand gemalt wurde
+let bdTuch = null;
+let webpKann = true;        // kann der Browser WebP?
+let urlLaenge = 2000;       // wie gross der erzeugte Data-URI ist
+
+function bdMachTuch() {
+  return {
+    width: 0, height: 0,
+    getContext() { return { drawImage(img, x, y, b, h) { bdGemalt = { img, x, y, b, h }; } }; },
+    toDataURL(art, q) {
+      const kopf = (art === 'image/webp' && !webpKann)
+        ? 'data:image/png;base64,' : 'data:' + art + ';base64,';
+      // Niedrigere Qualitaet ergibt eine kleinere Datei - sonst koennte
+      // der Test die zweite Stufe gar nicht von der ersten unterscheiden.
+      const n = Math.round(urlLaenge * (q < 0.8 ? 0.5 : 1));
+      return kopf + new Array(n + 1).join('x');
+    }
+  };
+}
+
+const bSchreib = [];
+let bLese = {};
+const bFeld = {};
+function bEl(id) {
+  if (!bFeld[id]) {
+    bFeld[id] = { id, innerHTML: '', textContent: '', className: '', disabled: false, value: '' };
+  }
+  return bFeld[id];
+}
+let letzterBild = null;     // was zuletzt an die Datenbank ging
+
+const bctx = {
+  Math, Object, String, Array, Number, Date, console, JSON, Promise,
+  esc: ctx.esc,
+  META: { name: 'Mara Quint' },
+  geloescht: false, syncBereit: true,
+  codeJetzt: () => 'anna',
+  setzeSync: () => {},
+  db: {
+    ref(p) {
+      return {
+        update(v) { bSchreib.push({ p, v }); letzterBild = v; return Promise.resolve(); },
+        once() { return Promise.resolve({ val: () => bLese }); }
+      };
+    }
+  },
+  document: {
+    getElementById: bEl,
+    createElement(tag) {
+      if (tag === 'canvas') { bdTuch = bdMachTuch(); return bdTuch; }
+      return {};
+    }
+  },
+  FileReader: function () {
+    this.readAsDataURL = (datei) => {
+      this.result = 'data:' + datei.type + ';base64,zzz';
+      this.onload();
+    };
+  },
+  Image: function () {
+    const self = this;
+    Object.defineProperty(self, 'src', {
+      set() { self.width = 1200; self.height = 1600; self.onload(); }
+    });
+  }
+};
+vm.createContext(bctx);
+vm.runInContext(bildCode, bctx);
+// meinBild ist mit let deklariert und damit von aussen NICHT als
+// bctx.meinBild sichtbar (dieselbe Falle wie am 05.09.2026) - der Test
+// liest den Stand deshalb ueber eine Funktion im Kontext selbst.
+vm.runInContext('globalThis.bildStand = function () { return meinBild; };', bctx);
+
+/* ---- Verkleinern: Geometrie ---- */
+const uri = bctx.bildVerkleinern({ width: 1200, height: 1600 });
+chk('die Leinwand ist 450 breit', bdTuch.width === 450, bdTuch.width);
+chk('und 600 hoch', bdTuch.height === 600, bdTuch.height);
+chk('das Seitenverhältnis bleibt erhalten',
+  Math.abs((bdGemalt.b / bdGemalt.h) - (1200 / 1600)) < 0.001,
+  { b: bdGemalt.b, h: bdGemalt.h });
+/* Oben ansetzen, nicht mittig: Bei einem Portraet ist der Kopf oben, und
+   genau der soll im Ausschnitt bleiben. */
+chk('senkrecht wird oben angesetzt', bdGemalt.y === 0, bdGemalt.y);
+chk('es kommt ein Data-URI heraus', uri.indexOf('data:image/') === 0, uri.slice(0, 30));
+chk('und zwar WebP', uri.indexOf('data:image/webp') === 0, uri.slice(0, 30));
+
+/* ---- Kann der Browser kein WebP, darf kein PNG herauskommen ----
+   toDataURL liefert dann stillschweigend PNG, und ein PNG waere hier
+   drei- bis viermal so schwer wie ein JPEG. */
+webpKann = false;
+const uri2 = bctx.bildVerkleinern({ width: 1200, height: 1600 });
+chk('ohne WebP wird JPEG genommen, nicht PNG',
+  uri2.indexOf('data:image/jpeg') === 0, uri2.slice(0, 30));
+webpKann = true;
+
+/* ---- Zu gross: noch einmal mit schlechterer Qualitaet ---- */
+urlLaenge = 200 * 1024;
+const uri3 = bctx.bildVerkleinern({ width: 4000, height: 3000 });
+chk('ein zu grosses Bild wird noch einmal gedrückt', uri3.length < 200 * 1024, uri3.length);
+urlLaenge = 2000;
+
+/* ---- Hochladen ---- */
+bSchreib.length = 0;
+bctx.bildGewaehlt({ files: [{ type: 'image/png' }], value: 'x' });
+chk('genau EIN Schreibzugriff', bSchreib.length === 1, bSchreib.map(s => s.p));
+chk('und zwar nach pcLeiste, nicht in die Figur',
+  bSchreib[0] && bSchreib[0].p === 'pcLeiste/anna', bSchreib[0] && bSchreib[0].p);
+/* Die Spielleitung schreibt in denselben Knoten das Feld "aus". Ein set()
+   von hier wuerde es mitloeschen, ein update() auf fremde Schluessel
+   ebenso - deshalb duerfen es genau diese zwei sein. */
+chk('geschrieben werden genau bild und name',
+  letzterBild && Object.keys(letzterBild).sort().join(',') === 'bild,name',
+  letzterBild && Object.keys(letzterBild));
+chk('und "aus" wird nie angefasst',
+  letzterBild && letzterBild.aus === undefined, letzterBild);
+chk('der Name geht mit, sonst steht die Karte ohne Beschriftung da',
+  letzterBild && letzterBild.name === 'Mara Quint', letzterBild);
+
+/* ---- Entfernen ---- */
+bSchreib.length = 0;
+bctx.bildEntfernen();
+chk('Entfernen schreibt ebenfalls', bSchreib.length === 1, bSchreib.length);
+chk('und zwar null, damit der Knoten wirklich leer wird',
+  letzterBild && letzterBild.bild === null, letzterBild);
+chk('danach ist kein Bild mehr da', bctx.bildStand() === '', bctx.bildStand());
+
+/* ---- Was kein Bild ist, wird nicht hochgeladen ---- */
+bSchreib.length = 0;
+bctx.bildGewaehlt({ files: [{ type: 'application/pdf' }], value: 'x' });
+chk('eine PDF wird abgelehnt', bSchreib.length === 0, bSchreib.length);
+chk('und der Spieler erfährt warum',
+  bEl('bildStand').textContent.indexOf('kein Bild') >= 0, bEl('bildStand').textContent);
+
+/* ---- Die Leiste auf der Karte ----
+   Gerendert wird wirklich, nicht im Quelltext gesucht: Ein fehlendes
+   Feld ist gueltiges JavaScript und faellt erst am Tisch auf. */
+function kSchnitt(von, bis) {
+  const a = KARTE.indexOf(von), b = KARTE.indexOf(bis, a);
+  if (a < 0 || b < 0) { console.log('ABBRUCH: ' + von + ' nicht gefunden.'); process.exit(1); }
+  return KARTE.slice(a, b);
+}
+const railCode = kSchnitt('function renderPcRail(', 'function attachPcRail(');
+
+function rKnoten(tag) {
+  return {
+    tagName: tag, className: '', innerHTML: '', textContent: '', src: '', alt: '',
+    kinder: [],
+    appendChild(k) { this.kinder.push(k); return k; }
+  };
+}
+const railEl = rKnoten('div');
+const rctx = { Object, String, console, pcRailEl: railEl,
+  document: { createElement: rKnoten } };
+vm.createContext(rctx);
+vm.runInContext(railCode, rctx);
+
+rctx.renderPcRail({
+  bert:  { name: 'Finn Roy', bild: 'data:image/webp;base64,B' },
+  anna:  { name: 'Mara Quint', bild: 'data:image/webp;base64,A' },
+  cord:  { name: 'Ohne Bild' },                                   // nie dabei
+  dora:  { name: 'Versteckt', bild: 'data:x', aus: true }         // von der SL abgeschaltet
+});
+chk('nur wer ein Bild hat, steht in der Leiste', railEl.kinder.length === 2,
+  railEl.kinder.length);
+chk('wer ausgeblendet ist, steht NICHT da',
+  !railEl.kinder.some(k => (k.kinder[1] || {}).textContent === 'Versteckt'),
+  railEl.kinder.map(k => (k.kinder[1] || {}).textContent));
+/* Feste Reihenfolge: Die Reihenfolge von Object.keys ist keine Zusage,
+   und eine Leiste, die bei jeder Aenderung springt, ist unbrauchbar. */
+chk('die Reihenfolge ist fest, nicht zufällig',
+  railEl.kinder.map(k => (k.kinder[1] || {}).textContent).join(',') === 'Mara Quint,Finn Roy',
+  railEl.kinder.map(k => (k.kinder[1] || {}).textContent));
+chk('das Bild landet wirklich am img', railEl.kinder[0].kinder[0].src === 'data:image/webp;base64,A',
+  railEl.kinder[0].kinder[0].src);
+chk('die Karten tragen dieselbe Klasse wie die NSC',
+  railEl.kinder.every(k => k.className === 'char-card'),
+  railEl.kinder.map(k => k.className));
+
+/* Der Name kommt von einem SPIELER, nicht aus dem Code: Er muss ueber
+   textContent gesetzt werden, sonst ist die Leiste eine offene Tuer. */
+railEl.kinder.length = 0;
+rctx.renderPcRail({ anna: { name: '<img src=x onerror=alert(1)>', bild: 'data:y' } });
+const namensKnoten = railEl.kinder[0].kinder[1];
+chk('der Spielername wird als Text gesetzt, nicht als HTML',
+  namensKnoten.textContent === '<img src=x onerror=alert(1)>' && namensKnoten.innerHTML === '',
+  { t: namensKnoten.textContent, h: namensKnoten.innerHTML });
+chk('und der Quelltext setzt dort nirgends innerHTML',
+  railCode.indexOf('n.innerHTML') < 0, railCode.indexOf('n.innerHTML'));
+
+/* Die Leiste haengt NICHT an der Szene - anders als die der NSC.
+   Ein NSC betritt eine Szene und geht wieder, die Spieler sind den
+   ganzen Abend da. */
+chk('die Leiste wird einmal eingehängt, nicht je Szene',
+  KARTE.indexOf('attachPcRail();') >= 0 &&
+  KARTE.indexOf('attachPcRail(sceneId)') < 0);
+chk('sie steht links', /#pcRail\s*{[^}]*left:\s*0/.test(KARTE),
+  (KARTE.match(/#pcRail\s*{[^}]*}/) || [])[0]);
+/* Links sitzt mittig der Bogen-Griff. Ohne Abstand laege die Leiste
+   genau darueber - und der Griff waere nicht mehr anklickbar. */
+chk('und lässt dem Bogen-Griff Platz', /#pcRail\s*{[^}]*padding-left/.test(KARTE));
+chk('die NSC bleiben rechts', /#charRail\s*{[^}]*right:\s*0/.test(KARTE));
+
+/* ---- Beim Öffnen wird geholt ---- */
+bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };
+bctx.bildHolen();
+setTimeout(function () {
+  chk('beim Öffnen kommt das Bild zurück',
+    bctx.bildStand() === 'data:image/webp;base64,abc', bctx.bildStand());
+
+  console.log('');
+  console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
+  process.exit(f ? 1 : 0);
+}, 10);

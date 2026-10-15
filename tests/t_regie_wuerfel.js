@@ -256,19 +256,53 @@ M3.uebergeben('anna', { art: 'nehmen', id: 'saebel' });
 M3.setzeAnsicht('protokoll');
 u.klick({ komm: 'p1' });
 u.klick({ sichern: 'p1' });
-/* Vier erlaubte Ziele. Drei liegen NEBEN der Figur: die Bitte zu wuerfeln,
+/* Seit dem 15.10.2026 schreibt die Seite ein fuenftes Mal: Sie blendet das
+   Charakterbild eines Spielers von der Karte. Es MUSS hier mitlaufen -
+   eine Regel, die den neuen Zugriff gar nicht ausfuehrt, schuetzt vor ihm
+   auch nicht. */
+M3.setzeAnsicht('figuren');
+M3.setPcLeiste({ anna: { name: 'Mara Quint', bild: 'data:image/webp;base64,A' } });
+M3.pcBildUmschalten('anna');
+/* Fuenf erlaubte Ziele. Drei liegen NEBEN der Figur: die Bitte zu wuerfeln,
    die Notiz am Wurf und das Postfach fuer uebergebene Ausruestung. Das
-   vierte (seit 15.10.2026) liegt gar nicht bei einer Figur, sondern bei
-   der SITZUNG: die Beschreibung eines erfundenen Gegenstands. Der Kern der
-   Regel bleibt unveraendert - kein Schreibzugriff dieser Seite fasst einen
-   WERT der Figur an. */
-const erlaubt = /^(figuren\/[a-z0-9_-]+\/(anfrage|zuteilung)|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz|eigeneWaren\/sl_[a-z0-9_]+)$/;
+   vierte liegt gar nicht bei einer Figur, sondern bei der SITZUNG: die
+   Beschreibung eines erfundenen Gegenstands. Das fuenfte (15.10.2026) ist
+   der Schalter, der ein Charakterbild von der Karte nimmt - und auch er
+   liegt neben der Figur, nicht darin. Der Kern der Regel bleibt
+   unveraendert: kein Schreibzugriff dieser Seite fasst einen WERT der
+   Figur an. */
+const erlaubt = /^(figuren\/[a-z0-9_-]+\/(anfrage|zuteilung)|sitzungen\/test\/protokoll\/[A-Za-z0-9_-]+\/notiz|eigeneWaren\/sl_[a-z0-9_]+|pcLeiste\/[a-z0-9_-]+\/aus)$/;
 chk('es wurde überhaupt geschrieben', u.schreib.length >= 4, u.schreib.length);
 chk('JEDER Schreibzugriff ist Anfrage oder Notiz',
   u.schreib.every(s => erlaubt.test(s.p)), u.schreib.filter(s => !erlaubt.test(s.p)).map(s => s.p));
 chk('kein Zugriff auf einen Wert der Figur',
   !u.schreib.some(s => /\/(attr|fert|tal|hnd|wunden|bennies|ausr|brief|name|rang)/.test(s.p)),
   u.schreib.map(s => s.p));
+/* ---- Das Charakterbild des Spielers ---- */
+const pcZ = u.schreib.filter(s => s.p.indexOf('pcLeiste/') === 0);
+chk('der Umschalter schreibt genau einmal', pcZ.length === 1, pcZ.map(s => s.p));
+/* NUR das Feld "aus". bild und name gehoeren dem Spieler - ein set() von
+   hier wuerde sie mitloeschen, und sein Bogen merkt davon nichts. */
+chk('und zwar nur das Feld "aus"', pcZ[0] && pcZ[0].p === 'pcLeiste/anna/aus', pcZ[0]);
+chk('der Wert kippt auf true', pcZ[0] && pcZ[0].v === true, pcZ[0] && pcZ[0].v);
+chk('nirgends wird bild oder name von hier geschrieben',
+  !u.schreib.some(s => /pcLeiste\/[a-z]+\/(bild|name)$/.test(s.p)) &&
+  SEITE.indexOf("db.ref('pcLeiste/' + pid).set") < 0,
+  u.schreib.map(s => s.p));
+
+/* Der Block erscheint nur, wenn es wirklich ein Bild gibt - eine
+   Ueberschrift ohne Inhalt waere Zierde. */
+chk('ohne Bild steht an der Figur nichts', M3.pcBildBlock('bert') === '', M3.pcBildBlock('bert'));
+chk('mit Bild steht der Schalter da', M3.pcBildBlock('anna').indexOf('data-pcbild="anna"') > 0,
+  M3.pcBildBlock('anna'));
+/* Beschriftet wird nach dem Zustand: Wer "ausblenden" liest, waehrend es
+   schon aus ist, klickt es versehentlich wieder an. */
+chk('sichtbar: der Knopf bietet ausblenden an',
+  M3.pcBildBlock('anna').indexOf('>ausblenden<') > 0);
+M3.setPcLeiste({ anna: { name: 'Mara Quint', bild: 'data:x', aus: true } });
+chk('ausgeblendet: er bietet einblenden an',
+  M3.pcBildBlock('anna').indexOf('>einblenden<') > 0, M3.pcBildBlock('anna'));
+
 /* Auch im Quelltext darf keine zweite Wahrheit entstehen: Die Seite darf
    nirgends figuren/{x} als Ganzes setzen. */
 chk('Quelltext setzt keinen Figurenknoten', SKRIPT.indexOf("'figuren/' + pid + '/anfrage'") >= 0 &&

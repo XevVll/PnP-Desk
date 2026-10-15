@@ -391,6 +391,26 @@
     z-index: 150;
     pointer-events: none; /* nur die Karten selbst sollen interaktiv wirken, nicht der Leerraum */
   }
+  /* Die Spielerfiguren, gegenueber den NSC. Gleiche Karten, andere Seite.
+     Anders als die rechte Leiste haengt sie NICHT an der Szene: Ein NSC
+     betritt eine Szene und geht wieder, die Spieler sind den ganzen Abend
+     da. Sie steht deshalb, sobald jemand ein Bild hochgeladen hat, und
+     die Spielleitung blendet einzelne in regie_figuren.html aus. */
+  #pcRail {
+    position: fixed; top: 0; left: 0; height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: stretch;
+    gap: clamp(8px, 1vh, 16px);
+    padding: clamp(12px, 1.5vw, 24px);
+    /* Links sitzt mittig der Bogen-Griff (#charSheetHandle, ~32px breit).
+       Ohne diesen Abstand lieft die Leiste genau darueber. */
+    padding-left: clamp(46px, 4vw, 62px);
+    z-index: 150;
+    pointer-events: none;
+  }
+  /* In der Vorschau der Spielleitung ist der Griff ausgeblendet - dann
+     braucht die Leiste den Platz auch nicht. */
+  .preview-mode #pcRail { padding-left: clamp(12px, 1.5vw, 24px); }
+
   .char-card {
     position: relative;
     width: clamp(108px, 8vw, 220px);
@@ -738,6 +758,7 @@
 
   <div id="erkFlavorText"></div>
   <div id="charRail"></div>
+  <div id="pcRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
   <!-- Abspann-/Erinnerungssequenz (Szenen mit "slideshow"-Feld, siehe
@@ -2518,6 +2539,60 @@
       });
     }
 
+    /* ---------- Die Spieler links ----------
+       Horcht auf pcLeiste, NICHT auf figuren: Dort stehen nur Name und
+       Bild. Auf "figuren" zu horchen hiesse, jedem Spieler bei jeder
+       Aenderung an irgendeiner Figur deren Steckbrief, Notizen und
+       Ausruestung mitzuschicken - viel Datenverkehr fuer zwei Felder.
+
+       Einmal eingehaengt und nie wieder abgehaengt: Die Leiste haengt
+       nicht an der Szene (siehe Kommentar am Stil). */
+    const pcRailEl = document.getElementById('pcRail');
+
+    function renderPcRail(stand) {
+      if (!pcRailEl) return;
+      const leute = Object.keys(stand || {}).map(function (pid) {
+        const v = stand[pid] || {};
+        return { pid: pid, name: v.name || '', bild: v.bild || '', aus: !!v.aus };
+      }).filter(function (p) {
+        // Ohne Bild gibt es nichts zu zeigen, und "aus" ist die
+        // Entscheidung der Spielleitung.
+        return p.bild && !p.aus;
+      }).sort(function (a, b) {
+        // Feste Reihenfolge, damit die Leiste nicht bei jeder Aenderung
+        // springt - die Reihenfolge von Object.keys ist keine Zusage.
+        return a.pid < b.pid ? -1 : (a.pid > b.pid ? 1 : 0);
+      });
+
+      pcRailEl.innerHTML = '';
+      leute.forEach(function (p) {
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        const img = document.createElement('img');
+        img.src = p.bild;
+        img.alt = p.name || 'Spielerfigur';
+        card.appendChild(img);
+        if (p.name) {
+          const n = document.createElement('div');
+          n.className = 'char-name';
+          // textContent, nicht innerHTML: Der Name kommt von einem
+          // Spieler, nicht aus dem Code.
+          n.textContent = p.name;
+          card.appendChild(n);
+        }
+        pcRailEl.appendChild(card);
+      });
+    }
+
+    function attachPcRail() {
+      if (!db || !pcRailEl) return;
+      db.ref('pcLeiste').on('value', function (snap) {
+        renderPcRail(snap.val() || {});
+      }, function () {
+        pcRailEl.innerHTML = '';
+      });
+    }
+
     // ==========================================================
     // FIREBASE: live, ohne dass Spieler aktualisieren müssen
     // ==========================================================
@@ -2562,6 +2637,7 @@
       });
       beobachteEigeneWaren();
       beobachteFigur();
+      attachPcRail();
 
       db.ref('currentScene').on('value', function (snapshot) {
         const sceneId = snapshot.val() || getFallbackDefaultScene();
