@@ -761,6 +761,76 @@ chk('leeren räumt genau das Log weg',
 C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe });
 chk('ohne Einträge steht da auch nichts', ch().indexOf('Kampflog') < 0);
 
+/* ---- Die ganze Kette, mit dem, was der Code wirklich schreibt ----
+   Hendriks Meldung vom 15.10.2026: "Der Wurf wurde angefordert, scheint
+   aber nicht uebermittelt zu werden." Die Anzeige blieb nach dem
+   Schadenswurf-Anfordern auf "wartet auf den Wurf" stehen.
+
+   Die Pruefungen darueber haben das NICHT gefunden, weil sie die Ansage
+   von Hand gebaut haben - mit band:'steigerung'. Der Code schrieb aber
+   band:0 (das Distanzband), und genau diese Verwechslung war der Fehler.
+   Deshalb laeuft diese Kette ausschliesslich auf dem, was der Code selbst
+   erzeugt und in die Datenbank schreibt. */
+const E = bau();
+E.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+E.ctx.module.exports.setzeAnsicht('kampf');
+E.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        extra: false, band: 0, angeschlagen: false, wunden: 0 } } });
+
+/* 1. Angriff ansagen - und die geschriebene Ansage uebernehmen. */
+E.schreib.length = 0;
+E.ctx.module.exports.tokenZiehen('p:anna');
+E.ctx.module.exports.tokenFallen('g:h1');
+const echteAnsage = E.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('die Ansage wird geschrieben', !!echteAnsage, E.schreib.map(x => x.p));
+/* Das Distanzband darf NICHT "band" heissen - dort steht das Ergebnis. */
+chk('Distanz und Ergebnis stehen in verschiedenen Feldern',
+  echteAnsage && echteAnsage.v.dist === 0 && echteAnsage.v.band === undefined,
+  echteAnsage && echteAnsage.v);
+
+E.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        extra: false, band: 0 } }, ansage: echteAnsage.v });
+chk('vor dem Wurf wartet sie', E.nachId['inhalt']._html.indexOf('wartet auf den Wurf') > 0);
+
+/* 2. Der Spieler wuerfelt - das Protokoll traegt es herein. */
+E.ctx.module.exports.setProtokoll({ w: { figur: 'Mara Quint', wert: 'Kämpfen',
+  band: 'steigerung', roh: 14, ts: echteAnsage.v.ts + 10 } });
+chk('der Treffer wird gelesen',
+  E.nachId['inhalt']._html.indexOf('Treffer mit Steigerung') > 0);
+
+/* 3. Schaden anfordern - und zwar auf DER Ansage, die der Code geschrieben hat. */
+E.schreib.length = 0;
+E.ctx.module.exports.schadenAnfordern();
+const nachSchaden = {};
+E.schreib.filter(x => x.p.indexOf('kampf/ansage/') === 0)
+  .forEach(x => { nachSchaden[x.p.split('/')[2]] = x.v; });
+chk('die Ansage merkt sich den Stand', nachSchaden.stand === 'schaden', nachSchaden);
+/* Der Kern des gemeldeten Fehlers: Ohne das gespeicherte Ergebnis sucht
+   danach niemand mehr, und die Anzeige faellt auf "wartet" zurueck. */
+chk('und das Ergebnis des Angriffs', nachSchaden.band === 'steigerung', nachSchaden);
+
+/* 4. Genau so, wie Firebase es zurueckspielt - ohne Protokoll-Treffer. */
+const ansage2 = Object.assign({}, echteAnsage.v, nachSchaden);
+E.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  h1: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        extra: false, band: 0 } }, ansage: ansage2 });
+E.ctx.module.exports.setProtokoll({});
+const eh = E.nachId['inhalt']._html;
+chk('danach steht NICHT mehr "wartet auf den Wurf"',
+  eh.indexOf('wartet auf den Wurf') < 0, eh.slice(eh.indexOf('kansage'), eh.indexOf('kansage') + 400));
+chk('sondern der Treffer und die Bitte um den Schaden',
+  eh.indexOf('Treffer mit Steigerung') > 0 && eh.indexOf('wartet auf den Schadenswurf') > 0);
+
+/* 5. Und der Schadenswurf kommt an. */
+E.ctx.module.exports.setProtokoll({ s: { figur: 'Mara Quint', wert: 'Schaden',
+  roh: 11, ts: (ansage2.schadenTs || ansage2.ts) + 5 } });
+chk('der Schadenswurf wird aufgegriffen',
+  E.ctx.module.exports.schadenErgebnis() === 11, E.ctx.module.exports.schadenErgebnis());
+chk('und die Wirkung steht da', E.nachId['inhalt']._html.indexOf('Wunde') > 0 &&
+  E.nachId['inhalt']._html.indexOf('data-kgilt') > 0);
+
 /* ---- Die Aufstellung ----
    Hendriks Vorgabe: zwei Parteien stehen sich gegenueber, Ziehen ist ein
    Nahkampfangriff, Klick ein Fernkampfangriff - und die Gegner stehen in

@@ -997,7 +997,12 @@ function angriffAnsagen(art, vonId, zielId) {
   const ansage = {
     wer: a.id, werName: a.name, ziel: z.id, zielName: z.name,
     parade: z.parade, robustheit: z.robustheit, mod: mod,
-    wert: kann.wert, art: fern ? 'fern' : 'nah', band: dist,
+    wert: kann.wert, art: fern ? 'fern' : 'nah',
+    /* "dist" ist das DISTANZBAND (0/1/2), "band" das Ergebnisband des
+       Wurfs ('erfolg', 'steigerung'). Die beiden hiessen einen Tag lang
+       gleich - danach blieb die Anzeige auf "wartet auf den Wurf" stehen,
+       weil ein Distanzband von 0 wie "noch kein Ergebnis" aussah. */
+    dist: dist,
     ts: Date.now(), stand: 'wartet'
   };
 
@@ -1160,7 +1165,11 @@ function schadenAnfordern() {
     ts: Date.now()
   };
   db.ref().update(paket).catch(function (e) { warnung('Die Bitte ging nicht durch: ' + e); });
-  kampfRef('ansage').update({ stand: 'schaden', schadenTs: Date.now() });
+  /* Das Ergebnis mitschreiben: Es entstand bisher nur beim Zeichnen aus
+     dem Protokoll. Sobald die Ansage auf "schaden" steht, sucht niemand
+     mehr danach - ohne diese Zeile waere der Treffer vergessen. */
+  kampfRef('ansage').update({ stand: 'schaden', schadenTs: Date.now(),
+    band: an.band, roh: an.roh });
   kampfLog(a.name + ' trifft ' + an.zielName +
     (an.band === 'steigerung' ? ' mit Steigerung' : '') + ' — Schadenswurf angefordert.', 'treffer');
 }

@@ -344,5 +344,43 @@ chk('Spieler würfelt trotz Merker öffentlich', u3.geschrieben.length > 0,
   u3.geschrieben.map(g => g.p));
 
 console.log('');
+console.log('=== DER SCHADENSWURF IM FEED ===');
+/* Hendriks Screenshot vom 15.10.2026: "SL wuerfelt 1xdundefined: 6".
+   Ein angeforderter Schadenswurf hat ein "probe", aber kein "band" - damit
+   fiel er in den Zweig fuer freie Wuerfel, und der erwartet count und
+   sides. Er ist aber weder Probe noch freier Wuerfel.
+
+   Geprueft wird die Funktion selbst, aus dem Quelltext geschnitten: Eine
+   nachgebaute Kopie wuerde genau das nicht pruefen, was falsch war. */
+const DICE = fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8');
+const fa = DICE.indexOf('function formatRollText(');
+const fb = DICE.indexOf('function addToast(', fa);
+const fctx = { ZIELZAHL: 4, console };
+vm.createContext(fctx);
+vm.runInContext(DICE.slice(fa, fb), fctx);
+
+const schadenZeile = fctx.formatRollText({
+  name: 'SL', probe: 'Schaden', band: null, total: 11, ergebnis: 11, results: [6, 5]
+});
+chk('der Schadenswurf hat eine eigene Zeile',
+  schadenZeile.indexOf('Schaden: 11') > 0, schadenZeile);
+chk('und keine erfundene Wuerfelangabe',
+  schadenZeile.indexOf('undefined') < 0 && schadenZeile.indexOf('xd') < 0, schadenZeile);
+chk('die Teilwuerfe stehen dabei', schadenZeile.indexOf('6 + 5') > 0, schadenZeile);
+
+/* Die beiden anderen Zeilen muessen bleiben, wie sie waren. */
+const probeZeile = fctx.formatRollText({
+  name: 'Anna', probe: 'Kämpfen d6', band: 'Erfolg mit Steigerung',
+  ergebnis: 14, ziel: 6
+});
+chk('eine Probe liest sich unveraendert',
+  probeZeile.indexOf('Kämpfen d6') > 0 && probeZeile.indexOf('[Ziel 6]') > 0 &&
+  probeZeile.indexOf('(14)') > 0, probeZeile);
+const freiZeile = fctx.formatRollText({
+  name: 'SL', count: 2, sides: 6, total: 9, results: [4, 5]
+});
+chk('ein freier Wuerfel ebenso',
+  freiZeile.indexOf('2×d6') > 0 && freiZeile.indexOf(': 9') > 0, freiZeile);
+
 console.log('OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

@@ -545,6 +545,14 @@ function initDiceRoller(db, options) {
       const ziel = (roll.ziel && roll.ziel !== ZIELZAHL) ? ' [Ziel ' + roll.ziel + ']' : '';
       return roll.name + ' — ' + roll.probe + ziel + ': ' + roll.band + zahl;
     }
+    /* Ein angeforderter Schadenswurf: kein Band, kein Ziel, aber auch kein
+       freier Wuerfel - der hat count und sides, dieser hat Teilwuerfe.
+       Ohne diesen Zweig stand im Feed "1xdundefined". */
+    if (roll.probe === 'Schaden') {
+      const teile = (roll.results && roll.results.length > 1)
+        ? ' (' + roll.results.join(' + ') + ')' : '';
+      return roll.name + ' — Schaden: ' + roll.total + teile;
+    }
     const label = (roll.count || 1) + '×d' + roll.sides;
     let detail = '';
     if (roll.ketten && roll.ketten.length > 1) detail = ' (' + roll.ketten.join(', ') + ')';

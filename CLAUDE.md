@@ -126,6 +126,39 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 13) — Zwei Fehler: ein Feldname zweimal vergeben, eine Feed-Zeile ohne Würfel
+- **Hendriks Meldung mit zwei Screenshots:** „Der Wurf wurde angefordert, scheint aber nicht
+  übermittelt zu werden.“ Die Ansage blieb auf **„wartet auf den Wurf …“** stehen, obwohl das
+  Kampflog daneben schon „Pete trifft James Harwick mit Steigerung — Schadenswurf angefordert“
+  meldete. Im Würfel-Feed stand dazu **„SL würfelt 1×dundefined: 6“**.
+- **Fehler 1, und er ist meiner von gestern: „band“ hieß in der Ansage ZWEI Dinge.**
+  Ursprünglich war es das **Ergebnisband** (`erfolg` / `steigerung`); beim Einbau der drei
+  Distanzen habe ich dasselbe Feld für das **Distanzband** (0/1/2) benutzt. Ein Gegner im
+  Nahband schrieb damit `band: 0` — und das las die Anzeige als „noch kein Ergebnis“.
+  Die Distanz heißt jetzt **`dist`**.
+- **Fehler 2 an derselben Stelle, unabhängig und älter: Das Ergebnis des Angriffswurfs wurde
+  nie gespeichert.** Es entstand nur **beim Zeichnen** aus dem Protokoll. Sobald die Ansage auf
+  „Schaden“ stand, suchte niemand mehr danach — der Treffer war vergessen. `schadenAnfordern()`
+  schreibt `band` und `roh` jetzt mit.
+- **Fehler 3, der Feed:** Ein angeforderter Schadenswurf hat ein `probe`, aber **kein `band`** —
+  damit fiel er in den Zweig für **freie Würfel**, und der erwartet `count` und `sides`. Er ist
+  aber weder Probe noch freier Würfel und hat jetzt seine eigene Zeile:
+  **„SL — Schaden: 11 (6 + 5)“**.
+- **Der eigentliche Befund ist aber, dass die Prüfungen das NICHT gefunden haben** — 266 Stück,
+  alle grün, während der Modus am Tisch stehen blieb. Der Grund ist lehrreich: **Sie haben die
+  Ansage von Hand gebaut** (`band: 'steigerung'`), statt die zu nehmen, die der Code schreibt
+  (`band: 0`). Eine Prüfung, die ihre Eingabe selbst erfindet, prüft die Erfindung.
+  - Neu ist deshalb eine **Kette über den ganzen Ablauf, ausschließlich auf dem, was der Code
+    selbst erzeugt und in die Datenbank schreibt**: ansagen → die geschriebene Ansage
+    übernehmen → Wurf aus dem Protokoll → Schaden anfordern → **so zurückspielen, wie Firebase
+    es täte** → die Anzeige muss den Treffer zeigen, nicht „wartet“.
+  - **Gegengeprüft:** Mit dem alten Code schlagen fünf dieser Prüfungen an, und die Anzeige
+    steht im Fehlertext **wortwörtlich so da, wie Hendrik sie gesehen hat.**
+  - Ebenso beim Feed: Die Zeile wird aus `js/dice.js` **geschnitten und ausgeführt**; ohne den
+    Fix liefert sie **„SL würfelt 1×dundefined: 11 (6, 5)“** — genau der Screenshot.
+- **Getestet: 276 Prüfungen in `t_regie_wuerfel.js`, 98 in `t_wuerfel.js`, 0 Fehler** (1281 über
+  elf Skripte, 15 neue).
+
 ### 2026-10-15 (Fortsetzung 12) — Die Aufstellung: ziehen schlägt, klicken schießt
 - **Hendriks Wunsch:** „Eine visuelle Kampfmöglichkeit, in der beide Parteien sich
   gegenüberstehen — ich ziehe den Spieler auf sein Ziel für einen Nahkampfangriff, und mit
