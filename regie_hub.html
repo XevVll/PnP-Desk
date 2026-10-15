@@ -132,7 +132,13 @@ button.gefahr{border-color:#c05555;color:#c05555}
 <div class="top"><div class="topin">
   <span class="brand">REGIE</span>
   <span class="badge" id="verbindung">verbinde …</span>
-  <span class="badge on" id="aktivBadge">—</span>
+  <span class="badge on" id="aktivBadge" title="Worauf aktiveSitzung zeigt — dort sind die Spieler">—</span>
+  <!-- Die Festlegung dieses Browsers. Sie stand bisher NIRGENDS, obwohl
+       alle Werkzeug-Links ihr folgen - deshalb konnte die Regie in einer
+       anderen Sitzung stehen als der Hub anzeigte. -->
+  <span class="badge" id="festBadge" title="Was DIESER Browser zeigt">—</span>
+  <button class="btn" id="festLoesen" onclick="festLoesen()" style="display:none"
+    title="Festlegung aufheben — dieser Browser folgt dann wieder der laufenden Sitzung">Festlegung lösen</button>
   <span style="flex:1"></span>
 </div></div>
 
@@ -141,16 +147,19 @@ button.gefahr{border-color:#c05555;color:#c05555}
   <div class="card">
     <div class="card-hdr">Werkzeuge</div>
     <div class="card-body">
-      <p class="hint">Alle Seiten der Spielleitung. Sie zeigen immer die Sitzung, die du
-        zuletzt geöffnet hast.</p>
+      <p class="hint" id="wzHinweis">Alle Seiten der Spielleitung.</p>
       <div class="werkzeuge" style="margin-top:.6rem">
-        <a class="wz" href="regie.html" target="_blank">🎬 Regie</a>
-        <a class="wz" href="regie_figuren.html" target="_blank">🧑‍🤝‍🧑 Figuren</a>
-        <a class="wz" href="arena_admin.html" target="_blank">⚔ Schlachtfeld</a>
+        <!-- ?sitzung= steht ausdruecklich dran, statt sich auf die unsichtbare
+             Festlegung zu verlassen: Vorher fuehrte "Regie" dorthin, wo dieser
+             Browser zuletzt war - auch wenn der Hub daneben eine andere
+             Sitzung als laufend anzeigte. Genau das war der gemeldete Fehler. -->
+        <a class="wz sitzLink" data-ziel="regie.html" href="regie.html" target="_blank">🎬 Regie</a>
+        <a class="wz sitzLink" data-ziel="regie_figuren.html" href="regie_figuren.html" target="_blank">🧑‍🤝‍🧑 Figuren</a>
+        <a class="wz sitzLink" data-ziel="arena_admin.html" href="arena_admin.html" target="_blank">⚔ Schlachtfeld</a>
         <a class="wz" href="graph_editor.html" target="_blank">🧭 Graph-Editor</a>
         <a class="wz" href="besatzung.html" target="_blank">⚓ Besatzung</a>
         <a class="wz" href="codex.html" target="_blank">📖 Codex</a>
-        <a class="wz" href="karte.html" target="_blank">🗺️ Spieleransicht</a>
+        <a class="wz sitzLink" data-ziel="karte.html" href="karte.html" target="_blank">🗺️ Spieleransicht</a>
       </div>
     </div>
   </div>
@@ -294,6 +303,58 @@ function idKopieren(id) {
       navigator.clipboard.writeText(id).then(fertig, function () { prompt('Sitzungs-ID:', id); });
     } else { prompt('Sitzungs-ID:', id); }
   } catch (e) { prompt('Sitzungs-ID:', id); }
+}
+
+/* ---------- Festlegung sichtbar machen ----------
+   Zwei Zustaende, die vorher beide "die Sitzung" hiessen:
+     aktiv  - der Zeiger. Dort sind die Spieler.
+     fest   - die Festlegung DIESES Browsers. Ihr folgen alle
+              Werkzeug-Seiten, und sie stand nirgends.
+   Weichen sie ab, ist das kein Fehler (genau dafuer gibt es die
+   Festlegung) - aber man muss es sehen koennen. */
+function zeichneKopf() {
+  const fest = sitzungFest();
+  const name = function (id) {
+    return (sitzungen[id] && sitzungen[id].meta && sitzungen[id].meta.name) || id;
+  };
+  const fb = el('festBadge'), lb = el('festLoesen');
+  if (fb) {
+    fb.textContent = fest ? 'du: ' + name(fest) : 'du: folgt der laufenden';
+    const abweichend = !!fest && fest !== aktiv;
+    fb.style.borderColor = abweichend ? '#ca6702' : '';
+    fb.style.color       = abweichend ? '#ca6702' : '';
+    fb.title = !fest
+      ? 'Dieser Browser folgt der laufenden Sitzung.'
+      : (abweichend
+          ? 'ACHTUNG: Dieser Browser zeigt „' + name(fest) + '", die Spieler sind in „'
+            + (aktiv ? name(aktiv) : 'keiner') + '". Alle Werkzeug-Seiten zeigen „' + name(fest) + '".'
+          : 'Dieser Browser zeigt die laufende Sitzung.');
+  }
+  if (lb) lb.style.display = fest ? '' : 'none';
+
+  // Die Links zeigen, wohin sie fuehren - nicht wohin sie vielleicht fuehren.
+  const ziel = fest || aktiv || '';
+  Array.prototype.forEach.call(document.querySelectorAll('.sitzLink'), function (a) {
+    const basis = a.dataset.ziel;
+    a.href = ziel ? basis + '?sitzung=' + encodeURIComponent(ziel) : basis;
+    a.title = ziel ? 'Öffnet die Sitzung „' + name(ziel) + '"'
+                   : 'Noch keine Sitzung gewählt — klick unten eine an.';
+  });
+  const h = el('wzHinweis');
+  if (h) h.textContent = ziel
+    ? 'Alle Seiten der Spielleitung. Sie öffnen die Sitzung „' + name(ziel) + '".'
+    : 'Alle Seiten der Spielleitung. Wähl unten eine Sitzung — sonst wissen sie nicht, welche sie zeigen sollen.';
+}
+
+/* Die Festlegung aufheben heisst: wieder der laufenden Sitzung folgen.
+   Es gab das bisher nur im SPIELER-Hub - die Spielleitung kam an ihre
+   eigene Festlegung nicht heran und auch nicht an die Information, dass
+   es eine gibt. */
+function festLoesen() {
+  loeseSitzung();
+  zeichneKopf();
+  zeichneSitzungen();
+  meld('sitzMeld', 'Festlegung gelöst — die Werkzeuge folgen jetzt der laufenden Sitzung.', '#4caf7d');
 }
 
 function regieOeffnen(id) {
@@ -765,6 +826,7 @@ function zeichneSpiele() {
 
 function zeichneSitzungen() {
   const ids = Object.keys(sitzungen);
+  zeichneKopf();
   el('aktivBadge').textContent = aktiv
     ? ((sitzungen[aktiv] && sitzungen[aktiv].meta && sitzungen[aktiv].meta.name) || aktiv)
     : 'keine Sitzung läuft';
@@ -772,6 +834,8 @@ function zeichneSitzungen() {
   el('sitzListe').innerHTML = ids.length ? ids.map(function (id) {
     const s = sitzungen[id] || {}, m = s.meta || {};
     const istAktiv = (id === aktiv), beendet = !!m.beendet;
+    // Nicht dasselbe wie "laeuft": hierhin fuehren die Werkzeug-Links.
+    const istFest = (id === sitzungFest());
     // Ohne meta ist das keine angelegte Sitzung, sondern ein Rest:
     // Firebase legt Knoten beim Schreiben an, und ein Spielerbrowser,
     // der noch auf eine geloeschte Sitzung zeigte, hat sie so wieder
@@ -796,6 +860,7 @@ function zeichneSitzungen() {
       '<div class="e-kopf"><div>' +
         '<div class="e-name">' + esc(m.name || id) +
           (istAktiv ? ' <span class="pill jetzt">läuft</span>' : '') +
+          (istFest ? ' <span class="pill" title="Deine Werkzeug-Seiten zeigen diese Sitzung">du schaust hier hinein</span>' : '') +
           (beendet ? ' <span class="pill">beendet</span>' : '') +
           (geist ? ' <span class="pill" style="border-color:#ca6702;color:#ca6702">Rest</span>' : '') + '</div>' +
         '<div class="e-sub">' +

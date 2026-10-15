@@ -126,6 +126,68 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 3) — Fehler: die gesetzte Sitzung blieb nicht
+- **Hendriks Meldung:** „Irgendwie bleibt die gesetzte Sitzung nicht. Ich werde ständig von der
+  Sitzung Test wieder in die pnpgang geholt.“
+- **Erst nachgesehen, nicht geraten** (per REST): `aktiveSitzung` steht auf **`test`**. Der Zeiger
+  war also richtig gesetzt — der Fehler lag nicht dort.
+  - **`pnpgang`** ist die echte Kampagne (4 Spieler, Regie-Notizen, Charakter-Status),
+    **`test`** trägt nur `sl`. Es gibt genau diese zwei Sitzungen.
+- **Ursache: zwei Zustände, die beide „die Sitzung“ hießen — und nur einer war sichtbar.**
+  - **`aktiveSitzung`** — der Zeiger. Dort sind die Spieler.
+  - **`pnp_sitzung_fest`** — die **Festlegung dieses Browsers**. Sie **schlägt den Zeiger und
+    folgt ihm nicht** (`sitzungsDbJetzt()` steigt bei gesetzter Festlegung aus, bevor es den
+    Lauscher einhängt).
+  - **Dass die Festlegung gewinnt, ist Absicht** und bleibt so: Sonst würde ein Blick in eine
+    ruhende Runde die ganze Gruppe mitnehmen (Begründung vom 07.09.2026).
+  - **Der Fehler war, dass sie nirgends stand.** Der Hub zeigte **nur den Zeiger** („Test
+    läuft“), während seine eigenen Werkzeug-Links (`regie.html` ohne `?sitzung=`) der
+    **Festlegung** folgten. Der Hinweistext sagte das sogar — „Sie zeigen immer die Sitzung, die
+    du zuletzt geöffnet hast“ — aber **welche das ist, stand nirgendwo.** Beide Wege in die Regie
+    widersprachen sich damit, und aus dem Haus sah es aus, als bliebe die Einstellung nicht.
+  - **Dazu kommt:** Jedes `?sitzung=` in der Adresse legt den **ganzen Browser** neu fest — ein
+    alter Tab oder ein Lesezeichen auf `regie.html?sitzung=pnpgang` zieht beim Neuladen alle
+    anderen Seiten mit. Und **lösen konnte man die Festlegung nur im SPIELER-Hub**; die
+    Spielleitung kam an ihre eigene gar nicht heran.
+- **Behoben, indem der unsichtbare Zustand sichtbar wird** — nicht durch anderes Verhalten:
+  - **Zweites Abzeichen in der Kopfleiste des Regie-Hubs:** „du: PnPGang“ neben „Test läuft“,
+    **orange, sobald die beiden auseinanderliegen**, mit dem Hinweis, dass die Spieler woanders
+    sind und wohin die Werkzeug-Seiten führen.
+  - **Knopf „Festlegung lösen“** — danach folgt der Browser wieder der laufenden Sitzung.
+  - **Die Werkzeug-Links tragen die Sitzung ausdrücklich** (`?sitzung=…`) und sagen im Titel,
+    wohin sie führen. Ein Link, der von unsichtbarem Zustand abhängt, ist genau die Falle, die
+    hier zugeschnappt ist. Ohne jede Sitzung tragen sie keine und der Hinweis sagt, was zu tun
+    ist.
+  - **Die Sitzungsliste markiert die festgelegte** („du schaust hier hinein“), nicht mehr nur die
+    laufende.
+- **Zweiter Fund, nicht gemeldet, aber dieselbe Klasse:** **`regie_figuren.html` und
+  `arena_admin.html` zeigten überhaupt nicht, in welcher Sitzung sie stehen** — nur `regie.html`
+  tat das. Man konnte also die Figuren oder den **Endkampf einer ruhenden Runde** vor sich haben
+  und es erst merken, wenn die Spieler nichts sehen. Beide haben jetzt dasselbe Abzeichen samt
+  Warnung.
+  - Die Anzeige liegt deshalb als **`sitzungBadge()` in `js/sitzung.js`** statt dreimal in den
+    Seiten; `js/regie_vault.js` ruft sie auf, statt seine eigene Kopie zu behalten. Dieselbe
+    Lehre wie heute Vormittag bei `js/marken.js`.
+- **Getestet: neues `tests/t_sitzung.js`, 36 Prüfungen, 0 Fehler** (999 über zehn Skripte).
+  - **Der gemeldete Fall ist nachgestellt** und läuft wirklich durch (`vm`, geschnittener
+    Hub-Code): Zeiger auf `test`, Browser auf `pnpgang` festgelegt — das Abzeichen nennt
+    PnPGang, ist orange, der Hinweis nennt beide Sitzungen, und **jeder Werkzeug-Link zeigt
+    nachweislich auf `?sitzung=pnpgang`**. Nach „Lösen“ zeigen sie auf `test`, und der
+    Schlüssel ist wirklich weg — nicht nur die Anzeige.
+  - Das **gewollte** Verhalten steht ebenfalls als Prüfung da: Eine Festlegung gewinnt gegen den
+    Zeiger, folgt ihm nachweislich nicht und hängt **gar keinen Lauscher** ein. Wer das
+    zurücknimmt, soll darüber stolpern.
+- **Zwei eigene Fehler im Test, beide waren falsche Erwartungen, nicht Fehler im Code:** Ich hatte
+  erwartet, dass eine Seite **ohne** Festlegung sofort die laufende Sitzung zeigt. Sie zeigt
+  zunächst den **Cache** (ohne Cache die Vorgabe `korsaren`) und korrigiert sich durch ein
+  Neuladen — genau so dokumentiert am 07.09.2026, weil der Zeiger synchron gebraucht wird.
+  Steht jetzt als Prüfung da, samt dem zweiten Aufruf, der dann ohne Umweg trifft.
+- **[OFFEN] Die Festlegung gilt für den ganzen Browser, gesetzt von einer Adresse.** Ein alter
+  Tab mit `?sitzung=…` legt beim Neuladen weiterhin alles neu fest. Zwei mögliche Wege: die
+  Adresse nach dem Festlegen per `history.replaceState` entfernen, oder die Festlegung der
+  Spielleitung **pro Tab** halten (`sessionStorage`) statt pro Browser. Beides ändert Verhalten
+  und ist Hendriks Entscheidung — sichtbar ist der Zustand jetzt in jedem Fall.
+
 ### 2026-10-15 (Fortsetzung 2) — Die Marken liegen jetzt in einer Datei
 - **Hendriks Vorgabe:** „Im Besatzungsbereich, lass mich bitte die Talente und Schwächen sehen,
   wenn ich drauf klicke. Genau wie beim Spielerbogen.“

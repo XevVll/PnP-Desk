@@ -86,25 +86,10 @@ const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.
    aussen nicht zu unterscheiden, ob man in der laufenden Runde sitzt
    oder in einer ruhenden - und ein Szenenwechsel in der falschen
    Sitzung faellt erst auf, wenn die Spieler nichts sehen. */
-function zeigeSitzung() {
-  var n = document.getElementById('sitzungBadge');
-  if (!n || !db) return;
-  var sid = db.sitzung;
-  n.textContent = sid;
-  try {
-    db.echt.ref('sitzungen/' + sid + '/meta/name').once('value').then(function (s) {
-      if (s.val()) n.textContent = s.val();
-    });
-    db.echt.ref('aktiveSitzung').on('value', function (s) {
-      var laeuft = (s.val() || SITZUNG_VORGABE) === sid;
-      n.style.borderColor = laeuft ? '' : '#ca6702';
-      n.style.color       = laeuft ? '' : '#ca6702';
-      n.title = laeuft
-        ? 'Diese Sitzung läuft — die Spieler sehen, was du hier schaltest.'
-        : 'ACHTUNG: Diese Sitzung läuft nicht. Die Spieler sind woanders.';
-    });
-  } catch (e) {}
-}
+/* Liegt seit dem 15.10.2026 in js/sitzung.js - die Figuren-Uebersicht und
+   das Schlachtfeld brauchen dieselbe Anzeige, und zwei Fassungen davon
+   wuerden auseinanderlaufen. */
+function zeigeSitzung() { sitzungBadge(db, 'sitzungBadge'); }
 
 // ---------- Firebase-Verbindung ----------
 try {

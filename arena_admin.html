@@ -107,6 +107,10 @@
 <header>
   <h1>⚔ Schlachtfeld</h1>
   <span id="status">Verbinde …</span>
+  <!-- Welche Sitzung? Ein Endkampf in der falschen Runde faellt sonst erst
+       auf, wenn die Spieler nichts sehen. -->
+  <span id="sitzungBadge" style="font-size:13px;border:1px solid var(--gold);
+    border-radius:10px;padding:.1rem .5rem" title="Sitzung dieser Ansicht">—</span>
   <span style="font-size:13px">Runde <b id="rundeAnzeige" style="color:var(--gold)">–</b></span>
   <button class="btn primary" onclick="rundeWeiter()">Runde weiter ▸</button>
   <button class="btn" onclick="versetzenUmschalten()" id="versetzenBtn" title="Ausgewählte Figur frei auf ein beliebiges Feld setzen (ohne Bewegungsregel)">Versetzen: aus</button>
@@ -553,6 +557,7 @@
   try {
     firebase.initializeApp(firebaseConfig);
     db = sitzungsDbJetzt(firebase.database());
+    sitzungBadge(db, 'sitzungBadge');
     statusEl.textContent = 'Verbunden — live';
     statusEl.className = 'connected';
     db.ref(BASIS.slice(0, -1)).on('value', function (s) {

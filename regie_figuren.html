@@ -124,6 +124,9 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 
 <div class="topbar">
   <div class="brand">⚓ FIGUREN AM TISCH</div>
+  <!-- Welche Sitzung? Ohne das sieht die Spielleitung die Figuren einer
+       ruhenden Runde und merkt es nicht. -->
+  <span class="badge" id="sitzungBadge" title="Sitzung dieser Ansicht">—</span>
   <span class="badge" id="anzahl">—</span>
   <div class="ersch" id="erschLeiste"></div>
   <span style="flex:1"></span>
@@ -259,6 +262,7 @@ function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
     db = sitzungsDbJetzt(firebase.database());
+    sitzungBadge(db, 'sitzungBadge');
     if (db.sitzung) {
       /* Das Protokoll liegt NICHT unter dem Spielstand, sondern direkt an der
          Sitzung - es ist das Gedaechtnis des Abends und soll einen

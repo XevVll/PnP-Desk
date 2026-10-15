@@ -551,8 +551,48 @@ function figurUmzug(db, sid, schluessel, fertig) {
 
 
 
+/* ==========================================================
+   WO BIN ICH?
+   ----------------------------------------------------------
+   Diese Anzeige stand bis zum 15.10.2026 nur in
+   js/regie_vault.js - regie_figuren.html und arena_admin.html
+   zeigten ueberhaupt nicht, in welcher Sitzung sie stehen. Das
+   ist keine Kosmetik: Die Spielleitung kann sonst die Figuren
+   oder den Endkampf einer RUHENDEN Sitzung vor sich haben und
+   es erst merken, wenn die Spieler nichts sehen.
+
+   Zwei verschiedene Dinge, und die Verwechslung war der Fehler,
+   den Hendrik am 15.10.2026 gemeldet hat:
+     DIESE Sitzung  - was der Browser gerade zeigt (die
+                      Festlegung, sonst der Zeiger).
+     DIE LAUFENDE   - worauf aktiveSitzung zeigt, also wo die
+                      Spieler sind.
+   Stimmen sie nicht ueberein, wird die Anzeige orange.
+   ========================================================== */
+function sitzungBadge(db, elId) {
+  var n = (typeof document === 'undefined') ? null : document.getElementById(elId || 'sitzungBadge');
+  if (!n || !db) return;
+  var sid = db.sitzung;
+  n.textContent = sid;
+  try {
+    db.echt.ref(SITZUNG_WURZEL + '/' + sid + '/meta/name').once('value').then(function (s) {
+      if (s.val()) n.textContent = s.val();
+    });
+    db.echt.ref(SITZUNG_ZEIGER).on('value', function (s) {
+      var laeuft = (s.val() || SITZUNG_VORGABE) === sid;
+      n.style.borderColor = laeuft ? '' : '#ca6702';
+      n.style.color       = laeuft ? '' : '#ca6702';
+      n.title = laeuft
+        ? 'Diese Sitzung läuft — die Spieler sehen, was du hier schaltest.'
+        : 'ACHTUNG: Diese Sitzung läuft nicht. Die Spieler sind woanders. '
+          + 'Im Regie-Hub steht, worauf dieser Browser festgelegt ist.';
+    });
+  } catch (e) { /* ohne Datenbank bleibt die rohe Kennung stehen */ }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    sitzungBadge,
     SITZUNG_VORGABE, SITZUNG_ZEIGER, SITZUNG_WURZEL, SPIEL_WURZEL,
     SITZUNG_CACHE_KEY, SITZUNG_FEST_KEY, SITZUNGS_PFADE,
     sitzungFest, setzeSitzungFest, loeseSitzung, sitzungAusAdresse,
