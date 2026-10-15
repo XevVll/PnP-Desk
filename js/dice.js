@@ -256,7 +256,7 @@ function initDiceRoller(db, options) {
     letztes = { wert: wertName, stufe: stufe, r: r };
 
     schreibeFeed({
-      name: name, probe: wertName + ' ' + DLBL[stufe],
+      name: name, probe: wertName + ' ' + stufeText(stufe),
       band: BAND_NAMEN[r.band], ergebnis: r.roh, ziel: r.ziel,
       steigerungen: r.steigerungen, total: r.roh
     });
@@ -400,8 +400,11 @@ function initDiceRoller(db, options) {
       miss:   'Ergebnis ' + r.roh + ' — das reicht nicht (nötig: ' + r.ziel + ').',
       patzer: 'Zwei Einsen. Es geht nicht nur schief, es geht schief.'
     }[r.band];
+    /* Bei einem ungelernten Wert stand hier ein blosser Gedankenstrich
+       (DLBL[0]) - das liest sich wie ein Fehler, und die Regel dahinter
+       (d4 mit -2) stand nirgends. */
     let h = '<div class="wl-erg"><div class="wl-probe">' + esc(letztes.wert) + ' ' +
-      DLBL[letztes.stufe] + ' · nötig ' + r.ziel + '</div>' +
+      stufeText(letztes.stufe) + ' · nötig ' + r.ziel + '</div>' +
       '<div class="wl-band wl-b-' + r.band + '">' + BAND_NAMEN[r.band] + '</div>' +
       '<div class="wl-zeile' + (r.zaehlt === 'wert' ? '' : ' aus') + '">Wert: ' +
         kette(r.wert, r.seiten) +
@@ -466,7 +469,7 @@ function initDiceRoller(db, options) {
         const mod = anfrage.mod || 0;
         h += '<div class="wl-bitte"><div class="wl-bk">Die Spielleitung bittet um</div>' +
           grund +
-          '<div class="wl-bt"><b>' + esc(anfrage.wert) + ' ' + DLBL[st] + '</b> — nötig ' +
+          '<div class="wl-bt"><b>' + esc(anfrage.wert) + ' ' + stufeText(st) + '</b> — nötig ' +
           (ZIELZAHL - mod) +
           (f.abzug ? ', deine Wunden ziehen ' + f.abzug + ' ab' : '') + '</div>' +
           '<button type="button" class="wl-jetzt" data-bitte="1">Würfeln</button></div>';

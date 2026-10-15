@@ -1145,6 +1145,15 @@ function pruefeFigur(figur) {
      7. Erschwernisse sind flache Zahlen (-2 fuer schwierig),
         keine Wuerfelstufen mehr.
    ========================================================== */
+/* Wie ein Wert in einem WURF heisst. In einer Tabelle genuegt der
+   Gedankenstrich fuer "ungelernt"; im Ergebnis eines Wurfs liest er sich
+   wie ein Fehler - und die Regel dahinter (d4 mit -2, Bibel 4.1) steht
+   dort sonst nirgends. */
+function stufeText(stufe) {
+  return (stufe >= 1) ? DLBL[stufe]
+    : 'ungelernt (d' + UNGELERNT_WUERFEL + '−' + UNGELERNT_ABZUG + ')';
+}
+
 const UNGELERNT_WUERFEL  = 4;   // d4 ...
 const UNGELERNT_ABZUG    = 2;   // ... mit -2
 const STEIGERUNG_SCHRITT = 4;   // je 4 ueber dem Ziel eine Steigerung
@@ -1295,7 +1304,7 @@ if (typeof module !== 'undefined' && module.exports) {
     leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,
     parade, robustheit, bennies, bewegung, wertVon, talentVerfuegbar, pruefeFigur,
-    wundenAbzug, ausserGefecht, benniesStand,
+    wundenAbzug, ausserGefecht, benniesStand, stufeText,
     STEIGERUNG_ARTEN, steigerungArten, steigerungAnwenden, kannAttributSteigern,
     fertAufOderUnterAttribut,
     talentWaehlbar, verlangtVon, offeneVoraussetzungen,

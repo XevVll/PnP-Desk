@@ -126,6 +126,31 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 17) — „Ungelernt“ sagt jetzt, was es heißt
+- **Hendriks Frage am Screenshot:** „Test hat keinen Kampf-Skill. Worauf würfelt er?“ Dort
+  stand **„KÄMPFEN — · NÖTIG 8“**.
+- **Die Regel war richtig, die Anzeige schwieg.** Der Gedankenstrich ist `DLBL[0]`, die
+  Beschriftung für „ungelernt“. In einer **Tabelle** ist er richtig; im **Ergebnis eines
+  Wurfs** liest er sich wie ein Fehler — und die Regel dahinter (**d4 mit −2**, Bibel 4.1)
+  stand dort nirgends.
+- **Neue `stufeText()` in `js/regelwerk.js`:** ein gelernter Wert bleibt „d6“, ein ungelernter
+  heißt **„ungelernt (d4−2)“**. Benutzt an den drei Stellen, an denen ein WURF beschrieben
+  wird: die Bitte der Spielleitung, der Ergebnisblock und der Würfel-Feed. In den Tabellen
+  (Bogen, SL-Übersicht) bleibt der Gedankenstrich — dort ist er die richtige Kurzform.
+- **Dazu Hendriks zweite Frage — „Was sind Wild Die? Wann kommen die? Bitte mit dem Regelwerk
+  abgleichen.“** Nachgelesen im offiziellen Text, mit Bibel §4.3 und `js/regelwerk.js`
+  verglichen: **alles deckungsgleich** (nur Wild Cards, immer d6, beide explodieren unabhängig,
+  das höhere Gesamtergebnis zählt, Modifikatoren auf beide, Patzer bei zwei natürlichen Einsen).
+  - **Eine Zeile fehlte in der Bibel**, und seit dem Kampfmodus ist sie nicht mehr theoretisch:
+    *„Heroes don't get Wild Dice on damage rolls — those only apply to Traits."* Der Wild Die
+    gilt **nur auf Proben**, nie auf Schadenswürfe und nie auf Würfe, die keine Probe sind
+    (etwa das 1W6 fürs Laufen). Dazu **ein Wild Die je Handlung**, auch wenn mehrere Würfel
+    fallen. **Der Code hielt sich schon daran** — `wuerfleSchaden()` und die freien Würfel
+    werfen keinen; jetzt steht es auch da, wo man nachliest.
+- **Getestet: 104 Prüfungen in `t_wuerfel.js`, 0 Fehler** (6 neue, 1315 über elf Skripte).
+  Darunter, dass der blanke Gedankenstrich aus **allen drei** Wurf-Anzeigen verschwunden ist —
+  sonst taucht er beim nächsten Umbau wieder auf.
+
 ### 2026-10-15 (Fortsetzung 16) — Jede Figur lässt sich auf die andere Seite ziehen
 - **Hendriks Vorgabe:** „Spieler auf den Seiten verschieben — James Harwick etc. sind ja eher
   auf der Seite der Spieler.“

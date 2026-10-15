@@ -221,6 +221,10 @@ ist trotzdem ein W6 und explodiert folglich bei einer **6**. Das ist kein Fehler
 - **Gewertet wird das höhere der beiden Gesamtergebnisse**, nie die Summe.
 - **Statisten** (Extras) haben keinen Wild Die.
 - **Kritischer Patzer:** beide Würfel zeigen eine natürliche 1.
+- **Nur auf PROBEN, nie auf Schadenswürfe.** Das Original sagt es ausdrücklich: *„Heroes don't
+  get Wild Dice on damage rolls — those only apply to Traits."* Ebenso wenig auf Würfe, die
+  keine Probe sind (etwa das 1W6 fürs Laufen). Schadenswürfel **explodieren** aber auch.
+- **Ein Wild Die je Handlung**, selbst wenn für eine Handlung mehrere Würfel fallen.
 
 Der Wild Die ist das Einzige, was eine Spielerfigur von einem Statisten trennt, und er trägt bei
 niedrigen Werten am meisten: Auf W4 gelingt eine Probe mit ihm zu 62,5 % statt zu 25 %.

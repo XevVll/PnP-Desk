@@ -344,6 +344,25 @@ chk('Spieler würfelt trotz Merker öffentlich', u3.geschrieben.length > 0,
   u3.geschrieben.map(g => g.p));
 
 console.log('');
+const DICEQ = fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8');
+const RW = require(path.join(BASIS, 'js/regelwerk.js'));
+console.log('=== UNGELERNT HEISST UNGELERNT ===');
+/* Hendriks Screenshot vom 15.10.2026: "KÄMPFEN — · NÖTIG 8". Der
+   Gedankenstrich ist DLBL[0]. In einer Tabelle ist er richtig, im Ergebnis
+   eines Wurfs liest er sich wie ein Fehler - und die Regel dahinter stand
+   nirgends. */
+chk('ein ungelernter Wert nennt die Regel',
+  RW.stufeText(0).indexOf('ungelernt') === 0 && RW.stufeText(0).indexOf('d4') > 0,
+  RW.stufeText(0));
+chk('und den Abzug', RW.stufeText(0).indexOf('2') > 0, RW.stufeText(0));
+chk('ein gelernter bleibt kurz', RW.stufeText(2) === 'd6', RW.stufeText(2));
+chk('die Leiste benutzt ihn',
+  DICEQ.indexOf('stufeText(st)') > 0 && DICEQ.indexOf('stufeText(letztes.stufe)') > 0);
+chk('und der Feed auch', DICEQ.indexOf("stufeText(stufe)") > 0);
+chk('der blanke Gedankenstrich ist aus den Wurf-Anzeigen weg',
+  DICEQ.indexOf('DLBL[letztes.stufe]') < 0 && DICEQ.indexOf('DLBL[st]') < 0);
+
+console.log('');
 console.log('=== DER SCHADENSWURF IM FEED ===');
 /* Hendriks Screenshot vom 15.10.2026: "SL wuerfelt 1xdundefined: 6".
    Ein angeforderter Schadenswurf hat ein "probe", aber kein "band" - damit
