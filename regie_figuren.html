@@ -837,7 +837,13 @@ function kampfSpieler() {
       parade: parade(f), robustheit: robustheit(f),
       angeschlagen: !!f.angeschlagen, wunden: f.wunden || 0,
       raus: ausserGefecht(f), extra: false, figur: f,
-      seite: 'held', band: 0
+      /* Normalerweise steht eine Spielerfigur bei den Spielern - aber nicht
+         zwingend: Eine bezauberte, besessene oder uebergelaufene Figur
+         gehoert auf die andere Seite, und im Finale ist genau das denkbar.
+         Die Abweichung liegt beim KAMPF, nicht an der Figur: Sie ist mit
+         dem Gefecht vorbei und fasst den Bogen des Spielers nicht an. */
+      seite: ((kampf.seiten || {})[pid] === 'feind') ? 'feind' : 'held',
+      band: Math.max(0, Math.min(2, (kampf.baender || {})[pid] || 0))
     };
   });
 }
@@ -1031,8 +1037,12 @@ function angriffAnsagen(art, vonId, zielId) {
   if (a.seite === z.seite) { warnung('Die beiden stehen auf derselben Seite.'); return; }
 
   /* Die Distanz kommt aus der Aufstellung: Nahkampf nur im ersten Band,
-     und der Fernkampf-Abzug ist der des Bandes. */
-  const dist = (z.typ === 'gegner' ? z.band : a.band) || 0;
+     und der Fernkampf-Abzug ist der des Bandes. Seit auch Spielerfiguren
+     in einem Band stehen koennen, zaehlt der ABSTAND zwischen beiden -
+     also das weiter entfernte der zwei. Zwei, die beide zurueckstehen,
+     sind nicht automatisch nebeneinander, aber das waere Feinmechanik
+     ohne Brett. */
+  const dist = Math.max(a.band || 0, z.band || 0);
   const fern = (art === 'fern');
   if (!fern && !nahkampfMoeglich(dist)) {
     warnung(z.name + ' steht zu weit weg für einen Nahkampfangriff — erst heranziehen.');
@@ -1340,13 +1350,17 @@ function kampfReiheHtml() {
         '<small> · ' + (t.typ === 'spieler' ? 'Spieler' : (t.extra ? 'Statist' : 'Wild Card')) +
         ' · Parade ' + t.parade + ' · Rob. ' + t.robustheit + '</small></span>' +
       '<span class="kz">' + kampfZustandChips(t) +
+        /* Die Seite laesst sich bei JEDER Figur umstellen - auch bei einer
+           Spielerfigur. Wunden und Entfernen bleiben den Gegnern
+           vorbehalten: Die Werte eines Spielers gehoeren seinem Bogen. */
+        '<button class="mini" data-gseite="' + esc(t.id) + '" title="' +
+          (t.seite === 'held' ? 'kämpft auf eurer Seite — klicken stellt um'
+                              : 'kämpft gegen euch — klicken stellt um') +
+          '">' + (t.seite === 'held' ? '⚓' : '⚔') + '</button>' +
         (t.typ === 'gegner'
           ? '<button class="mini" data-gwunde="' + esc(t.gid) + '|1">+ Wunde</button>' +
             '<button class="mini" data-gwunde="' + esc(t.gid) + '|-1">−</button>' +
             '<button class="mini" data-gang="' + esc(t.gid) + '">angeschlagen</button>' +
-            '<button class="mini" data-gseite="' + esc(t.gid) + '" title="' +
-              (t.seite === 'held' ? 'kämpft auf eurer Seite' : 'kämpft gegen euch') +
-              '">' + (t.seite === 'held' ? '⚓' : '⚔') + '</button>' +
             '<button class="mini" data-gweg="' + esc(t.gid) + '">✕</button>'
           : '') +
       '</span></div>';
@@ -1521,7 +1535,8 @@ function kampfFeldHtml() {
 
   return '<div class="kfeld">' +
     '<div class="khinw">Ziehen = Nahkampf · Klick auf den Angreifer, dann auf das Ziel = ' +
-      'Fernkampf. Einen Gegner auf ein anderes Band ziehen stellt ihn um.' +
+      'Fernkampf. Auf ein Band ziehen stellt die Entfernung um, auf „Deine Seite" ' +
+      'die Seite — das gilt für jede Figur.' +
       (kampfGewaehlt ? ' <b>' + esc((kampfFinde(kampfGewaehlt) || {}).name || '') +
         '</b> ist gewählt — Klick auf ein Ziel schießt, nochmal auf ihn hebt die Wahl auf.' : '') +
       '</div>' +
@@ -1557,27 +1572,48 @@ function tokenFallen(zielId) {
   angriffAnsagen('nah', von, zielId);
 }
 
-/* Auf ein Band fallen lassen heisst: dort hinstellen. Nur Gegner - ein
-   Spieler steht immer auf seiner Seite. */
+/* Auf ein Band fallen lassen heisst: dort hinstellen - und das Band
+   "held" ist die eigene Seite. Damit ist das Umstellen der Seite dieselbe
+   Geste wie das Umstellen der Entfernung, und es gilt fuer JEDE Figur:
+   Harwick steht meistens bei den Spielern, und eine Spielerfigur kann im
+   Finale einmal gegen die Gruppe stehen. */
 function bandFallen(b) {
   const von = kampfZieht;
   kampfZieht = '';
   const t = kampfFinde(von);
-  if (!t || t.typ !== 'gegner' || !db) return;
-  const neu = Math.max(0, Math.min(2, parseInt(b, 10) || 0));
-  if (neu === t.band) return;
-  kampfRef('gegner/' + t.gid + '/band').set(neu);
-  kampfLog(t.name + ' steht jetzt auf ' + band(neu).n + '.', 'auf');
+  if (!t || !db) return;
+  const aufEigene = (b === 'held');
+  const neu = aufEigene ? 0 : Math.max(0, Math.min(2, parseInt(b, 10) || 0));
+  const neueSeite = aufEigene ? 'held' : 'feind';
+  if (t.seite === neueSeite && t.band === neu) return;
+
+  const paket = {};
+  if (t.typ === 'gegner') {
+    paket['gegner/' + t.gid + '/seite'] = neueSeite;
+    paket['gegner/' + t.gid + '/band'] = neu;
+  } else {
+    /* Fuer Spielerfiguren liegt die Abweichung neben der Figur, nicht in
+       ihr - der Bogen bleibt der einzige Schreiber auf seinen Werten. */
+    paket['seiten/' + t.pid] = neueSeite === 'held' ? null : 'feind';
+    paket['baender/' + t.pid] = neu || null;
+  }
+  kampfRef().update(paket);
+
+  if (t.seite !== neueSeite) {
+    kampfLog(t.name + ' kämpft jetzt ' +
+      (neueSeite === 'held' ? 'auf eurer Seite' : 'gegen euch') + '.', 'auf');
+  } else {
+    kampfLog(t.name + ' steht jetzt auf ' + band(neu).n + '.', 'auf');
+  }
 }
 
-/* Die Seite wechseln macht aus einem Gegner einen Verbuendeten. */
-function seiteWechseln(gid) {
-  const g = (kampf.gegner || {})[gid];
-  if (!g || !db) return;
-  const neu = (g.seite === 'held') ? 'feind' : 'held';
-  kampfRef('gegner/' + gid + '/seite').set(neu);
-  kampfLog((g.name || gid) + ' kämpft jetzt ' +
-    (neu === 'held' ? 'auf eurer Seite' : 'gegen euch') + '.', 'auf');
+/* Dasselbe ohne Ziehen - fuer das Tablet und fuer alle, die den Knopf
+   lieber moegen. */
+function seiteWechseln(id) {
+  const t = kampfFinde(id) || kampfFinde('g:' + id);
+  if (!t || !db) return;
+  kampfZieht = t.id;
+  bandFallen(t.seite === 'held' ? '0' : 'held');
 }
 
 function kampfLogHtml() {
@@ -2029,7 +2065,7 @@ document.addEventListener('drop', function (ev) {
   /* Erst das Ziel, dann das Band: Wer auf eine Figur faellt, greift sie an,
      auch wenn die Figur in einem Band steht. */
   if (tok) { ev.preventDefault(); tokenFallen(tok.dataset.tok); return; }
-  if (bnd && bnd.dataset.band !== 'held') { ev.preventDefault(); bandFallen(bnd.dataset.band); }
+  if (bnd) { ev.preventDefault(); bandFallen(bnd.dataset.band); }
 });
 
 // Enter sichert, Escape bricht ab - wer am Tisch tippt, greift nicht zur Maus.

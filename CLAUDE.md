@@ -126,6 +126,34 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 16) — Jede Figur lässt sich auf die andere Seite ziehen
+- **Hendriks Vorgabe:** „Spieler auf den Seiten verschieben — James Harwick etc. sind ja eher
+  auf der Seite der Spieler.“
+- **Die Seite ist jetzt dieselbe Geste wie die Entfernung:** Eine Figur auf ein Band ziehen
+  stellt die Entfernung um, auf **„Deine Seite“** ziehen stellt die **Seite** um. Das gilt für
+  **jede** Figur, nicht mehr nur für Gegner — und der ⚓/⚔-Knopf an der Reihenfolge tut jetzt
+  dasselbe, für das Tablet und für alle, die lieber klicken.
+- **Auch eine Spielerfigur kann auf der anderen Seite stehen.** Bezaubert, besessen,
+  übergelaufen — im Finale ist genau das denkbar. **Die Abweichung liegt beim KAMPF, nicht an
+  der Figur** (`kampf/seiten/{pid}` und `kampf/baender/{pid}`): Sie ist mit dem Gefecht vorbei
+  und **fasst den Bogen des Spielers nicht an.** Dieselbe Linie wie überall sonst — sein Bogen
+  bleibt der einzige Schreiber auf seinen Werten.
+- **Folge, die mitgezogen werden musste:** Seit auch Spielerfiguren in einem Band stehen
+  können, ist die Entfernung der **Abstand zwischen beiden** — also das weiter entfernte der
+  zwei Bänder. Vorher zählte das Band des Gegners allein; ein Schütze, der sich zurückzieht,
+  wäre damit weiterhin im Nahkampf erreichbar gewesen.
+- **Getestet: 317 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (1309 über elf Skripte,
+  9 neue). Darunter Harwick, der auf die eigene Seite gezogen wird und dabei nach vorn rückt,
+  und der Schütze, der zurücksteht: **im Nahkampf nicht mehr erreichbar**, mit dem Abzug des
+  weiteren Bandes beschossen.
+- **Eine Prüfung von gestern ist umgedreht statt gelöscht:** „ein Spieler lässt sich nicht
+  umstellen“ war richtig, bis Hendrik genau das verlangt hat. Jetzt steht dort, dass es geht —
+  **und dass dabei kein `figuren/…`-Pfad angefasst wird.**
+- **Ein Testfehler, meiner:** Die Prüfung des Rückwegs ließ den **Hinweg nicht wirken** — ohne
+  den zurückgespielten Stand stand die Figur noch auf Band 0, und „zurückstellen“ war gar
+  keine Änderung. Dieselbe Lehre wie heute Mittag: auf dem prüfen, was der Code wirklich
+  schreibt.
+
 ### 2026-10-15 (Fortsetzung 15) — Waffen für die Bekannten, Gegner von der Stange, Würfe im Log
 - **Drei Vorgaben Hendriks:** den bekannten Leuten Ausrüstung geben · eigene Gegner bauen
   können („stark oder schwach und eine Waffe in die Hand“) · und: „Die Würfelergebnisse stehen

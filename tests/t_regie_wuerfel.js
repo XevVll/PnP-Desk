@@ -1113,10 +1113,71 @@ chk('einen Gegner auf ein Band ziehen stellt ihn um',
   F.schreib.some(x => x.p === 'kampf/gegner/f1/band' && x.v === 0),
   F.schreib.map(x => x.p));
 chk('und es steht im Log', F.schreib.some(x => x.p === 'kampf/log'));
+/* Seit dem 15.10.2026 laesst sich JEDE Figur umstellen - Hendriks
+   Vorgabe: "Spieler auf den Seiten verschieben, James Harwick ist ja eher
+   auf der Seite der Spieler." Bei einer Spielerfigur liegt die Abweichung
+   NEBEN der Figur, nicht in ihr. */
 F.schreib.length = 0;
 F.ctx.module.exports.tokenZiehen('p:anna');
 F.ctx.module.exports.bandFallen('2');
-chk('ein Spieler lässt sich nicht umstellen', F.schreib.length === 0, F.schreib.map(x => x.p));
+chk('auch ein Spieler lässt sich zurückstellen',
+  F.schreib.some(x => x.p === 'kampf/baender/anna' && x.v === 2), F.schreib.map(x => x.p));
+chk('und zwar neben der Figur, nicht in ihr',
+  !F.schreib.some(x => x.p.indexOf('figuren/') === 0), F.schreib.map(x => x.p));
+/* Erst den Stand zurueckspielen, wie Firebase es taete - sonst steht sie
+   noch auf Band 0 und "zurueckstellen" waere gar keine Aenderung. */
+F.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  n1: { name: 'Nah-Mann', parade: 4, robustheit: 5, kaempfen: 2, extra: true, band: 0 } },
+  baender: { anna: 2 }, seiten: { anna: 'feind' } });
+chk('die Abweichung wirkt', F.ctx.module.exports.kampfFinde('p:anna').band === 2 &&
+  F.ctx.module.exports.kampfFinde('p:anna').seite === 'feind',
+  F.ctx.module.exports.kampfFinde('p:anna'));
+F.schreib.length = 0;
+F.ctx.module.exports.tokenZiehen('p:anna');
+F.ctx.module.exports.bandFallen('held');
+chk('und wieder zurück auf die eigene Seite',
+  F.schreib.some(x => x.p === 'kampf/seiten/anna' && x.v === null) &&
+  F.schreib.some(x => x.p === 'kampf/baender/anna' && x.v === null), F.schreib.map(x => x.p));
+chk('und es steht im Log',
+  F.schreib.some(x => x.p === 'kampf/log' && (x.v.t + '').indexOf('eurer Seite') > 0),
+  F.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t));
+
+/* ---- Harwick steht bei den Spielern ----
+   Hendriks Vorgabe vom 15.10.2026. Ein NSC auf die eigene Seite zu ziehen
+   ist dieselbe Geste wie das Umstellen der Entfernung: auf ein Band. */
+F.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  hw: { name: 'James Harwick', parade: 6, robustheit: 6, kaempfen: 3,
+        extra: false, band: 2, seite: 'feind' } } });
+F.schreib.length = 0;
+F.ctx.module.exports.tokenZiehen('g:hw');
+F.ctx.module.exports.bandFallen('held');
+chk('ein NSC lässt sich auf die eigene Seite ziehen',
+  F.schreib.some(x => x.p === 'kampf/gegner/hw/seite' && x.v === 'held'),
+  F.schreib.map(x => x.p));
+chk('und steht dabei wieder vorn',
+  F.schreib.some(x => x.p === 'kampf/gegner/hw/band' && x.v === 0), F.schreib.map(x => x.p));
+chk('das Log sagt, dass er jetzt mitkämpft',
+  F.schreib.some(x => x.p === 'kampf/log' && (x.v.t + '').indexOf('eurer Seite') > 0),
+  F.schreib.filter(x => x.p === 'kampf/log').map(x => x.v.t));
+
+/* Die Entfernung ist der ABSTAND: Steht der Spieler selbst zurueck,
+   zaehlt das weiter entfernte der beiden Baender. */
+F.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  n1: { name: 'Nah-Mann', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 2,
+        fernwaffe: 'muskete', extra: true, band: 0 } }, baender: { dora: 2 } });
+F.nachId['fbNote'].textContent = '';
+F.schreib.length = 0;
+F.ctx.module.exports.angriffAnsagen('nah', 'g:n1', 'p:dora');
+chk('wer zurücksteht, ist nicht im Nahkampf erreichbar',
+  F.schreib.length === 0 && F.nachId['fbNote'].textContent.indexOf('zu weit weg') > 0,
+  F.nachId['fbNote'].textContent);
+F.schreib.length = 0;
+F.ctx.module.exports.angriffAnsagen('fern', 'g:n1', 'p:dora');
+const fernAnsage = F.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('geschossen wird mit dem Abzug des weiteren Bandes',
+  fernAnsage && fernAnsage.v.dist === 2 &&
+  fernAnsage.v.mod === RW.ZIELZAHL - 4 + K.bandMod(2),
+  fernAnsage && fernAnsage.v);
 
 /* ---- Verbündete ---- */
 F.schreib.length = 0;
