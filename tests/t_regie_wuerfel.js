@@ -761,6 +761,123 @@ chk('leeren räumt genau das Log weg',
 C.ctx.module.exports.setKampf({ runde: 1, gegner: gegner, reihe: aus.reihe });
 chk('ohne Einträge steht da auch nichts', ch().indexOf('Kampflog') < 0);
 
+/* ---- Die Aufstellung ----
+   Hendriks Vorgabe: zwei Parteien stehen sich gegenueber, Ziehen ist ein
+   Nahkampfangriff, Klick ein Fernkampfangriff - und die Gegner stehen in
+   drei Distanzen, statt dass bei jedem Schuss gefragt wird. */
+const F = bau();
+F.ctx.module.exports.setFiguren(JSON.parse(JSON.stringify(FIGUREN)));
+F.ctx.module.exports.setzeAnsicht('kampf');
+F.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  n1: { name: 'Nah-Mann', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 0,
+        extra: true, band: 0, angeschlagen: false, wunden: 0 },
+  f1: { name: 'Fern-Mann', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 3,
+        extra: true, band: 2, angeschlagen: false, wunden: 0 }
+} });
+const fh = () => F.nachId['inhalt']._html;
+
+chk('die drei Bänder stehen da',
+  fh().indexOf('data-band="2"') > 0 && fh().indexOf('data-band="1"') > 0 &&
+  fh().indexOf('data-band="0"') > 0);
+chk('und die eigene Seite darunter', fh().indexOf('data-band="held"') > 0);
+chk('das Nahband sagt, dass Nahkampf geht', fh().indexOf('Nahkampf möglich') > 0);
+chk('die anderen nennen ihren Abzug', fh().indexOf('-2 auf Schüsse') > 0 &&
+  fh().indexOf('-4 auf Schüsse') > 0);
+chk('jede Figur ist ein Chip', (fh().match(/data-tok="/g) || []).length === 6,
+  (fh().match(/data-tok="/g) || []).length);
+chk('Freund und Feind sind zu unterscheiden',
+  fh().indexOf('ktok freund') > 0 && fh().indexOf('ktok feind') > 0);
+chk('wer außer Gefecht liegt, lässt sich nicht ziehen',
+  fh().indexOf('raus" data-tok="p:cord"') > 0 ||
+  /class="ktok [^"]*raus"(?![^>]*draggable)/.test(fh()), 'cord ist ziehbar');
+
+/* ---- Ziehen = Nahkampf ---- */
+F.schreib.length = 0;
+F.ctx.module.exports.tokenZiehen('p:anna');
+F.ctx.module.exports.tokenFallen('g:n1');
+const nah = F.schreib.filter(x => x.p === 'figuren/anna/anfrage')[0];
+chk('Ziehen sagt einen Nahkampfangriff an', !!nah, F.schreib.map(x => x.p));
+chk('auf Kämpfen und ohne Distanzabzug',
+  nah && nah.v.wert === 'Kämpfen' && nah.v.mod === RW.ZIELZAHL - 4, nah && nah.v);
+chk('und er erfährt, auf wen', nah && nah.v.grund.indexOf('Nah-Mann') > 0);
+
+/* Auf einen, der weit weg steht, geht Nahkampf NICHT - das ist dieselbe
+   Regel wie im Original: Wer nicht angrenzt, kann nicht zuschlagen. */
+F.schreib.length = 0;
+F.nachId['fbNote'].textContent = '';
+F.ctx.module.exports.tokenZiehen('p:anna');
+F.ctx.module.exports.tokenFallen('g:f1');
+chk('auf Entfernung geht kein Nahkampf', F.schreib.length === 0, F.schreib.map(x => x.p));
+chk('und es steht da, warum',
+  F.nachId['fbNote'].textContent.indexOf('zu weit weg') > 0,
+  F.nachId['fbNote'].textContent);
+
+/* ---- Klick = Fernkampf ---- */
+F.schreib.length = 0;
+F.ctx.module.exports.tokenKlick('p:anna');      // waehlt
+F.ctx.module.exports.tokenKlick('g:f1');        // schiesst
+chk('Anna trägt keine Schusswaffe, also schießt sie nicht',
+  F.schreib.length === 0 && F.nachId['fbNote'].textContent.indexOf('keine Schusswaffe') > 0,
+  F.nachId['fbNote'].textContent);
+
+/* Dora traegt Pistole UND hat null Ladungen - die Munitionsregel greift. */
+F.schreib.length = 0;
+F.ctx.module.exports.tokenKlick('p:dora');
+F.ctx.module.exports.tokenKlick('g:f1');
+chk('ohne Pulver auch nicht',
+  F.schreib.length === 0 && F.nachId['fbNote'].textContent.indexOf('kein Pulver') > 0,
+  F.nachId['fbNote'].textContent);
+
+/* Mit Pulver geht es - und der Abzug kommt aus dem Band. */
+const mitPulver = JSON.parse(JSON.stringify(FIGUREN));
+mitPulver.dora.ladungen = 5;
+F.ctx.module.exports.setFiguren(mitPulver);
+F.schreib.length = 0;
+F.ctx.module.exports.tokenKlick('p:dora');
+F.ctx.module.exports.tokenKlick('g:f1');
+const schuss = F.schreib.filter(x => x.p === 'figuren/dora/anfrage')[0];
+chk('mit Pulver wird geschossen', !!schuss, F.schreib.map(x => x.p));
+chk('auf Schießen', schuss && schuss.v.wert === 'Schießen', schuss && schuss.v);
+/* Fern-Mann steht im dritten Band: -4 obendrauf. */
+chk('mit dem Abzug des Bandes',
+  schuss && schuss.v.mod === RW.ZIELZAHL - 4 + K.bandMod(2),
+  { mod: schuss && schuss.v.mod, erwartet: RW.ZIELZAHL - 4 + K.bandMod(2) });
+chk('und das Band steht in der Bitte', schuss && schuss.v.grund.indexOf('Fern') > 0,
+  schuss && schuss.v.grund);
+
+/* ---- Umstellen ---- */
+F.schreib.length = 0;
+F.ctx.module.exports.tokenZiehen('g:f1');
+F.ctx.module.exports.bandFallen('0');
+chk('einen Gegner auf ein Band ziehen stellt ihn um',
+  F.schreib.some(x => x.p === 'kampf/gegner/f1/band' && x.v === 0),
+  F.schreib.map(x => x.p));
+chk('und es steht im Log', F.schreib.some(x => x.p === 'kampf/log'));
+F.schreib.length = 0;
+F.ctx.module.exports.tokenZiehen('p:anna');
+F.ctx.module.exports.bandFallen('2');
+chk('ein Spieler lässt sich nicht umstellen', F.schreib.length === 0, F.schreib.map(x => x.p));
+
+/* ---- Verbündete ---- */
+F.schreib.length = 0;
+F.ctx.module.exports.seiteWechseln('n1');
+chk('ein Gegner kann die Seite wechseln',
+  F.schreib.some(x => x.p === 'kampf/gegner/n1/seite' && x.v === 'held'),
+  F.schreib.map(x => x.p));
+F.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  n1: { name: 'Cormac', parade: 6, robustheit: 6, kaempfen: 4, extra: false,
+        band: 0, seite: 'held' },
+  f1: { name: 'Fern-Mann', parade: 4, robustheit: 5, kaempfen: 2, band: 0 } } });
+chk('und steht dann auf der eigenen Seite',
+  fh().split('data-band="held"')[1].indexOf('Cormac') > 0, 'Cormac steht falsch');
+F.schreib.length = 0;
+F.nachId['fbNote'].textContent = '';
+F.ctx.module.exports.tokenZiehen('p:anna');
+F.ctx.module.exports.tokenFallen('g:n1');
+chk('auf die eigene Seite wird nicht eingeschlagen',
+  F.schreib.length === 0 && F.nachId['fbNote'].textContent.indexOf('derselben Seite') > 0,
+  F.nachId['fbNote'].textContent);
+
 console.log('');
 console.log('=== DIE WARENLISTE UND IHRE SUCHE ===');
 /* Hendriks Vorgabe vom 15.10.2026: eine Liste ALLER Gegenstaende mit

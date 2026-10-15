@@ -92,6 +92,28 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .kansage b{color:var(--gold);font-weight:400}
 .kansage .wirk{margin-top:.4rem;font-size:.9rem;color:var(--ink)}
 .kleer{color:var(--gray);font-style:italic;font-size:.8rem;padding:1rem 0;line-height:1.6}
+/* Die Aufstellung: drei Baender fuer die Gegner, darunter die eigene
+   Seite. Wo einer steht, IST die Entfernung. */
+.kfeld{margin:.6rem 0 1rem}
+.kband{display:flex;align-items:center;gap:.6rem;min-height:3.2rem;padding:.35rem .5rem;
+  border:1px dashed rgba(201,168,76,.22);border-radius:6px;margin-bottom:.35rem;flex-wrap:wrap}
+.kband.ziel{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.kband>.bl{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--gray);
+  text-transform:uppercase;min-width:5.5rem}
+.kband>.bl small{display:block;font-size:.58rem;opacity:.8}
+.kmitte{border-top:1px solid var(--border);margin:.6rem 0}
+.ktok{display:flex;flex-direction:column;gap:.1rem;border:1px solid var(--line);
+  border-radius:6px;padding:.3rem .5rem;background:var(--card);cursor:grab;min-width:7rem}
+.ktok:active{cursor:grabbing}
+.ktok .tn{font-size:.8rem}
+.ktok .tw{font-size:.62rem;color:var(--gray);font-family:'Cinzel',serif}
+.ktok .tz{display:flex;gap:.2rem;flex-wrap:wrap;margin-top:.1rem}
+.ktok.gewaehlt{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.ktok.ziel{border-color:#4caf7d}
+.ktok.raus{opacity:.35;cursor:default}
+.ktok.feind{border-left:3px solid #c05555}
+.ktok.freund{border-left:3px solid var(--teal)}
+.khinw{font-size:.68rem;color:var(--gray);font-style:italic;margin-bottom:.4rem;line-height:1.5}
 .klog{margin-top:1rem;border-top:1px solid var(--border);padding-top:.6rem}
 .klog>h3{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;color:var(--gray);
   text-transform:uppercase;margin-bottom:.35rem;display:flex;gap:.6rem;align-items:baseline}
@@ -790,6 +812,8 @@ let kampf = {};            // Spiegel von sitzungen/{sid}/stand/kampf
 let kampfAngreifer = '';
 let kampfZiel = '';
 let kampfSchaden = '';
+let kampfGewaehlt = '';    // angeklickter Angreifer, fuer den Fernkampf
+let kampfZieht = '';       // was gerade gezogen wird
 
 function kampfRef(teil) {
   return db.ref('kampf' + (teil ? '/' + teil : ''));
@@ -807,7 +831,8 @@ function kampfSpieler() {
       name: (figuren[pid] || {}).name || pid,
       parade: parade(f), robustheit: robustheit(f),
       angeschlagen: !!f.angeschlagen, wunden: f.wunden || 0,
-      raus: ausserGefecht(f), extra: false, figur: f
+      raus: ausserGefecht(f), extra: false, figur: f,
+      seite: 'held', band: 0
     };
   });
 }
@@ -821,7 +846,12 @@ function kampfGegner() {
       parade: x.parade || 4, robustheit: x.robustheit || 4,
       angeschlagen: !!x.angeschlagen, wunden: x.wunden || 0,
       raus: !!x.raus, extra: x.extra !== false, vorlage: x.vorlage || '',
-      kaempfen: x.kaempfen || 0
+      kaempfen: x.kaempfen || 0, schiessen: x.schiessen || 0,
+      band: Math.max(0, Math.min(2, x.band || 0)),
+      /* Ein angelegter NSC ist zunaechst Feind. Umstellen macht ihn zum
+         Verbuendeten - damit braucht es keinen dritten Typ, und Cormac
+         kann im Finale mitkaempfen, ohne eine Spielerfigur zu sein. */
+      seite: x.seite === 'held' ? 'held' : 'feind'
     };
   });
 }
@@ -874,6 +904,11 @@ function gegnerAnlegen() {
          traegt. In js/npcs.js steht es NICHT an den Daten - nur die
          Herkunft aus der Mannschaft sagt es. */
       extra: v.extra,
+      /* Wo er steht, ist die Entfernung. Neue Gegner stehen im Nahband:
+         In dieser Kampagne faengt fast jeder Kampf als Enterkampf an,
+         und wer Abstand will, zieht sie zurueck. */
+      band: 0,
+      schiessen: blatt.fert['Schießen'] || 0,
       angeschlagen: false, wunden: 0, raus: false
     };
   }
@@ -940,16 +975,30 @@ function kampfBeenden() {
    Der Zielwert ist die PARADE des Ziels. Unser Probensystem rechnet
    gegen 4, also wird die Differenz zum Modifikator - auch wenn sie
    ungerade ist. Genau das ging mit den Erschwernis-Knoepfen nicht. */
-function angriffAnsagen() {
+function angriffAnsagen(art, vonId, zielId) {
   if (!db) return;
-  const a = kampfFinde(kampfAngreifer), z = kampfFinde(kampfZiel);
+  const a = kampfFinde(vonId || kampfAngreifer), z = kampfFinde(zielId || kampfZiel);
   if (!a || !z) { warnung('Erst Angreifer und Ziel wählen.'); return; }
   if (a.id === z.id) { warnung('Niemand greift sich selbst an.'); return; }
-  const mod = angriffsMod(z.parade);
+  if (a.raus || z.raus) { warnung('Wer außer Gefecht liegt, kämpft nicht mehr.'); return; }
+  if (a.seite === z.seite) { warnung('Die beiden stehen auf derselben Seite.'); return; }
+
+  /* Die Distanz kommt aus der Aufstellung: Nahkampf nur im ersten Band,
+     und der Fernkampf-Abzug ist der des Bandes. */
+  const dist = (z.typ === 'gegner' ? z.band : a.band) || 0;
+  const fern = (art === 'fern');
+  if (!fern && !nahkampfMoeglich(dist)) {
+    warnung(z.name + ' steht zu weit weg für einen Nahkampfangriff — erst heranziehen.');
+    return;
+  }
+  const kann = fern ? fernMoeglich(a) : { ok: true, wert: 'Kämpfen' };
+  if (!kann.ok) { warnung(kann.grund + '.'); return; }
+  const mod = angriffsMod(z.parade, fern ? bandMod(dist) : 0);
   const ansage = {
     wer: a.id, werName: a.name, ziel: z.id, zielName: z.name,
     parade: z.parade, robustheit: z.robustheit, mod: mod,
-    wert: 'Kämpfen', ts: Date.now(), stand: 'wartet'
+    wert: kann.wert, art: fern ? 'fern' : 'nah', band: dist,
+    ts: Date.now(), stand: 'wartet'
   };
 
   if (a.typ === 'spieler') {
@@ -957,15 +1006,19 @@ function angriffAnsagen() {
        raeumt sie selbst weg, sobald er gewuerfelt hat. */
     const paket = {};
     paket['figuren/' + a.pid + '/anfrage'] =
-      { wert: 'Kämpfen', mod: mod, von: 'Spielleitung',
-        grund: 'Angriff auf ' + z.name, ts: Date.now() };
+      { wert: kann.wert, mod: mod, von: 'Spielleitung',
+        grund: (fern ? 'Schuss auf ' : 'Angriff auf ') + z.name +
+          (fern ? ' · ' + band(dist).n : ''), ts: Date.now() };
     db.ref().update(paket).catch(function (e) { warnung('Die Bitte ging nicht durch: ' + e); });
     kampfRef('ansage').set(ansage);
-    kampfLog(a.name + ' greift ' + z.name + ' an — Kämpfen, nötig ' + z.parade + '.', 'ansage');
+    kampfLog(a.name + (fern ? ' schießt auf ' : ' greift ') + z.name +
+      (fern ? '' : ' an') + ' — ' + kann.wert + ', nötig ' + (ZIELZAHL - mod) +
+      (fern ? ' (' + band(dist).n + ')' : '') + '.', 'ansage');
   } else {
     /* Gegner wuerfeln wir selbst - und zwar sofort. Ein NSC wartet auf
        niemanden. */
-    const r = wurf(a.kaempfen || 0, { mod: mod, wild: !a.extra });
+    const r = wurf(fern ? (a.schiessen || 0) : (a.kaempfen || 0),
+      { mod: mod, wild: !a.extra });
     ansage.stand = 'gewuerfelt';
     ansage.band = r.band;
     ansage.roh = r.roh;
@@ -1058,6 +1111,27 @@ function kampfLogZeilen() {
     .sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
 }
 
+/* Kann der Angreifer ueberhaupt schiessen? "Wenn moeglich" heisst hier
+   konkret: eine Fernkampfwaffe in der Hand UND Pulver dafuer - das ist die
+   Munitionsregel aus Bibel 4.5, die bisher nur im Bogen stand. Geht es
+   nicht, sagt die Oberflaeche WARUM, statt stumm zu bleiben. */
+function fernMoeglich(t) {
+  if (!t) return { ok: false, grund: 'niemand gewählt' };
+  if (t.typ === 'gegner') {
+    return t.schiessen > 0
+      ? { ok: true, wert: 'Schießen', stufe: t.schiessen }
+      : { ok: false, grund: t.name + ' hat keine Schusswaffe' };
+  }
+  const waffen = ((t.figur && t.figur.ausr) || []).map(function (id) { return AUSR_BY_ID[id]; })
+    .filter(function (a) { return a && a.art === 'Fernkampf'; });
+  if (!waffen.length) return { ok: false, grund: t.name + ' trägt keine Schusswaffe' };
+  if (waffen.some(function (a) { return a.schuss; }) && !((t.figur && t.figur.ladungen) || 0)) {
+    return { ok: false, grund: t.name + ' hat kein Pulver mehr' };
+  }
+  return { ok: true, wert: 'Schießen', stufe: (t.figur && t.figur.fert['Schießen']) || 0,
+           waffe: waffen[0] };
+}
+
 /* Womit schlägt er zu? Die beste getragene Nahkampfwaffe - und wenn er
    keine hat, die bloßen Fäuste. Die Spielleitung kann es überstimmen,
    aber in neun von zehn Fällen ist es genau das. */
@@ -1140,6 +1214,9 @@ function kampfReiheHtml() {
           ? '<button class="mini" data-gwunde="' + esc(t.gid) + '|1">+ Wunde</button>' +
             '<button class="mini" data-gwunde="' + esc(t.gid) + '|-1">−</button>' +
             '<button class="mini" data-gang="' + esc(t.gid) + '">angeschlagen</button>' +
+            '<button class="mini" data-gseite="' + esc(t.gid) + '" title="' +
+              (t.seite === 'held' ? 'kämpft auf eurer Seite' : 'kämpft gegen euch') +
+              '">' + (t.seite === 'held' ? '⚓' : '⚔') + '</button>' +
             '<button class="mini" data-gweg="' + esc(t.gid) + '">✕</button>'
           : '') +
       '</span></div>';
@@ -1226,10 +1303,119 @@ function renderKampf() {
       '<button class="mini" data-kangriff="1">Angriff ansagen</button>' +
     '</div>' +
     kampfAnsageHtml() +
+    kampfFeldHtml() +
     kampfReiheHtml() +
     kampfLogHtml() +
     (alle.length ? '' : '<div class="kleer">Niemand im Kampf. Leg oben Gegner an — ' +
       'die Spieler kommen von selbst dazu, sobald sie eine Figur haben.</div>');
+}
+
+
+/* ---------- Die Aufstellung ----------
+   Zwei Seiten, drei Distanzen. Die Geste IST die Ansage:
+     ziehen  - Angreifer auf das Ziel = Nahkampf (nur im Nahband)
+     klicken - Angreifer, dann Ziel  = Fernkampf, wenn moeglich
+   Einen Gegner auf ein anderes Band zu ziehen stellt ihn um; das ist
+   die einzige "Bewegung", die es hier gibt - mehr braucht es ohne Brett
+   auch nicht.
+
+   Die Auswahlfelder bleiben daneben stehen: als Rueckfall und weil
+   Ziehen auf einem Tablet fummelig ist. */
+function kampfToken(t) {
+  const gew = (kampfGewaehlt === t.id);
+  const kann = gew ? null : fernMoeglich(kampfFinde(kampfGewaehlt));
+  const zielbar = !!kampfGewaehlt && !gew && !t.raus &&
+    t.seite !== (kampfFinde(kampfGewaehlt) || {}).seite;
+  const werte = 'P' + t.parade + ' · R' + t.robustheit +
+    (t.typ === 'gegner' ? (t.extra ? ' · Statist' : ' · Wild Card') : '');
+  return '<div class="ktok ' + (t.seite === 'held' ? 'freund' : 'feind') +
+    (gew ? ' gewaehlt' : '') + (zielbar ? ' ziel' : '') + (t.raus ? ' raus' : '') + '"' +
+    (t.raus ? '' : ' draggable="true"') +
+    ' data-tok="' + esc(t.id) + '" title="' +
+    (zielbar ? (kann && kann.ok ? 'Klick: Fernkampf · Ziehen: Nahkampf'
+                                : esc(kann ? kann.grund : '') + ' — Ziehen geht trotzdem')
+             : 'Klicken wählt ihn als Angreifer, Ziehen greift an') + '">' +
+    '<span class="tn">' + esc(t.name) + '</span>' +
+    '<span class="tw">' + werte + '</span>' +
+    '<span class="tz">' + kampfZustandChips(t) + '</span>' +
+    '</div>';
+}
+
+function kampfFeldHtml() {
+  const alle = kampfAlle();
+  if (!alle.length) return '';
+  const feinde = alle.filter(function (t) { return t.seite === 'feind'; });
+  const helden = alle.filter(function (t) { return t.seite === 'held'; });
+
+  /* Von fern nach nah, damit die Gegner von oben herankommen. */
+  const baender = [2, 1, 0].map(function (b) {
+    const drin = feinde.filter(function (t) { return (t.band || 0) === b; });
+    return '<div class="kband" data-band="' + b + '">' +
+      '<span class="bl">' + esc(FERN_BAENDER[b].n) +
+        '<small>' + (b === 0 ? 'Nahkampf möglich' :
+          (FERN_BAENDER[b].mod + ' auf Schüsse')) + '</small></span>' +
+      drin.map(kampfToken).join('') + '</div>';
+  }).join('');
+
+  return '<div class="kfeld">' +
+    '<div class="khinw">Ziehen = Nahkampf · Klick auf den Angreifer, dann auf das Ziel = ' +
+      'Fernkampf. Einen Gegner auf ein anderes Band ziehen stellt ihn um.' +
+      (kampfGewaehlt ? ' <b>' + esc((kampfFinde(kampfGewaehlt) || {}).name || '') +
+        '</b> ist gewählt — Klick auf ein Ziel schießt, nochmal auf ihn hebt die Wahl auf.' : '') +
+      '</div>' +
+    baender +
+    '<div class="kmitte"></div>' +
+    '<div class="kband" data-band="held">' +
+      '<span class="bl">Deine Seite<small>Spieler und Verbündete</small></span>' +
+      helden.map(kampfToken).join('') + '</div>' +
+    '</div>';
+}
+
+/* ---------- Die beiden Gesten ---------- */
+function tokenKlick(id) {
+  const t = kampfFinde(id);
+  if (!t || t.raus) return;
+  if (!kampfGewaehlt || kampfGewaehlt === id) {
+    kampfGewaehlt = (kampfGewaehlt === id) ? '' : id;
+    zeichneKampf();
+    return;
+  }
+  /* Zweiter Klick auf ein Ziel: Fernkampf, wenn moeglich. */
+  angriffAnsagen('fern', kampfGewaehlt, id);
+  kampfGewaehlt = '';
+  zeichneKampf();
+}
+
+function tokenZiehen(id) { kampfZieht = id; }
+
+function tokenFallen(zielId) {
+  const von = kampfZieht;
+  kampfZieht = '';
+  if (!von || von === zielId) return;
+  angriffAnsagen('nah', von, zielId);
+}
+
+/* Auf ein Band fallen lassen heisst: dort hinstellen. Nur Gegner - ein
+   Spieler steht immer auf seiner Seite. */
+function bandFallen(b) {
+  const von = kampfZieht;
+  kampfZieht = '';
+  const t = kampfFinde(von);
+  if (!t || t.typ !== 'gegner' || !db) return;
+  const neu = Math.max(0, Math.min(2, parseInt(b, 10) || 0));
+  if (neu === t.band) return;
+  kampfRef('gegner/' + t.gid + '/band').set(neu);
+  kampfLog(t.name + ' steht jetzt auf ' + band(neu).n + '.', 'auf');
+}
+
+/* Die Seite wechseln macht aus einem Gegner einen Verbuendeten. */
+function seiteWechseln(gid) {
+  const g = (kampf.gegner || {})[gid];
+  if (!g || !db) return;
+  const neu = (g.seite === 'held') ? 'feind' : 'held';
+  kampfRef('gegner/' + gid + '/seite').set(neu);
+  kampfLog((g.name || gid) + ' kämpft jetzt ' +
+    (neu === 'held' ? 'auf eurer Seite' : 'gegen euch') + '.', 'auf');
 }
 
 function kampfLogHtml() {
@@ -1581,7 +1767,7 @@ document.addEventListener('click', function (ev) {
     '[data-abbruch],[data-weg],[data-komm],[data-sichern],[data-kabbruch],' +
     '[data-geben],[data-muenzgeben],[data-nehmen],[data-wareweg],[data-wgeben],' +
     '[data-kausteilen],[data-kneu],[data-kende],[data-kangriff],[data-kgilt],' +
-    '[data-kschaden],[data-klogweg],' +
+    '[data-kschaden],[data-klogweg],[data-gseite],[data-tok],' +
     '[data-kweg],[data-gwunde],[data-gang],[data-gweg],[data-dran]');
   if (!t) return;
 
@@ -1621,6 +1807,8 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.kgilt !== undefined)      { wirkungGilt(); return; }
   if (t.dataset.kweg !== undefined)       { ansageWeg(); return; }
   if (t.dataset.klogweg !== undefined)    { kampfLogLeeren(); return; }
+  if (t.dataset.gseite !== undefined)     { seiteWechseln(t.dataset.gseite); return; }
+  if (t.dataset.tok !== undefined)        { tokenKlick(t.dataset.tok); return; }
   if (t.dataset.gweg !== undefined)       { gegnerWeg(t.dataset.gweg); return; }
   if (t.dataset.gang !== undefined) {
     const g = (kampf.gegner || {})[t.dataset.gang] || {};
@@ -1657,6 +1845,29 @@ document.addEventListener('click', function (ev) {
   if (t.dataset.kabbruch) { kommentiert = null; render(); return; }
 });
 
+/* Ziehen und Fallenlassen, ebenfalls per Delegation: Die Chips werden bei
+   jeder Aenderung neu gezeichnet, einzelne Lauscher waeren nach dem ersten
+   Zug tot. */
+document.addEventListener('dragstart', function (ev) {
+  const t = ev.target && ev.target.closest ? ev.target.closest('[data-tok]') : null;
+  if (!t) return;
+  tokenZiehen(t.dataset.tok);
+  if (ev.dataTransfer) { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', t.dataset.tok); }
+});
+document.addEventListener('dragover', function (ev) {
+  if (!ev.target || !ev.target.closest) return;
+  if (ev.target.closest('[data-tok]') || ev.target.closest('[data-band]')) ev.preventDefault();
+});
+document.addEventListener('drop', function (ev) {
+  if (!ev.target || !ev.target.closest) return;
+  const tok = ev.target.closest('[data-tok]');
+  const bnd = ev.target.closest('[data-band]');
+  /* Erst das Ziel, dann das Band: Wer auf eine Figur faellt, greift sie an,
+     auch wenn die Figur in einem Band steht. */
+  if (tok) { ev.preventDefault(); tokenFallen(tok.dataset.tok); return; }
+  if (bnd && bnd.dataset.band !== 'held') { ev.preventDefault(); bandFallen(bnd.dataset.band); }
+});
+
 // Enter sichert, Escape bricht ab - wer am Tisch tippt, greift nicht zur Maus.
 document.addEventListener('keydown', function (ev) {
   if (!ev.target || ev.target.id !== 'kommFeld') return;
@@ -1690,6 +1901,8 @@ if (typeof module !== 'undefined' && module.exports) {
     angriffAnsagen, ansageErgebnis, wirkungGilt, ansageWeg, kampfWahl,
     schadenAnfordern, schadenErgebnis, waffeVon,
     kampfLog, kampfLogZeilen, kampfLogLeeren,
+    kampfFeldHtml, kampfToken, tokenKlick, tokenZiehen, tokenFallen,
+    bandFallen, seiteWechseln, fernMoeglich,
     kampfAlle, kampfFinde, schadenEintragen,
     setKampf: function (k) { kampf = k; render(); },
     kampfStand: function () { return kampf; },

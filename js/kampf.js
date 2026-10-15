@@ -173,11 +173,31 @@ function angriffsMod(parade, zusatz) {
   return (typeof ZIELZAHL === 'number' ? ZIELZAHL : 4) - p + (Math.round(Number(zusatz) || 0));
 }
 
-/* Fernkampf: Zielwert 4 auf kurze Distanz, -2 auf mittlere, -4 auf
-   lange. Unsere Waffen tragen EINE Reichweitenzahl statt drei
-   Baendern - das kurze Band ist diese Zahl, das mittlere das
-   Doppelte, das lange das Vierfache. Das ist der Umrechnungs-
-   schluessel des Originals und keine eigene Erfindung. */
+/* ---------- Die drei Distanzen ----------
+   Savage Worlds kennt kurz / mittel / lang mit 0 / -2 / -4. Auf einem
+   Brett ergibt sich das aus Feldern; wir haben keins. Statt bei jedem
+   Schuss zu fragen, STEHEN die Gegner in einem der drei Baender - die
+   Aufstellung ist damit die Entfernung, und sie umzustellen ist selbst
+   eine Handlung der Spielleitung.
+
+   Nahkampf geht nur im ersten Band. Das ist keine Willkuer, sondern
+   dieselbe Regel: Wer nicht angrenzt, kann nicht zuschlagen. */
+const FERN_BAENDER = [
+  { id: 0, n: 'Nah',    mod: 0,  nahkampf: true },
+  { id: 1, n: 'Mittel', mod: -2, nahkampf: false },
+  { id: 2, n: 'Fern',   mod: -4, nahkampf: false }
+];
+function band(i) {
+  return FERN_BAENDER[Math.max(0, Math.min(FERN_BAENDER.length - 1, Math.round(Number(i) || 0)))];
+}
+function bandMod(i) { return band(i).mod; }
+function nahkampfMoeglich(i) { return band(i).nahkampf; }
+
+/* Fernkampf nach Waffenreichweite - fuer den Fall, dass doch einmal in
+   Feldern gerechnet wird (etwa in der Arena). Unsere Waffen tragen EINE
+   Reichweitenzahl statt drei Baendern: Das kurze Band ist diese Zahl, das
+   mittlere das Doppelte, das lange das Vierfache. Das ist der
+   Umrechnungsschluessel des Originals und keine eigene Erfindung. */
 function fernkampfMod(reichweite, entfernung) {
   const r = Math.max(1, Math.round(Number(reichweite) || 1));
   const e = Math.max(0, Math.round(Number(entfernung) || 0));
@@ -265,6 +285,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     KAMPF_REGELN, KARTEN_FARBEN, KARTEN_WERTE, JOKER_WERT, JOKER_BONUS,
     neuesDeck, mischen, kartenText, kartenVergleich, austeilen, jokerBonus,
+    FERN_BAENDER, band, bandMod, nahkampfMoeglich,
     angriffsMod, fernkampfMod, wirkung, schadensWuerfel
   };
 }

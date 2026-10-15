@@ -126,6 +126,45 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 12) — Die Aufstellung: ziehen schlägt, klicken schießt
+- **Hendriks Wunsch:** „Eine visuelle Kampfmöglichkeit, in der beide Parteien sich
+  gegenüberstehen — ich ziehe den Spieler auf sein Ziel für einen Nahkampfangriff, und mit
+  Klick wird ein Fernkampfangriff ausgeführt, wenn möglich.“ Dazu seine Lösung für die
+  Entfernung: „Gegner stehen einfach immer in 3 Distanzen zueinander.“
+- **Das ist NICHT die Arena, und der Unterschied ist der Punkt.** Die Arena ist ein Brett:
+  16×16 Felder, Bewegung, Reichweiten in Feldern, eigener W100-Kern. Hier gibt es **keine
+  Felder und keine Bewegung** — zwei Seiten, drei Bänder, und die **Geste ist die Ansage**.
+  Eine Aufstellung, kein Schlachtfeld.
+- **Und es wirft nichts weg:** Regelkern, Kampfstand, Bitte an den Spieler, Protokoll-Aufgreifen
+  und Log bleiben unverändert. Ersetzt wurden **die zwei Auswahlfelder** — die daneben stehen
+  bleiben, als Rückfall und weil Ziehen auf einem Tablet fummelig ist.
+- **Drei Distanzen statt einer Rückfrage je Schuss** (`FERN_BAENDER` in `js/kampf.js`):
+  **Nah 0 · Mittel −2 · Fern −4**. Wo ein Gegner **steht**, ist die Entfernung — damit schreibt
+  die Aufstellung die Regel, statt sie zu erfragen.
+  - **Nahkampf geht nur im ersten Band.** Das ist keine Willkür, sondern dieselbe Regel: Wer
+    nicht angrenzt, kann nicht zuschlagen. Der Versuch wird abgelehnt und **sagt, warum**.
+  - Einen Gegner auf ein anderes Band zu ziehen stellt ihn um — die einzige „Bewegung“, die es
+    hier gibt, und ohne Brett braucht es auch nicht mehr.
+  - Neue Gegner stehen im **Nahband**: In dieser Kampagne fängt fast jeder Kampf als Enterkampf
+    an, und wer Abstand will, zieht sie zurück.
+- **„Wenn möglich" ist ausbuchstabiert.** Ein Klick schießt nur, wenn der Angreifer eine
+  Fernkampfwaffe trägt **und Pulver dafür hat** — das ist die Munitionsregel aus Bibel 4.5, die
+  bisher nur im Bogen stand. Geht es nicht, steht da **warum** („trägt keine Schusswaffe“,
+  „hat kein Pulver mehr“) statt eines Klicks, der nichts tut. Bei NSC entscheidet ihr
+  Schießen-Wert; **Ladungen zählt bei ihnen niemand** — das erzählt die Spielleitung.
+- **Verbündete ohne dritten Typ.** Jeder angelegte NSC ist zunächst Feind und lässt sich per
+  Knopf auf die eigene Seite stellen. Damit können Cormac und Wat im Finale mitkämpfen, ohne
+  Spielerfiguren zu sein — und ein Angriff auf die **eigene** Seite wird abgelehnt.
+- **Getestet: 266 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (1266 über elf Skripte,
+  24 neue). Geprüft werden die **Funktionen hinter den Gesten**, nicht die Geste selbst:
+  Ziehen sagt den richtigen Angriff an, auf Entfernung wird er **abgelehnt mit Begründung**,
+  ohne Schusswaffe und ohne Pulver wird **nicht** geschossen, mit Pulver schon — und dann mit
+  dem **Abzug des Bandes**. Dazu: Ein Spieler lässt sich nicht umstellen, und auf die eigene
+  Seite wird nicht eingeschlagen.
+- **Ehrlicher Vorbehalt:** Ob sich das **Ziehen** am Tisch gut anfühlt, kann keine dieser
+  Prüfungen sagen — das sieht nur Hendrik im Browser. Deshalb bewusst klein gehalten: erst die
+  beiden Gesten, dann schauen, was fehlt.
+
 ### 2026-10-15 (Fortsetzung 11) — Die Bitte sagt, worum es geht; der Schaden kommt von selbst
 - **Drei Nachträge Hendriks nach dem ersten Blick auf den Kampfmodus:** In der Bitte soll
   stehen, **wer wen angreift**; bei einem Treffer soll die **Aufforderung zum Schadenswurf**
