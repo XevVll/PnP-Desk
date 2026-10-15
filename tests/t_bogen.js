@@ -315,33 +315,56 @@ const SZENEN_DATEIEN = ['scenes', 'golden_lion_scenes', 'schatzinsel_scenes',
   'spanischer_hafen_scenes', 'schmugglernest_scenes', 'artefakthandel_scenes',
   'riffinsel_scenes', 'grabesinsel_scenes', 'abspann_scenes', 'arena_scenes'];
 
-const ladenCode = 'let aktuelleSzene = null, szeneGehoert = false;\n' +
-  schnitt('function alleSzenen()', 'function renderTags()');
+/* Gelesen wird direkt aus den Szenendateien. Bis zum 15.10.2026 lieh sich
+   dieser Test zwei Helfer aus heldenbrief.html - die sind mit dem
+   Einkaufs-Hinweis entfallen. Richtig so: Der Laden gehoert den
+   Szenendaten, nicht einer Seite, die ihn zufaellig anzeigt. */
 const lctx = { Object, Array, String, console };
 vm.createContext(lctx);
 SZENEN_DATEIEN.forEach(function (d) {
   vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/' + d + '.js'), 'utf8'), lctx);
 });
-vm.runInContext(ladenCode, lctx);
+const CONTAINER = ['SCENES', 'GOLDEN_LION_SCENES', 'SCHATZINSEL_SCENES',
+  'SPANISCHER_HAFEN_SCENES', 'SCHMUGGLERNEST_SCENES', 'ARTEFAKTHANDEL_SCENES',
+  'RIFFINSEL_SCENES', 'GRABESINSEL_SCENES', 'ABSPANN_SCENES', 'ARENA_SCENES'];
+const ALLE_SZENEN = {};
+CONTAINER.forEach(function (n) {
+  const c = vm.runInContext('typeof ' + n + ' !== "undefined" ? ' + n + ' : null', lctx);
+  if (c) Object.keys(c).forEach(function (id) { ALLE_SZENEN[id] = c[id]; });
+});
+function laedenDerSzene(id) {
+  const sz = ALLE_SZENEN[id];
+  if (!sz || !sz.markers) return [];
+  return sz.markers.filter(function (m) { return m && m.laden; })
+                   .map(function (m) { return m.laden; });
+}
+/* "laden" war bis zum 14.10.2026 ein blosser Name und ist seitdem ein
+   Objekt. Wer ihn anzeigt, muss beides vertragen. */
+function ladenName(l) {
+  if (!l) return 'Laden';
+  return (typeof l === 'string') ? l : (l.name || 'Laden');
+}
+chk('alle Szenendateien sind gelesen', Object.keys(ALLE_SZENEN).length >= 13,
+  Object.keys(ALLE_SZENEN).length);
 
 const alleLaeden = [];
-Object.keys(lctx.alleSzenen()).forEach(function (id) {
-  lctx.laedenDerSzene(id).forEach(function (l) { alleLaeden.push({ szene: id, l: l }); });
+Object.keys(ALLE_SZENEN).forEach(function (id) {
+  laedenDerSzene(id).forEach(function (l) { alleLaeden.push({ szene: id, l: l }); });
 });
 chk('es gibt überhaupt Händler', alleLaeden.length > 0, alleLaeden.length);
-chk('Grimsgate hat zwei', lctx.laedenDerSzene('1.1').length === 2);
-chk('der spanische Hafen einen', lctx.laedenDerSzene('7.1').length === 1);
-chk('das Schmugglernest einen', lctx.laedenDerSzene('8.1').length === 1);
-chk('auf dem Schiff keinen', lctx.laedenDerSzene('2.1').length === 0);
+chk('Grimsgate hat zwei', laedenDerSzene('1.1').length === 2);
+chk('der spanische Hafen einen', laedenDerSzene('7.1').length === 1);
+chk('das Schmugglernest einen', laedenDerSzene('8.1').length === 1);
+chk('auf dem Schiff keinen', laedenDerSzene('2.1').length === 0);
 /* Der Screenshot vom 15.10.2026 zeigte "[object Object]": Das Feld "laden"
    ist seit dem 14.10. ein Objekt, die Anzeige las es noch als Namen. */
 chk('jeder Laden hat einen Namen zum Anzeigen',
-  alleLaeden.every(function (x) { return lctx.ladenName(x.l) && lctx.ladenName(x.l).indexOf('[object') < 0; }),
-  alleLaeden.map(function (x) { return lctx.ladenName(x.l); }));
+  alleLaeden.every(function (x) { return ladenName(x.l) && ladenName(x.l).indexOf('[object') < 0; }),
+  alleLaeden.map(function (x) { return ladenName(x.l); }));
 chk('auch die alte Schreibweise als blosser Name',
-  lctx.ladenName('Alter Laden') === 'Alter Laden' && lctx.ladenName(null) === 'Laden');
-chk('auf der Schatzinsel keinen', lctx.laedenDerSzene('4.1').length === 0);
-chk('eine unbekannte Szene ergibt nichts', lctx.laedenDerSzene('99.9').length === 0);
+  ladenName('Alter Laden') === 'Alter Laden' && ladenName(null) === 'Laden');
+chk('auf der Schatzinsel keinen', laedenDerSzene('4.1').length === 0);
+chk('eine unbekannte Szene ergibt nichts', laedenDerSzene('99.9').length === 0);
 
 /* Waren liegen jetzt in Schubladen bzw. Staenden, nicht mehr flach. Fuer die
    Pruefungen flach ziehen - was WO liegt, wird darunter eigens geprueft. */
@@ -394,13 +417,13 @@ chk('keine Ware liegt zweimal im selben Laden', doppelt.length === 0, doppelt);
 chk('jedes Fach hat mindestens vier Zeichen Beschreibung oder keine',
   alleFaecher.every(function (f) { return !f.g.d || f.g.d.length > 4; }));
 chk('der Krämer hat mehrere Schubladen',
-  lctx.laedenDerSzene('1.1').filter(function (l) { return l.name.indexOf('Krämer') >= 0; })[0]
+  laedenDerSzene('1.1').filter(function (l) { return l.name.indexOf('Krämer') >= 0; })[0]
     .gruppen.length >= 4);
 
 /* Die Sortimente sollen sich unterscheiden - sonst waere die Trennung eine
    Behauptung. */
 function waren(szene, name) {
-  const l = lctx.laedenDerSzene(szene).filter(function (x) { return x.name.indexOf(name) >= 0; })[0];
+  const l = laedenDerSzene(szene).filter(function (x) { return x.name.indexOf(name) >= 0; })[0];
   return l ? alleWaren(l) : [];
 }
 const kraemer = waren('1.1', 'Krämer'), markt = waren('1.1', 'Markt');
@@ -498,7 +521,17 @@ chk('der Bogen wird im Voraus geladen, damit Käufe ankommen',
   KARTE.indexOf('setTimeout(bogenLaden') >= 0);
 chk('der Bogen bietet selbst keinen Katalog mehr',
   BOGEN.indexOf('onclick="kaufen(') < 0 && BOGEN.indexOf('function kaufen(') < 0);
-chk('sondern sagt, wo gekauft wird', BOGEN.indexOf('Eingekauft wird beim Händler') >= 0);
+/* Seit dem 15.10.2026 steht dort auch kein HINWEIS mehr (Hendriks
+   Vorgabe). Mit ihm sind die zehn Szenendateien entfallen, die der
+   Bogen allein dafuer geladen hat - rund 64 KB bei jedem Oeffnen. */
+chk('und auch keinen Hinweis darauf mehr',
+  BOGEN.indexOf('Eingekauft wird beim Händler') < 0 && BOGEN.indexOf('id="laden"') < 0);
+chk('die Szenendateien laedt er deshalb nicht mehr mit',
+  SZENEN_DATEIEN.every(function (d) { return BOGEN.indexOf('js/' + d + '.js') < 0; }),
+  SZENEN_DATEIEN.filter(function (d) { return BOGEN.indexOf('js/' + d + '.js') >= 0; }));
+chk('und kennt die Szene gar nicht mehr',
+  BOGEN.indexOf('laedenDerSzene') < 0 && BOGEN.indexOf('alleSzenen') < 0 &&
+  BOGEN.indexOf("ref('currentScene')") < 0);
 
 console.log('');
 console.log('=== WAS DIE SPIELLEITUNG ÜBERGIBT, KOMMT AN ===');

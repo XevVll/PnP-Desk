@@ -126,6 +126,35 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 5) — Der Einkaufs-Hinweis im Bogen ist weg
+- **Hendriks Vorgabe:** „Der Hinweis zum Einkaufen im Charakterblatt unter Ausrüstung soll
+  bitte weg.“ Ersatzlos entfernt.
+- **Und er hat recht:** Wer am Markt steht, sieht den Laden dort. Ein Schild im
+  Charakterfenster, das auf einen Ort zeigt, an dem man gerade ohnehin ist, sagt niemandem
+  etwas — und wer nicht dort steht, kann damit erst recht nichts anfangen.
+- **Mitgegangen ist alles, was NUR dieser Hinweis gebraucht hat** — sonst bliebe toter Code
+  stehen, den später jemand für gültig hält (dieselbe Regel wie am 14.10. beim Katalog):
+  - **Die zehn Szenendateien.** Der Bogen hat sie **allein dafür** geladen, um zu wissen, wo
+    die Gruppe steht — **rund 64 KB reine Daten bei jedem Öffnen**, auf der Karte zusätzlich
+    zu denen, die dort ohnehin liegen. Das ist der eigentliche Gewinn dieser Streichung.
+  - Der Lauscher auf `currentScene`, die Zustände `aktuelleSzene`/`szeneGehoert`, die
+    Funktionen `alleSzenen()`, `laedenDerSzene()`, `ladenName()` und die Stilregeln `.ladenzu`.
+  - **Der Bogen hört damit überhaupt nicht mehr auf den Spielstand.** Er kennt nur noch seine
+    eigene Figur — das ist die ehrlichere Abgrenzung.
+- **Die Laden-Prüfungen bleiben, sie lesen jetzt nur woanders.** `tests/t_bogen.js` lieh sich
+  bisher zwei Helfer aus `heldenbrief.html`; es liest die Szenendateien jetzt direkt.
+  **Richtig so:** Der Laden gehört den Szenendaten, nicht einer Seite, die ihn zufällig
+  anzeigt. Alle Prüfungen von gestern gelten unverändert weiter (jede Ware gibt es wirklich,
+  kein Fach ist leer, keine Dublette, Schusswaffen nur bei den Schmugglern).
+- **Die Prüfung ist umgedreht statt gelöscht:** Wo „der Bogen sagt, wo gekauft wird“ stand,
+  steht jetzt, dass er es **nicht** mehr tut — und dazu, dass er die Szenendateien nicht mehr
+  lädt und die Szene nicht mehr kennt. Wer das zurücknimmt, soll darüber stolpern.
+- **Getestet: 149 Prüfungen in `t_bogen.js`, 0 Fehler** (1013 über zehn Skripte).
+- **Wieder in die Heredoc-Falle getappt**, und diesmal in genau der dokumentierten Form: Ein
+  `
+` im Suchtext kam als echter Zeilenumbruch in der Python-Datei an, das `assert` fand
+  nichts und brach ab. Beim zweiten Anlauf den vermerkten Weg genommen (`chr(92)`).
+
 ### 2026-10-15 (Fortsetzung 4) — Markup ohne Stil, und ein Kauf, der schwieg
 - **Hendriks Screenshot** zeigte drei Dinge auf einmal im Heldenbrief, dazu eine Vorgabe:
   „Das ist noch buggy — und beim Kaufen sollte es ein Feedback geben, dass dieser Gegenstand

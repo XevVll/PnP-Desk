@@ -166,10 +166,6 @@ textarea:focus{border-color:var(--gold)}
 .lad.leer{background:rgba(202,103,2,.08)}
 .lad.leer .z{color:var(--amber)}
 
-.ladenzu{font-size:.78rem;color:var(--gray);line-height:1.6}
-.ladenzu b{display:block;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.06em;
-  color:var(--gold);margin-bottom:.15rem;text-transform:none}
-
 /* Die Übergabe hängt am body, nicht in einer Karte - sie muss auch über
    einem gescrollten Bogen zu sehen sein. */
 #uebergabe{position:fixed;left:50%;bottom:1rem;transform:translate(-50%,160%);
@@ -292,10 +288,6 @@ textarea:focus{border-color:var(--gold)}
       <div id="ladungen"></div>
       <div class="card-body" id="getragen"></div>
     </div>
-    <div class="card">
-      <div class="card-hdr">Einkaufen <span class="card-hdr-sub">gekauft wird beim Händler auf der Karte</span></div>
-      <div class="card-body" id="laden"></div>
-    </div>
   </div>
 </div>
 
@@ -306,18 +298,6 @@ textarea:focus{border-color:var(--gold)}
 <script src="js/identitaet.js"></script>
 <script src="js/regelwerk.js"></script>
 <script src="js/marken.js"></script>
-<!-- Nur, um zu wissen, WO die Gruppe gerade ist: Ein Marker mit "laden"
-     macht den Einkauf moeglich. Zusammen rund 64 KB reine Daten. -->
-<script src="js/scenes.js"></script>
-<script src="js/golden_lion_scenes.js"></script>
-<script src="js/schatzinsel_scenes.js"></script>
-<script src="js/spanischer_hafen_scenes.js"></script>
-<script src="js/schmugglernest_scenes.js"></script>
-<script src="js/artefakthandel_scenes.js"></script>
-<script src="js/riffinsel_scenes.js"></script>
-<script src="js/grabesinsel_scenes.js"></script>
-<script src="js/abspann_scenes.js"></script>
-<script src="js/arena_scenes.js"></script>
 <script>
 /* ==========================================================
    HELDENBRIEF — die fertige Figur am Tisch führen
@@ -343,13 +323,16 @@ let F = leereFigur();
 let META = { name:'', spieler:'' };
 let db = null, syncBereit = false, syncTimer = null;
 
-/* ---------- Kein Laden mehr in diesem Fenster ----------
+/* ---------- Kein Laden in diesem Fenster ----------
    Eingekauft wird AM ORT auf der Karte - im Kraemerladen, auf dem Markt -,
    und jeder Haendler fuehrt sein eigenes Sortiment (Feld "laden" am Marker
    seiner Szene). Ein Katalog im Charakterfenster ist ein Menue; ein Laden an
    einem Ort ist eine Szene. (Hendriks Vorgabe, 14.10.2026.)
-   Dieser Bogen kennt die Szene trotzdem - aber nur, um zu SAGEN, wo gekauft
-   werden kann. Gekauft wird hier nicht mehr. */
+   Seit dem 15.10.2026 steht hier auch kein HINWEIS mehr darauf: Wer am Markt
+   steht, sieht den Laden dort - ein Schild im Charakterfenster, das auf einen
+   Ort zeigt, an dem man gerade ohnehin ist, sagt niemandem etwas. Mit dem
+   Hinweis sind die zehn Szenendateien entfallen, die dieser Bogen allein
+   dafuer geladen hat (rund 64 KB bei jedem Oeffnen). */
 /* ---------- Was die Spielleitung uebergibt ----------
    Sie schreibt NICHT in die Figur, sondern legt es daneben:
      figuren/{schluessel}/zuteilung/{id}
@@ -360,8 +343,6 @@ let db = null, syncBereit = false, syncTimer = null;
    So nimmt der Bogen die Uebergabe an, traegt sie in SEINE Fassung ein und
    raeumt das Postfach. Es gibt damit weiterhin genau einen Schreiber auf der
    Figur. Dasselbe Muster wie bei der Wuerfel-Anfrage. */
-let aktuelleSzene = null;   // null = noch nichts gehoert
-let szeneGehoert = false;   // haben wir je einen Wert bekommen? (nur fuer die Anzeige)
 let netzOffen = false;
 /* Die Adresse dieser Figur - sie IST ihr Pfad. Steht sie im Browser,
    wird sie benutzt; sonst gilt die alte Spielerkennung weiter, damit
@@ -422,16 +403,6 @@ function dcls(i) { return ['d0','d1','d2','d3','d4','d5'][i] || 'd0'; }
    Schreibvorgangs nie, deshalb zeigt hier die Datenbank selbst den Zustand an. */
 function beobachteVerbindung() {
   try {
-    /* Wo steht die Gruppe? Nur lesend - die Szene schaltet die Spielleitung.
-       Wechselt sie, geht ein offener Laden wieder zu: Man kauft nicht weiter
-       ein, waehrend das Schiff schon ablegt. */
-    db.ref('currentScene').on('value', function (s) {
-      const neu = s.val() || null;
-      szeneGehoert = true;
-      if (neu !== aktuelleSzene) aktuelleSzene = neu;
-      renderAlles();
-    }, function () { szeneGehoert = false; });
-
     db.ref('figuren/' + codeJetzt() + '/zuteilung').on('value', function (s) {
       zuteilungAnnehmen(s.val() || {});
     }, function () { /* kein Postfach, kein Problem */ });
@@ -909,50 +880,6 @@ function tagFeld(name, art, text) {
   if (drin && document.body) document.body.classList.add('imRahmen');
 })();
 
-/* Alle Szenen-Container einsammeln - dasselbe Muster wie in karte.html und
-   regie_figuren.html. Eine neue Szenendatei muss hier nur eingebunden werden,
-   die Suche selbst bleibt. */
-function alleSzenen() {
-  const q = [
-    typeof SCENES !== 'undefined' ? SCENES : null,
-    typeof GOLDEN_LION_SCENES !== 'undefined' ? GOLDEN_LION_SCENES : null,
-    typeof SCHATZINSEL_SCENES !== 'undefined' ? SCHATZINSEL_SCENES : null,
-    typeof SPANISCHER_HAFEN_SCENES !== 'undefined' ? SPANISCHER_HAFEN_SCENES : null,
-    typeof SCHMUGGLERNEST_SCENES !== 'undefined' ? SCHMUGGLERNEST_SCENES : null,
-    typeof ARTEFAKTHANDEL_SCENES !== 'undefined' ? ARTEFAKTHANDEL_SCENES : null,
-    typeof RIFFINSEL_SCENES !== 'undefined' ? RIFFINSEL_SCENES : null,
-    typeof GRABESINSEL_SCENES !== 'undefined' ? GRABESINSEL_SCENES : null,
-    typeof ABSPANN_SCENES !== 'undefined' ? ABSPANN_SCENES : null,
-    typeof ARENA_SCENES !== 'undefined' ? ARENA_SCENES : null
-  ];
-  const alle = {};
-  q.forEach(function (c) {
-    if (!c) return;
-    Object.keys(c).forEach(function (id) { alle[id] = c[id]; });
-  });
-  return alle;
-}
-
-/* Die Haendler der aktuellen Szene, als Namen. Leer heisst: hier nicht. */
-function laedenDerSzene(szeneId) {
-  if (!szeneId) return [];
-  const sz = alleSzenen()[szeneId];
-  if (!sz || !sz.markers) return [];
-  return sz.markers.filter(function (m) { return m && m.laden; })
-                   .map(function (m) { return m.laden; });
-}
-
-/* ACHTUNG: "laden" war bis zum 14.10.2026 ein blosser Name und ist seitdem
-   ein Objekt ({ name, was, gruppen }). Wer den Laden ANZEIGT, muss das
-   wissen - sonst steht da "[object Object]", und genau das stand da
-   (Hendriks Screenshot vom 15.10.2026). Die Funktion oben liefert
-   weiterhin den LADEN, nicht seinen Namen: Was ein Haendler fuehrt,
-   wird an anderer Stelle gebraucht. */
-function ladenName(l) {
-  if (!l) return 'Laden';
-  return (typeof l === 'string') ? l : (l.name || 'Laden');
-}
-
 function renderTags() {
   const t = F.tal.map(function (i) {
     const x = TAL_BY_ID[i];
@@ -1139,20 +1066,6 @@ function renderAusruestung() {
       }).join('')
     : '<div class="leer">Du trägst nichts.</div>';
 
-  /* Gekauft wird NICHT mehr hier, sondern beim Haendler auf der Karte -
-     im Kraemerladen, auf dem Markt. Der Bogen sagt nur noch, wo das geht.
-     Grund (Hendriks Vorgabe): Ein Katalog im Charakterfenster ist ein Menue;
-     ein Laden an einem Ort ist eine Szene. Was ein Haendler fuehrt, steht
-     am Marker seiner Szene (Feld "laden"), nicht hier. */
-  const laeden = laedenDerSzene(aktuelleSzene);
-  document.getElementById('laden').innerHTML =
-    '<div class="ladenzu">' +
-    (laeden.length
-      ? '<b>' + esc(laeden.map(ladenName).join(' · ')) + '</b>Hier könnt ihr einkaufen — ' +
-        'öffne den Ort auf der Karte, der Laden steht dort.'
-      : '<b>Eingekauft wird beim Händler</b>Such auf der Karte den Krämer oder einen Markt. ' +
-        'Dort steht, was es gibt, und dort wird gekauft.') +
-    '</div>';
 }
 
 /* Eine Uebergabe annehmen. Erst eintragen und speichern, DANN das Postfach
