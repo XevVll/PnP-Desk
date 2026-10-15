@@ -126,6 +126,51 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-15 (Fortsetzung 9) — Der Regel-Kern des Kampfmodus
+- **Hendriks Entscheidung:** Kampf als **eigener Modus** in `regie_figuren.html`, den **nur die
+  Spielleitung sieht**. Gegner anlegen, „Spieler A greift Gegner 3 an“ sagen, der Spieler wird
+  zum Würfeln aufgefordert. **Initiative mit Karten** („A passt“). Die **Arena bleibt
+  ausdrücklich draußen.**
+- **Gebaut ist zuerst der Regel-Kern, nicht die Oberfläche:** neue **`js/kampf.js`** — ohne
+  DOM, ohne Firebase, ohne globalen Zustand, wie `js/termine.js`. **Aus demselben Grund:** Zwei
+  Fassungen derselben Rechnung laufen auseinander, und hier wäre der Preis, dass die Regie
+  etwas anderes ausrechnet, als die Probe des Spielers ergibt.
+- **Drin ist, was gerechnet werden muss:**
+  - **Das Aktionsdeck.** 54 Karten, Ass abwärts, bei Gleichstand Pik · Herz · Karo · Kreuz.
+    Der **Joker** steht über dem Ass, gibt **+2 auf jede Probe und auf den Schaden** und
+    verlangt danach neues Mischen. Das Deck wird **weitergereicht**, nicht je Runde neu
+    gemischt — und mischt von selbst nach, wenn es leer läuft.
+  - **`angriffsMod(parade)`** — der Zielwert ist die **Parade des Ziels**, unser System rechnet
+    gegen 4, also wird die Differenz zum Modifikator. **Damit ist der tägliche Schmerz weg:**
+    Gegen Parade 5 sind es **−1**, und das ließ sich mit den Knöpfen (+2/0/−2/−4) gar nicht
+    einstellen.
+  - **`fernkampfMod()`** — 0 / −2 / −4 nach Distanzband. Unsere Waffen tragen **eine**
+    Reichweitenzahl: Sie ist das kurze Band, das Doppelte das mittlere, das Vierfache das
+    lange. Darüber hinaus **kein Schuss**.
+  - **`wirkung(schaden, robustheit, zustand)`** — darunter nichts, gleich oder darüber
+    angeschlagen, je volle 4 darüber eine Wunde. Dazu die Regel, die den Kampf trägt: **Wer
+    schon angeschlagen ist, nimmt statt des zweiten Hakens eine Wunde.**
+  - **`schadensWuerfel()`** — welche Würfel ein Schadenswurf wirft und warum.
+- **Die drei offenen Regelentscheidungen stehen als Schalter an EINER Stelle** (`KAMPF_REGELN`),
+  nicht verstreut im Code: `schadenMitStaerke` · `bonusWuerfelBeiSteigerung` · `wundenStatist` /
+  `wundenWildCard`. **Vorgabe ist jeweils die Originalregel** — eine Abweichung ist damit eine
+  Zeile und kein Umbau, und **beide Stellungen werden geprüft**, damit eine Hausregel nicht
+  irgendwann ins Leere greift.
+- **Getestet: neues `tests/t_kampf.js`, 58 Prüfungen, 0 Fehler** (1152 über elf Skripte).
+  Geprüft wird **gegen die Regel, nicht gegen den Code** — darunter das Beispiel aus dem
+  Regelwerk selbst (Robustheit 5, erst 7 Schaden, dann 13), die Farbreihenfolge, das
+  nachmischende Deck und ein Angriff auf **Anselm Frei** aus der echten Testsitzung.
+- **Zwei eigene Fehler, beide von den eigenen Prüfungen gefangen:**
+  1. **„Statisten haben eine Wunde“ heißt, dass sie gar keine TRAGEN** — die erste nimmt sie
+     raus. Ich hatte `wundenStatist: 1` als Tragfähigkeit gelesen, womit ein Matrose eine Wunde
+     überstanden hätte. Der Schalter nennt jetzt die **Tragfähigkeit** (Statist **0**, Wild Card
+     3), und die Null steht mit genau dieser Begründung im Kommentar.
+  2. Die Wertetabelle heißt `w`, gesucht wurde nach `wert` — das Ass hieß deshalb **„14♠“**.
+- **[OFFEN] Die Oberfläche.** Gegnerliste, Ansage „A greift 3 an“, Rückmeldung Treffer/Wirkung,
+  Zustand der Gegner unter `sitzungen/{sid}/stand/kampf`. Dazu zwei Dinge, die vorher
+  entschieden sein müssen: ob die **Wunden der Spieler** über das Postfach laufen (der Bogen
+  ist der einzige Schreiber auf einer Figur) und ob **Bedrängnis** mitgerechnet wird.
+
 ### 2026-10-15 (Fortsetzung 8) — Alle Gegenstände, durchsuchbar
 - **Hendriks Vorgabe:** eine Liste mit allen Items und Textsuche — „vollumfänglich,
   Buchstabenfolge muss im Wort vorkommen“.

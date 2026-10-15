@@ -80,7 +80,7 @@ console.log('Inline-Blocks: ' + blocks + ' aus ' + htmls.length + ' HTML-Seiten 
    ausgefuehrt, und ein unbekannter Name wirft sofort. Geprueft
    werden die Module, die ohne Browser laden koennen.
    ========================================================== */
-const MODULE = ['regelwerk', 'sitzung', 'termine', 'arena'];
+const MODULE = ['regelwerk', 'sitzung', 'termine', 'arena', 'kampf', 'npcs', 'marken'];
 let mOk = 0;
 for (const name of MODULE) {
   const p = path.join(jsdir, name + '.js');
