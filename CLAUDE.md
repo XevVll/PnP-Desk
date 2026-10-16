@@ -126,6 +126,53 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-16 (Fortsetzung) — Die Leiste geht in die Mitte, der Würfel rollt im Porträt
+- **Hendriks Screenshot:** Würfelleiste und Lautstärkeregler lagen **über den Porträtleisten** —
+  links verdeckte die Leiste den untersten Spielernamen, rechts der Regler den untersten NSC.
+  Dazu der Wunsch: „eine kleine Würfelanimation im Charakterbild des Spielers … darf ruhig
+  2 Sekunden laufen, bevor man das Ergebnis sieht."
+- **Die Leiste steht jetzt mittig unten** (`left:50%` statt `left:16px`). Sie läuft auf **zwei**
+  Seiten, deshalb liegt der Stil in `js/dice.js` und nicht in den Seiten — zwei Kopien liefen
+  sonst auseinander.
+- **Der Lautstärkeregler ist eingeklappt** und zeigt nur noch das Lautsprecher-Symbol (Deckkraft
+  .45). Der Schieber fährt bei **Hover ODER Fokus** aus.
+  - **Fokus ist kein Beiwerk:** Auf dem Tablet am Tisch gibt es kein Hovern, und ein Regler, der
+    nur mit der Maus aufgeht, wäre dort **gar nicht erreichbar**.
+  - Eingeklappt über `width:0`, nicht `display:none` — so bleibt er für die Tastatur erreichbar
+    und lässt sich animieren.
+- **Der Würfel rollt im Porträt des Spielers**, zwei Sekunden, danach steht das Ergebnis da:
+  Zahl groß, Probe und Band klein darunter, grün bei Erfolg, rot bei Misserfolg. Nach vier
+  Sekunden räumt es sich ab — sonst klebte das Ergebnis den ganzen Abend über dem Gesicht.
+- **Der Knackpunkt war die ZUORDNUNG, nicht die Animation.** Ein Wurf trägt den **Spielernamen**
+  („Peter"), die Leiste den **Figurennamen** („Kai"). Verbunden werden sie über
+  **`spielerKennung(roll.name)`** — denselben Schlüssel, unter dem auch die Figur liegt. Die
+  Karte trägt ihn jetzt als `data-pid`. **Gegengeprüft:** Nimmt man `spielerKennung()` heraus
+  und vergleicht die Namen direkt, findet der Wurf keine Karte mehr und die Prüfung schlägt an.
+- **Der Feed wartet mit.** Ein frischer Wurf erscheint in der Einblendung erst nach denselben
+  zwei Sekunden — sonst stünde das Ergebnis schon da, während der Würfel noch dreht, und die
+  Animation wäre Zierde statt Spannung. **Alte Würfe warten nicht:** Beim Neuladen reicht
+  Firebase alles aus 90 Sekunden nach, und darauf soll niemand warten. `DICE_ANIM_MS` steht
+  deshalb in `js/dice.js` und wird von beiden Seiten gelesen.
+- **Nur frische Würfe lösen aus** (6 Sekunden). Ohne diese Schranke ruckelte beim Betreten der
+  Karte die halbe Leiste gleichzeitig los — Firebase reicht den ganzen Feed nach.
+- **Ein zweiter Wurf ersetzt den ersten**, statt sich darüberzulegen; alte Timer werden dabei
+  abgeräumt. Und wer **kein Bild hochgeladen hat**, hat keine Karte — das bricht nichts, der
+  Feed zeigt den Wurf trotzdem.
+- **Getestet: 223 Prüfungen in `t_bogen.js`, 0 Fehler** (22 neue, 1417 über zwölf Skripte, ein
+  bekannter Fehlschlag in `t_figuren.js`). Der Ablauf wird mit **gestellter Uhr** wirklich
+  durchgespielt: Bei 1999 ms steht nachweislich **kein** Ergebnis, bei 2001 ms steht es da.
+  Dazu zwei Karten in der Leiste, damit sich zeigt, dass die **richtige** getroffen wird.
+- **Zwei eigene Fehler beim Bauen:**
+  1. **Zwei Testnamen waren schon vergeben** (`karte`, `anzahl`) — und beim Umbenennen habe ich
+     mit einer pauschalen Ersetzung **die Schlusszeile des Tests miterwischt**, die denselben
+     Zähler benutzt. Der Lauf meldete danach „OK: 1". **Merke:** eine Ersetzung über den
+     ganzen Dateirest trifft auch das, was nicht gemeint war — und ein Testzähler, der plötzlich
+     1 sagt, ist kein grüner Lauf.
+  2. **Der Knoten-Stub des älteren Leisten-Tests kannte kein `dataset`** und brach, sobald der
+     echte Code eines setzte. Richtig so: Der Stub muss mit dem Code mitwachsen, nicht der Code
+     mit dem Stub.
+
+
 ### 2026-10-16 — Grimsgate auf das neue Wertesystem (erste von dreizehn Szenen)
 - **Hendriks Auftrag:** „Wir müssen die ganzen Szenen jetzt noch auf das neue System
   umschreiben. Kannst du das automatisch tun? Starte erst mal mit Grimsgate.“

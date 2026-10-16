@@ -427,6 +427,45 @@
   .char-card img {
     width: 100%; height: 100%; object-fit: cover; object-position: top; display: block;
   }
+  /* ---------- Der Wuerfel im Portraet ----------
+     Wuerfelt ein Spieler, rollt der Wuerfel zwei Sekunden in SEINER
+     Karte, danach steht das Ergebnis da. Liegt UEBER dem Namensschild
+     (das hat kein z-index, also reicht ein kleines). */
+  .wuerfel-ani {
+    position: absolute; inset: 0; z-index: 3;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    background: rgba(10,8,5,.72);
+    backdrop-filter: blur(1px);
+    pointer-events: none;
+  }
+  .wuerfel-ani .wa-wuerfel {
+    width: 46px; height: 46px;
+    border: 2px solid #c9a24b; border-radius: 9px;
+    background: rgba(25,20,12,.95);
+    display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 22px; color: #e8dcc0;
+    animation: wa-rollen .42s cubic-bezier(.4,0,.6,1) infinite;
+  }
+  @keyframes wa-rollen {
+    0%   { transform: rotate(0deg)   scale(1);    }
+    50%  { transform: rotate(180deg) scale(1.14); }
+    100% { transform: rotate(360deg) scale(1);    }
+  }
+  /* Steht das Ergebnis, hoert das Drehen auf - sonst liest sich eine
+     rotierende Zahl schlecht. */
+  .wuerfel-ani.fertig .wa-wuerfel {
+    animation: none; transform: none;
+    border-color: #e8dcc0; font-size: 26px;
+  }
+  .wuerfel-ani .wa-text {
+    font-family: Georgia, serif; font-size: 11px; line-height: 1.25;
+    color: #e8dcc0; text-align: center; padding: 0 6px;
+    text-shadow: 0 1px 3px #000;
+  }
+  .wuerfel-ani.gut .wa-wuerfel   { border-color: #6fbf8b; color: #cdeedb; }
+  .wuerfel-ani.schlecht .wa-wuerfel { border-color: #b4603f; color: #f0c6b4; }
+
   .char-card .char-name {
     position: absolute; left: 0; right: 0; bottom: 0;
     background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
@@ -442,14 +481,35 @@
      mit Musik - die Spieler muessen dabei stummschalten und die Lautstaerke
      regeln koennen, sonst waere die Steuerung genau dann unerreichbar, wenn
      sie am ehesten gebraucht wird. */
+  /* Der Regler lag ueber der NSC-Leiste und verdeckte den untersten
+     Namen. Jetzt steht nur noch das Lautsprecher-Symbol da; der
+     Schieber faehrt bei Hover ODER Fokus aus.
+     Fokus ist kein Beiwerk: Auf dem Tablet am Tisch gibt es kein
+     Hovern, und ein Regler, der sich nur mit der Maus oeffnet, waere
+     dort gar nicht erreichbar. */
   #audioControl {
     position: fixed; bottom: 16px; right: 16px; z-index: 410;
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 0;
     background: rgba(15,12,8,0.75);
     border: 1px solid var(--line);
     border-radius: 24px;
-    padding: 8px 14px 8px 10px;
+    padding: 8px 10px;
     backdrop-filter: blur(2px);
+    opacity: .45;
+    transition: opacity .18s ease, gap .18s ease, padding .18s ease;
+  }
+  #audioControl:hover, #audioControl:focus-within {
+    opacity: 1; gap: 10px; padding: 8px 14px 8px 10px;
+  }
+  /* Der Schieber nimmt eingeklappt keine Breite ein. Bewusst ueber
+     width und nicht ueber display:none - so laesst er sich animieren,
+     und er bleibt fuer die Tastatur erreichbar. */
+  #audioControl #volumeSlider {
+    width: 0; opacity: 0; pointer-events: none;
+    transition: width .18s ease, opacity .18s ease;
+  }
+  #audioControl:hover #volumeSlider, #audioControl:focus-within #volumeSlider {
+    width: 90px; opacity: 1; pointer-events: auto;
   }
   /* Erkundungs-Graph, On-Map-Darstellung (js/exploration_graphs.js): statt
      einer Options-Liste als Panel zeigt eine Ring-Markierung die aktuelle
@@ -2568,6 +2628,9 @@
       leute.forEach(function (p) {
         const card = document.createElement('div');
         card.className = 'char-card';
+        /* Der Schluessel am Knoten: Kommt ein Wurf herein, wird darueber
+           die richtige Karte gefunden. */
+        card.dataset.pid = p.pid;
         const img = document.createElement('img');
         img.src = p.bild;
         img.alt = p.name || 'Spielerfigur';
@@ -2582,6 +2645,85 @@
         }
         pcRailEl.appendChild(card);
       });
+    }
+
+    /* ---------- Der Würfel rollt im Porträt ----------
+       Ein Wurf trägt den SPIELERnamen ("Peter"), die Leiste den
+       FIGURENnamen ("Kai") - verbunden werden sie über denselben
+       Schlüssel, unter dem auch die Figur liegt:
+       spielerKennung(Spielername). Ohne das läge die Zuordnung nur
+       am Zufall gleicher Schreibweise. */
+    function wuerfelAnzeige(roll) {
+      // Eine Probe: Zahl gross, Band klein darunter.
+      if (roll.probe && roll.band) {
+        const gut = roll.band.indexOf('Erfolg') === 0;
+        return { zahl: roll.ergebnis, text: roll.probe + ' — ' + roll.band,
+                 klasse: gut ? 'gut' : 'schlecht' };
+      }
+      // Ein angeforderter Schadenswurf hat ein probe, aber kein band.
+      if (roll.probe === 'Schaden') {
+        return { zahl: roll.total, text: 'Schaden', klasse: '' };
+      }
+      // Freier Würfel.
+      return { zahl: roll.total, text: (roll.count || 1) + '×d' + roll.sides, klasse: '' };
+    }
+
+    function wuerfelImPortraet(roll) {
+      if (!pcRailEl || !roll || !roll.name) return;
+      if (typeof spielerKennung !== 'function') return;
+      const pid = spielerKennung(roll.name);
+      const card = pcRailEl.querySelector('[data-pid="' + pid + '"]');
+      // Kein Bild hochgeladen, kein Porträt - dann gibt es nichts zu
+      // bespielen. Der Feed zeigt den Wurf trotzdem.
+      if (!card) return;
+
+      // Läuft schon eine, wird sie ersetzt: Zwei Würfe kurz
+      // hintereinander sollen nicht übereinanderliegen.
+      const alt = card.querySelector('.wuerfel-ani');
+      if (alt) alt.remove();
+      if (card._waTimer) { clearTimeout(card._waTimer); card._waTimer = null; }
+      if (card._waWeg) { clearTimeout(card._waWeg); card._waWeg = null; }
+
+      const box = document.createElement('div');
+      box.className = 'wuerfel-ani';
+      const w = document.createElement('div');
+      w.className = 'wa-wuerfel';
+      w.textContent = '?';
+      const t = document.createElement('div');
+      t.className = 'wa-text';
+      t.textContent = 'würfelt …';
+      box.appendChild(w); box.appendChild(t);
+      card.appendChild(box);
+
+      // Während des Rollens wechselt die Zahl - sonst sieht es aus wie
+      // ein Ladebalken, nicht wie ein Würfel.
+      const flackern = setInterval(function () {
+        w.textContent = String(1 + Math.floor(Math.random() * 6));
+      }, 90);
+
+      card._waTimer = setTimeout(function () {
+        clearInterval(flackern);
+        const a = wuerfelAnzeige(roll);
+        w.textContent = (a.zahl === undefined || a.zahl === null) ? '?' : String(a.zahl);
+        t.textContent = a.text || '';
+        box.className = 'wuerfel-ani fertig' + (a.klasse ? ' ' + a.klasse : '');
+        // Danach wieder abräumen, sonst klebt das Ergebnis den ganzen
+        // Abend über dem Gesicht.
+        card._waWeg = setTimeout(function () { box.remove(); }, 4000);
+      }, DICE_ANIM_MS);
+    }
+
+    function attachWuerfelAni() {
+      if (!db || !pcRailEl) return;
+      db.ref('diceRolls').on('child_added', function (snap) {
+        const roll = snap.val();
+        if (!roll) return;
+        /* Nur FRISCHE Würfe. Beim Laden der Seite reicht Firebase alle
+           Einträge der letzten 90 Sekunden nach - ohne diese Schranke
+           ruckelte beim Betreten der Karte die halbe Leiste los. */
+        if (!roll.ts || (Date.now() - roll.ts) > 6000) return;
+        wuerfelImPortraet(roll);
+      }, function () { /* kein Feed, keine Animation */ });
     }
 
     function attachPcRail() {
@@ -2638,6 +2780,7 @@
       beobachteEigeneWaren();
       beobachteFigur();
       attachPcRail();
+      attachWuerfelAni();
 
       db.ref('currentScene').on('value', function (snapshot) {
         const sceneId = snapshot.val() || getFallbackDefaultScene();

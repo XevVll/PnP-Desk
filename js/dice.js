@@ -51,6 +51,12 @@
 // mehrere Spieler-Geräte mit potenziell abweichenden Uhren Einträge anlegen.
 
 const DICE_MAX_AGE_MS = 90000;      // Feed-Einträge werden nach 90s entfernt
+/* Wie lange der Würfel im Porträt rollt, bevor das Ergebnis steht.
+   Steht HIER und nicht in karte.html: Die Karte lässt den Würfel
+   rollen, der Feed muss genauso lange warten - sonst steht das
+   Ergebnis schon in der Einblendung, während der Würfel noch dreht,
+   und die Animation wäre Zierde statt Spannung. */
+const DICE_ANIM_MS = 2000;
 const DICE_VISIBLE_MS = 60000;      // Toast bleibt 60s sichtbar
 const DICE_FADE_MS = 400;
 const DICE_NAME_MAX_LEN = 24;
@@ -78,7 +84,8 @@ const DICE_FORMEN = {
 // Der Stil wohnt hier und nicht in den Seiten: Die Leiste läuft auf zwei
 // Seiten, und zwei Kopien desselben CSS laufen auseinander.
 const DICE_STIL = [
-  '#wuerfelLeiste{position:fixed;bottom:16px;left:16px;z-index:350;',
+  // Mittig unten: links lag sie ueber der Spieler-Portraetleiste.
+  '#wuerfelLeiste{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:350;',
   '  max-width:min(26rem,calc(100vw - 32px));background:rgba(15,12,8,.88);',
   '  border:1px solid #3a2a18;border-radius:14px;padding:9px 12px;backdrop-filter:blur(3px);',
   '  font-family:Georgia,"Times New Roman",serif;font-size:12.5px;color:#e6ddc7}',
@@ -579,8 +586,14 @@ function initDiceRoller(db, options) {
   db.ref('diceRolls').on('child_added', function (snap) {
     const roll = snap.val();
     if (!roll) return;
-    if (roll.ts && (Date.now() - roll.ts) > DICE_MAX_AGE_MS) return;
-    addToast(formatRollText(roll), false);
+    const alter = roll.ts ? (Date.now() - roll.ts) : 0;
+    if (alter > DICE_MAX_AGE_MS) return;
+    /* Frische Würfe warten, bis der Würfel im Porträt ausgerollt hat.
+       Alte (beim Neuladen nachgereichte) nicht - die soll niemand
+       zwei Sekunden lang erwarten. */
+    const warten = Math.max(0, DICE_ANIM_MS - alter);
+    if (!warten) { addToast(formatRollText(roll), false); return; }
+    setTimeout(function () { addToast(formatRollText(roll), false); }, warten);
   });
 
   db.ref('diceRolls').on('value', function (snap) {

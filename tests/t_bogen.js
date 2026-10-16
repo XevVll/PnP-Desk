@@ -961,6 +961,9 @@ const railCode = kSchnitt('function renderPcRail(', 'function attachPcRail(');
 function rKnoten(tag) {
   return {
     tagName: tag, className: '', innerHTML: '', textContent: '', src: '', alt: '',
+    // Die Karte traegt seit dem 16.10.2026 ihren Schluessel (data-pid),
+    // damit ein hereinkommender Wurf die richtige Karte findet.
+    dataset: {},
     kinder: [],
     appendChild(k) { this.kinder.push(k); return k; }
   };
@@ -1016,6 +1019,141 @@ chk('sie steht links', /#pcRail\s*{[^}]*left:\s*0/.test(KARTE),
    genau darueber - und der Griff waere nicht mehr anklickbar. */
 chk('und lässt dem Bogen-Griff Platz', /#pcRail\s*{[^}]*padding-left/.test(KARTE));
 chk('die NSC bleiben rechts', /#charRail\s*{[^}]*right:\s*0/.test(KARTE));
+
+/* ---- Der Würfel rollt im Porträt ----
+   Hendriks Wunsch: Würfelt ein Spieler, sieht man es in SEINEM Bild,
+   zwei Sekunden lang, erst danach das Ergebnis.
+
+   Die tragende Frage ist die Zuordnung: Ein Wurf trägt den
+   SPIELERnamen ("Peter"), die Leiste den FIGURENnamen ("Mara Quint").
+   Verbunden werden sie über spielerKennung(). Ginge das schief,
+   rollte der Würfel im Bild des Falschen - oder nirgends. */
+const aniCode = kSchnitt('function wuerfelAnzeige(', 'function attachPcRail(');
+
+let aniJetzt = 1000000;
+const aniTimer = [];
+const actx = {
+  Math, Object, String, Number, console, JSON,
+  DICE_ANIM_MS: 2000,
+  Date: { now: () => aniJetzt },
+  spielerKennung: n => String(n || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+  setTimeout: (fn, ms) => { const h = { fn, zeit: aniJetzt + ms }; aniTimer.push(h); return h; },
+  clearTimeout: h => { const i = aniTimer.indexOf(h); if (i >= 0) aniTimer.splice(i, 1); },
+  setInterval: () => 0, clearInterval: () => {},
+  pcRailEl: null,
+  document: {
+    createElement(tag) {
+      const n = {
+        tagName: tag, className: '', textContent: '', dataset: {}, kinder: [],
+        appendChild(k) { this.kinder.push(k); k._eltern = this; return k; },
+        remove() { const e = this._eltern; if (e) e.kinder.splice(e.kinder.indexOf(this), 1); },
+        querySelector(sel) {
+          const m = /\[data-pid="(.*)"\]/.exec(sel);
+          if (m) return this.kinder.find(k => k.dataset && k.dataset.pid === m[1]) || null;
+          const kl = sel.replace('.', '');
+          const suche = k => (String(k.className).split(' ').indexOf(kl) >= 0)
+            ? k : k.kinder.map(suche).find(Boolean);
+          return this.kinder.map(suche).find(Boolean) || null;
+        }
+      };
+      return n;
+    }
+  }
+};
+vm.createContext(actx);
+vm.runInContext(aniCode, actx);
+
+function aniVor(ms) {
+  aniJetzt += ms;
+  aniTimer.filter(h => h.zeit <= aniJetzt).forEach(h => {
+    aniTimer.splice(aniTimer.indexOf(h), 1); h.fn();
+  });
+}
+/* Eine Leiste mit zwei Karten - nur so zeigt sich, ob die RICHTIGE
+   getroffen wird. */
+const rail = actx.document.createElement('div');
+actx.pcRailEl = rail;
+['anna', 'bert'].forEach(pid => {
+  const c = actx.document.createElement('div');
+  c.className = 'char-card'; c.dataset.pid = pid; rail.appendChild(c);
+});
+const aniKarte = pid => rail.kinder.find(k => k.dataset.pid === pid);
+const ani = pid => aniKarte(pid).querySelector('.wuerfel-ani');
+
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
+  probe: 'Kämpfen d8', band: 'Erfolg', ergebnis: 7, total: 7 });
+chk('der Würfel landet in Annas Karte', !!ani('anna'));
+chk('und NICHT in Berts', !ani('bert'));
+chk('vor dem Ausrollen steht kein Ergebnis da',
+  ani('anna').querySelector('.wa-text').textContent.indexOf('Erfolg') < 0,
+  ani('anna').querySelector('.wa-text').textContent);
+chk('sondern "würfelt …"',
+  ani('anna').querySelector('.wa-text').textContent.indexOf('würfelt') >= 0);
+
+aniVor(1999);
+chk('eine Millisekunde vorher immer noch kein Ergebnis',
+  ani('anna').className.indexOf('fertig') < 0, ani('anna').className);
+aniVor(2);
+chk('nach zwei Sekunden steht es da', ani('anna').className.indexOf('fertig') >= 0,
+  ani('anna').className);
+chk('die Zahl ist die geworfene', ani('anna').querySelector('.wa-wuerfel').textContent === '7',
+  ani('anna').querySelector('.wa-wuerfel').textContent);
+chk('das Band steht dabei',
+  ani('anna').querySelector('.wa-text').textContent.indexOf('Erfolg') >= 0,
+  ani('anna').querySelector('.wa-text').textContent);
+chk('ein Erfolg wird als gut markiert', ani('anna').className.indexOf('gut') >= 0,
+  ani('anna').className);
+
+/* Und wieder weg - sonst klebt das Ergebnis den ganzen Abend ueber
+   dem Gesicht. */
+aniVor(4001);
+chk('danach räumt sie sich ab', !ani('anna'));
+
+/* Ein Misserfolg sieht anders aus. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
+  probe: 'Kämpfen d8', band: 'Misserfolg', ergebnis: 2, total: 2 });
+aniVor(2001);
+chk('ein Misserfolg wird als schlecht markiert',
+  ani('anna').className.indexOf('schlecht') >= 0, ani('anna').className);
+aniVor(4001);
+
+/* Zwei Wuerfe kurz hintereinander duerfen sich nicht stapeln. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 1, sides: 6, total: 4 });
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 2, sides: 6, total: 9 });
+const aniStapel = aniKarte('anna').kinder.filter(k => String(k.className).indexOf('wuerfel-ani') >= 0).length;
+chk('zwei Würfe kurz hintereinander stapeln sich nicht', aniStapel === 1, aniStapel);
+aniVor(2001);
+chk('und der zweite gewinnt', ani('anna').querySelector('.wa-wuerfel').textContent === '9',
+  ani('anna').querySelector('.wa-wuerfel').textContent);
+chk('ein freier Würfel wird als solcher beschriftet',
+  ani('anna').querySelector('.wa-text').textContent === '2×d6',
+  ani('anna').querySelector('.wa-text').textContent);
+aniVor(4001);
+
+/* Wer kein Bild hochgeladen hat, hat keine Karte - das darf nicht
+   knallen, der Feed zeigt den Wurf ja trotzdem. */
+chk('ein Spieler ohne Porträt bricht nichts',
+  (function () {
+    try { actx.wuerfelImPortraet({ name: 'Cord', ts: aniJetzt, total: 5 }); return true; }
+    catch (e) { return false; }
+  })());
+
+/* Der Feed darf das Ergebnis nicht verraten, solange der Wuerfel
+   dreht - sonst waere die Animation Zierde. */
+const DICE = fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8');
+chk('der Feed wartet auf den Würfel', DICE.indexOf('DICE_ANIM_MS - alter') > 0);
+chk('alte Würfe warten NICHT', DICE.indexOf('if (!warten)') > 0);
+
+/* Die Leiste steht mittig - links lag sie ueber den Portraets. */
+chk('die Würfelleiste steht mittig unten',
+  DICE.indexOf('left:50%;transform:translateX(-50%)') > 0);
+chk('und nicht mehr links', DICE.indexOf('bottom:16px;left:16px') < 0);
+
+/* Der Lautstaerkeregler klappt ein - er lag ueber der NSC-Leiste. */
+chk('der Regler ist eingeklappt', /#audioControl\s*{[^}]*opacity:\s*\.45/.test(KARTE));
+chk('und öffnet bei Hover UND Fokus',
+  KARTE.indexOf('#audioControl:hover, #audioControl:focus-within') > 0);
+chk('der Schieber ist dann wirklich weg', /#volumeSlider\s*{[^}]*width:\s*0/.test(KARTE));
 
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };
