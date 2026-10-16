@@ -126,6 +126,58 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-16 — Grimsgate auf das neue Wertesystem (erste von dreizehn Szenen)
+- **Hendriks Auftrag:** „Wir müssen die ganzen Szenen jetzt noch auf das neue System
+  umschreiben. Kannst du das automatisch tun? Starte erst mal mit Grimsgate.“
+- **Antwort auf „automatisch“: zur Hälfte, und der Rest ist der gefährliche Teil.** Erst
+  gemessen, dann gebaut: **182 alte Wertenennungen, 480 Trigger, 13 verwaiste „Schlechter
+  Erfolg“-Stellen** im ganzen Abenteuertext.
+  - **Mechanisch (Skript genügt):** `Wahrnehmung → Aufmerksamkeit` · `Mechanik → Handwerk` ·
+    `Seefahrt → Segeln` · `Geheim → Heimlichkeit` · `Klettern → Athletik`.
+  - **NICHT mechanisch:** `Körper` (36×), `Geschick` (23×) und `Auftreten` (11×) zerfallen je
+    nach Szene. **Allein in Grimsgate heißt `Körper` zweimal Verschiedenes** — im
+    Trinkwettbewerb **Konstitution** (durchhalten), beim Fesseln-Lösen **Athletik** (sich
+    winden). Ein blindes Suchen-und-Ersetzen hätte das festgeschrieben.
+- **Zwei Regeln, die für die ganze Umstellung gelten:**
+  1. **TRIGGER-IDs BLEIBEN.** Sie liegen als `questDone/{szene}/{triggerId}` in Firebase — ein
+     umbenanntes `koerper_gut` nimmt der laufenden Kampagne **lautlos** ihre gesetzten Haken.
+     Geändert sind nur `label`, `info`, `kurz` und `details`. Der Trigger heißt im Code weiter
+     `koerper_gut` und zeigt am Tisch „Konstitution: Steigerung“.
+  2. **„Schlechter Erfolg“ wird „Erfolg“, der Text bleibt als Farbe** (Hendriks Entscheidung).
+     Deckt sich mit seiner Ansage vom 07.09.2026, schlechte Erfolge nicht mehr auszuspielen —
+     und **kein Text geht verloren.**
+- **Die Zuordnung in Grimsgate, als Schablone für die übrigen zwölf Szenen:**
+
+      Körper   (Trinkwettbewerb)   -> Konstitution    heuer/zwillinge
+      Körper   (Fesseln lösen)     -> Athletik        bordell/wat_falle
+      Auftreten (überzeugen)       -> Überreden       zwillinge, bordell ×2
+      Auftreten (nicht auffallen)  -> Heimlichkeit    hafenmeisterei
+      Wahrnehmung                  -> Aufmerksamkeit  lagerhaeuser
+
+- **„kostet 1 Körper“ hat im neuen System keine Entsprechung** — alter Attributsschaden wird zu
+  **„angeschlagen“**, und zwar als **Angebot** an die Spielleitung, nicht als Pflicht. Es war
+  der **einzige** solche Fall im ganzen Abenteuer.
+- **Zwei Stellen bleiben bewusst stehen:** „keine feste **Mechanik**“ und Harwicks
+  „selbstsicheres **Auftreten**“ sind Prosa, keine Werte. **Meine erste Prüfung hat beide als
+  Fehler gemeldet** — sie sucht jetzt nach dem Probenzusammenhang (`X-Probe`, `Probe auf X`),
+  nicht nach dem Wort. Genau diese zwei hätte ein Skript zerschossen.
+- **Neues `tests/t_szenen.js`, 33 Prüfungen, 0 Fehler.** Es führt eine Liste `UMGESTELLT`, die
+  **mit der Arbeit wächst** — sonst stünde es von Anfang an rot und sagte damit nichts mehr.
+  Die Trigger-IDs sind als **Kopie** festgenagelt, nicht aus dem Code abgeleitet: Eine Prüfung,
+  die ihre Erwartung aus dem Prüfling zieht, macht jede Umbenennung einfach mit.
+  - **Gegengeprüft gegen den Stand davor: 9 Prüfungen schlagen an**, darunter alle drei alten
+    Bänder und jeder der vier alten Wertenamen.
+- **Eigener Fehler, der den Tisch gekostet hätte:** Ich habe committet und **nicht gepusht** —
+  und danach eine Rückfrage gestellt, statt auszuliefern. Hendrik sah deshalb im Browser
+  weiterhin „Probe: Körper (alt. Auftreten)“, obwohl die Datei lokal längst umgestellt war.
+  **Merke: GitHub Pages liefert `origin/main`, nicht den lokalen Commit.** Ein „fertig“ ohne
+  Push ist für ihn kein Fertig.
+- **[OFFEN] Zwölf Szenen**, rund 160 Wertenennungen, 12 der 13 „Schlechter Erfolg“-Stellen. Die
+  **Schatzinsel** ist die dickste (die Höhlen-Kammer allein hat ein halbes Dutzend Proben). Die
+  **Golden Lion** wäre der nächste sinnvolle Schritt: `2.1`/`3.1`/`5.1`/`6.1`/`10.1`/`12.1`
+  teilen sich dieselben Orte und sind damit in einem Durchgang erledigt.
+
+
 ### 2026-10-15 (Fortsetzung 18) — Spieler laden ihr Charakterbild hoch, es steht links
 - **Hendriks Wunsch:** „Gibt es eine Möglichkeit, in der Spieler Bilder ihres Charakters
   hochladen können und diese dann am linken Bildschirmrand teilen? (So wie ich mit NSC am
