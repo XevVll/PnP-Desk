@@ -254,6 +254,15 @@ function initDiceRoller(db, options) {
     }, zeile)).catch(function () {});
   }
 
+  /* Der Name der FIGUR, nicht des Spielers. Steht an einer Stelle,
+     weil ihn alle drei Wurfarten brauchen - und weil "mal mit, mal
+     ohne" im Feed schlimmer waere als gar nicht. Leer, solange keine
+     Figur geladen ist (die Spielleitung wuerfelt ohne). */
+  function figurName() {
+    const f = holeFigur() || {};
+    return (f.name || '').trim();
+  }
+
   function wuerfleWert(wertName, stufe, mod) {
     const name = ensurePlayerName();
     if (!name) return;
@@ -263,7 +272,7 @@ function initDiceRoller(db, options) {
     letztes = { wert: wertName, stufe: stufe, r: r };
 
     schreibeFeed({
-      name: name, probe: wertName + ' ' + stufeText(stufe),
+      name: name, figur: figurName(), probe: wertName + ' ' + stufeText(stufe),
       /* Die Wuerfelgroesse als eigenes Feld, nicht nur im Text: Die
          Karte zeichnet daraus die FORM (Dreieck, Wuerfel, Drachen …).
          Aus "Kämpfen d8" die 8 herauszuschneiden waere geraten - und
@@ -296,7 +305,7 @@ function initDiceRoller(db, options) {
     }
     letztes = null;
     schreibeFeed({
-      name: name, count: anzahl, sides: seiten, total: summe,
+      name: name, figur: figurName(), count: anzahl, sides: seiten, total: summe,
       results: wuerfe.map(function (w) { return w.summe; }),
       explodiert: knallte,
       ketten: wuerfe.map(function (w) { return w.teile ? w.teile.join('+') : String(w.summe); })
@@ -320,7 +329,7 @@ function initDiceRoller(db, options) {
     letztes = null;
 
     schreibeFeed({
-      name: name, probe: 'Schaden',
+      name: name, figur: figurName(), probe: 'Schaden',
       band: null, ergebnis: summe, total: summe,
       /* Ein Schadenswurf wirft MEHRERE Wuerfel (Waffe + Stärke, bei
          einer Steigerung noch 1W6). Gezeigt wird der groesste - er
@@ -558,6 +567,16 @@ function initDiceRoller(db, options) {
   });
 
   /* ---------- Feed ---------- */
+  /* Wer hat geworfen? Am Tisch zaehlt die FIGUR - der Feed beschreibt,
+     was in der Szene geschieht. Der Spielername steht daneben, damit
+     man weiss, wen man ansehen muss. Ohne Figur (Spielleitung, alte
+     Eintraege) bleibt es beim Spielernamen allein. */
+  function werfer(roll) {
+    const fig = (roll.figur || '').trim();
+    if (!fig || fig === roll.name) return roll.name;
+    return fig + ' (' + roll.name + ')';
+  }
+
   function formatRollText(roll) {
     // Probenwurf: Der höhere der beiden Würfe gegen das Ziel, je volle 4
     // darüber eine Steigerung. Die Einordnung ist damit eindeutig - unter
@@ -565,7 +584,7 @@ function initDiceRoller(db, options) {
     if (roll.probe && roll.band) {
       const zahl = (roll.ergebnis === undefined || roll.ergebnis === null) ? '' : ' (' + roll.ergebnis + ')';
       const ziel = (roll.ziel && roll.ziel !== ZIELZAHL) ? ' [Ziel ' + roll.ziel + ']' : '';
-      return roll.name + ' — ' + roll.probe + ziel + ': ' + roll.band + zahl;
+      return werfer(roll) + ' — ' + roll.probe + ziel + ': ' + roll.band + zahl;
     }
     /* Ein angeforderter Schadenswurf: kein Band, kein Ziel, aber auch kein
        freier Wuerfel - der hat count und sides, dieser hat Teilwuerfe.
@@ -573,14 +592,14 @@ function initDiceRoller(db, options) {
     if (roll.probe === 'Schaden') {
       const teile = (roll.results && roll.results.length > 1)
         ? ' (' + roll.results.join(' + ') + ')' : '';
-      return roll.name + ' — Schaden: ' + roll.total + teile;
+      return werfer(roll) + ' — Schaden: ' + roll.total + teile;
     }
     const label = (roll.count || 1) + '×d' + roll.sides;
     let detail = '';
     if (roll.ketten && roll.ketten.length > 1) detail = ' (' + roll.ketten.join(', ') + ')';
     else if (roll.ketten && roll.ketten[0] && roll.ketten[0].indexOf('+') >= 0) detail = ' (' + roll.ketten[0] + ')';
     else if (roll.results && roll.results.length > 1) detail = ' (' + roll.results.join(', ') + ')';
-    return roll.name + ' würfelt ' + label + ': ' + roll.total + detail +
+    return werfer(roll) + ' würfelt ' + label + ': ' + roll.total + detail +
       (roll.explodiert ? ' explodiert!' : '');
   }
 

@@ -126,6 +126,32 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung) — Der Würfel-Feed nennt die Figur
+- **Hendriks Wunsch:** In der Aufzählung soll auch der Charaktername stehen.
+- **Der Feed kannte ihn gar nicht.** Alle drei Zeilen begannen mit `roll.name`, und das ist der
+  **Spieler**name („Peter"). Das **Protokoll** trug den Figurennamen längst mit — der Feed nicht.
+  Genau dieselbe Lücke war gestern schon der Knackpunkt bei der Würfel-Animation: Ein Wurf
+  trägt den Spieler, die Porträtleiste die Figur.
+- **Jetzt: „Kai (Peter) — Kämpfen d8: Erfolg (7)".** Die **Figur steht vorn**, weil der Feed
+  beschreibt, was in der Szene geschieht; der Spielername daneben sagt, wen man ansehen muss.
+- **Drei Fälle, in denen keine Figur dasteht** — und in keinem darf eine leere Klammer
+  erscheinen:
+  - Die **Spielleitung** würfelt ohne Figur → „SL — Schaden: 11".
+  - Ein Name aus lauter **Leerzeichen** zählt nicht als Figur.
+  - Heißt die Figur **wie der Spieler**, bleibt es bei einem Namen — „Kai (Kai)" wäre albern.
+  - Ein **alter Feed-Eintrag** ohne das Feld sieht aus wie vorher.
+- `figurName()` steht an **einer** Stelle und wird von allen drei Wurfarten benutzt: „mal mit,
+  mal ohne" wäre im Feed schlimmer als gar nicht.
+- **Getestet: 116 Prüfungen in `t_wuerfel.js`, 0 Fehler** (12 neue, 1439 über zwölf Skripte).
+  Die Zeile wird **aus `js/dice.js` geschnitten und ausgeführt**, nicht nachgebaut. Darunter
+  alle vier Ausnahmefälle und die Prüfung, dass die Figur an **allen drei** Schreibstellen
+  mitgeht. **Gegengeprüft:** Nimmt man den Schutz gegen den Doppelnamen heraus, schlägt eine
+  Prüfung an.
+- **Ein Testschnitt musste mitwachsen:** `t_wuerfel.js` schneidet `formatRollText()` aus dem
+  Quelltext. Die Funktion hat jetzt einen Helfer davor, und ohne ihn lief die geschnittene
+  Fassung ins Leere. Der Schnitt beginnt deshalb bei `werfer()`.
+
+
 ### 2026-10-17 — Der Würfel im Porträt trägt die Form seiner Größe
 - **Hendriks Wunsch:** „wenn der Würfel in der Form seiner Höhe gerollt wird. Also 4er 6er 8er
   10er oder 12er."

@@ -372,7 +372,10 @@ console.log('=== DER SCHADENSWURF IM FEED ===');
    Geprueft wird die Funktion selbst, aus dem Quelltext geschnitten: Eine
    nachgebaute Kopie wuerde genau das nicht pruefen, was falsch war. */
 const DICE = fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8');
-const fa = DICE.indexOf('function formatRollText(');
+/* Der Schnitt beginnt bei werfer(): formatRollText() benutzt ihn seit
+   dem 17.10.2026, um Figur UND Spieler zu nennen. Ohne ihn liefe die
+   geschnittene Funktion ins Leere. */
+const fa = DICE.indexOf('function werfer(');
 const fb = DICE.indexOf('function addToast(', fa);
 const fctx = { ZIELZAHL: 4, console };
 vm.createContext(fctx);
@@ -400,6 +403,62 @@ const freiZeile = fctx.formatRollText({
 });
 chk('ein freier Wuerfel ebenso',
   freiZeile.indexOf('2×d6') > 0 && freiZeile.indexOf(': 9') > 0, freiZeile);
+
+
+console.log('=== DER FEED NENNT DIE FIGUR, NICHT NUR DEN SPIELER ===');
+/* Hendriks Wunsch vom 17.10.2026. Bis dahin stand im Feed nur der
+   SPIELERname ("Peter") - am Tisch zaehlt aber, was "Kai" tut. Das
+   Protokoll trug den Figurennamen laengst mit, der Feed nicht. */
+const wProbe = fctx.formatRollText({
+  name: 'Peter', figur: 'Kai', probe: 'Kämpfen d8',
+  band: 'Erfolg', ergebnis: 7, ziel: 4
+});
+chk('die Figur steht vorn', wProbe.indexOf('Kai') === 0, wProbe);
+chk('der Spieler steht daneben', wProbe.indexOf('(Peter)') > 0, wProbe);
+chk('die Probe steht weiterhin da', wProbe.indexOf('Kämpfen d8') > 0, wProbe);
+chk('das Band auch', wProbe.indexOf('Erfolg') > 0, wProbe);
+
+const wFrei = fctx.formatRollText({
+  name: 'Peter', figur: 'Kai', count: 2, sides: 6, total: 9, results: [4, 5]
+});
+chk('auch ein freier Würfel nennt die Figur', wFrei.indexOf('Kai (Peter)') === 0, wFrei);
+
+const wSchaden = fctx.formatRollText({
+  name: 'Peter', figur: 'Kai', probe: 'Schaden', band: null, total: 11, results: [6, 5]
+});
+chk('und der Schadenswurf', wSchaden.indexOf('Kai (Peter)') === 0, wSchaden);
+
+/* Die Spielleitung wuerfelt ohne Figur - dann darf dort keine leere
+   Klammer stehen. */
+const wOhne = fctx.formatRollText({
+  name: 'SL', probe: 'Schaden', band: null, total: 11, results: [6, 5]
+});
+chk('ohne Figur bleibt es beim Spielernamen', wOhne.indexOf('SL — Schaden') === 0, wOhne);
+chk('und es steht KEINE leere Klammer da', wOhne.indexOf('()') < 0, wOhne);
+
+const wLeer = fctx.formatRollText({
+  name: 'SL', figur: '   ', count: 1, sides: 6, total: 4
+});
+chk('ein Name aus Leerzeichen zählt nicht als Figur',
+  wLeer.indexOf('SL würfelt') === 0, wLeer);
+
+/* Heisst die Figur wie der Spieler, waere "Kai (Kai)" albern. */
+const wGleich = fctx.formatRollText({
+  name: 'Kai', figur: 'Kai', count: 1, sides: 6, total: 4
+});
+chk('gleicher Name wird nicht verdoppelt', wGleich.indexOf('Kai (Kai)') < 0, wGleich);
+
+/* Ein ALTER Eintrag aus dem Feed hat gar kein Feld "figur" - er darf
+   nicht anders aussehen als vorher. */
+const wAlt = fctx.formatRollText({
+  name: 'Peter', probe: 'Kämpfen d8', band: 'Erfolg', ergebnis: 7, ziel: 4
+});
+chk('ein alter Eintrag bleibt unveraendert', wAlt.indexOf('Peter — Kämpfen') === 0, wAlt);
+
+/* Und geschrieben wird es auch wirklich - an allen drei Stellen. */
+chk('die Probe schreibt die Figur mit',
+  (DICE.match(/figur: figurName\(\)/g) || []).length === 3,
+  (DICE.match(/figur: figurName\(\)/g) || []).length);
 
 console.log('OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);
