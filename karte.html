@@ -439,32 +439,38 @@
     backdrop-filter: blur(1px);
     pointer-events: none;
   }
-  .wuerfel-ani .wa-wuerfel {
-    width: 46px; height: 46px;
-    border: 2px solid #c9a24b; border-radius: 9px;
-    background: rgba(25,20,12,.95);
-    display: flex; align-items: center; justify-content: center;
-    font-family: Georgia, serif; font-size: 22px; color: #e8dcc0;
+  /* Der Wuerfel traegt die FORM seiner Groesse - dieselben Polygone,
+     die auch die Wuerfelleiste zeichnet (DICE_FORMEN in js/dice.js).
+     Zwei Fassungen derselben Formen wuerden auseinanderlaufen. */
+  .wuerfel-ani .wa-wuerfel { width: 52px; height: 52px; }
+  .wuerfel-ani .wa-wuerfel svg { width: 100%; height: 100%; display: block; }
+  /* Nur der KOERPER dreht sich, die Zahl bleibt aufrecht - eine
+     mitrotierende Zahl ist nicht zu lesen. */
+  .wuerfel-ani .wa-korpus {
+    fill: rgba(25,20,12,.95); stroke: #c9a24b; stroke-width: 5;
+    transform-origin: 50px 50px;
     animation: wa-rollen .42s cubic-bezier(.4,0,.6,1) infinite;
+  }
+  .wuerfel-ani .wa-zahl {
+    fill: #e8dcc0; font-family: Georgia, serif; font-size: 34px;
+    font-weight: 700;
   }
   @keyframes wa-rollen {
     0%   { transform: rotate(0deg)   scale(1);    }
-    50%  { transform: rotate(180deg) scale(1.14); }
+    50%  { transform: rotate(180deg) scale(1.12); }
     100% { transform: rotate(360deg) scale(1);    }
   }
-  /* Steht das Ergebnis, hoert das Drehen auf - sonst liest sich eine
-     rotierende Zahl schlecht. */
-  .wuerfel-ani.fertig .wa-wuerfel {
-    animation: none; transform: none;
-    border-color: #e8dcc0; font-size: 26px;
-  }
+  /* Steht das Ergebnis, hoert das Drehen auf. */
+  .wuerfel-ani.fertig .wa-korpus { animation: none; stroke: #e8dcc0; }
   .wuerfel-ani .wa-text {
     font-family: Georgia, serif; font-size: 11px; line-height: 1.25;
     color: #e8dcc0; text-align: center; padding: 0 6px;
     text-shadow: 0 1px 3px #000;
   }
-  .wuerfel-ani.gut .wa-wuerfel   { border-color: #6fbf8b; color: #cdeedb; }
-  .wuerfel-ani.schlecht .wa-wuerfel { border-color: #b4603f; color: #f0c6b4; }
+  .wuerfel-ani.gut .wa-korpus      { stroke: #6fbf8b; }
+  .wuerfel-ani.gut .wa-zahl        { fill: #cdeedb; }
+  .wuerfel-ani.schlecht .wa-korpus { stroke: #b4603f; }
+  .wuerfel-ani.schlecht .wa-zahl   { fill: #f0c6b4; }
 
   .char-card .char-name {
     position: absolute; left: 0; right: 0; bottom: 0;
@@ -2668,6 +2674,16 @@
       return { zahl: roll.total, text: (roll.count || 1) + '×d' + roll.sides, klasse: '' };
     }
 
+    /* Welche Wuerfelform gehoert zu diesem Wurf? Seit dem 17.10.2026
+       traegt jeder Wurf seine Groesse mit (seiten bei Probe und
+       Schaden, sides beim freien Wuerfel). Ist keine dabei - ein alter
+       Eintrag aus dem Feed -, wird der W6 genommen; eine Form muss es
+       geben, sonst stuende dort ein Loch. */
+    function wuerfelForm(roll) {
+      const s = roll.seiten || roll.sides || 6;
+      return (typeof DICE_FORMEN !== 'undefined' && DICE_FORMEN[s]) ? s : 6;
+    }
+
     function wuerfelImPortraet(roll) {
       if (!pcRailEl || !roll || !roll.name) return;
       if (typeof spielerKennung !== 'function') return;
@@ -2688,7 +2704,14 @@
       box.className = 'wuerfel-ani';
       const w = document.createElement('div');
       w.className = 'wa-wuerfel';
-      w.textContent = '?';
+      const seiten = wuerfelForm(roll);
+      /* Der Koerper als Polygon, die Zahl als eigener Text darin -
+         so dreht sich nur die Form. */
+      w.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+        '<polygon class="wa-korpus" points="' + DICE_FORMEN[seiten].punkte + '"></polygon>' +
+        '<text class="wa-zahl" x="50" y="' + DICE_ZAHL_Y + '" text-anchor="middle" ' +
+        'dominant-baseline="central">?</text></svg>';
+      const zahl = w.querySelector('.wa-zahl');
       const t = document.createElement('div');
       t.className = 'wa-text';
       t.textContent = 'würfelt …';
@@ -2697,14 +2720,16 @@
 
       // Während des Rollens wechselt die Zahl - sonst sieht es aus wie
       // ein Ladebalken, nicht wie ein Würfel.
+      /* Geflackert wird im Zahlenraum DIESES Wuerfels - ein d4, der
+         beim Rollen eine 11 zeigt, waere Unsinn. */
       const flackern = setInterval(function () {
-        w.textContent = String(1 + Math.floor(Math.random() * 6));
+        if (zahl) zahl.textContent = String(1 + Math.floor(Math.random() * seiten));
       }, 90);
 
       card._waTimer = setTimeout(function () {
         clearInterval(flackern);
         const a = wuerfelAnzeige(roll);
-        w.textContent = (a.zahl === undefined || a.zahl === null) ? '?' : String(a.zahl);
+        if (zahl) zahl.textContent = (a.zahl === undefined || a.zahl === null) ? '?' : String(a.zahl);
         t.textContent = a.text || '';
         box.className = 'wuerfel-ani fertig' + (a.klasse ? ' ' + a.klasse : '');
         // Danach wieder abräumen, sonst klebt das Ergebnis den ganzen

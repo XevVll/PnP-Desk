@@ -1032,9 +1032,18 @@ const aniCode = kSchnitt('function wuerfelAnzeige(', 'function attachPcRail(');
 
 let aniJetzt = 1000000;
 const aniTimer = [];
+/* Die Wuerfelformen kommen AUS js/dice.js, nicht als Kopie - genau
+   darum geht es: Das Portraet soll dieselben Polygone zeichnen wie die
+   Wuerfelleiste. Eine nachgebaute Tabelle wuerde das nicht pruefen. */
+const dctx = { window: {}, document: { addEventListener() {} }, localStorage: null, console };
+vm.createContext(dctx);
+vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8'), dctx);
+const FORMEN = vm.runInContext('DICE_FORMEN', dctx);
+const ZAHL_Y = vm.runInContext('DICE_ZAHL_Y', dctx);
+
 const actx = {
   Math, Object, String, Number, console, JSON,
-  DICE_ANIM_MS: 2000,
+  DICE_ANIM_MS: 2000, DICE_FORMEN: FORMEN, DICE_ZAHL_Y: ZAHL_Y,
   Date: { now: () => aniJetzt },
   spielerKennung: n => String(n || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
   setTimeout: (fn, ms) => { const h = { fn, zeit: aniJetzt + ms }; aniTimer.push(h); return h; },
@@ -1053,7 +1062,20 @@ const actx = {
           const kl = sel.replace('.', '');
           const suche = k => (String(k.className).split(' ').indexOf(kl) >= 0)
             ? k : k.kinder.map(suche).find(Boolean);
-          return this.kinder.map(suche).find(Boolean) || null;
+          const echt = this.kinder.map(suche).find(Boolean);
+          if (echt) return echt;
+          /* Was ueber innerHTML entsteht (das SVG mit Koerper und Zahl),
+             kann dieser Stub nicht parsen. Fuer solche Selektoren gibt
+             er einen gemerkten Platzhalter zurueck - dasselbe Muster,
+             das die Marken-Pruefungen weiter oben benutzen. So ist
+             beobachtbar, was der Code hineinschreibt. */
+          /* NUR fuer die SVG-Internas. Ein Platzhalter fuer jeden
+             Selektor liesse "nicht gefunden" wie "gefunden" aussehen -
+             der Stub wuerde luegen. */
+          if (sel !== '.wa-zahl' && sel !== '.wa-korpus') return null;
+          this._fake = this._fake || {};
+          if (!this._fake[sel]) this._fake[sel] = { textContent: '' };
+          return this._fake[sel];
         }
       };
       return n;
@@ -1096,8 +1118,8 @@ chk('eine Millisekunde vorher immer noch kein Ergebnis',
 aniVor(2);
 chk('nach zwei Sekunden steht es da', ani('anna').className.indexOf('fertig') >= 0,
   ani('anna').className);
-chk('die Zahl ist die geworfene', ani('anna').querySelector('.wa-wuerfel').textContent === '7',
-  ani('anna').querySelector('.wa-wuerfel').textContent);
+chk('die Zahl ist die geworfene', ani('anna').querySelector('.wa-wuerfel').querySelector('.wa-zahl').textContent === '7',
+  ani('anna').querySelector('.wa-wuerfel').querySelector('.wa-zahl').textContent);
 chk('das Band steht dabei',
   ani('anna').querySelector('.wa-text').textContent.indexOf('Erfolg') >= 0,
   ani('anna').querySelector('.wa-text').textContent);
@@ -1123,8 +1145,8 @@ actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 2, sides: 6, total: 
 const aniStapel = aniKarte('anna').kinder.filter(k => String(k.className).indexOf('wuerfel-ani') >= 0).length;
 chk('zwei Würfe kurz hintereinander stapeln sich nicht', aniStapel === 1, aniStapel);
 aniVor(2001);
-chk('und der zweite gewinnt', ani('anna').querySelector('.wa-wuerfel').textContent === '9',
-  ani('anna').querySelector('.wa-wuerfel').textContent);
+chk('und der zweite gewinnt', ani('anna').querySelector('.wa-wuerfel').querySelector('.wa-zahl').textContent === '9',
+  ani('anna').querySelector('.wa-wuerfel').querySelector('.wa-zahl').textContent);
 chk('ein freier Würfel wird als solcher beschriftet',
   ani('anna').querySelector('.wa-text').textContent === '2×d6',
   ani('anna').querySelector('.wa-text').textContent);
@@ -1154,6 +1176,46 @@ chk('der Regler ist eingeklappt', /#audioControl\s*{[^}]*opacity:\s*\.45/.test(K
 chk('und öffnet bei Hover UND Fokus',
   KARTE.indexOf('#audioControl:hover, #audioControl:focus-within') > 0);
 chk('der Schieber ist dann wirklich weg', /#volumeSlider\s*{[^}]*width:\s*0/.test(KARTE));
+
+/* ---- Der Würfel trägt die FORM seiner Größe ----
+   Hendriks Wunsch vom 17.10.2026. Geprüft wird gegen DICE_FORMEN aus
+   js/dice.js - dieselben Polygone, die die Würfelleiste zeichnet. Eine
+   nachgebaute Tabelle würde genau das nicht prüfen. */
+const formMark = pid => aniKarte(pid).querySelector('.wuerfel-ani')
+  .querySelector('.wa-wuerfel').innerHTML;
+
+[[1, 4], [2, 6], [3, 8], [4, 10], [5, 12]].forEach(function (paar) {
+  const seiten = paar[1];
+  actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
+    probe: 'Kämpfen d' + seiten, band: 'Erfolg', ergebnis: 5, seiten: seiten });
+  chk('d' + seiten + ' wird als d' + seiten + ' gezeichnet',
+    formMark('anna').indexOf(FORMEN[seiten].punkte) > 0, formMark('anna'));
+  aniVor(2001); aniVor(4001);
+});
+
+/* Ein freier Würfel bringt seine Größe als "sides" mit. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 1, sides: 12, total: 11 });
+chk('ein freier d12 bekommt das Fünfeck',
+  formMark('anna').indexOf(FORMEN[12].punkte) > 0);
+aniVor(2001); aniVor(4001);
+
+/* Ohne Angabe darf kein Loch entstehen - ein alter Feed-Eintrag von
+   vor dieser Änderung hat kein "seiten". */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, total: 3 });
+chk('ohne Angabe fällt er auf den W6 zurück',
+  formMark('anna').indexOf(FORMEN[6].punkte) > 0, formMark('anna'));
+aniVor(2001); aniVor(4001);
+
+/* Die Zahl darf sich NICHT mitdrehen - eine rotierende Ziffer ist
+   nicht zu lesen. Deshalb dreht nur das Polygon. */
+chk('nur der Körper dreht sich, nicht die Zahl',
+  /\.wa-korpus\s*{[^}]*animation:\s*wa-rollen/.test(KARTE) &&
+  !/\.wa-zahl\s*{[^}]*animation/.test(KARTE));
+
+/* Und die Größe kommt wirklich aus dem Wurf, nicht aus dem Fliesstext. */
+chk('der Wurf trägt seine Würfelgröße mit', DICE.indexOf('seiten: wuerfelSeiten(stufe)') > 0);
+chk('der Schadenswurf nennt den größten Würfel',
+  DICE.indexOf('return Math.max(a, wuerfelSeiten(t.stufe));') > 0);
 
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };

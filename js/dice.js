@@ -264,6 +264,11 @@ function initDiceRoller(db, options) {
 
     schreibeFeed({
       name: name, probe: wertName + ' ' + stufeText(stufe),
+      /* Die Wuerfelgroesse als eigenes Feld, nicht nur im Text: Die
+         Karte zeichnet daraus die FORM (Dreieck, Wuerfel, Drachen …).
+         Aus "Kämpfen d8" die 8 herauszuschneiden waere geraten - und
+         ungelernt stuende dort "ungelernt (d4−2)". */
+      seiten: wuerfelSeiten(stufe),
       band: BAND_NAMEN[r.band], ergebnis: r.roh, ziel: r.ziel,
       steigerungen: r.steigerungen, total: r.roh
     });
@@ -317,6 +322,13 @@ function initDiceRoller(db, options) {
     schreibeFeed({
       name: name, probe: 'Schaden',
       band: null, ergebnis: summe, total: summe,
+      /* Ein Schadenswurf wirft MEHRERE Wuerfel (Waffe + Stärke, bei
+         einer Steigerung noch 1W6). Gezeigt wird der groesste - er
+         ist der, den man vor sich sieht, wenn jemand "Säbel und
+         Stärke" sagt. */
+      seiten: teile.reduce(function (a, t) {
+        return Math.max(a, wuerfelSeiten(t.stufe));
+      }, 4),
       results: teile.map(function (t) { return t.summe; })
     });
     const f = holeFigur() || {};

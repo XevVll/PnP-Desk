@@ -126,6 +126,40 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 — Der Würfel im Porträt trägt die Form seiner Größe
+- **Hendriks Wunsch:** „wenn der Würfel in der Form seiner Höhe gerollt wird. Also 4er 6er 8er
+  10er oder 12er."
+- **Die Formen gab es längst** — `DICE_FORMEN` in `js/dice.js` zeichnet seit dem 14.10.2026
+  Dreieck, Quadrat, Raute, Drachen und Fünfeck für die Würfelleiste. **Sie werden benutzt, nicht
+  nachgebaut:** Zwei Fassungen derselben Polygone liefen auseinander, und dann zeigte die Leiste
+  einen anderen d10 als das Porträt.
+- **Gefehlt hat nur die Angabe, WELCHE Größe ein Wurf hatte.** Bei einer Probe steckte sie
+  allein im Fließtext („Kämpfen d8") — den zu zerlegen wäre geraten gewesen, zumal dort bei
+  einem ungelernten Wert **„ungelernt (d4−2)"** steht. Jeder Wurf trägt jetzt ein eigenes Feld
+  `seiten`.
+  - Beim **Schadenswurf** fallen mehrere Würfel (Waffe + Stärke, bei einer Steigerung noch 1W6).
+    Gezeigt wird der **größte** — er ist der, den man vor sich sieht, wenn jemand „Säbel und
+    Stärke" sagt.
+  - Ein **alter Feed-Eintrag** von vor dieser Änderung hat kein `seiten` und fällt auf den W6
+    zurück. Eine Form muss es geben, sonst stünde dort ein Loch.
+- **Nur der Körper dreht sich, die Zahl bleibt aufrecht.** Eine mitrotierende Ziffer ist nicht
+  zu lesen — deshalb trägt das Polygon die Animation und der Text nicht.
+- **Geflackert wird im Zahlenraum DIESES Würfels:** Ein d4, der beim Rollen eine 11 zeigt, wäre
+  Unsinn.
+- **Getestet: 233 Prüfungen in `t_bogen.js`, 0 Fehler** (10 neue, 1427 über zwölf Skripte).
+  Alle fünf Größen einzeln: **d4 bekommt nachweislich das Dreieck, d12 das Fünfeck** — geprüft
+  gegen `DICE_FORMEN`, das der Test **aus `js/dice.js` lädt** statt es abzuschreiben.
+  **Gegengeprüft:** Klemmt man die Form fest auf d6, schlagen **fünf** Prüfungen an.
+- **Ein eigener Fehler am Prüfaufbau, und er ist der lehrreichste des Tages:** Mein Knoten-Stub
+  gab für **jeden** unbekannten Selektor einen Platzhalter zurück — damit sah „nicht gefunden"
+  aus wie „gefunden", und der Code rief `remove()` auf etwas, das es nie gab. **Ein Stub, der
+  immer etwas liefert, lügt.** Jetzt gibt er nur noch für die beiden SVG-Internas einen
+  Platzhalter, sonst ehrlich `null`.
+- **Dazu zweimal dieselbe Werkzeug-Falle:** Backticks in einem Changelog-Text, per `python -c`
+  durch die Shell geschickt, wurden als Befehlsersetzung ausgeführt. Der im Projekt vermerkte
+  Weg (Write-Werkzeug) stand die ganze Zeit daneben.
+
+
 ### 2026-10-16 (Fortsetzung) — Die Leiste geht in die Mitte, der Würfel rollt im Porträt
 - **Hendriks Screenshot:** Würfelleiste und Lautstärkeregler lagen **über den Porträtleisten** —
   links verdeckte die Leiste den untersten Spielernamen, rechts der Regler den untersten NSC.
