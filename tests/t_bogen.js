@@ -1028,7 +1028,11 @@ chk('die NSC bleiben rechts', /#charRail\s*{[^}]*right:\s*0/.test(KARTE));
    SPIELERnamen ("Peter"), die Leiste den FIGURENnamen ("Mara Quint").
    Verbunden werden sie über spielerKennung(). Ginge das schief,
    rollte der Würfel im Bild des Falschen - oder nirgends. */
-const aniCode = kSchnitt('function wuerfelAnzeige(', 'function attachPcRail(');
+/* Der Schnitt beginnt bei pcAnzahl, nicht erst bei wuerfelAnzeige:
+   Die Grenze des Streifens haengt an der Spielerzahl, und die setzt
+   renderPcRail. Beides muss MIT geschnitten werden, sonst pruefte der
+   Test eine nachgebaute Grenze statt der echten. */
+const aniCode = kSchnitt('let pcAnzahl = 0;', 'function attachPcRail(');
 
 let aniJetzt = 1000000;
 const aniTimer = [];
@@ -1056,9 +1060,15 @@ const actx = {
   setInterval: () => 0, clearInterval: () => {},
   pcRailEl: null,
   document: {
+    /* Der Streifen oben haengt nicht an einer Karte, sondern an einem
+       eigenen Knoten - der Stub muss ihn kennen. */
+    getElementById(id) { return actx._knoten[id] || null; },
     createElement(tag) {
       const n = {
         tagName: tag, className: '', textContent: '', dataset: {}, kinder: [],
+        // Der echte Code liest .children - der Stub muss mitwachsen,
+        // nicht der Code mit dem Stub.
+        get children() { return this.kinder; },
         appendChild(k) { this.kinder.push(k); k._eltern = this; return k; },
         remove() { const e = this._eltern; if (e) e.kinder.splice(e.kinder.indexOf(this), 1); },
         querySelector(sel) {
@@ -1100,6 +1110,11 @@ function aniVor(ms) {
    getroffen wird. */
 const rail = actx.document.createElement('div');
 actx.pcRailEl = rail;
+actx._knoten = { wurfBand: actx.document.createElement('div') };
+const band = () => actx._knoten.wurfBand;
+const bandOffen = () => band().kinder.filter(function (k) {
+  return String(k.className).indexOf('wb-weg') < 0;
+});
 ['anna', 'bert'].forEach(pid => {
   const c = actx.document.createElement('div');
   c.className = 'char-card'; c.dataset.pid = pid; rail.appendChild(c);
@@ -1284,6 +1299,87 @@ aniVor(4001);
 chk('der Wurf trägt seine Würfelgröße mit', DICE.indexOf('seiten: wuerfelSeiten(stufe)') > 0);
 chk('der Schadenswurf nennt den größten Würfel',
   DICE.indexOf('return Math.max(a, wuerfelSeiten(t.stufe));') > 0);
+
+/* ---- Die Ergebnisse stehen oben in der Mitte ----
+   Hendriks Vorgabe vom 17.10.2026: "die Ergebnisse oben in der Mitte
+   anzeigen. Maximal Spieleranzahl stueck. Jeder weitere schiebt den
+   ersten aus dem Bildschirm raus." */
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: 'Mara Quint',
+  probe: 'Kaempfen d8', band: 'Erfolg', ergebnis: 7, seiten: 8 });
+chk('vor dem Ausrollen steht oben noch nichts', bandOffen().length === 0);
+aniVor(2001);
+chk('nach dem Ausrollen steht das Ergebnis oben', bandOffen().length === 1);
+const e1 = bandOffen()[0];
+chk('der Streifen nennt die FIGUR, nicht den Spieler',
+  e1.querySelector('.wb-wer').textContent === 'Mara Quint',
+  e1.querySelector('.wb-wer').textContent);
+chk('und die geworfene Zahl', e1.querySelector('.wb-zahl').textContent === '7',
+  e1.querySelector('.wb-zahl').textContent);
+chk('ein Erfolg ist gruen markiert', e1.className.indexOf('gut') >= 0, e1.className);
+aniVor(4001);
+
+/* Die Grenze ist die Spielerzahl. Zwei Karten in der Leiste heisst:
+   hoechstens zwei Ergebnisse. */
+actx.renderPcRail({ anna: { name: 'Mara', bild: 'x' }, bert: { name: 'Cord', bild: 'y' } });
+band().kinder.length = 0;
+['A', 'B', 'C', 'D'].forEach(function (n, i) {
+  actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: n,
+    count: 1, sides: 6, total: i + 1 });
+  aniVor(2001); aniVor(4001);
+});
+chk('hoechstens so viele wie Spieler', bandOffen().length === 2, bandOffen().length);
+/* Und zwar die JUENGSTEN - der erste muss heraus sein, nicht der
+   letzte. Eine Grenze, die das Falsche wegwirft, waere schlimmer als
+   gar keine. */
+const drin = bandOffen().map(function (k) { return k.querySelector('.wb-wer').textContent; });
+chk('die juengsten bleiben, der erste ist heraus',
+  drin.join(',') === 'C,D', drin);
+/* Verdraengt wird SICHTBAR: der alte traegt die Hinaus-Markierung,
+   bevor er aus dem Baum faellt. Geprueft wird WAEHREND der
+   Verdraengung - 340 ms spaeter ist er weg, und die erste Fassung
+   dieser Pruefung hat genau danach geschaut. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: 'E',
+  count: 1, sides: 6, total: 5 });
+aniVor(2001);
+chk('der verdraengte wird hinausgeschoben, nicht weggezaubert',
+  band().kinder.some(function (k) { return String(k.className).indexOf('wb-weg') >= 0; }));
+aniVor(4001);
+chk('und danach ist er wirklich aus dem Baum',
+  band().kinder.every(function (k) { return String(k.className).indexOf('wb-weg') < 0; }));
+
+/* Ohne eine einzige Karte darf der Streifen nicht leer bleiben -
+   eine Grenze von null hiesse, es stuende nie etwas da. */
+actx.renderPcRail({});
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'SL', ts: aniJetzt, count: 1, sides: 6, total: 4 });
+aniVor(2001);
+chk('ohne Spielerleiste steht trotzdem etwas da', bandOffen().length === 1,
+  bandOffen().length);
+aniVor(4001);
+
+/* Der entscheidende Fall: Wer KEIN Bild hochgeladen hat, hat keine
+   Karte - sein Wurf ging frueher fuer die Anzeige verloren. */
+actx.renderPcRail({ anna: { name: 'Mara', bild: 'x' } });
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'Cord', ts: aniJetzt, figur: 'Cord Vane',
+  probe: 'Segeln d6', band: 'Misserfolg', ergebnis: 2 });
+aniVor(2001);
+chk('ein Spieler ohne Portraet landet trotzdem oben', bandOffen().length === 1,
+  bandOffen().length);
+chk('und sein Misserfolg ist rot markiert',
+  bandOffen()[0].className.indexOf('schlecht') >= 0);
+aniVor(4001);
+
+/* Der Streifen soll von jedem Platz lesbar sein - also oben MITTIG. */
+chk('der Streifen steht oben', /#wurfBand\s*{[^}]*top:/.test(KARTE));
+chk('und mittig', /#wurfBand\s*{[^}]*left:\s*50%/.test(KARTE));
+/* Er darf keine Klicks auf die Karte abfangen. */
+chk('er faengt keine Klicks ab', /#wurfBand\s*{[^}]*pointer-events:\s*none/.test(KARTE));
+
+/* Die Wuerfel sind groesser geworden. */
+chk('der Wuerfel ist groesser als vorher',
+  /\.wa-wuerfel\s*{[^}]*width:\s*72px/.test(KARTE));
 
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };

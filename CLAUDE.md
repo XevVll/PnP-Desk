@@ -126,6 +126,47 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 4) — Die Ergebnisse stehen oben in der Mitte
+- **Hendriks Vorgaben:** „Die Würfel noch ein wenig größer und die Ergebnisse oben in der Mitte
+  anzeigen. Maximal Spieleranzahl Stück. Jeder weitere schiebt den ersten aus dem Bildschirm
+  raus."
+- **Die Würfel sind größer** (56 → 72 px, der Körper 44 → 58, die Zahl 25 → 31 px).
+- **Neuer Ergebnis-Streifen oben mittig.** Die Arbeitsteilung ist der Punkt: Das **Porträt sagt
+  WER**, der **Streifen behält WAS**. Ein Wurf im Gesicht eines Spielers ist nach vier Sekunden
+  weg — oben bleibt er stehen, bis ihn ein neuer verdrängt.
+  - **Oben mittig, weil dort als einziger Stelle nichts liegt:** links der Hub-Knopf, rechts die
+    NSC-Leiste, unten Würfelleiste und Ton.
+  - Er liegt **unter dem Backdrop des Bogens** (355 gegen 360) — schlägt jemand seinen Bogen
+    auf, wird der Streifen mit abgedunkelt, genau wie die Würfelleiste.
+  - **`pointer-events: none`**, sonst finge er Klicks auf die Karte ab.
+- **Die Grenze ist die Spielerzahl**, gezählt über die Porträtleiste — und zwar **jeder
+  Eintrag, auch wer kein Bild hochgeladen hat**: Er würfelt ja trotzdem. Ohne jeden Eintrag
+  bleibt es bei vier; **eine Grenze von null hieße, es stünde nie etwas da.**
+- **Verdrängt wird SICHTBAR.** Der neue kommt von rechts herein, der älteste geht nach **links
+  hinaus** — erst nach der Bewegung fällt er aus dem Baum. Wer sofort entfernt, zeigt kein
+  Verdrängen, sondern ein Springen.
+- **Ein echter Fund dabei, und er lag quer zur Aufgabe:** `wuerfelImPortraet()` brach ab, wenn
+  es keine Porträtkarte gab — **der Wurf eines Spielers ohne hochgeladenes Bild wäre also gar
+  nicht oben erschienen.** Das Fehlen einer Karte lässt jetzt nur noch die Animation aus, nicht
+  den Eintrag. **Gegengeprüft:** Stellt man den alten Abbruch wieder her, schlagen zwei
+  Prüfungen an.
+- **Getestet: 264 Prüfungen in `t_bogen.js`, 0 Fehler** (16 neue, 1543 über dreizehn Skripte).
+  Der Ablauf wird mit **gestellter Uhr** durchgespielt: vor dem Ausrollen steht oben nichts,
+  danach das Ergebnis; bei zwei Spielern bleiben **zwei** Einträge, und zwar die **jüngsten**.
+  - **Die wichtigste Gegenprobe ist die Reihenfolge:** Wirft man den jüngsten statt den ältesten
+    hinaus, schlägt die Prüfung an und nennt im Fehlertext `["A","B"]` statt `["C","D"]`. **Eine
+    Grenze, die das Falsche wegwirft, wäre schlimmer als gar keine.**
+- **Drei eigene Fehler beim Bauen:**
+  1. **Der Knoten-Stub kannte `.children` nicht** — der echte Code liest es. Richtig so: Der
+     Stub wächst mit dem Code, nicht der Code mit dem Stub.
+  2. **Der Testschnitt begann zu spät.** Die Grenze hängt an der Spielerzahl, die
+     `renderPcRail()` setzt — beides lag außerhalb des Schnitts, und der Test hätte eine
+     **nachgebaute** Grenze geprüft statt der echten. Der Schnitt beginnt jetzt bei `pcAnzahl`.
+  3. **Eine Prüfung maß zum falschen Zeitpunkt:** Sie suchte den Verdrängten, nachdem die Uhr
+     schon über die 340 ms der Hinaus-Bewegung gelaufen war — da ist er aus dem Baum. Sie
+     schaut jetzt **währenddessen** hin, und eine zweite prüft, dass er danach wirklich weg ist.
+
+
 ### 2026-10-17 (Fortsetzung 3) — Jetzt ein echter Körper: Tetraeder bis Dodekaeder
 - **Hendriks Einwand, und er sitzt:** „Jetzt dreht sich eine 2d geometrische Form. Es müsste
   aber ein 3d Würfel erstellt werden, der sich dreht." Meine drei gestapelten Lagen waren

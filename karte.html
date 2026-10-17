@@ -427,6 +427,57 @@
   .char-card img {
     width: 100%; height: 100%; object-fit: cover; object-position: top; display: block;
   }
+  /* ---------- Der Ergebnis-Streifen ----------
+     Oben mittig, weil dort als einziger Stelle nichts liegt: links der
+     Hub-Knopf, rechts die NSC-Leiste, unten Wuerfelleiste und Ton.
+     Er liegt UNTER dem Backdrop des Bogens (360), wird also mit
+     abgedunkelt, wenn jemand seinen Bogen aufschlaegt - genau wie die
+     Wuerfelleiste. */
+  #wurfBand {
+    position: fixed; top: calc(12px + env(safe-area-inset-top, 0px));
+    left: 50%; transform: translateX(-50%); z-index: 355;
+    display: flex; gap: 8px; align-items: stretch;
+    max-width: calc(100vw - 32px);
+    pointer-events: none;
+  }
+  .wb-wurf {
+    background: rgba(15,12,8,.9); border: 1px solid #3a2a18;
+    border-top: 3px solid var(--wb-farbe, #c9a24b);
+    border-radius: 0 0 10px 10px; padding: 7px 13px 8px;
+    backdrop-filter: blur(3px);
+    font-family: Georgia, "Times New Roman", serif; text-align: center;
+    min-width: 92px;
+    /* Hereingeschoben von rechts - der Streifen waechst zur Seite,
+       man sieht also, welcher der neue ist. */
+    animation: wb-rein .32s cubic-bezier(.2,.9,.3,1);
+  }
+  @keyframes wb-rein {
+    from { opacity: 0; transform: translateX(26px) scale(.92); }
+    to   { opacity: 1; transform: none; }
+  }
+  /* Der aelteste geht nach LINKS aus dem Bild - er wird verdraengt,
+     er verschwindet nicht einfach. */
+  .wb-wurf.wb-weg {
+    animation: wb-raus .32s cubic-bezier(.4,0,.8,.3) forwards;
+  }
+  @keyframes wb-raus {
+    from { opacity: 1; transform: none; max-width: 240px; }
+    to   { opacity: 0; transform: translateX(-34px) scale(.9); max-width: 0;
+           padding-left: 0; padding-right: 0; margin-right: -8px; }
+  }
+  .wb-wer {
+    font-size: 11px; letter-spacing: .04em; color: #a89d81;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 150px;
+  }
+  .wb-zahl {
+    font-size: 25px; font-weight: 700; line-height: 1.1;
+    color: var(--wb-farbe, #e8dcc0);
+  }
+  .wb-was { font-size: 11px; color: #cdc3a8; white-space: nowrap; }
+  .wb-wurf.gut      { --wb-farbe: #6fbf8b; }
+  .wb-wurf.schlecht { --wb-farbe: #b4603f; }
+
   /* ---------- Der Wuerfel im Portraet ----------
      Wuerfelt ein Spieler, rollt der Wuerfel zwei Sekunden in SEINER
      Karte, danach steht das Ergebnis da. Liegt UEBER dem Namensschild
@@ -449,8 +500,8 @@
      desselben Umrisses: so hat der Wuerfel eine Dicke und verschwindet
      beim Kippen nicht zu einem Strich. */
   .wuerfel-ani .wa-wuerfel {
-    width: 56px; height: 56px; position: relative;
-    perspective: 220px;
+    width: 72px; height: 72px; position: relative;
+    perspective: 300px;
   }
   .wuerfel-ani .wa-koerper {
     position: absolute; inset: 0;
@@ -478,7 +529,7 @@
   .wuerfel-ani .wa-zahl {
     position: absolute; inset: 0; display: flex;
     align-items: center; justify-content: center;
-    font-family: Georgia, serif; font-size: 25px; font-weight: 700;
+    font-family: Georgia, serif; font-size: 31px; font-weight: 700;
     color: #e8dcc0; text-shadow: 0 2px 5px rgba(0,0,0,.9);
     pointer-events: none;
   }
@@ -863,6 +914,9 @@
 
   <div id="erkFlavorText"></div>
   <div id="charRail"></div>
+  <!-- Die Ergebnisse, oben mittig: von jedem Platz am Tisch lesbar.
+       Die Portraetleiste sagt WER, dieser Streifen sagt WAS. -->
+  <div id="wurfBand"></div>
   <div id="pcRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
@@ -2656,7 +2710,16 @@
        nicht an der Szene (siehe Kommentar am Stil). */
     const pcRailEl = document.getElementById('pcRail');
 
+    /* Wie viele Spieler hat diese Runde? Der Streifen oben haelt
+       hoechstens so viele Ergebnisse. Gezaehlt wird JEDER Eintrag der
+       Leiste, auch wer kein Bild hochgeladen hat - er wuerfelt ja
+       trotzdem. Ohne jeden Eintrag bleibt es bei vier: eine Grenze von
+       null hiesse, es stuende nie etwas da. */
+    let pcAnzahl = 0;
+    function wurfBandGrenze() { return Math.max(1, pcAnzahl || 4); }
+
     function renderPcRail(stand) {
+      pcAnzahl = Object.keys(stand || {}).length;
       if (!pcRailEl) return;
       const leute = Object.keys(stand || {}).map(function (pid) {
         const v = stand[pid] || {};
@@ -2725,14 +2788,60 @@
       return (typeof DICE_FORMEN !== 'undefined' && DICE_FORMEN[s]) ? s : 6;
     }
 
+    /* Ein Ergebnis in den Streifen oben. Faellt der aelteste heraus,
+       wird er SICHTBAR verdraengt (nach links hinaus) statt einfach zu
+       verschwinden - sonst merkt niemand, dass etwas weg ist. */
+    function wurfBandEintrag(roll) {
+      const band = document.getElementById('wurfBand');
+      if (!band) return;
+      const a = wuerfelAnzeige(roll);
+
+      const e = document.createElement('div');
+      e.className = 'wb-wurf' + (a.klasse ? ' ' + a.klasse : '');
+      const wer = document.createElement('div');
+      wer.className = 'wb-wer';
+      // Von einem Spieler, nicht aus dem Code - niemals als HTML.
+      wer.textContent = (roll.figur || '').trim() || roll.name || '';
+      const z = document.createElement('div');
+      z.className = 'wb-zahl';
+      z.textContent = (a.zahl === undefined || a.zahl === null) ? '?' : String(a.zahl);
+      const was = document.createElement('div');
+      was.className = 'wb-was';
+      was.textContent = a.text || '';
+      e.appendChild(wer); e.appendChild(z); e.appendChild(was);
+      band.appendChild(e);
+
+      /* Ueberzaehlige hinausschieben. Gezaehlt werden nur die, die
+         nicht ohnehin schon gehen - sonst wuerde derselbe Eintrag bei
+         jedem Wurf erneut verdraengt. */
+      const bleiben = [].slice.call(band.children).filter(function (k) {
+        return k.className.indexOf('wb-weg') < 0;
+      });
+      let zuviel = bleiben.length - wurfBandGrenze();
+      for (let i = 0; i < zuviel; i++) {
+        const alt = bleiben[i];
+        alt.className += ' wb-weg';
+        /* Erst nach der Bewegung aus dem DOM - wer sofort entfernt,
+           sieht keine Verdraengung, sondern ein Springen. */
+        setTimeout(function () { alt.remove(); }, 340);
+      }
+    }
+
     function wuerfelImPortraet(roll) {
-      if (!pcRailEl || !roll || !roll.name) return;
-      if (typeof spielerKennung !== 'function') return;
-      const pid = spielerKennung(roll.name);
-      const card = pcRailEl.querySelector('[data-pid="' + pid + '"]');
-      // Kein Bild hochgeladen, kein Porträt - dann gibt es nichts zu
-      // bespielen. Der Feed zeigt den Wurf trotzdem.
-      if (!card) return;
+      if (!roll || !roll.name) return;
+      /* Wer kein Bild hochgeladen hat, hat keine Karte - aber sein
+         Ergebnis gehoert trotzdem in den Streifen. Deshalb bricht das
+         Fehlen einer Karte hier NICHT mehr ab; es laesst nur die
+         Animation aus. (Vorher ging so ein Wurf fuer die Anzeige
+         verloren.) */
+      const card = (pcRailEl && typeof spielerKennung === 'function')
+        ? pcRailEl.querySelector('[data-pid="' + spielerKennung(roll.name) + '"]')
+        : null;
+
+      if (!card) {
+        setTimeout(function () { wurfBandEintrag(roll); }, DICE_ANIM_MS);
+        return;
+      }
 
       // Läuft schon eine, wird sie ersetzt: Zwei Würfe kurz
       // hintereinander sollen nicht übereinanderliegen.
@@ -2751,7 +2860,7 @@
          eigene Ebene im Raum - kein Stapel flacher Kopien.
          Die Zahl steht DAVOR, nicht darauf: Bei 56 px waere eine
          mitgedrehte Ziffer auf einer Flaeche nicht zu lesen. */
-      w.innerHTML = '<div class="wa-koerper">' + dice3dMarkup(seiten, 44) + '</div>' +
+      w.innerHTML = '<div class="wa-koerper">' + dice3dMarkup(seiten, 58) + '</div>' +
         '<div class="wa-zahl">?</div>';
       const zahl = w.querySelector('.wa-zahl');
       const t = document.createElement('div');
@@ -2774,6 +2883,9 @@
         if (zahl) zahl.textContent = (a.zahl === undefined || a.zahl === null) ? '?' : String(a.zahl);
         t.textContent = a.text || '';
         box.className = 'wuerfel-ani fertig' + (a.klasse ? ' ' + a.klasse : '');
+        /* Im selben Augenblick oben in den Streifen - das Portraet
+           sagt WER, der Streifen behaelt WAS. */
+        wurfBandEintrag(roll);
         // Danach wieder abräumen, sonst klebt das Ergebnis den ganzen
         // Abend über dem Gesicht.
         card._waWeg = setTimeout(function () { box.remove(); }, 4000);
