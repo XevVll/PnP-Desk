@@ -457,18 +457,22 @@
     transform-style: preserve-3d;
     animation: wa-taumeln 1.15s linear infinite;
   }
-  .wuerfel-ani .wa-lage { position: absolute; inset: 0; }
-  .wuerfel-ani .wa-lage svg { width: 100%; height: 100%; display: block; }
-  /* Die hinteren Lagen sind dunkler - das ist der Schattenkeil, der die
-     Dicke ueberhaupt erst sichtbar macht. */
-  .wuerfel-ani .wa-lage.l0 { transform: translateZ(-7px); }
-  .wuerfel-ani .wa-lage.l1 { transform: translateZ(-3.5px); }
-  .wuerfel-ani .wa-lage.l2 { transform: translateZ(0); }
-  .wuerfel-ani .wa-lage.l0 .wa-korpus { fill: rgba(8,6,4,.99); }
-  .wuerfel-ani .wa-lage.l1 .wa-korpus { fill: rgba(16,12,8,.99); }
-  .wuerfel-ani .wa-korpus {
-    fill: rgba(28,22,13,.97); stroke: #c9a24b; stroke-width: 5;
+  /* EINE <div> je Flaeche, von js/dice3d.js an ihren Platz im Raum
+     gerechnet (matrix3d) und auf ihren Umriss beschnitten (clip-path).
+     Das ist der Unterschied zur alten Fassung: kein Stapel flacher
+     Kopien mehr, sondern ein geschlossener Koerper. */
+  .wuerfel-ani .wa-flaeche {
+    position: absolute; left: 50%; top: 50%;
+    background: var(--wa-flanke, #c9a24b);
+    /* Das feste Streiflicht steckt in --hell, das dice3d.js je Flaeche
+       mitgibt: Ohne Helligkeitsunterschied waere der Koerper eine
+       einzige Silhouette, und alle Kanten verschwaenden. */
+    filter: brightness(var(--hell, 1));
+    backface-visibility: hidden;
   }
+  /* Eine abgewandte Flaeche wird vom Browser weggeblendet - deshalb
+     muessen alle Normalen nach aussen zeigen (geprueft in
+     tests/t_dice3d.js). */
   /* Die Zahl liegt AUSSERHALB des taumelnden Koerpers und bleibt
      aufrecht - eine mitrotierende Ziffer ist nicht zu lesen. */
   .wuerfel-ani .wa-zahl {
@@ -496,15 +500,15 @@
     0%   { transform: rotateX(30deg) rotateY(-24deg) rotateZ(15deg) scale(1.07); }
     100% { transform: rotateX(0deg)  rotateY(0deg)   rotateZ(0deg)  scale(1);    }
   }
-  .wuerfel-ani.fertig .wa-korpus { stroke: #e8dcc0; }
+  .wuerfel-ani.fertig { --wa-flanke: #e8dcc0; }
   .wuerfel-ani .wa-text {
     font-family: Georgia, serif; font-size: 11px; line-height: 1.25;
     color: #e8dcc0; text-align: center; padding: 0 6px;
     text-shadow: 0 1px 3px #000;
   }
-  .wuerfel-ani.gut .wa-korpus      { stroke: #6fbf8b; }
+  .wuerfel-ani.gut                 { --wa-flanke: #6fbf8b; }
   .wuerfel-ani.gut .wa-zahl        { color: #cdeedb; }
-  .wuerfel-ani.schlecht .wa-korpus { stroke: #b4603f; }
+  .wuerfel-ani.schlecht            { --wa-flanke: #b4603f; }
   .wuerfel-ani.schlecht .wa-zahl   { color: #f0c6b4; }
 
   .char-card .char-name {
@@ -919,6 +923,8 @@
   <script src="js/identitaet.js"></script>
   <script src="js/regelwerk.js"></script>
   <script src="js/dice.js"></script>
+  <!-- Die Wuerfelkoerper: nur die Karte zeichnet sie, die Regie nicht. -->
+  <script src="js/dice3d.js"></script>
 
   <script>
     // Vorschau-Modus (nur wenn per ?preview=1 aufgerufen, z.B. im
@@ -2740,19 +2746,12 @@
       const w = document.createElement('div');
       w.className = 'wa-wuerfel';
       const seiten = wuerfelForm(roll);
-      /* DREI Lagen desselben Umrisses, in der Tiefe gestaffelt: Das
-         gibt dem Wuerfel eine Dicke, damit er beim Kippen nicht zu
-         einem Strich wird. Die Zahl steht daneben, nicht darin -
-         sonst taumelte sie mit und waere nicht zu lesen. */
-      const umriss = DICE_FORMEN[seiten].punkte;
-      let lagen = '';
-      for (let i = 0; i < 3; i++) {
-        lagen += '<div class="wa-lage l' + i + '">' +
-          '<svg viewBox="0 0 100 100" aria-hidden="true">' +
-          '<polygon class="wa-korpus" points="' + umriss + '"></polygon>' +
-          '</svg></div>';
-      }
-      w.innerHTML = '<div class="wa-koerper">' + lagen + '</div>' +
+      /* Der echte Koerper: Tetraeder, Wuerfel, Oktaeder, Trapezoeder
+         oder Dodekaeder, aus js/dice3d.js. Jede Flaeche liegt als
+         eigene Ebene im Raum - kein Stapel flacher Kopien.
+         Die Zahl steht DAVOR, nicht darauf: Bei 56 px waere eine
+         mitgedrehte Ziffer auf einer Flaeche nicht zu lesen. */
+      w.innerHTML = '<div class="wa-koerper">' + dice3dMarkup(seiten, 44) + '</div>' +
         '<div class="wa-zahl">?</div>';
       const zahl = w.querySelector('.wa-zahl');
       const t = document.createElement('div');

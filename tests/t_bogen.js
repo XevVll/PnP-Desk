@@ -1041,9 +1041,14 @@ vm.runInContext(fs.readFileSync(path.join(BASIS, 'js/dice.js'), 'utf8'), dctx);
 const FORMEN = vm.runInContext('DICE_FORMEN', dctx);
 const ZAHL_Y = vm.runInContext('DICE_ZAHL_Y', dctx);
 
+/* Die Koerper kommen AUS js/dice3d.js, nicht als Nachbau - sonst
+   pruefte der Test seine eigene Kopie. */
+const D3 = require(path.join(BASIS, 'js/dice3d.js'));
+
 const actx = {
   Math, Object, String, Number, console, JSON,
   DICE_ANIM_MS: 2000, DICE_FORMEN: FORMEN, DICE_ZAHL_Y: ZAHL_Y,
+  dice3dMarkup: D3.dice3dMarkup,
   Date: { now: () => aniJetzt },
   spielerKennung: n => String(n || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
   setTimeout: (fn, ms) => { const h = { fn, zeit: aniJetzt + ms }; aniTimer.push(h); return h; },
@@ -1177,34 +1182,53 @@ chk('und öffnet bei Hover UND Fokus',
   KARTE.indexOf('#audioControl:hover, #audioControl:focus-within') > 0);
 chk('der Schieber ist dann wirklich weg', /#volumeSlider\s*{[^}]*width:\s*0/.test(KARTE));
 
-/* ---- Der Würfel trägt die FORM seiner Größe ----
-   Hendriks Wunsch vom 17.10.2026. Geprüft wird gegen DICE_FORMEN aus
-   js/dice.js - dieselben Polygone, die die Würfelleiste zeichnet. Eine
-   nachgebaute Tabelle würde genau das nicht prüfen. */
-const formMark = pid => aniKarte(pid).querySelector('.wuerfel-ani')
-  .querySelector('.wa-wuerfel').innerHTML;
+/* ---- Der Würfel ist ein KOERPER, keine Scheibe ----
+   Hendriks Wunsch vom 17.10.2026: "Es müsste aber ein 3d Würfel
+   erstellt werden, der sich dreht." Vorher drehte sich eine flache
+   Form mit vorgetaeuschter Dicke. Geprueft wird deshalb nicht mehr
+   ein Umriss, sondern die Zahl der Flaechen - DAS unterscheidet einen
+   Koerper von einer Scheibe. Die Geometrie selbst steht in
+   tests/t_dice3d.js (Planaritaet, Euler, Aussennormalen). */
+const flaechen = pid => (aniKarte(pid).querySelector('.wuerfel-ani')
+  .querySelector('.wa-wuerfel').innerHTML.match(/class="wa-flaeche"/g) || []).length;
 
-[[1, 4], [2, 6], [3, 8], [4, 10], [5, 12]].forEach(function (paar) {
-  const seiten = paar[1];
+[[4, 4], [6, 6], [8, 8], [10, 10], [12, 12]].forEach(function (paar) {
   actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
-    probe: 'Kämpfen d' + seiten, band: 'Erfolg', ergebnis: 5, seiten: seiten });
-  chk('d' + seiten + ' wird als d' + seiten + ' gezeichnet',
-    formMark('anna').indexOf(FORMEN[seiten].punkte) > 0, formMark('anna'));
+    probe: 'Kämpfen d' + paar[0], band: 'Erfolg', ergebnis: 5, seiten: paar[0] });
+  chk('d' + paar[0] + ' ist ein Koerper mit ' + paar[1] + ' Flaechen',
+    flaechen('anna') === paar[1], flaechen('anna'));
   aniVor(2001); aniVor(4001);
 });
 
 /* Ein freier Würfel bringt seine Größe als "sides" mit. */
 actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 1, sides: 12, total: 11 });
-chk('ein freier d12 bekommt das Fünfeck',
-  formMark('anna').indexOf(FORMEN[12].punkte) > 0);
+chk('ein freier d12 wird zum Dodekaeder', flaechen('anna') === 12, flaechen('anna'));
 aniVor(2001); aniVor(4001);
 
 /* Ohne Angabe darf kein Loch entstehen - ein alter Feed-Eintrag von
    vor dieser Änderung hat kein "seiten". */
 actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, total: 3 });
-chk('ohne Angabe fällt er auf den W6 zurück',
-  formMark('anna').indexOf(FORMEN[6].punkte) > 0, formMark('anna'));
+chk('ohne Angabe fällt er auf den Wuerfel zurück', flaechen('anna') === 6, flaechen('anna'));
 aniVor(2001); aniVor(4001);
+
+/* Jede Flaeche liegt wirklich im Raum und ist beschnitten - ohne das
+   waere es wieder ein Stapel flacher Rechtecke. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, count: 1, sides: 8, total: 5 });
+const markup8 = aniKarte('anna').querySelector('.wuerfel-ani')
+  .querySelector('.wa-wuerfel').innerHTML;
+chk('jede Flaeche ist im Raum gedreht',
+  (markup8.match(/matrix3d\(/g) || []).length === 8,
+  (markup8.match(/matrix3d\(/g) || []).length);
+chk('jede Flaeche traegt ihren Umriss',
+  (markup8.match(/clip-path:polygon\(/g) || []).length === 8);
+chk('jede Flaeche traegt ihre eigene Helligkeit',
+  (markup8.match(/--hell:/g) || []).length === 8);
+aniVor(2001); aniVor(4001);
+
+/* Und die Größe kommt wirklich aus dem Wurf, nicht aus dem Fliesstext. */
+chk('der Wurf trägt seine Würfelgröße mit', DICE.indexOf('seiten: wuerfelSeiten(stufe)') > 0);
+chk('der Schadenswurf nennt den größten Würfel',
+  DICE.indexOf('return Math.max(a, wuerfelSeiten(t.stufe));') > 0);
 
 /* ---- Der Würfel taumelt im RAUM, nicht in der Bildebene ----
    Hendriks Wunsch vom 17.10.2026: "dreidimensional, wie bei Baldur's
@@ -1234,16 +1258,22 @@ chk('die Achsen laufen unterschiedlich schnell',
 chk('es gibt eine Perspektive', /\.wa-wuerfel\s*{[^}]*perspective:/.test(KARTE));
 chk('und einen echten 3D-Raum', /\.wa-koerper\s*{[^}]*transform-style:\s*preserve-3d/.test(KARTE));
 
-/* Tiefe: DREI Lagen desselben Umrisses. Ohne sie waere der Wuerfel
-   beim Kippen ein Strich. */
+/* Die Dicke ist jetzt keine Eigenschaft mehr, die man zaehlt -
+   der Koerper IST dick. Geprueft wird stattdessen, was ihn
+   geschlossen haelt: Eine abgewandte Flaeche muss weggeblendet
+   werden, sonst sieht man durch den Wuerfel hindurch auf seine
+   Rueckseite. */
+chk('abgewandte Flaechen werden weggeblendet',
+  /\.wa-flaeche\s*{[^}]*backface-visibility:\s*hidden/.test(KARTE));
+chk('jede Flaeche traegt ihr eigenes Licht',
+  /\.wa-flaeche\s*{[^}]*brightness\(var\(--hell/.test(KARTE));
+/* Am Ende faellt er in die Lage, statt im Stehen einzufrieren.
+   Dafuer braucht es einen eigenen Wurf - die Pruefung lebte vorher vom
+   Wurf des Blocks darueber, und der ist weg. Eine Pruefung, die auf
+   fremdem Zustand sitzt, bricht beim naechsten Umbau. */
+chk('am Ende legt er sich hin', /@keyframes wa-liegen/.test(KARTE));
 actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
   probe: 'Kämpfen d8', band: 'Erfolg', ergebnis: 6, seiten: 8 });
-const lagen = formMark('anna').split(FORMEN[8].punkte).length - 1;
-chk('der Körper hat drei Lagen, also Dicke', lagen === 3, lagen);
-chk('die hinteren Lagen sind dunkler',
-  /\.wa-lage\.l0 \.wa-korpus\s*{[^}]*fill:/.test(KARTE));
-/* Am Ende faellt er in die Lage, statt im Stehen einzufrieren. */
-chk('am Ende legt er sich hin', /@keyframes wa-liegen/.test(KARTE));
 aniVor(2001);
 chk('und zwar erst, wenn das Ergebnis steht',
   /\.fertig .wa-koerper\s*{[^}]*wa-liegen/.test(KARTE) &&

@@ -126,6 +126,59 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 3) — Jetzt ein echter Körper: Tetraeder bis Dodekaeder
+- **Hendriks Einwand, und er sitzt:** „Jetzt dreht sich eine 2d geometrische Form. Es müsste
+  aber ein 3d Würfel erstellt werden, der sich dreht." Meine drei gestapelten Lagen waren
+  **vorgetäuschte Dicke**, kein Körper — eine Scheibe mit Schattenkeil.
+- **Neue `js/dice3d.js`:** echte Polyeder aus Flächen im Raum, je eine `<div>` mit `matrix3d`
+  an ihrem Platz und `clip-path` auf ihrem Umriss. **d4 Tetraeder · d6 Würfel · d8 Oktaeder ·
+  d10 pentagonales Trapezoeder · d12 Dodekaeder.**
+- **Kein three.js, und das ist eine Entscheidung:** Die Bibliothek wären **600 KB plus ein
+  WebGL-Kontext je Porträt** — bei vier Spielern vier Kontexte, für 56 px und zwei Sekunden.
+  CSS 3D kostet nichts und kann es.
+- **Die Flächen werden GERECHNET, nicht getippt.** Ein Dodekaeder hat 12 Fünfecke aus 20 Ecken;
+  diese Liste aus dem Kopf zu schreiben heißt, sich zu verschreiben — und ein falsch gewickeltes
+  Fünfeck sieht am Bildschirm nur „irgendwie kaputt" aus. In der Datei steht deshalb **nur die
+  Eckenliste**, die Flächen leitet `d3Flaechen()` daraus ab: *jede Ebene, auf deren einer Seite
+  alle übrigen Ecken liegen, ist eine Fläche.* Das ist die Definition eines konvexen Körpers,
+  und sie kann sich nicht verschreiben.
+- **Beim W10 wird sogar die Höhe der Spitze ausgerechnet.** Sie ist nicht frei: Nur bei einem
+  bestimmten Wert liegen die vier Ecken eines Drachens in einer Ebene. **Gegengeprüft, und das
+  ist der eindrucksvollste Beleg des Tages:** Setzt man statt der Rechnung eine geratene Höhe
+  ein, zerfallen die **zehn Drachen in zwanzig Dreiecke** — der Körper wäre geknickt.
+- **Neues `tests/t_dice3d.js`, 65 Prüfungen, 0 Fehler** — und zwar **gegen die Geometrie, nicht
+  gegen eine abgeschriebene Tabelle**: Flächenzahl, Ecken je Fläche, **Planarität**,
+  **Eulersche Formel V − E + F = 2**, jede Kante trägt genau zwei Flächen, alle Normalen zeigen
+  nach außen, keine Ecke hängt in der Luft. Dazu zwei Prüfsteine, deren Zahlen man kennt: beim
+  Würfel stehen die Flächen senkrecht aufeinander, und das Tetraeder hat **70,53°** zwischen
+  den Flächen.
+- **Ein eigener Fehler, und er war lehrreich:** Diese 70,53 meldeten zuerst **109,47** — ich
+  hatte den Winkel zwischen den **Außennormalen** gemessen und mit dem **Flächenwinkel**
+  verglichen. Die beiden ergänzen sich zu 180°. **Der Code hatte recht, meine Erwartung nicht.**
+- **Die Normalen zeigen nach außen, und das ist keine Formalie:** Eine abgewandte Fläche wird
+  vom Browser weggeblendet (`backface-visibility: hidden`) — zeigte eine nach innen, hätte der
+  Würfel ein Loch.
+- **Das `<script>`-Tag hätte ich fast vergessen.** Die Datei war eingebaut, überall referenziert
+  — und nirgends geladen. Genau die hängende Referenz, die dieses Projekt schon einmal gekostet
+  hat; gefunden, weil ich nach dem Einbau auf `grep 'js/dice3d.js'` gesehen habe und dort **nur
+  Kommentare** standen.
+- **Die Zahl steht weiterhin DAVOR, nicht auf einer Fläche.** Bei 56 px wäre eine mitgedrehte
+  Ziffer auf einer Dodekaeder-Fläche nicht zu lesen.
+- **Das Licht ist fest im Körpersystem** (je Fläche eine Helligkeit aus ihrer Normalen). Es
+  dreht sich also mit — für wanderndes Licht bräuchte es WebGL. Es macht die Kanten sichtbar,
+  und genau dafür ist es da.
+- **Getestet: 248 Prüfungen in `t_bogen.js`** (die Formprüfungen zählen jetzt **Flächen** statt
+  Umrisse — das unterscheidet einen Körper von einer Scheibe), **1527 über dreizehn Skripte**.
+- **Drei eigene Fehler beim Umbau, alle gefunden:** eine Klammer zu viel; eine Prüfung, die
+  **vom Wurf des vorigen Blocks lebte** und nach dessen Entfernung auf `null` lief (sie hat
+  jetzt ihren eigenen); und zum wiederholten Mal die **Heredoc-Falle** — ein `\n` im Suchmuster
+  kam als echter Zeilenumbruch an und zerlegte die Regex. Statt den Backslash zu reparieren,
+  schneidet die Prüfung jetzt **ohne Regex**.
+- **[OFFEN] Ein Polyeder, aber ohne Augen.** Die Flächen sind leer; die Zahl steht als
+  Einblendung davor. Zahlen auf die Flächen zu legen wäre der nächste Schritt — bei dieser
+  Größe aber eher Zierde als Gewinn.
+
+
 ### 2026-10-17 (Fortsetzung 2) — Der Würfel taumelt im Raum statt in der Bildebene
 - **Hendriks Wunsch:** „Aktuell dreht diese sich nur in eine Achse. Es wäre schön, wenn eine
   dreidimensionale Sicht wäre, wie bei Baldur's Gate 3."
