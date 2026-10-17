@@ -126,6 +126,45 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 2) — Der Würfel taumelt im Raum statt in der Bildebene
+- **Hendriks Wunsch:** „Aktuell dreht diese sich nur in eine Achse. Es wäre schön, wenn eine
+  dreidimensionale Sicht wäre, wie bei Baldur's Gate 3."
+- **Er hat recht, und zwar wörtlich:** Die Animation war ein `rotate()` — eine Drehung um die
+  **Bildachse**. Das ist ein Kreisel, kein Würfel. Drei Dinge fehlten, und keines allein hätte
+  gereicht:
+  1. **Perspektive** (`perspective: 220px`) — ohne sie bleibt jede Drehung flach.
+  2. **Drei Drehachsen** statt einer. Die Umlaufzahlen sind bewusst **verschieden**
+     (X 1,5 · Y 1 · Z 1): Bei gleichen Zahlen kehrt dieselbe Lage ständig wieder, und man sieht
+     die Schleife.
+  3. **Dicke.** Ein flaches Polygon wird beim Kippen durch 90° zu einem **Strich** und
+     verschwindet. Der Körper besteht deshalb aus **drei gestaffelten Lagen** desselben
+     Umrisses (`translateZ` −7 / −3,5 / 0), die hinteren dunkler — das ist der Schattenkeil, der
+     die Tiefe überhaupt sichtbar macht.
+- **Die Zahl liegt AUSSERHALB des taumelnden Körpers.** Sie ist jetzt ein eigenes Element davor
+  statt ein `<text>` im SVG — sonst taumelte sie mit und wäre unlesbar.
+- **Am Ende fällt er in die Lage, statt im Stehen einzufrieren:** ein kurzes Überschwingen
+  (`cubic-bezier(.22,1.5,.38,1)`), dann liegt er flach. Ein Würfel, der mitten in der Drehung
+  stehen bleibt, sieht nach Fehler aus.
+- **Der Umriss bleibt derselbe** — `DICE_FORMEN` aus `js/dice.js`, dreimal gestapelt. Die
+  Formen von gestern gelten unverändert weiter, der d4 ist weiterhin das Dreieck.
+- **Ehrlich zur Grenze:** Das ist ein **Körper mit Dicke**, kein echtes Polyeder — ein d8
+  taumelt als Raute mit Tiefe, nicht als Oktaeder mit acht Flächen. Dafür bräuchte es echte 3D,
+  und bei 56 px für zwei Sekunden wäre der Unterschied kaum zu sehen. Falls doch gewünscht, ist
+  das eine eigene Runde.
+- **Getestet: 243 Prüfungen in `t_bogen.js`, 0 Fehler** (18 neue, 1455 über zwölf Skripte).
+  Geprüft wird genau das, was den Unterschied macht: Perspektive, `preserve-3d`, drei Lagen
+  Dicke, das Hinlegen am Ende — und dass **jede der fünf Zwischenlagen** alle drei Achsen trägt.
+- **Die erste Fassung dieser Prüfung war zu lasch, und die Gegenprobe hat es gezeigt:** Sie
+  verlangte nur, dass `rotateX` **irgendwo** im Block vorkommt. Nimmt man einer Zwischenlage
+  zwei Achsen weg, taumelt der Würfel dort flach — und sie schlug trotzdem nicht an. Jetzt
+  zählt sie je Achse fünf Vorkommen. **Gegengeprüft:** Mit der flachen Zwischenlage schlagen
+  zwei Prüfungen an, ohne die Tiefe eine dritte.
+- **Wieder die Heredoc-Falle**, diesmal im Testskript: Ein `backslash-n` im Suchmuster kam als
+  echter Zeilenumbruch an und zerlegte die Regex („Invalid regular expression"). Statt den
+  Backslash zu reparieren, schneidet die Prüfung den Block jetzt **ohne Regex** — dann gibt es
+  nichts zu maskieren.
+
+
 ### 2026-10-17 (Fortsetzung) — Der Würfel-Feed nennt die Figur
 - **Hendriks Wunsch:** In der Aufzählung soll auch der Charaktername stehen.
 - **Der Feed kannte ihn gar nicht.** Alle drei Zeilen begannen mit `roll.name`, und das ist der

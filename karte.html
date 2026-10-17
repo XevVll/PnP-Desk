@@ -442,35 +442,70 @@
   /* Der Wuerfel traegt die FORM seiner Groesse - dieselben Polygone,
      die auch die Wuerfelleiste zeichnet (DICE_FORMEN in js/dice.js).
      Zwei Fassungen derselben Formen wuerden auseinanderlaufen. */
-  .wuerfel-ani .wa-wuerfel { width: 52px; height: 52px; }
-  .wuerfel-ani .wa-wuerfel svg { width: 100%; height: 100%; display: block; }
-  /* Nur der KOERPER dreht sich, die Zahl bleibt aufrecht - eine
-     mitrotierende Zahl ist nicht zu lesen. */
+  /* Der Wuerfel taumelt im Raum, nicht in der Bildebene.
+     Ein flaches Polygon, das sich nur um die Bildachse dreht, ist ein
+     Kreisel - erst Perspektive, Tiefe und drei Drehachsen machen daraus
+     einen Koerper. Die Tiefe entsteht aus DREI gestapelten Lagen
+     desselben Umrisses: so hat der Wuerfel eine Dicke und verschwindet
+     beim Kippen nicht zu einem Strich. */
+  .wuerfel-ani .wa-wuerfel {
+    width: 56px; height: 56px; position: relative;
+    perspective: 220px;
+  }
+  .wuerfel-ani .wa-koerper {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    animation: wa-taumeln 1.15s linear infinite;
+  }
+  .wuerfel-ani .wa-lage { position: absolute; inset: 0; }
+  .wuerfel-ani .wa-lage svg { width: 100%; height: 100%; display: block; }
+  /* Die hinteren Lagen sind dunkler - das ist der Schattenkeil, der die
+     Dicke ueberhaupt erst sichtbar macht. */
+  .wuerfel-ani .wa-lage.l0 { transform: translateZ(-7px); }
+  .wuerfel-ani .wa-lage.l1 { transform: translateZ(-3.5px); }
+  .wuerfel-ani .wa-lage.l2 { transform: translateZ(0); }
+  .wuerfel-ani .wa-lage.l0 .wa-korpus { fill: rgba(8,6,4,.99); }
+  .wuerfel-ani .wa-lage.l1 .wa-korpus { fill: rgba(16,12,8,.99); }
   .wuerfel-ani .wa-korpus {
-    fill: rgba(25,20,12,.95); stroke: #c9a24b; stroke-width: 5;
-    transform-origin: 50px 50px;
-    animation: wa-rollen .42s cubic-bezier(.4,0,.6,1) infinite;
+    fill: rgba(28,22,13,.97); stroke: #c9a24b; stroke-width: 5;
   }
+  /* Die Zahl liegt AUSSERHALB des taumelnden Koerpers und bleibt
+     aufrecht - eine mitrotierende Ziffer ist nicht zu lesen. */
   .wuerfel-ani .wa-zahl {
-    fill: #e8dcc0; font-family: Georgia, serif; font-size: 34px;
-    font-weight: 700;
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    font-family: Georgia, serif; font-size: 25px; font-weight: 700;
+    color: #e8dcc0; text-shadow: 0 2px 5px rgba(0,0,0,.9);
+    pointer-events: none;
   }
-  @keyframes wa-rollen {
-    0%   { transform: rotate(0deg)   scale(1);    }
-    50%  { transform: rotate(180deg) scale(1.12); }
-    100% { transform: rotate(360deg) scale(1);    }
+  /* Drei Achsen mit UNTERSCHIEDLICHEN Umlaufzahlen (1,5 / 1 / 1), damit
+     sich keine Lage wiederholt - sonst sieht man die Schleife. */
+  @keyframes wa-taumeln {
+    0%   { transform: rotateX(0deg)   rotateY(0deg)   rotateZ(0deg);   }
+    25%  { transform: rotateX(155deg) rotateY(105deg) rotateZ(55deg);  }
+    50%  { transform: rotateX(290deg) rotateY(215deg) rotateZ(145deg); }
+    75%  { transform: rotateX(430deg) rotateY(300deg) rotateZ(255deg); }
+    100% { transform: rotateX(540deg) rotateY(360deg) rotateZ(360deg); }
   }
-  /* Steht das Ergebnis, hoert das Drehen auf. */
-  .wuerfel-ani.fertig .wa-korpus { animation: none; stroke: #e8dcc0; }
+  /* Steht das Ergebnis, FAELLT der Wuerfel in die Lage statt zu
+     stoppen: ein kurzes Ueberschwingen, dann liegt er flach. */
+  .wuerfel-ani.fertig .wa-koerper {
+    animation: wa-liegen .5s cubic-bezier(.22,1.5,.38,1) forwards;
+  }
+  @keyframes wa-liegen {
+    0%   { transform: rotateX(30deg) rotateY(-24deg) rotateZ(15deg) scale(1.07); }
+    100% { transform: rotateX(0deg)  rotateY(0deg)   rotateZ(0deg)  scale(1);    }
+  }
+  .wuerfel-ani.fertig .wa-korpus { stroke: #e8dcc0; }
   .wuerfel-ani .wa-text {
     font-family: Georgia, serif; font-size: 11px; line-height: 1.25;
     color: #e8dcc0; text-align: center; padding: 0 6px;
     text-shadow: 0 1px 3px #000;
   }
   .wuerfel-ani.gut .wa-korpus      { stroke: #6fbf8b; }
-  .wuerfel-ani.gut .wa-zahl        { fill: #cdeedb; }
+  .wuerfel-ani.gut .wa-zahl        { color: #cdeedb; }
   .wuerfel-ani.schlecht .wa-korpus { stroke: #b4603f; }
-  .wuerfel-ani.schlecht .wa-zahl   { fill: #f0c6b4; }
+  .wuerfel-ani.schlecht .wa-zahl   { color: #f0c6b4; }
 
   .char-card .char-name {
     position: absolute; left: 0; right: 0; bottom: 0;
@@ -2705,12 +2740,20 @@
       const w = document.createElement('div');
       w.className = 'wa-wuerfel';
       const seiten = wuerfelForm(roll);
-      /* Der Koerper als Polygon, die Zahl als eigener Text darin -
-         so dreht sich nur die Form. */
-      w.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true">' +
-        '<polygon class="wa-korpus" points="' + DICE_FORMEN[seiten].punkte + '"></polygon>' +
-        '<text class="wa-zahl" x="50" y="' + DICE_ZAHL_Y + '" text-anchor="middle" ' +
-        'dominant-baseline="central">?</text></svg>';
+      /* DREI Lagen desselben Umrisses, in der Tiefe gestaffelt: Das
+         gibt dem Wuerfel eine Dicke, damit er beim Kippen nicht zu
+         einem Strich wird. Die Zahl steht daneben, nicht darin -
+         sonst taumelte sie mit und waere nicht zu lesen. */
+      const umriss = DICE_FORMEN[seiten].punkte;
+      let lagen = '';
+      for (let i = 0; i < 3; i++) {
+        lagen += '<div class="wa-lage l' + i + '">' +
+          '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+          '<polygon class="wa-korpus" points="' + umriss + '"></polygon>' +
+          '</svg></div>';
+      }
+      w.innerHTML = '<div class="wa-koerper">' + lagen + '</div>' +
+        '<div class="wa-zahl">?</div>';
       const zahl = w.querySelector('.wa-zahl');
       const t = document.createElement('div');
       t.className = 'wa-text';

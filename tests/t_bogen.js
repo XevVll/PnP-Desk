@@ -1206,11 +1206,49 @@ chk('ohne Angabe fällt er auf den W6 zurück',
   formMark('anna').indexOf(FORMEN[6].punkte) > 0, formMark('anna'));
 aniVor(2001); aniVor(4001);
 
-/* Die Zahl darf sich NICHT mitdrehen - eine rotierende Ziffer ist
-   nicht zu lesen. Deshalb dreht nur das Polygon. */
-chk('nur der Körper dreht sich, nicht die Zahl',
-  /\.wa-korpus\s*{[^}]*animation:\s*wa-rollen/.test(KARTE) &&
+/* ---- Der Würfel taumelt im RAUM, nicht in der Bildebene ----
+   Hendriks Wunsch vom 17.10.2026: "dreidimensional, wie bei Baldur's
+   Gate 3". Ein Polygon, das sich nur um die Bildachse dreht, ist ein
+   Kreisel - geprüft wird deshalb genau das, was den Unterschied macht. */
+chk('der Körper taumelt, nicht die Zahl',
+  /\.wa-koerper\s*{[^}]*animation:\s*wa-taumeln/.test(KARTE) &&
   !/\.wa-zahl\s*{[^}]*animation/.test(KARTE));
+
+/* Ohne Regex geschnitten: Ein Zeilenumbruch im Suchmuster ist
+   genau die Falle, in die dieser Test beim Schreiben gelaufen ist. */
+const tA = KARTE.indexOf('@keyframes wa-taumeln');
+const taumel = tA < 0 ? '' : KARTE.slice(tA, KARTE.indexOf('}', KARTE.indexOf('100%', tA)));
+/* JEDE der fuenf Lagen muss alle drei Achsen tragen. Ein blosses
+   "kommt irgendwo vor" reicht nicht: Nimmt man einer Zwischenlage
+   zwei Achsen weg, taumelt der Wuerfel dort flach - und genau das
+   ist der ersten Fassung dieser Pruefung durchgegangen. */
+['rotateX', 'rotateY', 'rotateZ'].forEach(function (achse) {
+  const n = taumel.split(achse).length - 1;
+  chk('jede Lage dreht um ' + achse, n === 5, n);
+});
+/* Gleiche Umlaufzahlen auf allen Achsen hiessen: dieselbe Lage kehrt
+   staendig wieder, und man sieht die Schleife. */
+chk('die Achsen laufen unterschiedlich schnell',
+  taumel.indexOf('rotateX(540deg)') > 0 && taumel.indexOf('rotateY(360deg)') > 0, taumel);
+
+chk('es gibt eine Perspektive', /\.wa-wuerfel\s*{[^}]*perspective:/.test(KARTE));
+chk('und einen echten 3D-Raum', /\.wa-koerper\s*{[^}]*transform-style:\s*preserve-3d/.test(KARTE));
+
+/* Tiefe: DREI Lagen desselben Umrisses. Ohne sie waere der Wuerfel
+   beim Kippen ein Strich. */
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt,
+  probe: 'Kämpfen d8', band: 'Erfolg', ergebnis: 6, seiten: 8 });
+const lagen = formMark('anna').split(FORMEN[8].punkte).length - 1;
+chk('der Körper hat drei Lagen, also Dicke', lagen === 3, lagen);
+chk('die hinteren Lagen sind dunkler',
+  /\.wa-lage\.l0 \.wa-korpus\s*{[^}]*fill:/.test(KARTE));
+/* Am Ende faellt er in die Lage, statt im Stehen einzufrieren. */
+chk('am Ende legt er sich hin', /@keyframes wa-liegen/.test(KARTE));
+aniVor(2001);
+chk('und zwar erst, wenn das Ergebnis steht',
+  /\.fertig .wa-koerper\s*{[^}]*wa-liegen/.test(KARTE) &&
+  ani('anna').className.indexOf('fertig') >= 0);
+aniVor(4001);
 
 /* Und die Größe kommt wirklich aus dem Wurf, nicht aus dem Fliesstext. */
 chk('der Wurf trägt seine Würfelgröße mit', DICE.indexOf('seiten: wuerfelSeiten(stufe)') > 0);
