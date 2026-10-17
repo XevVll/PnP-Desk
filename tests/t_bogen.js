@@ -1425,7 +1425,7 @@ chk('er faengt keine Klicks ab', /#wurfBand\s*{[^}]*pointer-events:\s*none/.test
 
 /* Die Wuerfel sind groesser geworden. */
 chk('der Wuerfel ist groesser als vorher',
-  /\.wa-wuerfel\s*{[^}]*width:\s*72px/.test(KARTE));
+  /\.wa-wuerfel\s*{[^}]*width:\s*79px/.test(KARTE));
 
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };

@@ -510,8 +510,8 @@
      desselben Umrisses: so hat der Wuerfel eine Dicke und verschwindet
      beim Kippen nicht zu einem Strich. */
   .wuerfel-ani .wa-wuerfel {
-    width: 72px; height: 72px; position: relative;
-    perspective: 300px;
+    width: 79px; height: 79px; position: relative;
+    perspective: 330px;
   }
   .wuerfel-ani .wa-koerper {
     position: absolute; inset: 0;
@@ -539,7 +539,7 @@
   .wuerfel-ani .wa-zahl {
     position: absolute; inset: 0; display: flex;
     align-items: center; justify-content: center;
-    font-family: Georgia, serif; font-size: 31px; font-weight: 700;
+    font-family: Georgia, serif; font-size: 34px; font-weight: 700;
     color: #e8dcc0; text-shadow: 0 2px 5px rgba(0,0,0,.9);
     pointer-events: none;
   }
@@ -2885,7 +2885,7 @@
          eigene Ebene im Raum - kein Stapel flacher Kopien.
          Die Zahl steht DAVOR, nicht darauf: Bei 56 px waere eine
          mitgedrehte Ziffer auf einer Flaeche nicht zu lesen. */
-      w.innerHTML = '<div class="wa-koerper">' + dice3dMarkup(seiten, 58) + '</div>' +
+      w.innerHTML = '<div class="wa-koerper">' + dice3dMarkup(seiten, 64) + '</div>' +
         '<div class="wa-zahl">?</div>';
       const zahl = w.querySelector('.wa-zahl');
       const t = document.createElement('div');
