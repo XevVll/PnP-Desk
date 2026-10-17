@@ -534,9 +534,18 @@ function initDiceRoller(db, options) {
   leisteEl.id = 'wuerfelLeiste';
   document.body.appendChild(leisteEl);
 
-  const feedEl = document.createElement('div');
-  feedEl.id = 'diceFeed';
-  document.body.appendChild(feedEl);
+  /* Die Karte zeigt die Ergebnisse seit dem 17.10.2026 oben mittig
+     (#wurfBand) und braucht den Feed nicht mehr - sie uebergibt
+     ohneFeed. Die Regie behaelt ihn: dort gibt es den Streifen nicht,
+     er ist die einzige Live-Anzeige der Spielleitung.
+     ABGESCHALTET, nicht ausgeblendet: Ein unsichtbarer Feed baute
+     weiter Knoten und Timer auf, die niemand sieht. */
+  let feedEl = null;
+  if (!opt.ohneFeed) {
+    feedEl = document.createElement('div');
+    feedEl.id = 'diceFeed';
+    document.body.appendChild(feedEl);
+  }
 
   leisteEl.addEventListener('change', function (ev) {
     if (ev.target && ev.target.id === 'dicePrivate') setzePrivat(ev.target.checked);
@@ -604,6 +613,9 @@ function initDiceRoller(db, options) {
   }
 
   function addToast(text, isPrivate) {
+    // Ohne Feed gibt es nichts anzuzeigen - auch ein privater Wurf
+    // der Spielleitung darf hier nicht ins Leere greifen.
+    if (!feedEl) return;
     const node = document.createElement('div');
     node.className = 'dice-toast' + (isPrivate ? ' private' : '');
     node.textContent = text;
@@ -614,7 +626,10 @@ function initDiceRoller(db, options) {
     }, DICE_VISIBLE_MS);
   }
 
-  db.ref('diceRolls').on('child_added', function (snap) {
+  /* Ohne Feed wird der Lauscher gar nicht erst eingehaengt - sonst
+     liefen Timer fuer Einblendungen, die es nicht gibt. Das Aufraeumen
+     alter Eintraege (weiter unten) bleibt davon unberuehrt. */
+  if (!opt.ohneFeed) db.ref('diceRolls').on('child_added', function (snap) {
     const roll = snap.val();
     if (!roll) return;
     const alter = roll.ts ? (Date.now() - roll.ts) : 0;

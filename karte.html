@@ -770,11 +770,6 @@
   #diceForm input::-webkit-inner-spin-button {
     -webkit-appearance: none; margin: 0;
   }
-  #diceFeed {
-    position: fixed; top: 16px; left: 16px; z-index: 350;
-    display: flex; flex-direction: column; gap: 6px;
-    max-width: 320px;
-  }
   .dice-toast {
     background: rgba(15,12,8,0.85);
     border: 1px solid var(--line);
@@ -874,7 +869,6 @@
   .preview-mode #audioControl,
   .preview-mode #zumHub,
   .preview-mode #diceControls,
-  .preview-mode #diceFeed,
   .preview-mode #charSheetHandle,
   .preview-mode #charSheetDrawer,
   .preview-mode #charSheetBackdrop {
@@ -2953,6 +2947,9 @@
         });
       }
       wuerfelLeiste = initDiceRoller(db, {
+        // Die Ergebnisse stehen oben mittig (#wurfBand) und im
+        // Portraet - der Feed oben links waere die dritte Stelle.
+        ohneFeed: true,
         holeFigur:   function () { return meineFigur; },
         holeKontext: function () { return { szene: aktuelleSzene, ort: aktuellerOrt }; }
       });

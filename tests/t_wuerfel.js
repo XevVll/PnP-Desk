@@ -460,5 +460,39 @@ chk('die Probe schreibt die Figur mit',
   (DICE.match(/figur: figurName\(\)/g) || []).length === 3,
   (DICE.match(/figur: figurName\(\)/g) || []).length);
 
+
+console.log('');
+console.log('=== DER FEED LAEUFT NUR NOCH IN DER REGIE ===');
+/* Hendriks Vorgabe vom 17.10.2026: "die Wuerfelergebnisse links am
+   Rand entfernen" - gemeint ist der Feed oben links auf der KARTE.
+   Portraet und Streifen bleiben.
+
+   Die Regie behaelt ihn: Dort gibt es den Streifen nicht, er ist die
+   einzige Live-Anzeige der Spielleitung. Eine Aenderung, die ihn dort
+   mitnimmt, waere am Tisch sofort zu spueren - deshalb steht sie hier
+   als Pruefung. */
+const KARTE_Q = fs.readFileSync(path.join(BASIS, 'karte.html'), 'utf8');
+const REGIE_Q = fs.readFileSync(path.join(BASIS, 'regie.html'), 'utf8');
+
+chk('die Karte uebergibt ohneFeed', /ohneFeed:\s*true/.test(KARTE_Q));
+chk('und kennt den Feed nirgends mehr', KARTE_Q.indexOf('diceFeed') < 0,
+  KARTE_Q.indexOf('diceFeed'));
+chk('die REGIE behaelt ihren Feed', REGIE_Q.indexOf('#diceFeed') > 0);
+chk('und uebergibt ohneFeed NICHT',
+  fs.readFileSync(path.join(BASIS, 'js/regie_vault.js'), 'utf8').indexOf('ohneFeed') < 0);
+
+/* Abgeschaltet, nicht ausgeblendet: Ein unsichtbarer Feed baute
+   weiter Knoten und Timer auf. */
+chk('ohne Feed wird gar kein Knoten gebaut', DICE.indexOf('if (!opt.ohneFeed) {') > 0);
+chk('und kein Lauscher eingehaengt',
+  DICE.indexOf("if (!opt.ohneFeed) db.ref('diceRolls').on('child_added'") > 0);
+/* Das Aufraeumen alter Eintraege darf NICHT mitgehen - sonst wuechse
+   der Feed-Pfad in Firebase unbegrenzt. */
+const aufraeumen = DICE.indexOf("db.ref('diceRolls').on('value'");
+chk('das Aufraeumen laeuft weiter', aufraeumen > 0 &&
+  DICE.slice(aufraeumen - 120, aufraeumen).indexOf('ohneFeed') < 0);
+/* Ein privater SL-Wurf darf nicht ins Leere greifen. */
+chk('addToast bricht ohne Feed sauber ab', DICE.indexOf('if (!feedEl) return;') > 0);
+
 console.log('OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

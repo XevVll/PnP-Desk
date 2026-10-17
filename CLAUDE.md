@@ -126,6 +126,30 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 5) — Der Würfel-Feed oben links ist auf der Karte weg
+- **Hendriks Vorgabe, auf Nachfrage präzisiert:** „die Würfelergebnisse links am Rand
+  entfernen … Ich meine nur die Ergebnisse links oben. In den Charakterbildern soll das
+  Ergebnis und der Würfel weiterhin stehen."
+- **Er war die dritte Stelle für dieselbe Sache.** Seit heute stehen die Ergebnisse im
+  **Porträt** (wer) und **oben mittig** (was) — der Feed oben links sagte es ein drittes Mal.
+- **Die REGIE behält ihn, und das ist der eigentliche Punkt dieser Änderung.** Dort gibt es
+  den Streifen nicht; der Feed ist die **einzige Live-Anzeige der Spielleitung**. Eine
+  Änderung, die ihn dort mitgenommen hätte, wäre am Tisch sofort zu spüren gewesen —
+  deshalb steht genau das jetzt als Prüfung da.
+- **Abgeschaltet, nicht ausgeblendet.** Neue Option `ohneFeed` an `initDiceRoller()`, die nur
+  `karte.html` übergibt: Ohne sie wird **gar kein Knoten gebaut und kein Lauscher eingehängt**.
+  Ein per CSS verstecktes Element hätte weiter Knoten und Timer für Einblendungen erzeugt,
+  die niemand sieht — toter Code, der aussieht, als liefe er.
+- **Was NICHT mitgeht:** das Aufräumen alter Feed-Einträge (`on('value')`, 90 Sekunden). Ginge
+  es mit, wüchse `diceRolls` in Firebase unbegrenzt. Steht als eigene Prüfung da.
+- **Der tote Stil ist mitgegangen**, nicht liegengeblieben: die `#diceFeed`-Regel und die Zeile
+  im Vorschau-Ausblender der Spielleitung. Nach der Änderung kommt `diceFeed` in `karte.html`
+  **null**-mal vor.
+- **Getestet: 124 Prüfungen in `t_wuerfel.js`, 0 Fehler** (8 neue, 1551 über dreizehn Skripte).
+  **Gegengeprüft:** Übergibt man `ohneFeed` auch in `js/regie_vault.js`, schlägt die Prüfung an
+  — die Spielleitung behält ihren Feed nachweislich.
+
+
 ### 2026-10-17 (Fortsetzung 4) — Die Ergebnisse stehen oben in der Mitte
 - **Hendriks Vorgaben:** „Die Würfel noch ein wenig größer und die Ergebnisse oben in der Mitte
   anzeigen. Maximal Spieleranzahl Stück. Jeder weitere schiebt den ersten aus dem Bildschirm
