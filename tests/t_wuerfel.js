@@ -20,6 +20,7 @@ let f = 0, anzahl = 0;
 const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n + (c ? '' : '  <<< ' + JSON.stringify(x))); if (!c) f++; };
 
 /* ---------- Umgebung ---------- */
+let uhr = 1000000;
 function bau(speicher) {
   const nachId = {};
   function knoten(tag) {
@@ -45,7 +46,11 @@ function bau(speicher) {
   }
   const db = { sitzung: 'test', ref: ref };
   const ctx = {
-    Math, Object, String, Array, Number, parseInt, Date, console, setTimeout,
+    Math, Object, String, Array, Number, parseInt, console, setTimeout,
+    /* Stellbare Uhr: Der Ergebnisblock zeigt seit dem 17.10.2026 erst
+       nach zwei Sekunden, so lange wie der Wuerfel im Portraet rollt.
+       Mit der echten Uhr muesste jede Pruefung wirklich warten. */
+    Date: { now: function () { return uhr; } },
     localStorage: { _d: Object.assign({ korsaren_playername: 'Marie' }, speicher || {}),
                     getItem(k) { return this._d[k] || null; }, setItem(k, v) { this._d[k] = v; } },
     firebase: { database: { ServerValue: { TIMESTAMP: 1 } } },
@@ -74,6 +79,12 @@ function start(figur, kontext, opt, speicher) {
     holeKontext: function () { return u.kontext; }
   }, opt || {}));
   u.markup = function () { return u.nachId['wuerfelLeiste']._html; };
+  /* Zeit vorspulen und neu zeichnen - genau das tut im Browser der
+     Timer, den wuerfleWert() setzt. */
+  u.vor = function (ms) {
+    uhr += (ms === undefined ? 2100 : ms);
+    if (u.handle && u.handle.neuZeichnen) u.handle.neuZeichnen();
+  };
   // Den Privat-Haken so umlegen, wie es ein Mensch tut: ueber das change-
   // Ereignis. Direkt in den Zustand zu greifen wuerde genau den Weg
   // ueberspringen, der hier gepruefet werden soll.
@@ -288,6 +299,14 @@ u = start(FIGUR, null, { allowPrivate: true });
   u.klick({ dataset: { wert: 'Willenskraft', stufe: '3' } });
   u.ctx.Math = echt;
 })();
+/* Erst nach dem Ausrollen steht das Ergebnis da - vorher "wuerfelt ...".
+   Genau darum ging es Hendrik am 17.10.2026: Die Zahl stand im
+   auffaelligsten Kasten des Schirms, waehrend der Wuerfel noch drehte. */
+const ergVorher = u.markup();
+chk('waehrend der Wuerfel rollt, steht noch kein Ergebnis da',
+  ergVorher.indexOf('wl-warte') > 0 && ergVorher.indexOf('d8 <em>7</em>') < 0,
+  ergVorher.slice(0, 140));
+u.vor();
 const erg = u.markup();
 chk('der Wurf ist der gemeldete', erg.indexOf('d8 <em>7</em>') >= 0 &&
   erg.indexOf('d6 <em>6 + 4 = 10</em>') >= 0, erg.slice(erg.indexOf('wl-erg'), erg.indexOf('wl-deut')));

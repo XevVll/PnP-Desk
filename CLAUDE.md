@@ -126,6 +126,36 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 9) — Der eigene Ergebnisblock wartet jetzt auch
+- **Hendriks Meldung:** „Wenn ich eine Fertigkeit oder Attribut rolle, steht das Ergebnis schon
+  im Highlight-Kasten, bevor es im Profilbild angezeigt wird."
+- **Das war meine eigene Entscheidung vom 16.10., und sie trägt nicht.** Dort stand: „Wer
+  klickt, soll nicht auf sich selbst warten." Der Haken daran: **Der Ergebnisblock ist die
+  auffälligste Stelle auf dem Schirm.** Wer dort schon die Zahl liest, während der Würfel noch
+  dreht, für den ist die Animation Zierde — genau das, was beim Feed am 16.10. als Begründung
+  fürs Warten galt.
+- **Jetzt warten alle drei Anzeigen dieselben zwei Sekunden:** Porträt, Streifen oben und der
+  eigene Block. Solange zeigt er **„würfelt …"** samt Probe und Würfelgröße — dasselbe, was im
+  Porträt steht.
+- **Der Wurf merkt sich den Augenblick** (`ab`), ab dem er gezeigt werden darf, statt dass die
+  Anzeige mitzählt. Ein Timer zeichnet einmal neu, wenn die Zeit um ist — sonst bliebe
+  „würfelt …" stehen, bis jemand irgendwo hinklickt.
+- **Ein alter Eintrag ohne `ab` zeigt sofort.** Kein Warten auf etwas, das längst gefallen ist.
+- **Die Regie wartet mit, und das ist richtig so:** Ihr **Feed wartet seit dem 16.10. ohnehin**
+  diese zwei Sekunden. Wartete der Block dort nicht, liefen die beiden Anzeigen derselben Seite
+  auseinander.
+- **Getestet: 125 Prüfungen in `t_wuerfel.js`, 0 Fehler** (1 neue, 1590 über dreizehn Skripte).
+  **Gegengeprüft:** Baut man das Warten aus, schlägt die Prüfung an.
+- **Vier Bestandsprüfungen brachen, keine war ein Fehler im Code:** Sie lesen den Block
+  unmittelbar nach dem Klick und sahen jetzt „würfelt …". `tests/t_wuerfel.js` hat deshalb eine
+  **stellbare Uhr** bekommen (`u.vor()`), wie `t_bogen.js` sie längst hat — mit der echten Uhr
+  müsste jede dieser Prüfungen zwei Sekunden lang wirklich warten.
+- **Zweimal dieselbe Werkzeug-Falle an einem Tag:** Ein mehrzeiliger Suchtext per `python -c`
+  durch die Shell zerlegte sich am Quoting, danach fand ein Suchtext wegen der Zeilenenden
+  nichts. Beide Male stand der im Projekt vermerkte Weg daneben — Skript mit dem Write-Werkzeug,
+  Ersetzung über den Helfer, der jede Zeile einzeln maskiert.
+
+
 ### 2026-10-17 (Fortsetzung 8) — Ein Klick auf das Ergebnis zeigt den Würfelweg
 - **Hendriks Vorgabe:** „wenn man auf das obere Ergebnis klickt, dass sich dann der Würfelweg
   aufzeigt. Also explodiert oder wild die etc."

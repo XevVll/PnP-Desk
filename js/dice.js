@@ -100,6 +100,7 @@ const DICE_STIL = [
   '#wuerfelLeiste .wl-zu{background:transparent;border:1px solid #3a2a18;color:#a89d81;',
   '  border-radius:4px;font-size:11px;padding:2px 7px;flex:none}',
   '#wuerfelLeiste .wl-zu:hover{border-color:#c9a24b;color:#e6ddc7}',
+  '#wuerfelLeiste .wl-warte{font-size:14px;color:#a89d81;padding:6px 0 2px}',
   '#wuerfelLeiste .wl-gruppe{margin-bottom:7px}',
   '#wuerfelLeiste .wl-gl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#a89d81;margin-bottom:4px}',
   '#wuerfelLeiste .wl-chips{display:flex;flex-wrap:wrap;gap:4px}',
@@ -269,7 +270,15 @@ function initDiceRoller(db, options) {
     const f = holeFigur() || {};
     const abzug = f.abzug || 0;
     const r = wurf(stufe, { mod: (mod || 0) - abzug });
-    letztes = { wert: wertName, stufe: stufe, r: r };
+    /* `ab` ist der Augenblick, ab dem das Ergebnis dastehen darf -
+       dieselben zwei Sekunden, die der Wuerfel im Portraet rollt und
+       die auch der Feed abwartet. Vorher zeigt der Block "wuerfelt …".
+       Ohne das stand die Zahl im auffaelligsten Kasten des Schirms,
+       waehrend der Wuerfel noch drehte. (Hendriks Meldung, 17.10.2026.) */
+    letztes = { wert: wertName, stufe: stufe, r: r, ab: Date.now() + DICE_ANIM_MS };
+    // Wenn die Zeit um ist, einmal neu zeichnen - sonst bliebe
+    // "wuerfelt …" stehen, bis der Spieler irgendwo hinklickt.
+    setTimeout(zeichneLeiste, DICE_ANIM_MS + 20);
 
     schreibeFeed({
       name: name, figur: figurName(), probe: wertName + ' ' + stufeText(stufe),
@@ -443,6 +452,15 @@ function initDiceRoller(db, options) {
       ' <s class="wl-s' + stufe + '">' + DLBL[stufe] + '</s></button>';
   }
   function ergebnisBlock() {
+    /* Solange der Wuerfel rollt, steht hier dasselbe wie im Portraet.
+       Ein alter Eintrag ohne `ab` (oder ein Bennie-Wurf, der den Wert
+       nicht neu setzt) zeigt sofort - kein Warten auf etwas, das
+       schon gefallen ist. */
+    if (letztes.ab && Date.now() < letztes.ab) {
+      return '<div class="wl-erg"><div class="wl-probe">' +
+        esc(letztes.wert) + ' ' + stufeText(letztes.stufe) + '</div>' +
+        '<div class="wl-warte">würfelt …</div></div>';
+    }
     const r = letztes.r;
     const deut = {
       steigerung: r.steigerungen > 1
