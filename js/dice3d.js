@@ -69,11 +69,28 @@ function d3Ecken(seiten) {
     /* Pentagonales Trapezoeder - der echte W10: zwei Spitzen und zwei
        um 36 Grad versetzte Fuenferringe, dazwischen zehn Drachen.
 
-       Die Hoehe der Spitze ist NICHT frei: Nur bei einem bestimmten
-       Wert liegen die vier Ecken einer Flaeche in einer Ebene. Statt
-       die Zahl nachzuschlagen, wird sie hier ausgerechnet - und die
-       Planaritaetspruefung im Test haelt dagegen. */
-    const r = 1, c = 0.38;
+       ZWEI Groessen haengen zusammen, und beide sind nicht frei:
+       Liegen die Ringe im Abstand c von der Mitte, dann liegen die
+       vier Ecken eines Drachens nur bei EINER Spitzenhoehe h in einer
+       Ebene. Dieses h waechst linear mit c (h = faktor * c).
+
+       Frei ist also nur EINES von beiden - und genau da ist der erste
+       Anlauf gescheitert: Mit einem geratenen c = 0,38 wurde die
+       Spitze 3,6 hoch, der Koerper also 7,2 tief bei 2 breit. Ein
+       geometrisch tadelloses Trapezoeder - aber ein DORN, kein
+       Wuerfel. (Hendriks Meldung vom 17.10.2026, am Bild sofort zu
+       sehen.)
+
+       Deshalb wird jetzt die HOEHE vorgegeben und c zurueckgerechnet:
+       so hoch wie der Ring weit ist, wie bei einem echten W10. */
+    const r = 1, zielHoehe = r;
+    /* h ist linear in c, also genuegt eine Messung bei c = 1, um den
+       Faktor zu kennen. Nachgerechnet statt nachgeschlagen. */
+    const faktor = d3SpitzeFuerEbene(
+      [r, 0, 1],
+      [r * Math.cos(Math.PI / 5), r * Math.sin(Math.PI / 5), -1],
+      [r * Math.cos(2 * Math.PI / 5), r * Math.sin(2 * Math.PI / 5), 1], 1);
+    const c = zielHoehe / faktor;
     const o = [], u = [];
     for (k = 0; k < 5; k++) {
       const w = (2 * Math.PI * k) / 5;

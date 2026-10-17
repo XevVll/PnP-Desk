@@ -115,6 +115,52 @@ Object.keys(SOLL).forEach(function (sStr) {
 });
 
 console.log('');
+console.log('=== EIN KOERPER IST NOCH KEIN WUERFEL ===');
+
+/* DIE LEHRE DES TAGES, als Pruefung festgehalten.
+
+   Der W10 war ein DORN: 7,2 tief bei 2,0 breit. Dabei war er ein
+   geometrisch tadelloses Trapezoeder - zehn Flaechen, alle eben,
+   Euler stimmte, jede Kante trug zwei Flaechen. ALLE Pruefungen oben
+   waren gruen, und am Bildschirm stand ein Splitter.
+
+   Weil keine danach gefragt hat, ob die Proportion stimmt. Ein
+   Koerper kann perfekt sein und trotzdem kein Wuerfel.
+   (Hendriks Meldung vom 17.10.2026 mit Bild.) */
+[4, 6, 8, 10, 12].forEach(function (s) {
+  const k = D.dice3dKoerper(s);
+  const m = [0, 0, 0];
+  k.ecken.forEach(function (p) {
+    for (let i = 0; i < 3; i++) m[i] = Math.max(m[i], Math.abs(p[i]));
+  });
+  const gross = Math.max(m[0], m[1], m[2]), klein = Math.min(m[0], m[1], m[2]);
+  const v = gross / klein;
+  chk('d' + s + ': keine Achse ist laenger als 1,3 mal die kuerzeste',
+    v <= 1.3, v.toFixed(2) + '  (' + m.map(function (x) {
+      return (2 * x).toFixed(2); }).join(' x ') + ')');
+});
+
+/* Und noch eine Stufe davor: Keine Flaeche darf zu einem Splitter
+   entarten. Beim Dorn waren die Drachen lange duenne Schlitze - genau
+   das hat man im Portraet gesehen. */
+[4, 6, 8, 10, 12].forEach(function (s) {
+  const k = D.dice3dKoerper(s);
+  let schlimmstes = 1;
+  k.flaechen.forEach(function (fl) {
+    /* Laengste gegen kuerzeste Kante der Flaeche. */
+    let lang = 0, kurz = Infinity;
+    for (let i = 0; i < fl.ecken.length; i++) {
+      const a = k.ecken[fl.ecken[i]], b = k.ecken[fl.ecken[(i + 1) % fl.ecken.length]];
+      const l = D.d3Laenge(D.d3Minus(a, b));
+      lang = Math.max(lang, l); kurz = Math.min(kurz, l);
+    }
+    schlimmstes = Math.max(schlimmstes, lang / kurz);
+  });
+  chk('d' + s + ': keine Flaeche ist ein Splitter', schlimmstes <= 2.2,
+    schlimmstes.toFixed(2));
+});
+
+console.log('');
 console.log('=== WAS DEN KOERPER ZUM KOERPER MACHT ===');
 
 /* Alle fuenf sind gleich gross - sonst waere der W12 ein Klotz neben

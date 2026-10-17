@@ -126,6 +126,33 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 6) — Fehler: Der W10 war ein Dorn, kein Würfel
+- **Hendriks Meldung mit Bild:** „Der 10er Würfel ist leider verbuggd." Im Porträt stand ein
+  schmaler Splitter statt eines Körpers.
+- **Nachgemessen statt geraten — und die Zahlen sind eindeutig:** Der W10 war
+  **2,00 breit und 7,20 tief**, ein Verhältnis von **3,8 : 1**. Weil auf den Radius normiert
+  wird, schrumpfte der Fünferring auf nichts zusammen; übrig blieb die Spitze.
+- **Die Ursache ist ein frei geratener Wert von mir.** Beim Trapezoeder hängen zwei Größen
+  zusammen: Liegen die Ringe im Abstand `c`, liegen die vier Ecken eines Drachens nur bei
+  **einer** Spitzenhöhe `h` in einer Ebene — und `h` wächst **linear** mit `c`
+  (`h = 9,47 · c`). **Frei ist nur eines von beiden.** Ich hatte `c = 0,38` gesetzt, womit die
+  Spitze auf 3,6 schoss.
+- **Jetzt wird die HÖHE vorgegeben und `c` zurückgerechnet** — so hoch wie der Ring weit ist,
+  wie bei einem echten W10. Der Faktor wird dafür **gemessen** (eine Auswertung bei `c = 1`),
+  nicht nachgeschlagen. Ergebnis: **2,00 × 1,90 × 2,00**, Verhältnis 1,05.
+- **Der eigentliche Befund ist, dass ALLE 65 Prüfungen grün waren**, während am Bildschirm ein
+  Splitter stand. Und sie hatten recht: Es war ein **geometrisch tadelloses Trapezoeder** —
+  zehn Flächen, alle eben, Euler stimmte, jede Kante trug zwei Flächen. **Nur hat keine
+  gefragt, ob die Proportion stimmt.** Ein Körper kann perfekt sein und trotzdem kein Würfel.
+- **Zehn neue Prüfungen schließen genau diese Lücke**, für alle fünf Körper:
+  - **keine Achse länger als das 1,3-fache der kürzesten** — das fängt den Dorn;
+  - **keine Fläche ein Splitter** (längste gegen kürzeste Kante höchstens 2,2) — das fängt die
+    langen dünnen Schlitze, die man im Porträt gesehen hat.
+- **Gegengeprüft, und das ist der Beleg:** Setzt man `c = 0,38` zurück, schlagen beide an — und
+  die Fehlermeldung nennt die Form wörtlich: **`3.78 (2.00 x 1.90 x 7.20)`**.
+- **Getestet: 75 Prüfungen in `t_dice3d.js`, 0 Fehler** (10 neue, 1561 über dreizehn Skripte).
+
+
 ### 2026-10-17 (Fortsetzung 5) — Der Würfel-Feed oben links ist auf der Karte weg
 - **Hendriks Vorgabe, auf Nachfrage präzisiert:** „die Würfelergebnisse links am Rand
   entfernen … Ich meine nur die Ergebnisse links oben. In den Charakterbildern soll das
