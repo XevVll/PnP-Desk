@@ -465,6 +465,16 @@
     to   { opacity: 0; transform: translateX(-34px) scale(.9); max-width: 0;
            padding-left: 0; padding-right: 0; margin-right: -8px; }
   }
+  /* Nach der Standzeit blendet der Eintrag aus - anders als beim
+     Verdraengen, das zur Seite schiebt. Zwei Arten zu verschwinden,
+     zwei Bewegungen: so sieht man, WARUM etwas geht. */
+  .wb-wurf.wb-blass {
+    animation: wb-blass .9s ease forwards;
+  }
+  @keyframes wb-blass {
+    from { opacity: 1; }
+    to   { opacity: 0; transform: translateY(-8px) scale(.96); }
+  }
   .wb-wer {
     font-size: 11px; letter-spacing: .04em; color: #a89d81;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -2711,6 +2721,13 @@
        null hiesse, es stuende nie etwas da. */
     let pcAnzahl = 0;
     function wurfBandGrenze() { return Math.max(1, pcAnzahl || 4); }
+    /* Wie lange ein Ergebnis oben stehen bleibt, bevor es ausblendet.
+       Lang genug, um es vorzulesen und darueber zu reden; kurz genug,
+       dass der Streifen zwischen zwei Szenen wieder leer ist. Eine
+       Zahl an EINER Stelle, damit sie sich am Tisch nachstellen
+       laesst. */
+    const WB_STANDZEIT_MS = 12000;
+    const WB_BLASS_MS = 900;
 
     function renderPcRail(stand) {
       pcAnzahl = Object.keys(stand || {}).length;
@@ -2805,15 +2822,29 @@
       e.appendChild(wer); e.appendChild(z); e.appendChild(was);
       band.appendChild(e);
 
+      /* Nach der Standzeit von selbst ausblenden. Der Timer haengt AM
+         EINTRAG, nicht in einer Liste daneben: Wird er vorher
+         verdraengt, laesst er sich dort wieder abraeumen. */
+      e._wbTimer = setTimeout(function () {
+        e.className += ' wb-blass';
+        setTimeout(function () { e.remove(); }, WB_BLASS_MS);
+      }, WB_STANDZEIT_MS);
+
       /* Ueberzaehlige hinausschieben. Gezaehlt werden nur die, die
          nicht ohnehin schon gehen - sonst wuerde derselbe Eintrag bei
          jedem Wurf erneut verdraengt. */
+      /* Wer schon geht - verdraengt ODER ausblendend -, zaehlt nicht
+         mehr mit. Sonst wuerfe ein neuer Wurf Eintraege hinaus, die
+         ohnehin gerade verschwinden. */
       const bleiben = [].slice.call(band.children).filter(function (k) {
-        return k.className.indexOf('wb-weg') < 0;
+        return k.className.indexOf('wb-weg') < 0 &&
+               k.className.indexOf('wb-blass') < 0;
       });
       let zuviel = bleiben.length - wurfBandGrenze();
       for (let i = 0; i < zuviel; i++) {
         const alt = bleiben[i];
+        // Er geht jetzt zur Seite - die Standzeit braucht er nicht mehr.
+        if (alt._wbTimer) { clearTimeout(alt._wbTimer); alt._wbTimer = null; }
         alt.className += ' wb-weg';
         /* Erst nach der Bewegung aus dem DOM - wer sofort entfernt,
            sieht keine Verdraengung, sondern ein Springen. */

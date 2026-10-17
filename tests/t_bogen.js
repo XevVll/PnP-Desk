@@ -1070,7 +1070,16 @@ const actx = {
         // nicht der Code mit dem Stub.
         get children() { return this.kinder; },
         appendChild(k) { this.kinder.push(k); k._eltern = this; return k; },
-        remove() { const e = this._eltern; if (e) e.kinder.splice(e.kinder.indexOf(this), 1); },
+        /* indexOf kann -1 sein, wenn der Knoten laengst abgehaengt
+           ist - splice(-1, 1) wuerfe dann das LETZTE Kind heraus, also
+           einen unschuldigen Eintrag. Im Browser tut remove() auf einem
+           abgehaengten Knoten schlicht nichts; der Stub muss das auch.
+           (Dritter Stub, der in dieser Sitzung gelogen hat.) */
+        remove() {
+          const e = this._eltern; if (!e) return;
+          const i = e.kinder.indexOf(this);
+          if (i >= 0) e.kinder.splice(i, 1);
+        },
         querySelector(sel) {
           const m = /\[data-pid="(.*)"\]/.exec(sel);
           if (m) return this.kinder.find(k => k.dataset && k.dataset.pid === m[1]) || null;
@@ -1323,10 +1332,14 @@ aniVor(4001);
    hoechstens zwei Ergebnisse. */
 actx.renderPcRail({ anna: { name: 'Mara', bild: 'x' }, bert: { name: 'Cord', bild: 'y' } });
 band().kinder.length = 0;
+/* Dicht hintereinander: Vier Wuerfe mit je 6 s Abstand laegen ueber
+   der Standzeit, und der Streifen waere beim Zaehlen laengst leer.
+   Am Tisch ist genau das der Fall, den die Grenze regeln soll -
+   mehrere Wuerfe kurz nacheinander. */
 ['A', 'B', 'C', 'D'].forEach(function (n, i) {
   actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: n,
     count: 1, sides: 6, total: i + 1 });
-  aniVor(2001); aniVor(4001);
+  aniVor(2001);
 });
 chk('hoechstens so viele wie Spieler', bandOffen().length === 2, bandOffen().length);
 /* Und zwar die JUENGSTEN - der erste muss heraus sein, nicht der
@@ -1344,9 +1357,42 @@ actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: 'E',
 aniVor(2001);
 chk('der verdraengte wird hinausgeschoben, nicht weggezaubert',
   band().kinder.some(function (k) { return String(k.className).indexOf('wb-weg') >= 0; }));
-aniVor(4001);
+aniVor(400);
 chk('und danach ist er wirklich aus dem Baum',
   band().kinder.every(function (k) { return String(k.className).indexOf('wb-weg') < 0; }));
+
+/* ---- Und nach einigen Sekunden blenden sie aus ----
+   Hendriks Vorgabe vom 17.10.2026. Ohne das stuende das Ergebnis
+   eines einzelnen Wurfs bis zum naechsten da - bei vier Spielern den
+   halben Abend. */
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'Anna', ts: aniJetzt, figur: 'Mara',
+  count: 1, sides: 6, total: 4 });
+aniVor(2001);
+chk('das Ergebnis steht erst einmal da', bandOffen().length === 1);
+aniVor(6000);
+chk('nach sechs Sekunden steht es noch', bandOffen().length === 1,
+  bandOffen().length);
+aniVor(6100);   // zusammen ueber der Standzeit
+chk('nach zwoelf Sekunden blendet es aus',
+  band().kinder.some(function (k) { return String(k.className).indexOf('wb-blass') >= 0; }));
+aniVor(1000);
+chk('und ist danach wirklich weg', band().kinder.length === 0, band().kinder.length);
+
+/* Ausblenden und Verdraengen sind ZWEI Bewegungen - sonst sieht man
+   nicht, warum ein Eintrag geht. */
+chk('ausblenden sieht anders aus als verdraengen',
+  /@keyframes wb-blass/.test(KARTE) && /@keyframes wb-raus/.test(KARTE));
+
+/* Wer verdraengt wird, braucht seine Standzeit nicht mehr - sonst
+   liefe ein Timer auf einem Knoten, den es nicht mehr gibt. */
+chk('der Verdraengte verliert seinen Standzeit-Timer',
+  KARTE.indexOf("if (alt._wbTimer) { clearTimeout(alt._wbTimer); alt._wbTimer = null; }") > 0);
+
+/* Ein ausblendender Eintrag zaehlt nicht mehr mit - sonst wuerfe ein
+   neuer Wurf Eintraege hinaus, die ohnehin gerade verschwinden. */
+chk('wer geht, zaehlt nicht mehr mit',
+  /wb-weg'\) < 0 &&[\s\S]{0,80}wb-blass'\) < 0/.test(KARTE));
 
 /* Ohne eine einzige Karte darf der Streifen nicht leer bleiben -
    eine Grenze von null hiesse, es stuende nie etwas da. */

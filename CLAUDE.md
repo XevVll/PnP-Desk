@@ -126,6 +126,36 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 7) — Die Ergebnisse oben blenden nach zwölf Sekunden aus
+- **Hendriks Vorgabe:** „Die Würfelergebnisse sollten sich nach einigen Sekunden ausfaden."
+- **Zwölf Sekunden** (`WB_STANDZEIT_MS`, eine Zahl an **einer** Stelle, damit sie sich am Tisch
+  nachstellen lässt): lang genug, um das Ergebnis vorzulesen und darüber zu reden, kurz genug,
+  dass der Streifen zwischen zwei Szenen wieder leer ist.
+- **Ausblenden und Verdrängen sind ZWEI Bewegungen**, und das ist Absicht: Wer verdrängt wird,
+  geht **zur Seite**; wer seine Zeit abgelaufen hat, **blendet nach oben weg**. So sieht man,
+  *warum* ein Eintrag geht.
+- **Der Timer hängt AM EINTRAG**, nicht in einer Liste daneben — wird er vorher verdrängt,
+  lässt er sich dort wieder abräumen. Sonst liefe ein Timer auf einem Knoten, den es nicht
+  mehr gibt.
+- **Wer geht, zählt nicht mehr mit.** Ein ausblendender Eintrag wird bei der Grenze nicht
+  mitgezählt — sonst würfe ein neuer Wurf Einträge hinaus, die ohnehin gerade verschwinden.
+- **Drei Bestandsprüfungen brachen, und keine war ein Fehler im Code:** Der Limit-Test schob je
+  Wurf **sechs Sekunden** vor, nach zwei Würfen war die Standzeit um und der Streifen beim
+  Zählen leer. Er setzt die Würfe jetzt **dicht hintereinander** — und das ist ohnehin der
+  Fall, den die Grenze regeln soll: mehrere Würfe kurz nacheinander.
+- **Ein echter Fund am Prüfaufbau, und es ist der DRITTE lügende Stub dieser Sitzung:**
+  `remove()` machte `splice(indexOf(this), 1)` — bei einem längst abgehängten Knoten ist
+  `indexOf` **−1**, und `splice(-1, 1)` wirft das **letzte** Kind heraus, also einen
+  **unschuldigen** Eintrag. Ein Timer eines verschwundenen Eintrags löschte damit einen
+  aktuellen. Im Browser tut `remove()` auf einem abgehängten Knoten schlicht nichts; der Stub
+  tut das jetzt auch. **Merke, zum dritten Mal: Ein Stub, der mehr tut als das Original, lügt.**
+- **Getestet: 271 Prüfungen in `t_bogen.js`, 0 Fehler** (7 neue, 1568 über dreizehn Skripte).
+  Mit gestellter Uhr durchgespielt: nach sechs Sekunden steht das Ergebnis noch, nach zwölf
+  blendet es aus, danach ist es wirklich aus dem Baum.
+  **Gegengeprüft:** Baut man die Standzeit aus, schlagen zwei Prüfungen an; räumt man den Timer
+  beim Verdrängen nicht ab, eine dritte.
+
+
 ### 2026-10-17 (Fortsetzung 6) — Fehler: Der W10 war ein Dorn, kein Würfel
 - **Hendriks Meldung mit Bild:** „Der 10er Würfel ist leider verbuggd." Im Porträt stand ein
   schmaler Splitter statt eines Körpers.
