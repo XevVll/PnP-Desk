@@ -440,7 +440,12 @@
     max-width: calc(100vw - 32px);
     pointer-events: none;
   }
+  /* Der Streifen selbst faengt keine Klicks ab (pointer-events:none
+     am Behaelter), die EINTRAEGE schon - sonst liesse sich der Weg
+     nicht aufklappen, und zugleich bliebe die Karte zwischen den
+     Eintraegen anklickbar. */
   .wb-wurf {
+    pointer-events: auto; cursor: pointer;
     background: rgba(15,12,8,.9); border: 1px solid #3a2a18;
     border-top: 3px solid var(--wb-farbe, #c9a24b);
     border-radius: 0 0 10px 10px; padding: 7px 13px 8px;
@@ -487,6 +492,38 @@
   .wb-was { font-size: 11px; color: #cdc3a8; white-space: nowrap; }
   .wb-wurf.gut      { --wb-farbe: #6fbf8b; }
   .wb-wurf.schlecht { --wb-farbe: #b4603f; }
+  .wb-wurf:hover, .wb-wurf:focus-visible { background: rgba(32,25,15,.95); }
+  .wb-wurf.wb-offen { background: rgba(38,30,17,.97); }
+
+  /* ---------- Der Würfelweg ----------
+     Klickt man ein Ergebnis an, steht darunter, WIE es zustande kam:
+     welcher Würfel, ob er explodierte, ob der Wild Die gezählt hat.
+     Am Tisch die häufigste Rückfrage überhaupt. */
+  #wurfWeg {
+    position: fixed; top: calc(104px + env(safe-area-inset-top, 0px));
+    left: 50%; transform: translateX(-50%); z-index: 356;
+    max-width: min(30rem, calc(100vw - 32px));
+    background: rgba(15,12,8,.95); border: 1px solid #3a2a18;
+    border-radius: 12px; padding: 11px 15px 12px;
+    backdrop-filter: blur(4px);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 13px; color: #e6ddc7;
+    box-shadow: 0 10px 28px rgba(0,0,0,.55);
+    animation: wb-rein .22s ease;
+  }
+  #wurfWeg .ww-kopf {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: #a89d81; margin-bottom: 7px;
+  }
+  #wurfWeg .ww-zeile { margin-bottom: 4px; line-height: 1.45; }
+  /* Der Würfel, der NICHT gezählt hat, wird abgeblendet statt
+     weggelassen - man soll sehen, dass er gefallen ist. */
+  #wurfWeg .ww-zeile.aus { opacity: .45; }
+  #wurfWeg .ww-zaehlt { color: #c9a24b; }
+  #wurfWeg .ww-schluss {
+    margin-top: 8px; padding-top: 7px; border-top: 1px solid #3a2a18;
+    color: #cdc3a8;
+  }
 
   /* ---------- Der Wuerfel im Portraet ----------
      Wuerfelt ein Spieler, rollt der Wuerfel zwei Sekunden in SEINER
@@ -921,6 +958,7 @@
   <!-- Die Ergebnisse, oben mittig: von jedem Platz am Tisch lesbar.
        Die Portraetleiste sagt WER, dieser Streifen sagt WAS. -->
   <div id="wurfBand"></div>
+  <div id="wurfWeg" hidden></div>
   <div id="pcRail"></div>
   <audio id="bgAudio" loop preload="auto"></audio>
 
@@ -2799,6 +2837,154 @@
       return (typeof DICE_FORMEN !== 'undefined' && DICE_FORMEN[s]) ? s : 6;
     }
 
+    /* ---------- Der Würfelweg ----------
+       Was hinter einem Ergebnis steckt: welcher Würfel fiel, ob er
+       explodierte, ob der Wild Die gezählt hat. Alles rechnet
+       js/regelwerk.js ohnehin aus; der Wurf trägt es seit heute als
+       Feld `weg` mit. Ein alter Eintrag ohne das Feld sagt das
+       ehrlich, statt etwas zu erfinden. */
+    function wegKette(teile, seiten) {
+      const t = (teile || []).map(Number);
+      if (!t.length) return 'd' + seiten + ': –';
+      const summe = t.reduce(function (a, b) { return a + b; }, 0);
+      const kette = t.length > 1 ? t.join(' + ') + ' = ' + summe : String(summe);
+      return 'd' + seiten + ': ' + kette +
+        (t.length > 1 ? '  — explodiert bei ' + seiten : '');
+    }
+
+    function wurfWegZeilen(roll) {
+      const z = [];
+      const w = roll.weg;
+
+      if (w && w.art === 'probe') {
+        z.push({ t: 'Wert ' + wegKette(w.wert, w.wertSeiten), aus: w.zaehlt !== 'wert' });
+        if (w.wild && w.wildSeiten) {
+          /* "immer d6" steht fest da und nicht nur im Tooltip: Die
+             Verwechslung mit dem eigenen Wert passiert genau beim
+             Lesen des Ergebnisses. (Bibel 4.3.) */
+          z.push({ t: 'Wild Die (immer d' + w.wildSeiten + ') ' +
+                      wegKette(w.wild, w.wildSeiten), aus: w.zaehlt !== 'wild' });
+        } else {
+          z.push({ t: 'Kein Wild Die — nur Heldenfiguren haben einen.', aus: true });
+        }
+        if (w.mod) {
+          z.push({ t: 'Erschwernis ' + (w.mod > 0 ? '+' : '') + w.mod +
+                      ' — nötig war ' + w.ziel + ' statt 4.', aus: true });
+        }
+        let schluss = roll.band || '';
+        if (w.steigerungen > 0) {
+          schluss += ' — ' + (w.steigerungen > 1 ? w.steigerungen + ' Steigerungen' :
+            'Steigerung') + ' (nötig war ' + w.zielSteigerung + ')';
+        } else if (roll.band) {
+          schluss += ' (nötig war ' + w.ziel + ')';
+        }
+        return { zeilen: z, schluss: schluss };
+      }
+
+      if (w && w.art === 'schaden') {
+        (w.teile || []).forEach(function (t) {
+          z.push({ t: (t.was || 'Würfel') + ' ' + wegKette(
+            t.kette ? String(t.kette).split('+') : [t.summe], t.seiten), aus: false });
+        });
+        return { zeilen: z, schluss: 'Schaden gesamt: ' + roll.total +
+          ' — kein Wild Die, Schadenswürfel sind keine Probe.' };
+      }
+
+      /* Freier Würfel: Er trägt seine Ketten schon lange mit. */
+      if (roll.sides) {
+        const k = roll.ketten || [];
+        if (k.length) {
+          k.forEach(function (eintrag, i) {
+            z.push({ t: 'Würfel ' + (i + 1) + ' — d' + roll.sides + ': ' +
+              String(eintrag).split('+').join(' + ') +
+              (String(eintrag).indexOf('+') >= 0 ?
+                '  — explodiert bei ' + roll.sides : ''), aus: false });
+          });
+        } else {
+          z.push({ t: (roll.count || 1) + '×d' + roll.sides, aus: false });
+        }
+        return { zeilen: z, schluss: 'Summe: ' + roll.total };
+      }
+
+      return { zeilen: [{ t: 'Zu diesem Wurf liegt kein Weg vor.', aus: true }],
+               schluss: '' };
+    }
+
+    let wegOffen = null;   // der Eintrag, dessen Weg gerade aufliegt
+
+    function wurfWegZu() {
+      const p = document.getElementById('wurfWeg');
+      if (p) { p.hidden = true; p.innerHTML = ''; }
+      if (wegOffen) {
+        wegOffen.className = wegOffen.className.replace(' wb-offen', '');
+        /* Die Standzeit laeuft erst jetzt weiter - solange jemand
+           liest, soll ihm der Eintrag nicht unter den Augen
+           ausblenden. */
+        wurfBandStandzeit(wegOffen);
+        wegOffen = null;
+      }
+    }
+
+    function wurfWegAuf(e, roll) {
+      const p = document.getElementById('wurfWeg');
+      if (!p) return;
+      if (wegOffen === e) { wurfWegZu(); return; }   // zweiter Klick schliesst
+      wurfWegZu();
+
+      const a = wurfWegAnzeige(roll);
+      p.innerHTML = '';
+      const kopf = document.createElement('div');
+      kopf.className = 'ww-kopf';
+      kopf.textContent = ((roll.figur || '').trim() || roll.name || '') +
+        ' · ' + (roll.probe || ((roll.count || 1) + '×d' + roll.sides));
+      p.appendChild(kopf);
+      a.zeilen.forEach(function (zl) {
+        const r = document.createElement('div');
+        r.className = 'ww-zeile' + (zl.aus ? ' aus' : ' ww-zaehlt');
+        r.textContent = zl.t;
+        p.appendChild(r);
+      });
+      if (a.schluss) {
+        const s = document.createElement('div');
+        s.className = 'ww-schluss';
+        s.textContent = a.schluss;
+        p.appendChild(s);
+      }
+      p.hidden = false;
+
+      e.className += ' wb-offen';
+      wegOffen = e;
+      // Solange der Weg aufliegt, blendet der Eintrag nicht aus.
+      if (e._wbTimer) { clearTimeout(e._wbTimer); e._wbTimer = null; }
+    }
+
+    function wurfWegAnzeige(roll) { return wurfWegZeilen(roll); }
+
+    /* Ein Klick irgendwo sonst schliesst - und Escape, fuer die
+       Tastatur. */
+    document.addEventListener('click', function (ev) {
+      if (!wegOffen) return;
+      const p = document.getElementById('wurfWeg');
+      if (ev.target && (wegOffen.contains && wegOffen.contains(ev.target))) return;
+      if (p && p.contains && p.contains(ev.target)) return;
+      wurfWegZu();
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && wegOffen) wurfWegZu();
+    });
+
+    /* Die Standzeit eines Eintrags - an EINER Stelle, weil sie an drei
+       gebraucht wird: beim Anlegen, nach dem Schliessen des Wegs und
+       nirgends sonst. */
+    function wurfBandStandzeit(e) {
+      if (e._wbTimer) clearTimeout(e._wbTimer);
+      e._wbTimer = setTimeout(function () {
+        if (wegOffen === e) return;   // wer liest, verliert ihn nicht
+        e.className += ' wb-blass';
+        setTimeout(function () { e.remove(); }, WB_BLASS_MS);
+      }, WB_STANDZEIT_MS);
+    }
+
     /* Ein Ergebnis in den Streifen oben. Faellt der aelteste heraus,
        wird er SICHTBAR verdraengt (nach links hinaus) statt einfach zu
        verschwinden - sonst merkt niemand, dass etwas weg ist. */
@@ -2822,13 +3008,23 @@
       e.appendChild(wer); e.appendChild(z); e.appendChild(was);
       band.appendChild(e);
 
+      /* Anklickbar: Der Klick zeigt den WEG des Wurfs. Mit Tastatur
+         ebenso - auf dem Tablet am Tisch gibt es kein Hovern, und ein
+         Knopf, der nur auf die Maus hoert, ist dort unerreichbar. */
+      e.tabIndex = 0;
+      e.setAttribute('role', 'button');
+      e.title = 'Zeigt, wie dieses Ergebnis zustande kam';
+      e.addEventListener('click', function () { wurfWegAuf(e, roll); });
+      e.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault(); wurfWegAuf(e, roll);
+        }
+      });
+
       /* Nach der Standzeit von selbst ausblenden. Der Timer haengt AM
          EINTRAG, nicht in einer Liste daneben: Wird er vorher
          verdraengt, laesst er sich dort wieder abraeumen. */
-      e._wbTimer = setTimeout(function () {
-        e.className += ' wb-blass';
-        setTimeout(function () { e.remove(); }, WB_BLASS_MS);
-      }, WB_STANDZEIT_MS);
+      wurfBandStandzeit(e);
 
       /* Ueberzaehlige hinausschieben. Gezaehlt werden nur die, die
          nicht ohnehin schon gehen - sonst wuerde derselbe Eintrag bei
@@ -2845,6 +3041,9 @@
         const alt = bleiben[i];
         // Er geht jetzt zur Seite - die Standzeit braucht er nicht mehr.
         if (alt._wbTimer) { clearTimeout(alt._wbTimer); alt._wbTimer = null; }
+        // Lag sein Weg offen, geht der mit: ein Weg ohne Eintrag waere
+        // eine Anzeige, zu der nichts mehr dasteht.
+        if (wegOffen === alt) wurfWegZu();
         alt.className += ' wb-weg';
         /* Erst nach der Bewegung aus dem DOM - wer sofort entfernt,
            sieht keine Verdraengung, sondern ein Springen. */

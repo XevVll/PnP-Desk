@@ -956,7 +956,11 @@ function kSchnitt(von, bis) {
   if (a < 0 || b < 0) { console.log('ABBRUCH: ' + von + ' nicht gefunden.'); process.exit(1); }
   return KARTE.slice(a, b);
 }
-const railCode = kSchnitt('function renderPcRail(', 'function attachPcRail(');
+/* Nur die Leiste, nicht alles bis attachPcRail: Dort haengen seit
+   dem 17.10.2026 Streifen und Wuerfelweg mit drin, und die brauchen
+   Dinge, die dieser Kontext zu Recht nicht hat. Ein Schnitt, der mehr
+   mitnimmt als noetig, bricht bei jeder fremden Aenderung. */
+const railCode = kSchnitt('function renderPcRail(', 'function wuerfelAnzeige(');
 
 function rKnoten(tag) {
   return {
@@ -1063,6 +1067,13 @@ const actx = {
     /* Der Streifen oben haengt nicht an einer Karte, sondern an einem
        eigenen Knoten - der Stub muss ihn kennen. */
     getElementById(id) { return actx._knoten[id] || null; },
+    _lauscher: {},
+    addEventListener(typ, fn) {
+      (this._lauscher[typ] = this._lauscher[typ] || []).push(fn);
+    },
+    feuere(typ, ev) {
+      (this._lauscher[typ] || []).forEach(function (fn) { fn(ev || {}); });
+    },
     createElement(tag) {
       const n = {
         tagName: tag, className: '', textContent: '', dataset: {}, kinder: [],
@@ -1070,6 +1081,22 @@ const actx = {
         // nicht der Code mit dem Stub.
         get children() { return this.kinder; },
         appendChild(k) { this.kinder.push(k); k._eltern = this; return k; },
+        /* Die Eintraege des Streifens hoeren seit dem 17.10.2026 auf
+           Klick und Tastatur - aufgezeichnet, damit der Test sie
+           wirklich ausloesen kann. */
+        _lauscher: null,
+        addEventListener(typ, fn) {
+          this._lauscher = this._lauscher || {};
+          (this._lauscher[typ] = this._lauscher[typ] || []).push(fn);
+        },
+        feuere(typ, ev) {
+          ((this._lauscher || {})[typ] || []).forEach(function (fn) { fn(ev || {}); });
+        },
+        setAttribute(n, v) { this['_attr_' + n] = v; },
+        contains(k) {
+          if (k === this) return true;
+          return this.kinder.some(function (x) { return x.contains && x.contains(k); });
+        },
         /* indexOf kann -1 sein, wenn der Knoten laengst abgehaengt
            ist - splice(-1, 1) wuerfe dann das LETZTE Kind heraus, also
            einen unschuldigen Eintrag. Im Browser tut remove() auf einem
@@ -1119,7 +1146,11 @@ function aniVor(ms) {
    getroffen wird. */
 const rail = actx.document.createElement('div');
 actx.pcRailEl = rail;
-actx._knoten = { wurfBand: actx.document.createElement('div') };
+actx._knoten = {
+  wurfBand: actx.document.createElement('div'),
+  wurfWeg: actx.document.createElement('div')
+};
+const weg = () => actx._knoten.wurfWeg;
 const band = () => actx._knoten.wurfBand;
 const bandOffen = () => band().kinder.filter(function (k) {
   return String(k.className).indexOf('wb-weg') < 0;
@@ -1426,6 +1457,101 @@ chk('er faengt keine Klicks ab', /#wurfBand\s*{[^}]*pointer-events:\s*none/.test
 /* Die Wuerfel sind groesser geworden. */
 chk('der Wuerfel ist groesser als vorher',
   /\.wa-wuerfel\s*{[^}]*width:\s*79px/.test(KARTE));
+
+/* ---- Ein Klick zeigt den Würfelweg ----
+   Hendriks Vorgabe vom 17.10.2026: "wenn man auf das obere Ergebnis
+   klickt, dass sich dann der Würfelweg aufzeigt. Also explodiert oder
+   wild die etc."
+
+   Geprüft wird der Weg eines Wurfs, den wir genau kennen: Wert d8
+   explodiert (8 + 3 = 11), Wild Die zeigt 1, gezählt hat der Wert. */
+const wegText = () => weg().kinder.map(function (k) {
+  return k.textContent; }).join(' | ');
+
+band().kinder.length = 0;
+actx.wuerfelImPortraet({
+  name: 'Peter', figur: 'Kai', ts: aniJetzt, probe: 'Kämpfen d8',
+  band: 'Erfolg mit Steigerung', ergebnis: 11, seiten: 8,
+  weg: { art: 'probe', wert: [8, 3], wertSeiten: 8, wild: [1], wildSeiten: 6,
+         zaehlt: 'wert', mod: 0, ziel: 4, zielSteigerung: 8, steigerungen: 1 }
+});
+aniVor(2001);
+const eintrag = bandOffen()[0];
+chk('vor dem Klick liegt kein Weg auf', weg().hidden !== false);
+
+eintrag.feuere('click');
+chk('der Klick zeigt den Weg', weg().hidden === false);
+chk('die explodierte Kette steht da', wegText().indexOf('8 + 3 = 11') > 0, wegText());
+chk('und WARUM sie explodiert ist', wegText().indexOf('explodiert bei 8') > 0, wegText());
+chk('der Wild Die steht dabei', wegText().indexOf('Wild Die (immer d6)') > 0, wegText());
+chk('der Kopf nennt Figur und Probe',
+  weg().kinder[0].textContent.indexOf('Kai') >= 0 &&
+  weg().kinder[0].textContent.indexOf('Kämpfen d8') > 0,
+  weg().kinder[0].textContent);
+/* Der Würfel, der NICHT gezählt hat, wird abgeblendet statt
+   weggelassen - man soll sehen, dass er gefallen ist. */
+const zeilen = weg().kinder.filter(function (k) {
+  return String(k.className).indexOf('ww-zeile') >= 0; });
+chk('der zählende Würfel ist hervorgehoben',
+  zeilen[0].className.indexOf('ww-zaehlt') >= 0, zeilen[0].className);
+chk('der andere ist abgeblendet, nicht weggelassen',
+  zeilen[1].className.indexOf('aus') >= 0, zeilen[1].className);
+
+/* Solange jemand liest, darf der Eintrag nicht ausblenden. */
+aniVor(13000);
+chk('ein offener Weg haelt seinen Eintrag fest',
+  band().kinder.indexOf(eintrag) >= 0 &&
+  String(eintrag.className).indexOf('wb-blass') < 0, eintrag.className);
+
+/* Zweiter Klick schliesst wieder. */
+eintrag.feuere('click');
+chk('der zweite Klick schliesst', weg().hidden === true);
+/* Und DANACH laeuft die Standzeit weiter - sonst bliebe der Eintrag
+   fuer immer stehen, nur weil ihn jemand einmal angesehen hat. */
+aniVor(13000);
+chk('nach dem Schliessen blendet er doch noch aus',
+  band().kinder.indexOf(eintrag) < 0 ||
+  String(eintrag.className).indexOf('wb-blass') >= 0, eintrag.className);
+aniVor(1000);
+
+/* Escape schliesst ebenfalls - auf dem Tablet und fuer die Tastatur. */
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'Peter', figur: 'Kai', ts: aniJetzt,
+  count: 2, sides: 6, total: 9, ketten: ['4', '5'] });
+aniVor(2001);
+const e2 = bandOffen()[0];
+e2.feuere('click');
+chk('auch ein freier Würfel zeigt seinen Weg', weg().hidden === false);
+chk('und zwar jeden einzelnen Würfel', wegText().indexOf('Würfel 2') > 0, wegText());
+actx.document.feuere('keydown', { key: 'Escape' });
+chk('Escape schliesst', weg().hidden === true);
+
+/* Mit der Tastatur erreichbar - sonst ist der Weg auf dem Tablet
+   unerreichbar. */
+chk('der Eintrag ist mit der Tastatur erreichbar', e2.tabIndex === 0, e2.tabIndex);
+chk('und als Knopf ausgewiesen', e2._attr_role === 'button', e2._attr_role);
+e2.feuere('keydown', { key: 'Enter', preventDefault: function () {} });
+chk('Enter zeigt den Weg', weg().hidden === false);
+actx.document.feuere('keydown', { key: 'Escape' });
+aniVor(14000);
+
+/* Ein ALTER Eintrag aus dem Feed hat kein Feld "weg" - er darf nichts
+   erfinden. */
+band().kinder.length = 0;
+actx.wuerfelImPortraet({ name: 'Peter', figur: 'Kai', ts: aniJetzt,
+  probe: 'Kämpfen d8', band: 'Erfolg', ergebnis: 7 });
+aniVor(2001);
+bandOffen()[0].feuere('click');
+chk('ein alter Wurf ohne Weg sagt das ehrlich',
+  wegText().indexOf('kein Weg') > 0, wegText());
+actx.document.feuere('keydown', { key: 'Escape' });
+aniVor(14000);
+
+/* Und der Wurf traegt den Weg auch wirklich mit. */
+chk('die Probe schreibt ihren Weg mit', DICE.indexOf("art: 'probe',") > 0);
+chk('der Schadenswurf auch', DICE.indexOf("art: 'schaden',") > 0);
+chk('die Teilwuerfe als Liste, nicht als fertiger Satz',
+  DICE.indexOf('wert: r.wert.teile') > 0);
 
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };

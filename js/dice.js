@@ -278,6 +278,21 @@ function initDiceRoller(db, options) {
          Aus "Kämpfen d8" die 8 herauszuschneiden waere geraten - und
          ungelernt stuende dort "ungelernt (d4−2)". */
       seiten: wuerfelSeiten(stufe),
+      /* Der WEG des Wurfs, nicht nur sein Ergebnis: beide Ketten, wer
+         gezaehlt hat, was noetig war. wurf() rechnet das ohnehin aus -
+         bisher blieb es im Bogen des Spielers liegen, und niemand
+         sonst konnte nachvollziehen, wie eine 17 zustande kam.
+         Die Teilwuerfe als Liste, nicht als fertiger Satz: Wer den
+         Text speichert, kann ihn spaeter nicht mehr anders anzeigen. */
+      weg: {
+        art: 'probe',
+        wert: r.wert.teile, wertSeiten: r.seiten,
+        wild: r.wildWurf ? r.wildWurf.teile : null,
+        wildSeiten: r.wildSeiten,
+        zaehlt: r.zaehlt, mod: r.mod || 0,
+        ziel: r.ziel, zielSteigerung: r.zielSteigerung,
+        steigerungen: r.steigerungen || 0
+      },
       band: BAND_NAMEN[r.band], ergebnis: r.roh, ziel: r.ziel,
       steigerungen: r.steigerungen, total: r.roh
     });
@@ -338,6 +353,15 @@ function initDiceRoller(db, options) {
       seiten: teile.reduce(function (a, t) {
         return Math.max(a, wuerfelSeiten(t.stufe));
       }, 4),
+      /* Beim Schaden ist der Weg die Aufschluesselung: Waffe, Staerke,
+         Steigerungswuerfel - am Tisch die haeufigste Rueckfrage. */
+      weg: {
+        art: 'schaden',
+        teile: teile.map(function (t) {
+          return { was: t.was || '', seiten: wuerfelSeiten(t.stufe),
+                   summe: t.summe, kette: t.kette || null };
+        })
+      },
       results: teile.map(function (t) { return t.summe; })
     });
     const f = holeFigur() || {};

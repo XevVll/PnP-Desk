@@ -126,6 +126,53 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-17 (Fortsetzung 8) — Ein Klick auf das Ergebnis zeigt den Würfelweg
+- **Hendriks Vorgabe:** „wenn man auf das obere Ergebnis klickt, dass sich dann der Würfelweg
+  aufzeigt. Also explodiert oder wild die etc."
+- **Die Rechnung gab es längst, der Feed trug sie nur nicht mit.** `wurf()` liefert seit jeher
+  beide Ketten, die Würfelgrößen, wer gezählt hat und was nötig war — das blieb aber **im Bogen
+  des Spielers liegen**. Niemand sonst konnte nachvollziehen, wie eine 17 zustande kam. Jeder
+  Wurf trägt das jetzt als Feld `weg` mit.
+- **Die Teilwürfe als LISTE, nicht als fertiger Satz.** Wer den Text speichert, kann ihn später
+  nicht mehr anders anzeigen — die Zahlen bleiben Zahlen.
+- **Was der Weg zeigt**, am Beispiel eines Wurfs, den die Prüfung genau kennt:
+
+      Kai · Kämpfen d8
+      Wert d8: 8 + 3 = 11  — explodiert bei 8      ← gezählt
+      Wild Die (immer d6): 1
+      Erfolg mit Steigerung — Steigerung (nötig war 8)
+
+  - **Der Würfel, der NICHT gezählt hat, wird abgeblendet statt weggelassen** — man soll sehen,
+    dass er gefallen ist.
+  - **„immer d6" steht fest da**, nicht im Tooltip: Die Verwechslung mit dem eigenen Wert
+    passiert genau beim Lesen des Ergebnisses (Bibel 4.3, Hendriks Meldung vom 14.10.).
+  - Ein **Schadenswurf** zeigt seine Aufschlüsselung (Waffe, Stärke, Steigerungswürfel), ein
+    **freier Würfel** jeden einzelnen Würfel samt Explosion.
+  - Ein **alter Feed-Eintrag** ohne das Feld sagt das ehrlich („Zu diesem Wurf liegt kein Weg
+    vor.") statt etwas zu erfinden.
+- **Solange jemand liest, blendet der Eintrag nicht aus** — und nach dem Schließen läuft die
+  Standzeit weiter. Ein Eintrag, der für immer stehen bliebe, nur weil ihn jemand einmal
+  angesehen hat, wäre genauso falsch.
+- **Mit der Tastatur erreichbar** (`tabindex`, `role="button"`, Enter/Leertaste, Escape
+  schließt): Auf dem Tablet am Tisch gibt es kein Hovern, und der Streifen selbst fängt
+  weiterhin keine Klicks ab — nur die Einträge, damit die Karte dazwischen anklickbar bleibt.
+- **Getestet: 292 Prüfungen in `t_bogen.js`, 0 Fehler** (21 neue, 1589 über dreizehn Skripte).
+  Der Klick wird **wirklich gefeuert**, nicht im Quelltext gesucht.
+- **Drei eigene Fehler, und der dritte ist der lehrreichste:**
+  1. **Der ältere Leisten-Test schnitt bis `attachPcRail`** und zog damit den ganzen neuen Code
+     mit hinein, der Dinge braucht, die jener Kontext zu Recht nicht hat. Er schneidet jetzt
+     nur noch die Leiste. **Ein Schnitt, der mehr mitnimmt als nötig, bricht bei jeder fremden
+     Änderung.**
+  2. **Der Stub kannte keine Ereignis-Lauscher.** Jetzt zeichnet er sie auf, statt sie ins
+     Leere laufen zu lassen — sonst ließe sich der Klick gar nicht prüfen.
+  3. **Zwei meiner Gegenproben waren selbst falsch.** Die erste erzeugte einen Syntaxfehler
+     statt eines Fehlschlags (und „0 Fehler" sah aus wie Erfolg). Die zweite traf die falsche
+     Zeile: Den Eintrag halten **zwei** Mechanismen — der Timer wird beim Öffnen gelöscht
+     *und* er prüft beim Auslösen selbst, ob gerade jemand liest. Jeder allein genügt, deshalb
+     schlug das Entfernen eines einzelnen nicht an. **Erst das Entfernen BEIDER lässt die
+     Prüfung anschlagen** — sie schützt damit das Verhalten, nicht eine bestimmte Zeile.
+
+
 ### 2026-10-17 (Fortsetzung 7) — Die Ergebnisse oben blenden nach zwölf Sekunden aus
 - **Hendriks Vorgabe:** „Die Würfelergebnisse sollten sich nach einigen Sekunden ausfaden."
 - **Zwölf Sekunden** (`WB_STANDZEIT_MS`, eine Zahl an **einer** Stelle, damit sie sich am Tisch
