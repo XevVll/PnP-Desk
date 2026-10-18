@@ -346,6 +346,14 @@ const ORTE = {
   // Flavor-Zusatz, kein Plot-Gewicht (Hendriks Auftrag: "kleine lustige
   // simple Storys, die nichts Besonderes zur Geschichte beitragen").
   "offiziersquartier": {
+    // Hendrik, 18.10.2026: "Das Offiziersquartier ist Cormac abgeschlossen und
+    // offensichtlich Toms Tuer zeigt einen unordentlichen Raum. Das reicht."
+    // Der Spielertext sagt das laengst (Marker-desc, Bibel 10.7) - im Panel
+    // stand hier aber gar nichts. Also nur die GM-Seite nachgetragen, KEINE
+    // Interaktion: der Ort bleibt ausdruecklich ein reiner Flavor-Ort.
+    personen: "Niemand — beide Kammern sind leer, ihre Bewohner an Deck (Cormac, Tom)",
+    kurz: "Reiner Flavor-Ort, nichts zu holen. Die Türen erzählen die beiden Männer: Cormacs Kammer verriegelt, schlicht, der Gang davor aufgeräumt — Toms Tür offen, Hängematte, Würfel und Karten, leere Flaschen, blaues Halstuch. Keine Probe, kein Ruf, keine Begegnung.",
+    ortHinweis: "Im Spielertext fallen bewusst KEINE Namen — die Zuordnung erschließt sich aus dem, was die Gruppe über beide schon weiß (Bibel 10.7). Nicht auflösen, wenn niemand fragt; fragt jemand, bestätigen statt erklären.\n\nDas blaue Halstuch ist Toms Wiedererkennungs-Requisit — es darf später an ihm auftauchen, dann ohne Kommentar.\n\nCormacs Tür bleibt zu. Sie aufzubrechen ist keine vorgesehene Handlung, sondern ein Vergehen am Quartiermeister — mit allem, was daraus folgt.",
     szenenUeberschreibungen: {
       "5.1": {
         ortHinweis: "Toms Kammer hat neuen Zuwachs bekommen: An einer Schnur von der Deckenbalken baumelt ein getrocknetes, reichlich fragwürdig aussehendes exotisches Fruchtstück, dazu ein paar bunte Federn, achtlos über den Würfeltisch verteilt. Niemand weiß so recht, was das Fruchtstück eigentlich ist oder werden soll — Tom behauptet steif und fest, es bringe Glück, und wehrt sich energisch dagegen, es „auch nur anzufassen, geschweige denn wegzuwerfen“."

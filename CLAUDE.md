@@ -126,6 +126,21 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung 4) - Das Offiziersquartier bekommt seine GM-Seite
+- **Hendrik:** "Das Offiziersquartier ist Cormac abgeschlossen und offensichtlich Toms Tuer
+  zeigt einen unordentlichen Raum. Das reicht."
+- **Der Spielertext sagt das laengst woertlich** (Marker-desc, Bibel 10.7: verriegelte schlichte
+  Kammer, daneben Haengematte, Wuerfel, Karten, Flaschen, blaues Halstuch). **Im Panel stand
+  dort aber gar nichts** - kein , keine , kein . Nachgetragen,
+  **ohne Interaktion**: Der Ort bleibt ausdruecklich ein reiner Flavor-Ort (Bibel 10.7).
+- Im  stehen die drei Dinge, die am Tisch zaehlen: Im Spielertext fallen **keine
+  Namen** - nicht aufloesen, wenn niemand fragt, sondern bestaetigen statt erklaeren. Das blaue
+  Halstuch ist Toms Wiedererkennungs-Requisit. Und Cormacs Tuer aufzubrechen ist keine
+  vorgesehene Handlung, sondern ein Vergehen am Quartiermeister.
+- Die bestehende -Ueberschreibung (Toms Fruchtstueck) und die Kartenrunde bleiben
+  unberuehrt.  60, 0 Fehler.
+
+
 ### 2026-10-18 (Fortsetzung 3) - Francesco und Josiah antworten, und Pfad B steht endlich im Panel
 - **Hendriks Vorgabe:** "Ich moechte Francesco und Josiah dazu nutzen, um den Spielern
   saemtliche Fragen zu beantworten und kleine Hints zu geben. Hier muessen die Spieler aber
