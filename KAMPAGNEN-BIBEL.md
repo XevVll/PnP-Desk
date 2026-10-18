@@ -455,21 +455,30 @@ Engagement ans Licht und gibt dem Gelehrten seinen großen Moment.
 | **Schamanen-Insel** | Kontakte und Recherche aus dem Schmugglernest | Informant/Schamane. Kulturelle Variante: der zentraleuropäische Blick trifft auf eine fremde, ursprüngliche Tradition. Liefert **konkrete Ritual-Informationen**: Schwächen der Untoten, wie sich der Finalkampf entschärfen lässt — Grundlage für ein gutes Ende |
 | **Hafen zur Vorbereitung** | Weg über die Flaute | **Emergenter Ort** — die Spieler fordern ihn selbst ein, weil sie in Harwicks Unterlagen von der übernatürlichen Gefahr gelesen haben. Ausrüstung und Proviant, etwa Kanonen vom Schiff für das Ritual |
 
-> **[OFFEN] Die dritte Route hat keinen Säbel.** Bleibt `5.1` unbeachtet, treibt das Schiff in die
-> **Flaute** (`6.1`) und von dort zum Hafen — auf diesem Weg gibt es **weder** Spanierkontakt
-> **noch** Schmugglerhinweis, also keine der beiden Routen zur Riffinsel. Zwei naheliegende Wege,
-> das zu schließen, beide Hendriks Entscheidung: Die Spanier holen die Golden Lion auch dort ein
-> (die Begegnung ist laut 7.5 ohnehin nie eine Wahl, sondern eine Bedrohung), **oder** Harwicks
-> Schriften nennen die Insel selbst, sobald er in `6.1` seine Unterlagen öffnet. Bewusst nicht
-> eigenmächtig entschieden.
+**Die dritte Route: die Flaute (entschieden, 18.10.2026).** Bleibt `5.1` unbeachtet, treibt das
+Schiff in die **Flaute** (`6.1`) — auf diesem Weg gibt es weder Spanierkontakt noch
+Schmugglerhinweis. Hendriks Lösung: *„Während der Flaute bekommen die Spieler die Chance, die
+Position der Insel durch die Unterlagen von Harwick herauszufinden."*
 
-> **[OFFEN] Die Affen dürfen die Grotte nicht verschlucken.** `ORTE.riffstrand.die_affen` beendet
-> die Erkundung ausdrücklich „bevor alles gefunden werden kann" (SL-Ermessen, nach 30–60 Minuten
-> Spielzeit). Solange der Säbel nur ein Bonus war, war das ein guter Druck. Jetzt ist es die
-> Stelle, an der die Kampagne unlösbar werden kann: Treiben die Affen die Gruppe weg, **bevor**
-> sie die Grotte findet, fehlt im Finale die Pflichtwaffe. Vorschlag — nicht eingebaut, weil es
-> Hendriks Entscheidung ist: Die Affen kommen erst, **nachdem** die Grotte gefunden ist, und
-> treiben die Gruppe von allem Übrigen weg.
+Umgesetzt als `ORTE.kapitaenskajuete`, Interaktion **`inselposition_aus_unterlagen`**
+(`nurSzenen: ["6.1"]`): **Navigation ODER Allgemeinwissen** an Harwicks Papieren ergibt die Lage
+einer riffumschlossenen Insel — **eine Position, keinen Grund.** Warum sie ihn beschäftigt, sagt
+er nicht; das bleibt der Einberufung (`12.1`). Ritual-Informationen gibt es hier ausdrücklich
+nicht, die liefert nur die Schamanen-Insel. Ein Misserfolg kostet nur Zeit, und kommt die Gruppe
+gar nicht darauf, nennt Harwick die Lage am Ende selbst — der Weg zur Pflichtinsel darf nicht an
+einem Wurf scheitern. In `6.1` steht die Kajütentür deshalb einen Spalt offen statt verriegelt
+(eigener `descOverrides`-Text, nur in dieser Szene).
+
+> **Entschieden (Hendrik, 18.10.2026): Wer die Zeit auf der Insel verspielt, verliert das Finale.**
+> `ORTE.riffstrand.die_affen` beendet die Erkundung ausdrücklich „bevor alles gefunden werden
+> kann" (SL-Ermessen, nach 30–60 Minuten Spielzeit). Treiben die Affen die Gruppe weg, **bevor**
+> sie die Grotte findet, fehlt im Finale die Pflichtwaffe — und dann ist der Endkampf nicht zu
+> gewinnen. Hendriks Wortlaut: *„Das ist dann halt so."*
+>
+> **Das ist eine Entscheidung, keine Lücke** — die Affen bleiben unverändert, und der Zeitdruck
+> auf der Insel ist damit echt. Wer das später „repariert", nimmt der Erkundung genau ihren
+> Einsatz. Die Gegenseite ist ebenso bewusst in Kauf genommen: Eine Gruppe kann sich in `11.1`
+> um das Finale bringen, ohne es zu merken.
 
 > **[OFFEN] Zukunfts-Faden (August 2026):** Ist die Kneipen-Provokation im spanischen Hafen (`7.1`,
 > `ORTE.hafen_kneipe`) eskaliert und Ezra Coombe blieb unabgeholt zurück, haben die Spanier ihn in

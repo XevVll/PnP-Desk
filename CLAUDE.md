@@ -126,6 +126,48 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung 2) - Die Flaute gibt die Insel her, und der Zeitdruck bleibt
+- **Hendriks Vorgabe:** "Waehrend der Flaute bekommen die Spieler die Chance, die Position der
+  Insel durch die Unterlagen von Harwick heraus zu finden." Damit ist der dritte Weg zur
+  Riffinsel geschlossen - der Zweig, der weder Spanierkontakt noch Schmugglerhinweis hat und
+  seit der Saebel Pflicht ist (12.1) sonst ohne die Waffe ins Finale gelaufen waere.
+- **Neue Interaktion `inselposition_aus_unterlagen`** (`ORTE.kapitaenskajuete`,
+  `nurSzenen: ["6.1"]`, 7 Trigger): **Navigation ODER Allgemeinwissen** an Harwicks Papieren.
+  - **Heraus kommt eine POSITION, kein Grund.** Warum die Insel ihn beschaeftigt, sagt er
+    nicht - das bleibt der Einberufung (`12.1`), die sonst ihr Gewicht verliert. Und
+    ausdruecklich **keine** Ritual-Information: die liefert nur die Schamanen-Insel (7.4).
+  - **Zwei Wege hinein:** fragen (er gibt die Unterlagen heraus, ohne den Grund zu nennen)
+    oder heimlich mitlesen, waehrend er an Deck ist. Wer in `2.1` schon einmal wegen der
+    Schriften in der Kajuete war, hat den kurzen Weg.
+  - **Ein Misserfolg kostet nur Zeit.** Die Flaute haelt an, beliebig oft erneut versuchbar -
+    und kommt die Gruppe gar nicht darauf, nennt Harwick die Lage am Ende selbst, laut vor
+    sich hin gerechnet. **Der Weg zur Pflichtinsel darf nicht an einem Wurf scheitern.**
+- **Eigener Kajuetentext fuer die Flaute** (`descOverrides` in `6.1`): Die Basis-Szene sagt
+  "verriegelt ... wer anklopft, bekommt keine Antwort" - damit waere niemand auf die Idee
+  gekommen, es an den Unterlagen zu versuchen. Jetzt steht die Tuer bei der Hitze einen Spalt
+  offen und Harwick sitzt sichtbar ueber den Papieren. **Reine Beobachtung, kein
+  Handlungsauftrag** (Design-Regel 2.8), und **`2.1` bleibt unberuehrt** - dort ist die Tuer
+  weiter zu. Beim Einbau genau an der Stelle aufgepasst, an der am 14.10. die Datei brach:
+  hinter `imgOverrides: {}` steht ein Kommentar und kein Komma.
+- **ENTSCHIEDEN (Hendrik), und als Entscheidung eingetragen statt als Luecke:** "Wenn die
+  Spieler zu viel Zeit auf der Insel verbringen und den Saebel nicht bekommen, werden sie den
+  Endkampf nicht schaffen. Das ist dann halt so."
+  - Die **Affen bleiben unveraendert** (`ORTE.riffstrand.die_affen` beendet die Erkundung
+    "bevor alles gefunden werden kann"). Mein Vorschlag von vorhin, sie erst nach dem
+    Grottenfund kommen zu lassen, ist damit **abgelehnt** - und das steht so in Bibel 7.4,
+    damit es niemand spaeter "repariert" und der Erkundung ihren Einsatz nimmt.
+  - Die Kehrseite steht ebenso dort: Eine Gruppe kann sich in `11.1` um das Finale bringen,
+    ohne es zu merken. Bewusst in Kauf genommen.
+- **Ein alter Wertename, den meine eigene Messung uebersehen hatte:** In
+  `warnung_in_unterlagen` stand "Wahrnehmungs-/Wissen-Probe". Mein Suchmuster sucht den
+  Probenzusammenhang (`Wort-Probe`), und darauf passt diese Schreibweise nicht - der Treffer
+  fiel durch. Jetzt "Aufmerksamkeit oder Allgemeinwissen". **Merke: Die Zahl der alten
+  Wertenennungen ist eine Untergrenze, keine Bilanz.**
+- **Getestet: t_arena 30, t_syntax 60, t_szenen 33, t_musik 34, t_regie_wuerfel 325 - 0 Fehler.**
+  Die neue Interaktion wird dabei wirklich aufgeloest (Titel, `nurSzenen`, 7 Trigger), der
+  `descOverride` greift in `6.1` und nachweislich **nicht** in `2.1`.
+
+
 ### 2026-10-18 (Fortsetzung) - Der Jaguar-Saebel ist Pflicht, und die Arena hat endlich Tests
 - **Hendriks Festlegung:** "Ich moechte das Abenteuer umschreiben, dass die Spieler zwingend
   zur Raetselinsel kommen. Entweder durch die Flucht vor den Spaniern oder durch den Hinweis

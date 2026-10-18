@@ -178,7 +178,15 @@ const GOLDEN_LION_SCENES = {
   "6.1": {
     label: "Golden Lion in der Flaute",
     background: "images/golden_lion_cutaway.webp",
-    imgOverrides: {} // ebenfalls wie Basis-Szene - kein Wetterumschwung, der eigenes Bildmaterial rechtfertigt (nur Windstille)
+    imgOverrides: {}, // ebenfalls wie Basis-Szene - kein Wetterumschwung, der eigenes Bildmaterial rechtfertigt (nur Windstille)
+    // Die verriegelte Tuer der Basis-Szene wuerde hier jeden abhalten, es
+    // ueberhaupt zu versuchen - und in der Flaute sitzt Harwick gerade
+    // ueber genau den Unterlagen, aus denen sich die Lage der Riffinsel
+    // herausrechnen laesst (ORTE.kapitaenskajuete,
+    // "inselposition_aus_unterlagen"). Beobachtung, kein Auftrag.
+    descOverrides: {
+      kapitaenskajuete: "Die Tür zur Kapitänskajüte steht einen Spalt offen — bei dieser Hitze bekommt man sie sonst gar nicht auf. Harwick sitzt über Papieren, wie seit Tagen. Die Seekarten liegen beiseitegeschoben; es gibt ohnehin keinen Kurs zu halten. Er sieht nicht auf, wenn jemand im Durchgang stehen bleibt."
+    }
   },
 
   // Bibel 7.4 ("Spanischer Angriff -> Riffinsel"): nach dem Verrat/Massaker

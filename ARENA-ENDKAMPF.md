@@ -212,13 +212,21 @@ Dass Diener unter dem Säbel „zu Staub zerfallen", ist für alle sichtbar (in-
 Träger die Eigenschaft ja gerade so, siehe `die_ersten_wellen`) — nur *benannt* wird der Säbel
 nirgends.
 
-> **[OFFEN] Was, wenn die Gruppe den Säbel nicht hat?** Seit er Pflicht ist, ist der Endkampf
-> ohne ihn nicht zu gewinnen — der Seelenlose steht immer wieder auf. Hendriks Antwort darauf ist
-> der Pflichtweg zur Riffinsel (zwei Routen, siehe Bibel 7.4). Für den Fall, dass die Gruppe
-> trotzdem ohne Säbel in der Ritualkammer steht, ist **nichts** vorgesehen: Die Arena hat bewusst
-> keine Siegbedingung, aber sie hat jetzt eine Verlustbedingung, die sie vorher nicht hatte.
-> Das ist die eine Stelle, an der die Design-Regel aus Abschnitt 1 („die Arena bestimmt nur, wie
-> teuer der Weg wird, nicht ob die Kernbeats geschehen") nicht mehr vollständig gilt.
+> **Was, wenn die Gruppe den Säbel nicht hat? Dann verliert sie — entschieden, nicht offen.**
+> Seit er Pflicht ist, ist der Endkampf ohne ihn nicht zu gewinnen: Der Seelenlose steht immer
+> wieder auf. Hendriks Festlegung vom 18.10.2026 dazu, wörtlich: *„Wenn die Spieler zu viel Zeit
+> auf der Insel verbringen und den Säbel nicht bekommen, werden sie den Endkampf nicht schaffen.
+> Das ist dann halt so."*
+>
+> Drei Routen führen zur Insel (Bibel 7.4: Spanier-Flucht, Schmuggler-Hinweis, Harwicks
+> Unterlagen in der Flaute) — mindestens eine greift immer. **Was danach passiert, liegt bei der
+> Gruppe:** Die Affen (`ORTE.riffstrand.die_affen`) können die Erkundung beenden, bevor die
+> Grotte gefunden ist, und dieser Zeitdruck bleibt bewusst stehen.
+>
+> **Damit gilt die Design-Regel aus Abschnitt 1 nicht mehr vollständig.** Die Arena hat weiterhin
+> keine Siegbedingung, aber sie hat jetzt eine **Verlustbedingung**, die sie vorher nicht hatte:
+> Ohne Säbel bestimmt sie doch, *ob* das Finale aufgeht, nicht nur wie teuer es wird. Das ist der
+> Preis der Pflichtwaffe und als solcher gewollt.
 
 **Wer ihn trägt, setzt allein die SL** (im Schlachtfeld per „Säbel geben" — möglich für Spieler
 UND Verbündete, denn laut Finale kann er auch Harwick in die Hand gedrückt werden), und es wird
