@@ -126,6 +126,50 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 - Arbeitsdokument: eine Aufgabe fuer das Schiff vor dem Sturm
+- **Hendriks Auftrag (17.10.):** "Das Schiff und den Sturm etwas mehr streamlinen bzw. den
+  Spielern eine Aufgabe geben, die in ihrer freien Zeit bzw. vor allem im Sturm zu loesen
+  ist." Dazu: "Schreibe eine Task-Datei, um fuer die Schiffszene vor dem Sturm eine kleine
+  Aufgabe fuer die Gruppe zu finden."
+- **Neue `AUFGABE-SCHIFF-VOR-DEM-STURM.md`** - Arbeitsdokument, kein Kanon: gemessener
+  IST-Zustand von `2.1`/`3.1`, das Zeitfenster, sechs Randbedingungen, die vorhandene
+  Mechanik, der Kandidatenraum, Hendriks offene Entscheidungen und die Definition of Done.
+  **Keine Inhalte erfunden** - die Entscheidung gehoert Hendrik (Bibel 17).
+- **Der tragende Fund: die Mundharmonika steht im Kanon und ist nie gebaut worden.**
+  Bibel 6.2 fuehrt sie als **Leitbeispiel** fuer einen Szenen-Trigger auf dem Schiff -
+  finden, zurueckbringen oder einstecken, "moralisch neutral, erzeugt organische Spannung
+  innerhalb der Gruppe". **Im ganzen Repo kommt das Wort genau einmal vor: in dieser Zeile
+  der Bibel.** Nicht in `js/regie.js`, nicht in den Szenendateien, nirgends im Code. Sie hat
+  genau die Form, die hier fehlt, und sie ist Hendriks eigener Entwurf.
+- **Die freie Zeit ist eine reale Stunde, und sie ist ueberbucht.** Bibel 6.1: T+30 findet
+  Wat den blinden Passagier, **T+60 beginnt der Sturm**, ausdruecklich "bewusst zu knapp,
+  damit realistisch niemand alles findet". Darin liegen schon **elf** Interaktionen. Das
+  begrenzt den Kandidatenraum haerter als jede Geschmacksfrage - eine Aufgabe, die eine
+  halbe Stunde Aufmerksamkeit braucht, hat dort keinen Platz.
+- **Dirks kniffliges Problem ist NICHT verfuegbar**, obwohl es naheliegt: Bibel 10.4 legt
+  fest, dass sein Payoff **nach** dem Sturm liegt - und korrigiert dort ausdruecklich eine
+  frueher dort stehende Fassung, die "in der Sturm-Szene" sagte.
+- **Der Sturm hat vier Aufgaben, die voneinander nichts wissen** (Rigg, Ned, Kanone,
+  Wassereinbruch) - vier Orte, vier Einzelwuerfe, nichts baut aufeinander auf, nichts kommt
+  aus der Zeit davor. Genau die Luecke, die Hendrik beschreibt.
+- **Echter Widerspruch gefunden:** Der Wassereinbruch verlangt "Planken aus der Werkstatt
+  holen" - die **Werkstatt steht in `3.1` auf `hiddenMarkers`**. Auf der Spielerkarte gibt es
+  den Ort im Sturm nicht.
+- **Technisch braucht eine solche Aufgabe nichts Neues:** `questDone` (Haken je Trigger),
+  `hiddenMarkersLive`, `markerVariant`, `gmTimer` (traegt die T+30/T+60-Achse schon),
+  `eigeneWaren` + `figuren/{pid}/zuteilung` fuer ein Fundstueck. Alle stehen in
+  `SITZUNGS_PFADE`, also **keine Firebase-Regelaenderung**.
+- **[OFFEN] Vier Entscheidungen, alle Hendriks** (Abschnitt 7 der Datei): welche Form; ob die
+  Mundharmonika so gebaut wird, wie 6.2 sie beschreibt; **ob die Aufgabe IM Sturm oder NACH
+  dem Sturm ausgezahlt wird** (der Auftrag sagt "vor allem im Sturm", 10.11 sagt, der Sturm
+  benennt niemanden, der dort nicht ohnehin steht - beides gleichzeitig geht nicht); und was
+  "streamlinen" fuer die vier Sturm-Aufgaben heissen soll.
+- **[OFFEN] Was beim Bauen ohnehin mitmuss** (Abschnitt 8): beide Szenen rechnen noch nach
+  dem alten Wertesystem; **`3.1` hat kein `uebergeordnetesZiel` und keine `stimmung`** - die
+  einzige Szene im Projekt ohne beides; sechs `[OFFEN]` in den zwei Oberdeck-Aufgaben;
+  `kombuese.standardverhalten` hat **0 Trigger**.
+
+
 ### 2026-10-17 (Fortsetzung 9) — Der eigene Ergebnisblock wartet jetzt auch
 - **Hendriks Meldung:** „Wenn ich eine Fertigkeit oder Attribut rolle, steht das Ergebnis schon
   im Highlight-Kasten, bevor es im Profilbild angezeigt wird."
