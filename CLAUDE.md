@@ -126,6 +126,65 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung 3) - Francesco und Josiah antworten, und Pfad B steht endlich im Panel
+- **Hendriks Vorgabe:** "Ich moechte Francesco und Josiah dazu nutzen, um den Spielern
+  saemtliche Fragen zu beantworten und kleine Hints zu geben. Hier muessen die Spieler aber
+  aktiv werden. Der blinde Passagier wird die Spieler direkt zu Josiah fuehren. Wenn sie den
+  Passagier nicht finden, werden sie Walter kennen lernen und die dramatische Szene an Deck
+  wird stattfinden."
+- **Das meiste davon stand schon im Kanon** - Bibel 11.1 beschreibt genau diese Gabelung:
+  Pfad A fuehrt zu Josiah (der hungrige Junge landet von selbst bei ihm), Pfad B ist Wat.
+  Hendrik hat sie zugespitzt, nicht neu erfunden. **Zwei echte Luecken kamen beim Messen
+  heraus:**
+- **1. Pfad B war NIRGENDS ausformuliert.** Die Szene an Deck stand ausschliesslich in der
+  Bibel - die Spielleitung haette sie am Tisch dort nachlesen muessen, waehrend die Gruppe
+  wartet. Im Panel gab es nur die Zeile "Wat bemerkt es, Pfad B startet".
+  - Neue Interaktion **`oberdeck.wat_und_der_junge`** (`nurSzenen: ["2.1"]`), die sechs festen
+    Schritte aus Bibel 11.1 als Trigger: Wat haelt den Jungen an einem Bein ueber die Reeling
+    \u2192 Cormac redet ein, **ohne Wirkung** \u2192 selbst Tom knickt ein \u2192 jemand
+    laeuft zu **Josiah, nicht zum Kapitaen** \u2192 Josiah kommt schwer atmend an Deck
+    \u2192 holt den Jungen mit ruhigen Worten zurueck.
+  - **Siebter Trigger fuer den Fall, den die Bibel nicht nennt:** Spieler, die selbst
+    eingreifen. Wat laesst sich nicht umstimmen - aber wer es **ruhig und ohne Drohung**
+    versucht, bekommt den stillen fruehen Rufgewinn, der in `besatzung.html` an ihm steht
+    ("ruhiger Respekt statt Misstrauen, Wat vergisst das nicht"). Wer droht, hat ab hier ein
+    Problem. Sonst waere Eingreifen mechanisch wertlos, obwohl es die naheliegendste
+    Spielerreaktion ueberhaupt ist.
+  - **Die Gegenrichtung ist jetzt sichtbar:** Wer den Jungen findet, lernt **Josiah** kennen;
+    wer ihn nicht findet, lernt **Wat** kennen. Beide Wege fuehren zu einer Figur - nur zu
+    einer ganz anderen.
+- **2. Josiah hatte keinen Fragenkatalog.** Francesco hat seit Langem einen (sechs Personen,
+  "nie proaktiv genannt"), Josiah nur Prosa - am Tisch nichts, was die Spielleitung abarbeiten
+  kann. Neue Interaktion **`kombuese.josiah_fragen`**, 7 Fragen.
+  - **Die Antworten zeigen auf Inhalte, die es ohnehin gibt** - kein neuer Plot, nur
+    Wegweiser: Dirk hoert nicht auf Worte, sondern auf Handwerk (\u2192 `dirk_vertrauen`,
+    die sonst am leichtesten uebersehene Probe der Szene) \u00b7 Toms Streiche \u00b7 leise
+    durchs Unterdeck (\u2192 `durchqueren`).
+  - **Arbeitsteilung der beiden, damit sie sich nicht doppeln:** Francesco urteilt ueber
+    **Menschen**, Josiah sagt, **wie man mit ihnen umgeht** - und redet ueber niemanden
+    schlecht. Dieselbe Frage bekommt bei den zwei zwei verschiedene Antworten, und keine ist
+    falsch. Steht jetzt in beiden `kurz`-Feldern.
+  - **Kein Ruf, kein Haken.** Die Trigger sind eine Abhakliste fuer die Spielleitung, genau
+    wie bei Francesco - Josiah bleibt "reiner Charakter zum Spielen", wie es in seiner
+    bestehenden Interaktion ausdruecklich steht.
+  - **Was er NICHT sagt**, und das steht als Warnung dabei: Warum Wat auf ihn hoert, kann er
+    selbst nicht erklaeren (Bibel 11: bleibt ungelueftet). Ueber Harwicks Papiere sagt er nur,
+    was er **sieht** - "ich bring ihm was zu essen hin, meistens steht es noch da" - nie, was
+    darin steht. Jessica und das Ritual gehoeren der Einberufung (12.1).
+- **Ein eigener Fehler, und `t_syntax.js` hat ihn in derselben Minute gemeldet:** Beim
+  Umbrechen einer langen Zeile im Skript landete ein **Anfuehrungszeichen mitten im Wort**
+  ("bee\"ilt"). Damit endete der JS-String zu frueh, und `js/regie.js` war unparsebar.
+  Genau die Fehlerklasse, fuer die diese Pruefung nach dem `karte.html`-Vorfall gebaut wurde -
+  sie meldete `SyntaxError: Unexpected identifier 'ilt'` samt Zeilennummer.
+- **Getestet: t_syntax 60, t_szenen 33, t_musik 34, t_regie_wuerfel 325, t_nsc 60, t_arena 30
+  - 0 Fehler.** Beide Interaktionen werden dabei wirklich aufgeloest (Titel, `nurSzenen`,
+  je 7 Trigger, Antworttexte).
+- **[OFFEN] Francescos Katalog ist unangetastet.** Er deckt die sechs NSC ab; Fragen zum
+  Schiff, zur Fahrt oder zu Grimsgate hat er nicht. Ob er die bekommen soll, ist Hendriks
+  Entscheidung - bei Josiah ist "ich koch, mir sagt das keiner" die ehrliche Antwort, bei
+  Francesco waere es eine inhaltliche.
+
+
 ### 2026-10-18 (Fortsetzung 2) - Die Flaute gibt die Insel her, und der Zeitdruck bleibt
 - **Hendriks Vorgabe:** "Waehrend der Flaute bekommen die Spieler die Chance, die Position der
   Insel durch die Unterlagen von Harwick heraus zu finden." Damit ist der dritte Weg zur

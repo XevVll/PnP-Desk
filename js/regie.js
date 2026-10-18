@@ -559,9 +559,27 @@ const ORTE = {
           { id: "spieler_gesichert", label: "Wat zurrt den Spieler fest, statt sich selbst zu sichern, und eilt weiter zum Hauptmast", info: "Statt sich selbst wieder zu sichern, nutzt er das Seil, um den Spieler festzuzurren — und eilt sofort weiter, um mit einem anderen Seemann Taue zum Absichern des Hauptmasts zu spannen." }
         ]
       },
+      // Pfad B des blinden Passagiers (Bibel 11.1) - Hendriks Zuspitzung vom
+      // 18.10.2026: Wer den Jungen NICHT findet, lernt stattdessen Wat
+      // kennen. Die Szene stand bisher nur in der Bibel und nicht im Panel.
+      "wat_und_der_junge": {
+        title: "Wat und der Junge \u2014 die Szene an Deck",
+        kurz: "Pfad B: Wat h\u00e4lt den Jungen an einem Bein \u00fcber die Reeling. Cormac redet auf ihn ein \u2014 ohne Wirkung. Selbst Tom knickt ein. Erst Josiah, schwer atmend von unten heraufgekommen, bringt Wat dazu, ihn zur\u00fcckzuholen. Fester Ablauf, kein Wurf.",
+        nurSzenen: ["2.1"],
+        details: "Pfad B aus Bibel 11.1, hier erstmals ausformuliert - bisher stand die Szene NUR in der Bibel, die Spielleitung haette sie am Tisch dort nachlesen muessen.\n\nAUSGELOEST WIRD SIE AUF ZWEI WEGEN (Frachtraum, \"Der blinde Passagier\"):\n- Die Spieler holen den Jungen selbst aus dem Frachtraum heraus - Wat bekommt es mit.\n- T+30 verstreicht ergebnislos: Wat findet ihn.\n\nHendriks Zuspitzung (18.10.2026): \"Wenn sie den Passagier nicht finden, werden sie Walter kennen lernen und die dramatische Szene an Deck wird stattfinden.\" Das ist die Gegenrichtung zu Pfad A - wer den Jungen findet und zu Josiah bringt, lernt Josiah kennen; wer ihn nicht findet, lernt Wat kennen. Beide Wege fuehren zu einer Figur, nur zu einer ganz anderen.\n\nDER ABLAUF STEHT FEST und ist kein Wurf - die Spieler koennen eingreifen, aber Wat laesst sich von ihnen nicht umstimmen. Wer es versucht, erlebt genau das, was Cormac erlebt.\n\nWARUM DIE SZENE WICHTIG IST: Sie macht live sichtbar, was bisher nur behauptet war - Wat hoert auf Josiah, und auf niemanden sonst, nicht einmal auf Cormac mit seiner formalen Autoritaet als Quartiermeister. Der Grund bleibt ungelueftet.\n\nSL-ERMESSEN, wie hart es ausfaellt (Bibel 11.1): abhaengig davon, ob die Gruppe Wat schon kennt, ob eine haertere Fassung der Charakterbildung nuetzt, oder ob die Gruppe ohnehin eskalieren wuerde. Keine feste Regel.",
+        trigger: [
+          { id: "wat_haelt_ihn", label: "1. Wat h\u00e4lt den Jungen an einem Bein \u00fcber die Reeling", info: "Ohne Wut, ohne Drohung \u2014 er h\u00e4lt ihn einfach, wie man einen Sack h\u00e4lt, und wartet. Genau das macht es schlimm." },
+          { id: "cormac_ohne_wirkung", label: "2. Cormac redet auf ihn ein \u2014 ohne Wirkung", info: "Trotz formaler Autorit\u00e4t als Quartiermeister. Der Moment, an dem sichtbar wird, dass Wats Gehorsam nicht am Rang h\u00e4ngt." },
+          { id: "tom_knickt_ein", label: "3. Selbst Tom knickt ein", info: "Der mit dem losesten Mundwerk an Bord findet hier keinen Spruch. Spieler, die eingreifen wollen, erleben dasselbe." },
+          { id: "jemand_holt_josiah", label: "4. Jemand aus der Crew l\u00e4uft zu Josiah \u2014 nicht zum Kapit\u00e4n", info: "Bemerkenswert und bewusst so: Die Crew wei\u00df, wer hier hilft, und es ist nicht Harwick. Spieler k\u00f6nnen das auch selbst tun, wenn sie auf die Idee kommen." },
+          { id: "josiah_kommt", label: "5. Josiah kommt schwer atmend an Deck", info: "Die Komb\u00fcse liegt tief unten, und er ist kein schneller Mann \u2014 man merkt, dass er sich beeilt hat. Das geh\u00f6rt zur Szene und soll beschrieben werden." },
+          { id: "wat_holt_ihn_zurueck", label: "6. Mit ruhigen Worten bringt Josiah Wat dazu, ihn zur\u00fcckzuholen", info: "Kein Befehl, keine Drohung. Wat setzt den Jungen ab und geht. Damit ist live belegt, was vorher nur dastand: Wat h\u00f6rt auf Josiah und auf niemanden sonst \u2014 warum, bleibt offen." },
+          { id: "spieler_greifen_ein", label: "Spieler versuchen, Wat umzustimmen \u2192 vergeblich, aber nicht folgenlos", info: "Wat l\u00e4sst sich nicht umstimmen \u2014 wer es ruhig und ohne Drohung versucht, bekommt dennoch seinen stillen fr\u00fchen Rufgewinn (siehe besatzung.html: \u201eruhiger Respekt statt Misstrauen, Wat vergisst das nicht\u201c). Wer ihn bedroht, hat ab hier ein Problem." }
+        ]
+      },
       "einschaetzungen": {
         title: "Francesco — Ehrliche Einschätzungen",
-        kurz: "Auf direkte Frage nach anderen Personen: ehrliche, nie proaktiv genannte Meinung. Kein Trigger/Ruf-Effekt, reine Charakterinfo.",
+        kurz: "Auf direkte Frage nach anderen Personen: ehrliche, nie proaktiv genannte Meinung. Kein Trigger/Ruf-Effekt, reine Charakterinfo. Zusammen mit Josiah (Komb\u00fcse, \u201eJosiah antwortet\u201c) die zweite Stelle f\u00fcr Fragen aller Art \u2014 Francesco urteilt \u00fcber Menschen, Josiah sagt, wie man mit ihnen umgeht. Beide tragen nie etwas von sich aus vor.",
         nichtInSzenen: ["3.1", "10.1"], // Ruhiges Gespräch - passt weder zum Sturm noch zur Flucht, in denen laut Szenentext alle beschäftigt sind
         details: "Fragt man Francesco gezielt nach jemandem, gibt er seine ehrliche Einschätzung — nie von sich aus, nur auf Nachfrage.\n\n— Harwick: warm, respektvoll, fast bewundernd\n— Cormac: freundlich-distanziert, \"zu streng\"\n— Wat: reserviert, spürbares Unbehagen, hält nicht viel von ihm\n— Tom: \"Der ehrlichste Betrüger, den er kennt\" — durchschaut ihn, mag ihn trotzdem\n— Josiah: \"Eine gute Seele\" — schlägt vor, ihn in der Kombüse zu besuchen, falls die Spieler ihn noch nicht kennen (organische Weiterleitung)\n— Dirk: \"Fast mit dem Schiff verwachsen\", lieber in Gesellschaft von Kanonen/Werkzeug als Menschen — bester Ansprechpartner bei Reparaturen, beeilt sich dabei nur, um die Spieler wieder loszuwerden",
         trigger: [
@@ -932,6 +950,26 @@ const ORTE = {
         kurz: "Begrüßt jeden herzlich, unabhängig vom Ruf oder davon, ob der Spieler freiwillig/gepresst an Bord ist. Bewusst keine Ruf-Mechanik, kein Trigger-Automat.",
         details: "Josiah begrüßt jeden, der die Kombüse betritt, herzlich — unabhängig vom Ruf, unabhängig davon, ob der Spieler freiwillig oder durch Erpressung/Gewalt an Bord ist. Bietet von sich aus etwas zu essen oder Ähnliches an. Beantwortet Fragen offen und ehrlich.\n\nSieht in jedem das Gute — redet über niemanden schlecht, egal wer gerade Zielscheibe ist. Lästern Spieler vor ihm über irgendjemanden an Bord, widerspricht er warm und automatisch, nie belehrend, einfach weil er es so empfindet.\n\nBewusst kein aktiver Wunsch und keine Ruf-Mechanik hier — anders als Tom, Dirk oder die Werkstatt. Reiner Charakter zum Spielen, kein Trigger-Automat.\n\nSein großer Moment: die Wat-Konfrontationsszene (Frachtraum-Interaktion „Der blinde Passagier“, Pfad B) — kommt schwer atmend an Deck (die Kombüse liegt tief unten, er ist kein schneller Mann) und hält Wat auf.",
         trigger: []
+      },
+      // Hendriks Vorgabe (18.10.2026): Josiah ist neben Francesco die Stelle,
+      // an der die Gruppe alles erfragen kann - aber nur, wenn sie fragt.
+      // Die Antworten zeigen auf Inhalte, die es ohnehin gibt (Dirks
+      // Handwerksprobe, Toms Streich, das Unterdeck): Wegweiser, kein neuer
+      // Plot. Kein Ruf, kein Haken - die Trigger sind eine Abhakliste.
+      "josiah_fragen": {
+        title: "Josiah antwortet \u2014 wenn man fragt",
+        kurz: "Beantwortet alles, traegt aber nie etwas von sich aus vor. Francesco urteilt \u00fcber Menschen, Josiah sagt, wie man mit ihnen umgeht \u2014 und redet \u00fcber niemanden schlecht. Kein Ruf, kein Haken; die Trigger sind nur eine Abhakliste, was schon gefragt wurde.",
+        nurSzenen: ["2.1"],
+        details: "Hendriks Vorgabe (18.10.2026): Francesco und Josiah sind die beiden Figuren, bei denen die Gruppe alles erfragen kann - ABER die Spieler muessen aktiv werden. Josiah traegt nie etwas von sich aus vor.\n\nARBEITSTEILUNG der beiden: Francesco urteilt ueber MENSCHEN (Oberdeck, \"Einschaetzungen\") - wer was taugt, wen man meiden sollte. Josiah sagt, WIE man mit ihnen umgeht, und er redet ueber niemanden schlecht. Dieselbe Frage bekommt bei den zwei also zwei verschiedene Antworten, und keine der beiden ist falsch.\n\nKEIN RUF, KEIN HAKEN. Die Trigger unten sind eine Abhakliste fuer die Spielleitung, damit sie weiss, was schon gefragt wurde - genau wie bei Francesco. Josiah bleibt reiner Charakter zum Spielen (siehe \"Herzlicher Empfang\").\n\nWICHTIG - was er NICHT sagt: Warum Wat auf ihn hoert, weiss er selbst nicht zu erklaeren und wird nicht danach gefragt (Bibel 11: der Grund bleibt ungelueftet). Ueber Harwicks Papiere sagt er nur, was er sieht, nie was darin steht - Jessica und das Ritual gehoeren der Einberufung (12.1).",
+        trigger: [
+          { id: "josiah_zu_dirk", label: "Nach Dirk gefragt \u2192 \u201ered nicht mit ihm, zeig ihm was\u201c", info: "\u201eDirk h\u00f6rt nicht auf Worte. Nimm was in die Hand, mach es richtig, dann sieht er auf.\u201c \u2014 Wegweiser auf die Handwerks-Probe am Batteriedeck (dirk_vertrauen), die sonst leicht \u00fcbersehen wird." },
+          { id: "josiah_zu_tom", label: "Nach Tom gefragt \u2192 gutm\u00fctige Warnung vor seinen Streichen", info: "\u201eEin guter Junge. Glaub ihm nur nicht alles, was er dir auftr\u00e4gt.\u201c \u2014 nimmt dem Knoten-Streich am Achterdeck die Spitze, ohne ihn zu verraten." },
+          { id: "josiah_zu_wat", label: "Nach Wat gefragt \u2192 kein schlechtes Wort, nur: er h\u00e4lt sein Wort", info: "\u201eWat h\u00e4lt, was er zusagt. Das ist mehr, als man von vielen sagen kann.\u201c Mehr kommt nicht. Warum Wat ausgerechnet auf ihn h\u00f6rt, kann er selbst nicht erkl\u00e4ren \u2014 der Grund bleibt ungel\u00fcftet (Bibel 11)." },
+          { id: "josiah_zu_harwick", label: "Nach Harwick gefragt \u2192 was er sieht, nicht was er wei\u00df", info: "\u201eIch bring ihm was zu essen hin. Meistens steht es noch da, wenn ich es wieder hole.\u201c Beobachtung, keine Deutung \u2014 \u00fcber den Inhalt der Papiere sagt er nichts, weil er ihn nicht kennt." },
+          { id: "josiah_zum_schlafen", label: "Nach einem Schlafplatz gefragt \u2192 Unterdeck, und wie man dort durchgeht", info: "Schichtbetrieb, es liegt immer irgendwer. \u201eGeh leise durch, dann hast du keinen \u00c4rger.\u201c \u2014 Wegweiser auf die Heimlichkeits-Probe im Unterdeck." },
+          { id: "josiah_zur_fahrt", label: "Nach Ziel und Fahrt gefragt \u2192 er wei\u00df es wirklich nicht", info: "\u201eMir sagt das keiner, und ich frag auch nicht. Ich koch.\u201c Ehrlich, nicht ausweichend \u2014 er geh\u00f6rt nicht zum Offizierskreis." },
+          { id: "josiah_zum_jungen", label: "Nach dem blinden Passagier gefragt \u2192 er nimmt ihn ohne Weiteres auf", info: "Fragt nicht, woher er kommt, und gibt ihm zu essen. Wer den Jungen zu ihm bringt, hat ihn an der einzigen Stelle an Bord abgegeben, an der er sicher ist (Bibel 11, Pfad A)." }
+        ]
       },
       "blindverkostung": {
         title: "Josiah — Die Blindverkostung",
