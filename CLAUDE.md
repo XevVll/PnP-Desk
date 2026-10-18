@@ -126,6 +126,42 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung 6) - Die zwei Abschriften sind geschrieben
+- **Hendriks Vorgabe:** zwei konkrete Abschriften statt einer losen Liste. Die erste ungenau
+  (eine Steintafel, Symbole nur grob beschrieben), die zweite das Blatt mit den Notizen und
+  den beiden Strophen. **"Die erste Abschrift kann bei einem guten Erfolg kommen oder nach
+  dem zweiten Tag bei einem normalen Erfolg."**
+  - "Guter Erfolg" heisst im neuen System **Steigerung** (Umstellung vom 16.10.2026) - so
+    steht es jetzt im Text.
+- **ABSCHRIFT I, die Steintafel.** Ein Abschreiber berichtet von einer Tafel aus gewachsenem
+  Fels mit sechs Zeichen und nimmt sie ab, "so gut es das Licht erlaubte". Alle sechs
+  Zeichen aus Hendriks Symbolliste sind da, aber **grob und mit eingebauter Unschaerfe**:
+  "ein Ring, und darin etwas Helles. **Eine Sonne vielleicht. Oder ein Auge.**"
+  - Dieser eine Halbsatz haelt die **Eulen-Lesart offen** und ist der Grund, warum die
+    Abschrift das Raetsel nicht vorwegnimmt. Steht als Warnung dabei, dass die Ungenauigkeit
+    Absicht ist und nicht wegerklaert werden darf.
+  - Schlusssatz des Abschreibers: "Der Alte sagte, man muesse der Tafel ANTWORTEN, nicht sie
+    lesen. Ich habe nicht gefragt, womit." - zeigt auf die vier Siegelsteine, ohne sie zu
+    nennen.
+- **ABSCHRIFT II, die Strophen** - unveraendert wie gestern entworfen: zwei Zeilen, zwei
+  Deutungen nebeneinander (Grosskatze/Geisterwelt ODER Eule), keine durchgestrichen.
+- **Die Staffelung ist jetzt grosszuegig statt streng:** Eine Steigerung bringt Abschrift I
+  **sofort, auch am ersten Tag**; ab Tag 2 genuegt ein einfacher Erfolg. Wer Glueck hat,
+  bekommt sie frueh - wer dranbleibt, bekommt sie ohnehin. Die uebrigen Erfolge verteilen
+  vier Rest-Bruchstuecke (Insel hinter Riffen, vier Siegel, Warnung vor dem Laerm, die
+  Randnotiz zur Klinge).
+- **Ehrlich vermerkt, was die beiden Blaetter ZUSAMMEN hergeben:** Ein scharfer Spieler kann
+  die Loesung herleiten - das zweite Zeichen (Gestalten, Wasser durchgestrichen) passt zu
+  einer Katzenfamilie, nicht zu einer Eule. **Das ist bewusst erlaubt:** Wer drei Tage
+  gewuerfelt und zwei Dokumente verglichen hat, hat es sich verdient. Wer es schwerer will,
+  laesst das zweite Zeichen weg - steht als Stellschraube in den Details.
+- **Der Querverweis in der Grotte nennt jetzt beide Blaetter** und sagt der Spielleitung
+  genau, was dem Spieler **fehlt**: die zwei Zeilen, die zwischen Eule und Katze entscheiden.
+- **Getestet: t_syntax 60, t_szenen 33, t_musik 34, t_regie_wuerfel 325, t_arena 30,
+  t_nsc 60 - 0 Fehler.** Beide Vorlese-Texte werden dabei wirklich aufgeloest und mit
+  echten Umlauten ausgegeben (der Fehler von vorhin).
+
+
 ### 2026-10-18 (Fortsetzung 5) - Das Buendel: der erste laufende Faden der Schiffsszene
 - **Hendriks Mechanik, woertlich:** "Der Spieler bekommt ein ganzes Buendel an Schriften.
   Diese kann er ein Mal am Tag mit einem Verstand-Roll abfragen und findet je nach Ergebnis
