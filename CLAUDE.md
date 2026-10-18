@@ -126,6 +126,58 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung 5) - Das Buendel: der erste laufende Faden der Schiffsszene
+- **Hendriks Mechanik, woertlich:** "Der Spieler bekommt ein ganzes Buendel an Schriften.
+  Diese kann er ein Mal am Tag mit einem Verstand-Roll abfragen und findet je nach Ergebnis
+  mehr oder weniger heraus. Wenn er dieses Buendel 3 Tage in Folge abfragt, unabhaengig vom
+  Erfolg, bekommt er beim naechsten Erfolg das Blatt mit dem Raetsel."
+- **Damit hat die Schiffsszene zum ersten Mal eine Aufgabe, die LAEUFT.** Bis heute waren
+  alle dreizehn Stationen in sich abgeschlossen oder zahlten rueckwaerts nach Grimsgate aus;
+  einzig Dirk reichte weiter, und sein Payoff liegt hinter dem Sturm. Genau die Luecke, die
+  in `AUFGABE-SCHIFF-VOR-DEM-STURM.md` beschrieben ist.
+- **Nachgerechnet, bevor gebaut:** EINE Probe pro **Tag**, nicht pro Szene - in `2.1` ist
+  also genau eine drin, denn dort vergeht eine reale Stunde bis zum Sturm (Bibel 6.1, T+60).
+  Die Kajuete gibt es als Marker nur auf der Golden Lion, nicht auf der Schatzinsel.
+  **Realistisch faellt das Raetselblatt damit zwischen `5.1` und `6.1`** - nach der Insel,
+  VOR der Riffinsel. Genau dort wird es gebraucht. `nurSzenen: ["2.1", "5.1", "6.1"]`.
+- **Die Baender tragen die Mechanik:** Steigerung zwei Bruchstuecke \u00b7 Erfolg eines \u00b7
+  **Misserfolg nichts, aber der Tag zaehlt trotzdem** (das ist der Kern - sonst waere der
+  Dreitage-Zaehler eine Wurf-Lotterie) \u00b7 Patzer setzt einen falschen Schluss fest.
+- **Neun Bruchstuecke** in den Details, eines je Erfolg: die Steintafel, die vier Siegel mit
+  je einem Tier, vier einzeln beschriebene Zeichen, die Insel hinter Riffen, die Warnung vor
+  dem Laerm beim Fehlgriff, und die Randnotiz zur Klinge ("was in SEINEM Namen geschmiedet
+  sei, schicke sie zurueck; alles andere lege sie bloss schlafen" - wer "sie" sind, steht
+  nicht da).
+- **Das Raetselblatt loest das Raetsel NICHT, und das ist der Trick.** Es traegt zwei Zeilen
+  und zwei Deutungen nebeneinander, keine durchgestrichen: **Grosskatze** (Naturvoelker
+  schreiben ihnen zu, Menschen in die Geisterwelt zu bringen) **ODER Eule** (sitzt hoch oben,
+  bewacht die Nacht). **Die zwei Zeilen, die zwischen beiden entscheiden, fehlen** - "ein
+  anderer als ich, das Wasser meidet" und "Knack ich den Schaedel ungeschont". Die liest der
+  Spieler erst in der Grotte vollstaendig. Er kommt also vorbereitet an, nicht fertig.
+  - Der Grosskatzen-Hinweis ist kein Zufall: Dieselbe Idee steht im Finale als
+    Introll-Hinweis fuer den Loeser des Grotten-Raetsels ("der Jaguar als Wandler zwischen
+    den Welten", `die_zermuerbung`). Das Blatt saet, was das Finale erntet.
+- **Symbole werden BESCHRIEBEN, nie gezeigt** (Hendriks Vorgabe, als eigener Merkposten-
+  Trigger). Kein Handout mit Zeichnungen - der Spieler soll die Zeichen in der Grotte
+  wiedererkennen, nicht abgleichen. Sonst wird aus dem Moment eine Suchaufgabe.
+- **Querverweis in der Grotte** (`das_raetsel_der_grotte`, neuer Trigger `kennt_das_blatt`):
+  Er sagt der Spielleitung am Tisch, was der Spieler schon kennt - und vor allem, was ihm
+  fehlt. Ohne den haette sie zwei Interaktionen im Kopf zusammenhalten muessen.
+- **[OFFEN] Technische Einschraenkung, im `details`-Feld vermerkt:** Die Haken liegen als
+  `questDone` an der SZENE, in der sie gesetzt werden. Werden die drei Tage in
+  verschiedenen Szenen abgefragt, stehen sie verteilt - einen szenenuebergreifenden Zaehler
+  gibt es nicht. Behelf: das Szenen-Notizfeld.
+- **Zwei eigene Fehler, beide korrigiert, bevor etwas falsch wurde:**
+  1. **Ich hatte den Text in ASCII-Umschrift geschrieben** ("Naturvoelker", "Grosskatzen",
+     "Einzelgaenger") - in einem Text, der am Tisch **vorgelesen** wird. Nachgezogen, und
+     zwar nur im neuen Block, mit einer Pruefung, dass der Interaktions-Schluessel
+     `das_buendel` dabei unberuehrt bleibt.
+  2. Dritter Treffer der Backtick-Falle an einem Tag, siehe Fortsetzung 4.
+- **Getestet: t_syntax 60, t_szenen 33, t_musik 34, t_regie_wuerfel 325, t_arena 30 -
+  0 Fehler.** Die Interaktion wird dabei wirklich aufgeloest (10 Trigger, `nurSzenen`,
+  Vorlese-Text).
+
+
 ### 2026-10-18 (Fortsetzung 4) - Das Offiziersquartier bekommt seine GM-Seite
 - **Hendrik:** "Das Offiziersquartier ist Cormac abgeschlossen und offensichtlich Toms Tuer
   zeigt einen unordentlichen Raum. Das reicht."
