@@ -137,13 +137,23 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, wurf
   // Jaguar-Saebel (Hendriks Regel, 2026-08-23): JEDER Treffer des Traegers
   // gegen einen normalen Diener ist sofort toedlich - unabhaengig von
   // Schadenswert und Rest-HP. "Treffer" heisst: das Band ist kein Misserfolg.
-  // Gilt nur fuer Diener; beim Seelenlosen zaehlt der Saebel normal.
   const saebelToetet = mitSaebel && ziel.typ === 'diener' && schaden > 0;
   if (saebelToetet) schaden = Math.max(schaden, ziel.hp || 0);
 
   const hpNeu = saebelToetet ? 0 : Math.max(0, (ziel.hp || 0) - schaden);
   const toetet = hpNeu === 0 && (ziel.hp || 0) > 0;
-  const endgueltig = toetet && ziel.typ === 'diener' && mitSaebel;
+
+  // ENDGUELTIG toetet ausschliesslich der Saebel - Diener UND Seelenlosen
+  // (Hendriks Vorgabe, 2026-10-18: "Nur mit dem Saebel sterben die
+  // Wiedergaenger und auch der Boss selbst"). Ohne ihn geht jeder von beiden
+  // nur zu Boden und steht wieder auf, siehe arenaRundenwechsel.
+  //
+  // Beim Seelenlosen zaehlt der Schaden dabei WEITER NORMAL: Der Saebel legt
+  // ihn nicht mit einer Beruehrung nieder, er ist nur das Einzige, womit er
+  // liegen bleibt. Sonst waere das Finale mit einem einzigen Treffer vorbei -
+  // der Saebel ist die Bedingung, nicht die Abkuerzung.
+  const endgueltig = toetet && mitSaebel
+    && (ziel.typ === 'diener' || ziel.typ === 'seelenloser');
 
   return {
     ok: true, art: art, wurf: wurf, wert: wert, schwelle: arenaSchwellen(wert).schwelle,
@@ -190,11 +200,34 @@ function arenaBossLebt(tokens) {
   });
 }
 
+// GEBANNT heisst: endgueltig tot, und das kann nur der Jaguar-Saebel.
+//
+// Daran haengt seit dem 18.10.2026 alles andere, und der Unterschied zu
+// arenaBossLebt() ist der Kern des Finales: Liegt der Seelenlose nur am Boden
+// (normal niedergeschlagen), laufen Wiederauferstehung UND Nachschub WEITER -
+// er steht selbst wieder auf, und die Toten kommen weiter. Erst der Saebel
+// beendet das. Haengte es weiter an arenaBossLebt(), wuerde ein normaler
+// Niederschlag den Nachschub stoppen und die Pflichtwaffe waere wirkungslos.
+//
+// Ohne Boss-Token im Feld gilt "gebannt" - sonst stuenden Diener in einem
+// Gefecht ohne Seelenlosen endlos wieder auf (Verhalten wie vor dieser Regel).
+function arenaBossGebannt(tokens) {
+  let gesehen = false, alleGebannt = true;
+  Object.keys(tokens || {}).forEach(function (id) {
+    const t = tokens[id];
+    if (!t || t.typ !== 'seelenloser') return;
+    gesehen = true;
+    if (!(t.tot && t.endgueltig)) alleGebannt = false;
+  });
+  return gesehen ? alleGebannt : true;
+}
+
 function arenaRundenwechsel(tokens, regeln, alteRunde) {
   const runde = (alteRunde || 0) + 1;
   const aenderungen = { runde: runde, freigegeben: null };
   const auferstanden = [];
   const bossLebt = arenaBossLebt(tokens);
+  const gebannt = arenaBossGebannt(tokens);
 
   Object.keys(tokens || {}).forEach(function (id) {
     const t = tokens[id];
@@ -210,9 +243,12 @@ function arenaRundenwechsel(tokens, regeln, alteRunde) {
       }
     }
 
-    // Wiederauferstehung: nur normal getoetete Diener, nicht die vom Saebel -
-    // und nur, solange der Seelenlose lebt.
-    if (bossLebt && t.tot && !t.endgueltig && t.typ === 'diener' && t.totSeitRunde != null) {
+    // Wiederauferstehung: alles, was NICHT vom Saebel gefallen ist, steht
+    // wieder auf - Diener wie Seelenloser. Die Schranke ist, ob der
+    // Seelenlose gebannt ist, nicht ob er steht: Solange er nur am Boden
+    // liegt, geht es weiter, und er selbst richtet sich mit auf.
+    const stehtWiederAuf = t.typ === 'diener' || t.typ === 'seelenloser';
+    if (!gebannt && t.tot && !t.endgueltig && stehtWiederAuf && t.totSeitRunde != null) {
       if (runde - t.totSeitRunde >= regeln.wiederauferstehenNach) {
         aenderungen['tokens/' + id + '/tot'] = null;
         aenderungen['tokens/' + id + '/totSeitRunde'] = null;
@@ -222,13 +258,14 @@ function arenaRundenwechsel(tokens, regeln, alteRunde) {
     }
   });
 
-  // Nachschub: der Seelenlose beschwoert alle paar Runden neue Diener.
-  const nachschub = (bossLebt && regeln.nachschubAlle > 0 && runde % regeln.nachschubAlle === 0)
+  // Nachschub: der Seelenlose beschwoert alle paar Runden neue Diener -
+  // bis er GEBANNT ist, nicht bis er faellt (siehe arenaBossGebannt).
+  const nachschub = (!gebannt && regeln.nachschubAlle > 0 && runde % regeln.nachschubAlle === 0)
     ? (regeln.nachschubAnzahl || 0) : 0;
 
   return {
     runde: runde, aenderungen: aenderungen, auferstanden: auferstanden,
-    nachschub: nachschub, bossLebt: bossLebt
+    nachschub: nachschub, bossLebt: bossLebt, bossGebannt: gebannt
   };
 }
 
@@ -258,6 +295,6 @@ if (typeof module !== 'undefined' && module.exports) {
     ARENA_BAENDER, arenaSchwellen, arenaBand, arenaVerschiebe, arenaSchaden,
     arenaDistanz, arenaInReichweite, arenaAngriffsart, arenaBedraengnis,
     arenaSeite, arenaIstSpieler, arenaIstFeind, arenaAngriff, arenaBewegungErlaubt,
-    arenaBossLebt, arenaRundenwechsel, arenaFreieRandfelder
+    arenaBossLebt, arenaBossGebannt, arenaRundenwechsel, arenaFreieRandfelder
   };
 }

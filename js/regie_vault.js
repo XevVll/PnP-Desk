@@ -622,7 +622,10 @@ function arenaRundeWeiter(sceneId) {
   let text = 'Runde ' + erg.runde + '.';
   if (erg.auferstanden.length) text += ' ' + erg.auferstanden.length + ' Gefallene erheben sich wieder.';
   if (erg.nachschub > 0) text += ' Der Seelenlose ruft ' + erg.nachschub + ' neue herbei.';
-  if (!erg.bossLebt) text += ' Der Seelenlose ist gefallen — nichts steht mehr auf.';
+  // GEBANNT, nicht bloss gefallen: Ohne den Saebel richtet er sich wieder auf,
+  // und dann stimmte der Satz nicht (Regel vom 18.10.2026).
+  if (erg.bossGebannt) text += ' Der Seelenlose ist gebannt — nichts steht mehr auf.';
+  else if (!erg.bossLebt) text += ' Der Seelenlose liegt am Boden — es geht weiter.';
   arenaUpdate(sceneId, aenderungen, text);
 }
 

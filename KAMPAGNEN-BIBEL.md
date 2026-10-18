@@ -440,11 +440,36 @@ Engagement ans Licht und gibt dem Gelehrten seinen großen Moment.
 
 **Keine freie Wahl**, sondern gekoppelt an Verzweigung 1. Ende von Session 2.
 
+> **Die Riffinsel ist Pflicht (Hendriks Festlegung, 18.10.2026):** „Ich möchte das Abenteuer
+> umschreiben, dass die Spieler zwingend zur Rätselinsel kommen. Entweder durch die Flucht vor
+> den Spaniern oder durch den Hinweis der Schmugglerinsel."
+>
+> Der Grund ist der Jaguar-Säbel: Seit er **Pflichtwaffe** des Finales ist (12.1), ist der Weg zu
+> ihm keine Variante mehr, sondern Voraussetzung. **Zwei Routen führen hin, und mindestens eine
+> von beiden greift immer** — die eine als Bedrohung, die andere als Information.
+
 | Station | Freigeschaltet durch | Was sie liefert |
 |---|---|---|
-| **Spanischer Angriff → Riffinsel** | Vorheriger Kontakt mit den Spaniern | Bedrohung statt Entscheidung: Ein spanisches Kriegsschiff holt die Golden Lion ein. Flucht zu einer riffgeschützten Insel, an der das große spanische Schiff nicht anlegen kann. Szene bewusst an *Master and Commander* angelehnt — bei Nacht/Nebel Lichter-Finte mit falschem Mast und Laterne auf einem Beiboot. **Keine Ritual-Information**, dafür zufällige Vorräte/Ressourcen auf der Insel — ein Vorteil, den die Spieler haben, ohne ihn zu kennen |
+| **Spanischer Angriff → Riffinsel** | Vorheriger Kontakt mit den Spaniern | Bedrohung statt Entscheidung: Ein spanisches Kriegsschiff holt die Golden Lion ein. Flucht zu einer riffgeschützten Insel, an der das große spanische Schiff nicht anlegen kann. Szene bewusst an *Master and Commander* angelehnt — bei Nacht/Nebel Lichter-Finte mit falschem Mast und Laterne auf einem Beiboot. **Keine Ritual-Information**, dafür der **Jaguar-Säbel** in der versteckten Grotte (`11.1`) — den die Gruppe auf diesem Weg findet, ohne ihn gesucht zu haben |
+| **Riffinsel über den Hinweis** | Kontakte und Recherche aus dem Schmugglernest | Dieselbe Insel, anderer Grund: Die Gruppe fährt **gezielt** hin, weil ein Kontakt sie dorthin schickt. Wer Harwicks Schriften gelesen hat (`2.1`), erkennt die Bilder des Rätsels wieder und weiß, wonach er sucht — der Säbel wird zum **Auftrag** statt zum Zufallsfund |
 | **Schamanen-Insel** | Kontakte und Recherche aus dem Schmugglernest | Informant/Schamane. Kulturelle Variante: der zentraleuropäische Blick trifft auf eine fremde, ursprüngliche Tradition. Liefert **konkrete Ritual-Informationen**: Schwächen der Untoten, wie sich der Finalkampf entschärfen lässt — Grundlage für ein gutes Ende |
 | **Hafen zur Vorbereitung** | Weg über die Flaute | **Emergenter Ort** — die Spieler fordern ihn selbst ein, weil sie in Harwicks Unterlagen von der übernatürlichen Gefahr gelesen haben. Ausrüstung und Proviant, etwa Kanonen vom Schiff für das Ritual |
+
+> **[OFFEN] Die dritte Route hat keinen Säbel.** Bleibt `5.1` unbeachtet, treibt das Schiff in die
+> **Flaute** (`6.1`) und von dort zum Hafen — auf diesem Weg gibt es **weder** Spanierkontakt
+> **noch** Schmugglerhinweis, also keine der beiden Routen zur Riffinsel. Zwei naheliegende Wege,
+> das zu schließen, beide Hendriks Entscheidung: Die Spanier holen die Golden Lion auch dort ein
+> (die Begegnung ist laut 7.5 ohnehin nie eine Wahl, sondern eine Bedrohung), **oder** Harwicks
+> Schriften nennen die Insel selbst, sobald er in `6.1` seine Unterlagen öffnet. Bewusst nicht
+> eigenmächtig entschieden.
+
+> **[OFFEN] Die Affen dürfen die Grotte nicht verschlucken.** `ORTE.riffstrand.die_affen` beendet
+> die Erkundung ausdrücklich „bevor alles gefunden werden kann" (SL-Ermessen, nach 30–60 Minuten
+> Spielzeit). Solange der Säbel nur ein Bonus war, war das ein guter Druck. Jetzt ist es die
+> Stelle, an der die Kampagne unlösbar werden kann: Treiben die Affen die Gruppe weg, **bevor**
+> sie die Grotte findet, fehlt im Finale die Pflichtwaffe. Vorschlag — nicht eingebaut, weil es
+> Hendriks Entscheidung ist: Die Affen kommen erst, **nachdem** die Grotte gefunden ist, und
+> treiben die Gruppe von allem Übrigen weg.
 
 > **[OFFEN] Zukunfts-Faden (August 2026):** Ist die Kneipen-Provokation im spanischen Hafen (`7.1`,
 > `ORTE.hafen_kneipe`) eskaliert und Ezra Coombe blieb unabgeholt zurück, haben die Spanier ihn in
@@ -1085,15 +1110,29 @@ ausschließend:
 Damit ist die vorherige offene Frage entschieden: Die Tochter wird **nicht** dauerhaft
 wiederbelebt — das kurze Gelingen des Rituals ist ein Abschied, kein zweites Leben.
 
-**Der Jaguar-Säbel (nur über den Riffinsel-Weg, August 2026):** In der versteckten Grotte der
-Riffinsel (Szene `11.1`, `ORTE.versteckte_grotte`) öffnet das gelöste Rätsel eine steinerne
-Klappe; dahinter liegt ein verzierter Säbel mit eingraviertem Jaguar. Er ist **keine
-Rätselwaffe und kein Artefakt mit Sonderregel, sondern schlicht eine sehr gute Waffe**, die
-benutzt werden kann — sie **vereinfacht den Endkampf** (Hendriks Festlegung). Das ist die
-konkrete Einlösung dessen, was 7.4 für diesen Weg als „zufällige Vorräte/Ressourcen — ein
-Vorteil, den die Spieler haben, ohne ihn zu kennen" vorsieht: Die Gruppe trägt ihn die ganze
-Zeit mit sich, ohne zu wissen, wozu er später gut ist. Am Tisch bleibt er unerklärt — wie ein
-Säbel in ein so viel älteres Steinbauwerk kommt, wird nie aufgelöst.
+**Der Jaguar-Säbel — die Pflichtwaffe des Finales (Hendriks Festlegung, 18.10.2026):** In der
+versteckten Grotte der Riffinsel (Szene `11.1`, `ORTE.versteckte_grotte`) öffnet das gelöste
+Rätsel eine steinerne Klappe; dahinter liegt ein verzierter Säbel mit eingraviertem Jaguar.
+
+**Ohne ihn ist der Endkampf nicht zu gewinnen.** Nur unter diesem Säbel sterben die Wiedergänger
+endgültig — und der Seelenlose selbst. Alles, was ohne ihn fällt, geht nur zu Boden und steht
+wieder auf, der Seelenlose eingeschlossen; solange er nicht gebannt ist, kommen die Toten weiter
+nach. Die Regelabbildung steht in `ARENA-ENDKAMPF.md` 4.5, der Code in `js/arena.js`
+(`arenaBossGebannt()`), die Prüfungen in `tests/t_arena.js`.
+
+> **Diese Festlegung löst die vorherige ab**, und zwar in beide Richtungen: Bis zum 17.10. stand
+> hier, der Säbel sei „keine Rätselwaffe und kein Artefakt mit Sonderregel, sondern schlicht eine
+> sehr gute Waffe", die den Endkampf nur *vereinfacht*, und die Gruppe trage ihn „die ganze Zeit
+> mit sich, ohne zu wissen, wozu er später gut ist". Beides gilt nicht mehr. Der Säbel ist jetzt
+> **Bedingung**, und damit ist auch der Weg zu ihm Pflicht (siehe 7.4).
+
+**Er ist die Bedingung, nicht die Abkürzung.** Gegen den Seelenlosen zählt der Schaden ganz
+normal — eine Berührung legt ihn nicht nieder. Gegen einen gewöhnlichen Diener genügt dagegen
+jeder Treffer, unabhängig von Schadenswert und Rest-HP (Regel vom 23.08.2026, unverändert).
+
+Am Tisch bleibt er trotzdem unerklärt — wie ein Säbel in ein so viel älteres Steinbauwerk kommt,
+wird nie aufgelöst. Was die Gruppe über ihn erfahren kann, erfährt sie vorher über Harwicks
+Schriften (`2.1`) und das Rätsel selbst, nicht über eine Erklärung im Finale.
 
 **Alternatives Ende:** Bei höchstem Ruf opfert sich Harwick für die Spieler. Andernfalls
 können sie mit ihm zusammen überleben — als gebrochener Mann, der schmerzlich erkennt, dass

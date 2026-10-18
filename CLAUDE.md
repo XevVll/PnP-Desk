@@ -126,6 +126,66 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-18 (Fortsetzung) - Der Jaguar-Saebel ist Pflicht, und die Arena hat endlich Tests
+- **Hendriks Festlegung:** "Ich moechte das Abenteuer umschreiben, dass die Spieler zwingend
+  zur Raetselinsel kommen. Entweder durch die Flucht vor den Spaniern oder durch den Hinweis
+  der Schmugglerinsel." Dazu: "Die Waffe wird zwingend notwendig sein, um den Endboss zu
+  besiegen. Nur mit dem Saebel sterben die Wiedergaenger und auch der Boss selbst."
+- **Der Befund, der die Reihenfolge bestimmt hat: fuer die Arena gab es KEINEN Test.** Dreizehn
+  Skripte in `tests/`, keines fuers Gefecht - die Arena-Tests von August lagen im Scratchpad
+  und sind nie eingecheckt worden, dieselbe Luecke wie am 11.10. Die folgenschwerste
+  Regelaenderung der Kampagne waere in ungepruefte Zeilen gefallen. **Neues
+  `tests/t_arena.js`, 30 Pruefungen, 0 Fehler** - zuerst geschrieben, dann geaendert.
+- **Die Regel, und zwar genau so weit wie noetig:**
+
+      |               | ohne Saebel                   | mit Saebel
+      | Diener        | faellt, steht wieder auf      | jeder Treffer toetet, endgueltig
+      | Seelenloser   | faellt, RICHTET SICH AUF      | Schaden normal, bei 0 HP endgueltig
+
+  - **Der Saebel ist die Bedingung, nicht die Abkuerzung.** Gegen den Seelenlosen zaehlt der
+    Schaden weiter ganz normal - eine Beruehrung legt ihn nicht nieder. Sonst waere das Finale
+    mit einem einzigen Treffer vorbei, und aus der Pflichtwaffe wuerde ein Knopf.
+  - Beim **Diener** bleibt die Regel vom 23.08. unveraendert.
+- **Der Knackpunkt lag NICHT beim Toeten, sondern beim Rundenwechsel.** Wiederauferstehung und
+  Nachschub hingen an `arenaBossLebt()`. Schlaegt die Gruppe den Seelenlosen ohne Saebel
+  nieder, ist er damit "nicht am Leben" - **der Nachschub haette aufgehoert und das Gefecht
+  waere gewonnen gewesen, ohne den Saebel.** Die Pflichtwaffe waere wirkungslos, und zwar
+  lautlos. Neue **`arenaBossGebannt()`**: Alles laeuft weiter, solange er nicht **endgueltig**
+  tot ist - er richtet sich selbst wieder auf, und die Toten kommen nach.
+  - **Ohne Boss-Token im Feld gilt "gebannt"** - sonst stuenden Diener in einem Gefecht ohne
+    Seelenlosen endlos wieder auf. Das ist das Verhalten von vorher, bewusst erhalten.
+  - **Gegengeprueft, und das ist der Beleg:** Haengt man beides zurueck an `arenaBossLebt()`,
+    schlagen **5 Pruefungen** an, und im Fehlertext steht der Fehler woertlich da:
+    `{"nachschub":0,"bossLebt":false,"gebannt":false}`.
+- **Zwei Logzeilen behaupteten etwas Falsches** (`js/regie_vault.js`, `arena_admin.html`):
+  "Der Seelenlose ist gefallen - nichts steht mehr auf." Das stimmt nur, wenn er **gebannt**
+  ist. Jetzt sagt die Zeile beim blossen Niederschlag "liegt am Boden - es geht weiter".
+- **Die Dokumente sind mitgezogen, nicht nachgelassen** - eine Bibel, die etwas anderes sagt
+  als der Code, ist genau der Fehler vom 14.10. (fuenf Wochen falsche Auskunft):
+  - **Bibel 12.1** sagte woertlich, der Saebel sei "keine Raetselwaffe und kein Artefakt mit
+    Sonderregel" und die Gruppe trage ihn "ohne zu wissen, wozu er spaeter gut ist". **Beides
+    gilt nicht mehr.** Die alte Fassung steht als abgeloest im Text, nicht geloescht.
+  - **Bibel 7.4** fuehrt die Riffinsel jetzt als **Pflicht** mit zwei Routen (Spanier-Flucht /
+    Schmuggler-Hinweis) statt als eine Variante von drei.
+  - **ARENA-ENDKAMPF.md 4.5** komplett neu, mit der Tabelle und der Begruendung zu
+    `arenaBossGebannt()`.
+- **Getestet: 1613 Pruefungen ueber vierzehn Skripte** (30 neue), ein Fehlschlag - der
+  bekannte aus `t_figuren.js`, unveraendert seit dem 13.10.
+- **[OFFEN] Die dritte Route hat keinen Saebel.** Bleibt `5.1` unbeachtet, treibt das Schiff in
+  die Flaute (`6.1`) - dort gibt es **weder** Spanierkontakt **noch** Schmugglerhinweis. Zwei
+  Wege, das zu schliessen, stehen in Bibel 7.4; beides Hendriks Entscheidung.
+- **[OFFEN] Die Affen koennen die Kampagne unloesbar machen.** `die_affen` beendet die
+  Erkundung ausdruecklich "bevor alles gefunden werden kann". Treiben sie die Gruppe weg,
+  **bevor** sie die Grotte findet, fehlt im Finale die Pflichtwaffe. Vorschlag in Bibel 7.4:
+  die Affen erst nach dem Grottenfund. Nicht eigenmaechtig eingebaut.
+- **[OFFEN] Die Arena hat jetzt eine Verlustbedingung**, die sie vorher nicht hatte. Die
+  Design-Regel aus `ARENA-ENDKAMPF.md` 1 ("die Arena bestimmt nur, wie teuer der Weg wird,
+  nicht ob die Kernbeats geschehen") gilt damit nicht mehr vollstaendig - dort als solches
+  gekennzeichnet.
+- **[OFFEN] Harwicks Schriften in `2.1`** (der Wegweiser zum Saebel) sind noch nicht gebaut -
+  drei Fragen dazu sind offen, siehe Gespraech.
+
+
 ### 2026-10-18 - Arbeitsdokument: eine Aufgabe fuer das Schiff vor dem Sturm
 - **Hendriks Auftrag (17.10.):** "Das Schiff und den Sturm etwas mehr streamlinen bzw. den
   Spielern eine Aufgabe geben, die in ihrer freien Zeit bzw. vor allem im Sturm zu loesen

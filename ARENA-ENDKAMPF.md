@@ -175,19 +175,50 @@ angreifen, nur heranrücken (siehe Fehlergeschichte Nr. 6).
 **Fällt er, hört beides sofort auf** (`arenaBossLebt()`). Damit ist er das eigentliche Ziel des
 Kampfes und nicht bloß der dickste Gegner — ohne dass dafür eine Siegbedingung nötig wäre.
 
-### 4.5 Der Jaguar-Säbel
+### 4.5 Der Jaguar-Säbel — die Pflichtwaffe
 
-Zwei Wirkungen, beide nur beim Träger und beide nur gegen **Diener**:
+> **Hendriks Vorgabe vom 18.10.2026 — die wichtigste Regel des Finales:** „Die Waffe wird
+> zwingend notwendig sein, um den Endboss zu besiegen. Nur mit dem Säbel sterben die
+> Wiedergänger und auch der Boss selbst."
+>
+> Das löst die vorherige Fassung ab, in der der Säbel beim Seelenlosen **keine** Sonderwirkung
+> hatte und Bibel 12.1 ihn ausdrücklich als „keine Rätselwaffe" führte. Wer ältere Stellen liest,
+> die das noch so sagen: **diese hier gilt.**
 
-1. **Jeder Treffer ist sofort tödlich** (Hendriks Regel, 2026-08-23): sobald das Band kein
-   Misserfolg ist, fällt der Diener — unabhängig von Schadenswert und Rest-HP. Ein „schlechter
-   Erfolg" mit 1 Schaden gegen einen vollen Diener genügt.
-2. **Der Tod ist endgültig**: das Token wird gelöscht statt auf `tot` gesetzt, es kann also nicht
-   wieder aufstehen.
+**Nur der Säbel tötet endgültig — Diener wie Seelenlosen.** Alles, was ohne ihn fällt, geht
+lediglich **zu Boden** und steht nach `wiederauferstehenNach` Runden wieder auf. Das gilt seit
+dem 18.10. auch für den Seelenlosen selbst: Man kann ihn niederschlagen, aber er richtet sich
+auf, und die Toten kommen weiter.
 
-Beim Seelenlosen hat der Säbel **keine** Sonderwirkung — er nimmt normalen Schaden. Dass Diener
-unter dem Säbel „zu Staub zerfallen", ist für alle sichtbar (in-fiction entdeckt der Träger die
-Eigenschaft ja gerade so, siehe `die_ersten_wellen`) — nur *benannt* wird der Säbel nirgends.
+| | ohne Säbel | mit Säbel |
+|---|---|---|
+| **Diener** | fällt, steht wieder auf | **jeder Treffer** tötet sofort, endgültig |
+| **Seelenloser** | fällt, **richtet sich wieder auf** | Schaden zählt normal, bei 0 HP **endgültig** |
+
+**Der Säbel ist die Bedingung, nicht die Abkürzung.** Gegen den Seelenlosen zählt der Schaden
+weiter ganz normal — eine Berührung legt ihn *nicht* nieder, sonst wäre das Finale mit einem
+einzigen Treffer vorbei. Beim **Diener** bleibt die Regel vom 23.08. unverändert: sobald das Band
+kein Misserfolg ist, fällt er, unabhängig von Schadenswert und Rest-HP.
+
+**`arenaBossGebannt()` statt `arenaBossLebt()` — daran hängt alles.** Wiederauferstehung und
+Nachschub laufen, solange der Seelenlose **nicht gebannt** ist; „gebannt" heißt endgültig tot und
+kann nur der Säbel. Hingen sie weiter an „der Boss lebt", würde ein normaler Niederschlag den
+Nachschub stoppen — und die Pflichtwaffe wäre wirkungslos, ohne dass es am Tisch auffällt. Genau
+dieser Fall steht als Prüfung in `tests/t_arena.js` und schlägt mit der alten Fassung an
+(5 Prüfungen). Liegt **kein** Boss-Token im Feld, gilt „gebannt" — sonst stünden Diener in einem
+Gefecht ohne Seelenlosen endlos wieder auf.
+
+Dass Diener unter dem Säbel „zu Staub zerfallen", ist für alle sichtbar (in-fiction entdeckt der
+Träger die Eigenschaft ja gerade so, siehe `die_ersten_wellen`) — nur *benannt* wird der Säbel
+nirgends.
+
+> **[OFFEN] Was, wenn die Gruppe den Säbel nicht hat?** Seit er Pflicht ist, ist der Endkampf
+> ohne ihn nicht zu gewinnen — der Seelenlose steht immer wieder auf. Hendriks Antwort darauf ist
+> der Pflichtweg zur Riffinsel (zwei Routen, siehe Bibel 7.4). Für den Fall, dass die Gruppe
+> trotzdem ohne Säbel in der Ritualkammer steht, ist **nichts** vorgesehen: Die Arena hat bewusst
+> keine Siegbedingung, aber sie hat jetzt eine Verlustbedingung, die sie vorher nicht hatte.
+> Das ist die eine Stelle, an der die Design-Regel aus Abschnitt 1 („die Arena bestimmt nur, wie
+> teuer der Weg wird, nicht ob die Kernbeats geschehen") nicht mehr vollständig gilt.
 
 **Wer ihn trägt, setzt allein die SL** (im Schlachtfeld per „Säbel geben" — möglich für Spieler
 UND Verbündete, denn laut Finale kann er auch Harwick in die Hand gedrückt werden), und es wird
