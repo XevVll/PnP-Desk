@@ -131,14 +131,19 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
   zeigt einen unordentlichen Raum. Das reicht."
 - **Der Spielertext sagt das laengst woertlich** (Marker-desc, Bibel 10.7: verriegelte schlichte
   Kammer, daneben Haengematte, Wuerfel, Karten, Flaschen, blaues Halstuch). **Im Panel stand
-  dort aber gar nichts** - kein , keine , kein . Nachgetragen,
+  dort aber gar nichts** - kein `kurz`, keine `personen`, kein `ortHinweis`. Nachgetragen,
   **ohne Interaktion**: Der Ort bleibt ausdruecklich ein reiner Flavor-Ort (Bibel 10.7).
-- Im  stehen die drei Dinge, die am Tisch zaehlen: Im Spielertext fallen **keine
+- Im `ortHinweis` stehen die drei Dinge, die am Tisch zaehlen: Im Spielertext fallen **keine
   Namen** - nicht aufloesen, wenn niemand fragt, sondern bestaetigen statt erklaeren. Das blaue
   Halstuch ist Toms Wiedererkennungs-Requisit. Und Cormacs Tuer aufzubrechen ist keine
   vorgesehene Handlung, sondern ein Vergehen am Quartiermeister.
-- Die bestehende -Ueberschreibung (Toms Fruchtstueck) und die Kartenrunde bleiben
-  unberuehrt.  60, 0 Fehler.
+- Die bestehende `5.1`-Ueberschreibung (Toms Fruchtstueck) und die Kartenrunde bleiben
+  unberuehrt. `t_syntax` 60, 0 Fehler.
+- **Eigener Werkzeug-Fehler, zum dritten Mal derselbe:** Die Backticks dieses Eintrags sind,
+  per `python -c` durch die Shell geschickt, als **Befehlsersetzung ausgefuehrt** worden -
+  die Wortinhalte fehlten danach im Text. Steht seit dem 17.10.2026 genau so im Changelog.
+  **Konsequenz, jetzt scharf: Changelog-Text NIE ueber `python -c` auf der Kommandozeile,
+  sondern immer als Skriptdatei mit dem Write-Werkzeug.**
 
 
 ### 2026-10-18 (Fortsetzung 3) - Francesco und Josiah antworten, und Pfad B steht endlich im Panel
