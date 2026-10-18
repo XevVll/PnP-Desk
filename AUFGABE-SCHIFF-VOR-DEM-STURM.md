@@ -39,7 +39,7 @@ Zwei Dinge, die zusammenhängen, aber nicht dasselbe sind:
 | Unterdeck | `durchqueren` | Heimlichkeit-Probe beim Durchgehen |
 | Frachtraum | `blinder_passagier` | Fund mit vier Folgen (Zeit-Trigger T+30) |
 | Frachtraum | `knoten_streich` | Landepunkt von Toms Streich |
-| Kombüse | `standardverhalten` | **0 Trigger** — leere Interaktion |
+| Kombüse | `standardverhalten` | Josiah — bewusst ohne Mechanik, 0 Trigger mit Absicht |
 
 Alles davon ist **Reaktion, Charaktermoment oder Einzelwurf**. Keine Aufgabe, die über
 mehrere Orte läuft, keine, die über die Zeit anwächst, keine, die der Sturm einlöst.
@@ -205,8 +205,11 @@ werden:
    **Werkstatt steht in `3.1` auf `hiddenMarkers`**. Auf der Spielerkarte gibt es den Ort im
    Sturm nicht. Entweder ist die Nachfrage rein verbal gemeint (dann sollte es dastehen), oder
    der Marker muss sichtbar werden.
-5. **`kombuese.standardverhalten` hat 0 Trigger** — eine leere Interaktion, die in jeder Szene
-   auftaucht.
+5. ~~`kombuese.standardverhalten` ist eine leere Interaktion.~~ **Falsch, Korrektur vom
+   18.10.:** Sie hat Titel, Kurzfassung und einen langen `details`-Text; die null Trigger sind
+   **Absicht** und stehen dort wörtlich begründet — *„Bewusst kein aktiver Wunsch, keine
+   Ruf-Mechanik — reiner Charakter zum Spielen."* Josiah ist kein Defekt, sondern eine
+   Design-Entscheidung. Hier ist nichts zu tun.
 
 ---
 
