@@ -695,5 +695,101 @@ t('besteFenster wird ohne Versatz aufgerufen',
   })();
 })();
 
+/* ---------- Ein entfernter Spieler verschwindet wirklich ----------
+   Hendriks Meldung vom 20.10.2026: "pnpgang" aus der Sitzung genommen, in den
+   Zeiten weiter aufgelistet. Nachgemessen lag er in sitzungen/pnpgang/spieler
+   nicht mehr, in stand/termine/spieler aber schon - und die Ansicht zaehlt
+   ueber die zweite Liste. Der Fall ist hier nachgestellt. */
+(function () {
+  const H2 = ladeHubAnsicht();
+  H2.termineOffen = { s1: true };
+
+  H2.sitzungen = { s1: {
+    spieler: { a: { name: 'Anna' }, b: { name: 'Bert' }, c: { name: 'Clara' } },
+    stand: { termine: {
+      config: { vonStunde: 16, bisStunde: 24, tage: 14, dauerMin: 210 },
+      spieler: {
+        a: { name: 'Anna' }, b: { name: 'Bert' }, c: { name: 'Clara' },
+        pnpgang: { name: 'pnpgang' }
+      },
+      verfuegbar: { a: { [morgen]: voll }, b: { [morgen]: voll } }
+    } }
+  } };
+
+  const stG = H2.terminStand('s1');
+  t('ein Rest in termine/spieler zaehlt nicht als Spieler',
+    Object.keys(stG.spieler).length === 3 && !stG.spieler.pnpgang,
+    Object.keys(stG.spieler).join(','));
+
+  const htmlG = H2.zeichneTermine('s1');
+  t('der entfernte Spieler steht nicht mehr in der Ansicht',
+    htmlG.indexOf('pnpgang') < 0);
+  t('der Zaehler rechnet ohne ihn (2/3, nicht 2/4)',
+    htmlG.indexOf('2/3') > 0 && htmlG.indexOf('2/4') < 0);
+
+  H2.sitzungen.s1.spieler.d = { name: 'Doro' };
+  const htmlD = H2.zeichneTermine('s1');
+  t('ein Mitglied ohne Zeiten-Eintrag wird genannt', htmlD.indexOf('Doro') >= 0);
+  t('und zaehlt mit (2/4)', htmlD.indexOf('2/4') > 0);
+
+  delete H2.sitzungen.s1.spieler;
+  const stOhne = H2.terminStand('s1');
+  t('ohne Mitgliederliste bleibt die Ansicht vollstaendig',
+    Object.keys(stOhne.spieler).length === 4,
+    Object.keys(stOhne.spieler).length);
+})();
+
+/* ---------- Entfernen raeumt alle drei Stellen, in EINEM Schreibzugriff ---------- */
+(function () {
+  const c = inlineCode('regie_hub.html');
+  const i = c.indexOf('function spielerWeg(id, k) {');
+  let j = c.indexOf('{', i), tief = 0, ende = -1;
+  for (let k = j; k < c.length; k++) {
+    if (c[k] === '{') tief++;
+    else if (c[k] === '}') { tief--; if (tief === 0) { ende = k + 1; break; } }
+  }
+  const zugriffe = [];
+  const ctx = {
+    console, Object, String,
+    sitzungen: { s1: { spieler: { pnpgang: { name: 'pnpgang' } },
+      stand: { termine: { verfuegbar: { pnpgang: { '2026-10-20': '11' } } } } } },
+    meld() {},
+    db: { ref(p) { return {
+      update(o) { zugriffe.push({ p: p, o: o }); return Promise.resolve(); },
+      remove() { zugriffe.push({ p: p, o: 'REMOVE' }); }
+    }; } }
+  };
+  ctx.confirm = function (txt) { ctx.gefragt = txt; return true; };
+  vm.createContext(ctx);
+  new vm.Script(c.slice(i, ende), { filename: 'regie_hub.html:spielerWeg' }).runInContext(ctx);
+  ctx.spielerWeg('s1', 'pnpgang');
+
+  t('Entfernen schreibt genau EINMAL', zugriffe.length === 1, zugriffe.length);
+  const z = zugriffe[0] || {};
+  t('und zwar als update() auf die Sitzung', z.p === 'sitzungen/s1',
+    z.p + ' / ' + JSON.stringify(z.o));
+  const pf = Object.keys(z.o || {});
+  t('die Mitgliedschaft wird geraeumt', pf.indexOf('spieler/pnpgang') >= 0, pf.join(','));
+  t('der Name in den Zeiten wird geraeumt',
+    pf.indexOf('stand/termine/spieler/pnpgang') >= 0, pf.join(','));
+  t('die eingetragenen Zeiten werden geraeumt',
+    pf.indexOf('stand/termine/verfuegbar/pnpgang') >= 0, pf.join(','));
+  t('alle drei Pfade werden auf null gesetzt',
+    pf.length === 3 && pf.every(function (k) { return z.o[k] === null; }));
+  t('die Rueckfrage sagt, dass die Zeiten mitgehen',
+    (ctx.gefragt || '').indexOf('Zeiten gehen mit') > 0, ctx.gefragt);
+
+  ctx.sitzungen.s2 = { spieler: { x: { name: 'X' } }, stand: { termine: {} } };
+  ctx.spielerWeg('s2', 'x');
+  t('ohne Zeiten verspricht die Rueckfrage nichts dergleichen',
+    (ctx.gefragt || '').indexOf('Zeiten gehen mit') < 0, ctx.gefragt);
+
+  const vorher = zugriffe.length;
+  ctx.confirm = function () { return false; };
+  ctx.spielerWeg('s1', 'pnpgang');
+  t('abgelehnte Rueckfrage schreibt nichts', zugriffe.length === vorher,
+    zugriffe.length + ' statt ' + vorher);
+})();
+
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);

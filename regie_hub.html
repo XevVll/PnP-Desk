@@ -402,11 +402,34 @@ function spielerHinzu(id) {
   const k = freieKennung(name, s.spieler || {});
   db.ref('sitzungen/' + id + '/spieler/' + k).set({ name: name.trim().slice(0, 40), dazu: Date.now() });
 }
+/* Ein Spieler liegt an DREI Stellen, und das Vergessen EINER laesst ihn halb
+   in der Sitzung stehen (Hendriks Meldung vom 20.10.2026: aus der Sitzung
+   genommen, in den Zeiten weiter aufgelistet):
+     sitzungen/{id}/spieler/{k}                die Mitgliedschaft
+     .../stand/termine/spieler/{k}             sein Name fuer die Zeiten
+     .../stand/termine/verfuegbar/{k}          seine eingetragenen Zeiten
+   Die beiden Termin-Pfade schreibt der SPIELER-Hub selbst, weil er nur unter
+   seinem eigenen Schluessel schreiben darf - die Regie muss sie deshalb beim
+   Entfernen mitraeumen, sonst raeumt sie niemand.
+   EIN update() von sitzungen/{id} aus statt drei remove(): sonst feuert der
+   Lauscher dreimal, jedes Mal auf einem halben Stand (Lehre vom 20.08.2026,
+   Erkundungs-Graph). */
 function spielerWeg(id, k) {
   const s = sitzungen[id] || {};
   const n = (s.spieler && s.spieler[k] && s.spieler[k].name) || k;
-  if (!confirm('"' + n + '" aus der Sitzung nehmen? Die Figur bleibt erhalten.')) return;
-  db.ref('sitzungen/' + id + '/spieler/' + k).remove();
+  const t = (s.stand && s.stand.termine) || {};
+  let frage = '"' + n + '" aus der Sitzung nehmen?';
+  if (t.verfuegbar && t.verfuegbar[k]) frage += ' Seine eingetragenen Zeiten gehen mit.';
+  frage += ' Die Figur bleibt erhalten.';
+  if (!confirm(frage)) return;
+  const weg = {};
+  weg['spieler/' + k] = null;
+  weg['stand/termine/spieler/' + k] = null;
+  weg['stand/termine/verfuegbar/' + k] = null;
+  db.ref('sitzungen/' + id).update(weg).catch(function (e) {
+    meld('sitzMeld', 'Ließ sich nicht entfernen: '
+      + (e && e.message ? e.message : 'Fehler'), 'var(--red)');
+  });
 }
 
 /* ---------- Bestehenden Spielstand uebernehmen ----------
@@ -496,9 +519,30 @@ function cfgSetzen(id, feld, wert) {
     });
 }
 
+/* Wer zur Sitzung gehoert, sagt sitzungen/{id}/spieler - NICHT
+   stand/termine/spieler. Die zweite Liste schreibt jeder Spieler selbst und
+   sie kann Reste tragen; stuende sie allein da, zaehlte ein entfernter
+   Spieler weiter mit und verschlechterte JEDES Fenster (3/7 statt 3/6).
+   Umgekehrt wird ein von der Regie vorgemerkter Spieler, der die Zeiten-Seite
+   noch nie geoeffnet hat, damit sichtbar - als "nichts eingetragen", und
+   genau das soll die Spielleitung sehen.
+   AUSNAHME: Ist die Mitgliederliste leer, wird NICHT gefiltert. Das heisst
+   "wir wissen es nicht" (eine Sitzung von vor dieser Liste), nicht "niemand
+   gehoert dazu" - sonst waere die Ansicht ploetzlich leer. */
 function terminStand(id) {
   const s = sitzungen[id] || {};
-  return TERMINE.ausKnoten((s.stand && s.stand.termine) || null);
+  const st = TERMINE.ausKnoten((s.stand && s.stand.termine) || null);
+  const mit = s.spieler || {};
+  const kennungen = Object.keys(mit);
+  if (!kennungen.length) return st;
+  const spieler = {}, verfuegbar = {};
+  kennungen.forEach(function (k) {
+    spieler[k] = st.spieler[k] || { name: (mit[k] && mit[k].name) || k };
+    if (st.verfuegbar[k]) verfuegbar[k] = st.verfuegbar[k];
+  });
+  st.spieler = spieler;
+  st.verfuegbar = verfuegbar;
+  return st;
 }
 
 function terminGesetztText(st) {

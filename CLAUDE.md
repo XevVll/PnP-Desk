@@ -126,6 +126,61 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-20 - Fehler: ein entfernter Spieler blieb in den Zeiten stehen
+- **Hendriks Meldung:** "Ich hatte mich zum Testen noch mal eingetragen und kann den Spieler
+  „pnpgang“ jetzt nicht mehr vollständig aus der Session entfernen ... in den Zeiten ist er
+  immer noch aufgelistet."
+- **Erst nachgesehen, nicht geraten** (per REST in der laufenden Kampagne) - und sein
+  Entfernen **hatte gewirkt**, nur eben halb:
+
+      sitzungen/pnpgang/spieler               6 Eintraege, "pnpgang" WEG
+      .../stand/termine/spieler               7 Eintraege, "pnpgang" DRIN   <- der Rest
+      .../stand/termine/verfuegbar            6 Eintraege (er hatte nie Zeiten gemalt)
+
+- **Ursache: ein Spieler liegt an DREI Stellen, `spielerWeg()` räumte EINE.** Die beiden
+  Termin-Pfade schreibt der **Spieler-Hub selbst** - er darf nur unter seinem eigenen
+  Schlüssel schreiben (Regel vom 11.10.2026). Also kann die Regie sie nicht weglassen; sie
+  muss sie beim Entfernen miträumen, sonst räumt sie **niemand**.
+- **Der Fehler war nicht nur kosmetisch.** `st.spieler` ist die Grundmenge für die ganze
+  Rechnung in `js/termine.js` - `besteFenster`, `fensterAmTag`, der Zähler. Ein Phantom dort
+  **verschlechtert jedes Fenster**: aus "3/6" wird "3/7", und die Spielleitung sucht einen
+  Termin gegen einen Spieler, den es nicht mehr gibt.
+- **Zwei Fixe, und der zweite ist der tragende:**
+  1. **`spielerWeg()` räumt alle drei Stellen** - als **EIN** `update()` von
+     `sitzungen/{id}` aus, nicht drei `remove()`. Sonst feuert der Lauscher dreimal, jedes
+     Mal auf einem halben Stand (Lehre vom 20.08.2026, Erkundungs-Graph). Die Rückfrage sagt
+     jetzt auch, dass die eingetragenen Zeiten mitgehen - aber nur, wenn es welche gibt.
+  2. **`terminStand()` nimmt die MITGLIEDER als Grundmenge** (`sitzungen/{id}/spieler`) statt
+     `stand/termine/spieler`. **Damit ist ein Rest sofort unsichtbar, ohne dass jemand die
+     Datenbank anfassen muss** - und es gibt wieder genau EINE Quelle für die Frage, wer zur
+     Sitzung gehört. Die zweite Liste liefert nur noch den Namen.
+- **Ein Nebengewinn, der vorher fehlte:** Ein von der Regie **vorgemerkter** Spieler, der die
+  Zeiten-Seite nie geöffnet hat, stand bisher **gar nicht** in der Terminansicht. Jetzt steht
+  er als "nichts eingetragen" da - genau das soll die Spielleitung sehen (die Karteileichen-
+  Frage vom 07.09.2026).
+- **AUSNAHME, bewusst:** Ist die Mitgliederliste leer, wird **nicht** gefiltert. Das heißt
+  "wir wissen es nicht" (eine Sitzung von vor dieser Liste), nicht "niemand gehört dazu" -
+  sonst wäre die Ansicht plötzlich leer. Dieselbe Linie wie "ohne Verbindung wird nicht
+  gesperrt" (14.10.2026).
+- **Der Rest ist aus der laufenden Kampagne entfernt** (vorher der ganze `termine`-Knoten
+  gesichert). Danach stimmen alle drei Listen überein: moe, kevin, kairasy, vesc, lucie, sl -
+  sechs Spieler, und `gewaehlt` ist unberührt.
+- **Getestet: 159 Prüfungen in `t_termine.js`, 0 Fehler** (15 neue, 1628 über vierzehn
+  Skripte, ein Fehlschlag - der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  Hendriks Fall ist dabei **nachgestellt und wirklich ausgeführt**, nicht im Quelltext
+  gesucht: drei Mitglieder, ein Rest namens `pnpgang` nur in den Zeiten.
+  - **Gegengeprüft, und das ist der Beleg: mit dem alten Code schlagen 10 Prüfungen an**, und
+    die Fehlertexte nennen den gemeldeten Zustand wörtlich - `[a,b,c,pnpgang]` und
+    `sitzungen/s1/spieler/pnpgang / "REMOVE"`.
+  - Dazu: das Entfernen schreibt **genau einmal**, alle drei Pfade auf `null`, eine
+    abgelehnte Rückfrage schreibt **nichts**, und das Sicherheitsnetz ohne Mitgliederliste
+    greift nachweislich.
+- **Zweimal dieselbe Werkzeug-Falle an einem Tag, beide dokumentiert:** Ein mehrzeiliger
+  `confirm()`-Aufruf zerbrach mitten im Python-Literal (jetzt Triple-Quote mit
+  Zeilenende-Ersetzung), und ein `\n` im Anker-Suchtext kam durch das Bash-Heredoc als
+  echter Zeilenumbruch an - der Anker fand nichts. Jetzt über `rindex` ohne Backslash.
+
+
 ### 2026-10-18 (Fortsetzung 6) - Die zwei Abschriften sind geschrieben
 - **Hendriks Vorgabe:** zwei konkrete Abschriften statt einer losen Liste. Die erste ungenau
   (eine Steintafel, Symbole nur grob beschrieben), die zweite das Blatt mit den Notizen und
