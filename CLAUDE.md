@@ -126,6 +126,119 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-23 - Der Sturm ist jetzt eine gefuehrte Kette in sieben Stationen
+- **Hendriks Vorgabe:** "Den Sturm wuerde ich gerne etwas guiden" - mit dem kompletten
+  Ablauf: Sturm zieht auf, alle an Deck, Meldung Wasser im Frachtraum \u2192 Cormac
+  schickt runter, Pumpraeder fuer die Kraeftigen, die anderen holzholen und flicken
+  \u2192 auf dem Weg hoch die Kanone \u2192 Vordersegel losgerissen, Mast droht zu
+  reissen \u2192 Welle ueber das Deck, Wat faengt einen auf \u2192 Steuerkette gerissen,
+  Tom dirigiert mit den Ankern \u2192 Ankunft.
+- **Erst gemessen, dann gebaut - und der Befund hat die Arbeit halbiert: fuenf der sieben
+  Beats lagen schon da**, nur unverbunden und in anderer Reihenfolge. `wat_rettung_sturm`
+  war Beat 5 **vollstaendig**, inklusive des Details, dass Wat sich selbst losbindet und
+  danach weitereilt, **um Taue am Hauptmast zu spannen** - was direkt in Hendriks
+  Segel-Beat greift. Neu geschrieben werden musste nur der **Auftakt**, die
+  **Arbeitsteilung unten** und die **Ankunft**.
+- **Die Regel, die die Szene jetzt traegt:** Die Gruppe entscheidet nicht, WOHIN sie geht -
+  das sagt die Lage. Sie entscheidet, **WIE sie die Arbeit verteilt**. Wer an die
+  Pumpraeder geht und wer das Holz holt, wer hochklettert und wer die Seile haelt.
+- **Neue Interaktion `oberdeck.der_sturm_ablauf`** als Regie-Faden: die sieben Stationen
+  als Abhakliste, dazu der Auftakt und die Meldung von unten. Sie erfindet keinen Inhalt,
+  **sie ordnet** - die Stationen selbst liegen weiter an ihren Orten.
+- **Die Kosten der Kette sind ZEIT, nicht Schaden.** Braucht die Gruppe unten lange, biegt
+  sich der Mast in Station 4 schon bedenklich, wenn sie ankommt - das sagt die
+  Spielleitung ausdruecklich an. Ein Misserfolg im Frachtraum und an der Steuerkette
+  kostet deshalb **keinen** Schadenspunkt. Nur die Kanone verletzt, und dieser Schaden
+  bleibt bis zur Schatzinsel. **Damit haengen die Stationen zusammen, ohne dass ein
+  verpatzter Wurf die Kette abreissen laesst.**
+- **Zwei Stellen widersprachen Hendriks Vorgabe, und beide waren echter Kanon:**
+  1. **Die Werkstatt.** `wassereinbruch_sturm` verlangte "Planken aus der Werkstatt holen"
+     - und die Werkstatt steht in `3.1` auf `hiddenMarkers`, in Bibel 10.11 ausdruecklich
+     als "fuer den Sturm inhaltlich irrelevant". Der Text beschrieb also einen Ort, den es
+     auf der Spielerkarte im Sturm **nicht gibt**. Hendriks "die anderen runter,
+     holzholen" loest es: Fassdauben, Verschlagbretter, Werg und ein Topf Pech liegen
+     jetzt **in der Ladung des Frachtraums**. Ein seit dem 18.10. dokumentierter
+     Widerspruch ist damit geschlossen.
+  2. **Toms Moment.** Dort stand woertlich "reiner Erzaehlmoment, **bewusst kein Wurf,
+     keine Spieler-Aufgabe**" - in Code UND Bibel. Hendrik will dort jetzt "ein paar
+     Proben, ein wenig gemeinsames Rollenspiel". **Geloest, ohne Toms Moment zu nehmen:**
+     Tom haelt den Kompass, rechnet und **ruft** - fuer ihn wird weiter nicht gewuerfelt,
+     er irrt sich nicht. Die **Spieler** sind seine Haende: Anker fallen lassen (Segeln),
+     an der Winde einholen (Staerke), Rufe uebers Deck weitergeben (Ueberreden/
+     Einschuechtern). Drei bis vier Proben, ein Rhythmus statt eines Rechenspiels.
+     **Vier Minuten Zuschauen am Ende einer Kette, in der die Gruppe gerade alles
+     getragen hat, waere der falsche Schluss.** Die alte Fassung steht in Bibel 10.11 als
+     abgeloest zitiert, nicht geloescht - genau der Fehler vom 14.10. (fuenf Wochen
+     falsche Auskunft).
+- **`3.1` hatte weder `uebergeordnetesZiel` noch `stimmung`** - die einzige Szene im
+  Projekt ohne beides, seit dem 18.10. als offener Punkt vermerkt. Beide sind jetzt da;
+  das Ziel traegt die Kette in einer Zeile, die Stimmung den Ton (es ist **laut**, und das
+  ist das Mittel der Szene: jeder Befehl kommt als Ruf).
+- **`3.1` ist komplett aufs neue Wertesystem umgestellt** - die zweite der dreizehn
+  Szenen. Die Zuordnung, als Schablone fuer die Golden-Lion-Gruppe:
+
+      Geschick+10 (Takelage)      -> Athletik, Erschwernis -2
+      Koerper (festhalten)        -> Athletik
+      Koerper (Pumpraeder)        -> Konstitution   <- Durchhalten, nicht Anheben
+      Koerper (Kanone stemmen)    -> Staerke        <- Gewicht gegen Kraft
+      Mechanik (flicken)          -> Handwerk
+      Seefahrt (Pumpe/Knoten)     -> Segeln
+      Wahrnehmung (Harwick)       -> Aufmerksamkeit
+
+  Die **Pumpraeder** sind der feinste Fall: Ausgewaehlt werden die zwei **Staerksten**
+  (Hendriks "die zwei kraeftigen", objektiver Vergleich wie bei Cormacs Segel-Auswahl),
+  gewuerfelt wird aber **Konstitution** - es geht ums Durchhalten. Wer vorher schon
+  Schaden hat, merkt es dort zuerst.
+- **Zwei alte `[OFFEN]`-Stellen entschieden, vier weitere waren schon weg:** Neds Sturz
+  hatte "Konsequenz noch nicht festgelegt" - jetzt: Er schlaegt gegen die Reling, zwei
+  Matrosen ziehen ihn weg. **Kein Ruf-Gewinn, kein Malus, es bleibt einfach aus.** Und
+  Cormacs Segel-Misserfolg fuehrt jetzt **direkt in Station 5**: Wer oben scheitert, ist
+  genau der, den die Welle erwischt und den Wat auffaengt. Damit ist kein Misserfolg mehr
+  eine Sackgasse. In `3.1` steht jetzt **kein einziges `[OFFEN]`** mehr.
+- **Einfaelle zaehlen an der Kanone** (Hendriks "Einfaelle zum einfangen"): Ein Tau in die
+  Speichen, eine Haengematte als Fangnetz, Keile unter die Raeder - Handwerk oder
+  Allgemeinwissen ersetzt einen der drei Kraft-Erfolge. **Das gibt den koerperlich
+  Schwachen in dieser Station ueberhaupt etwas zu tun**, und ein guter Einfall ist hier
+  ausdruecklich besser als ein guter Wurf.
+- **Drei Momente sind zu Einschueben geworden statt Stationen:** Ned, Tom am Ruder und
+  Harwicks Blicke. Sie duerfen ausfallen, und das steht an ihnen dran. **Tom am Ruder
+  schickte vorher "dorthin, wo gerade Hilfe gebraucht wird" - in einer gefuehrten Kette
+  gibt es diese freie Wahl nicht mehr**; er nennt jetzt die laufende Station und gibt der
+  Spielleitung damit nur eine diegetische Stimme.
+- **TRIGGER-IDs sind alle erhalten** - nachgemessen, keine einzige verloren. Sie liegen
+  als `questDone/{szene}/{triggerId}` in Firebase; ein umbenannter Haken nimmt der
+  laufenden Kampagne lautlos ihren Stand. Gewachsen ist `3.1` von **8 Interaktionen mit
+  30 Triggern auf 9 mit 60**.
+- **Eine echte Luecke in der Pruefung, die erst dabei auffiel:** `tests/t_szenen.js`
+  sammelte **alle** Interaktionen der sichtbaren Orte - auch die, die per `nurSzenen` nur
+  in `2.1` gelten und noch auf dem alten System stehen. **Eine Szene, die ihre Orte mit
+  einer nicht umgestellten teilt, waere damit nie eintragbar gewesen, obwohl sie selbst
+  sauber ist.** Jetzt filtert sie nach `nurSzenen`/`nichtInSzenen`.
+  - Dazu ein zweiter Fund an derselben Funktion: `markerVon()` nahm an,
+    `GOLDEN_LION_MARKERS_BASE` sei ein **Array**. Es ist ein **Objekt** (Basis/Override-
+    Muster). Der Code war nie gelaufen, weil in `UMGESTELLT` bisher nur Grimsgate stand -
+    flaches Muster, echtes Array. Sie versteht jetzt beide.
+- **Getestet: 1647 Pruefungen ueber vierzehn Skripte**, ein Fehlschlag - der bekannte aus
+  `t_figuren.js`, unveraendert seit dem 13.10.
+  - **Gegengeprueft, und das ist der Beleg:** Auf dem alten Sturm-Text schlagen in
+    `t_szenen.js` **9 Pruefungen** an, und die Fehlertexte nennen woertlich, was dort
+    stand - `Koerper-Probe` siebenmal, `Probe: Wahrnehmung` zweimal, `Geschick-Probe`,
+    `Mechanik` sowie die beiden alten Baender "Guter Erfolg" und "Schlechter Erfolg".
+- **Zwei eigene Fehler beim Bauen, beide vom `assert` vor dem Schreiben gefangen:**
+  1. Ich suchte Titel mit `\u2014`-Escapes, die Datei traegt dort **echte Zeichen** - die
+     Escapes stehen nur in den Bloecken, die ich heute selbst geschrieben habe. Dieselbe
+     Sorte Verwechslung dann **umgekehrt**: Mein eigener Text stand als `K\u00f6rper` im
+     Quelltext, weshalb die Suche nach dem echten Wort nichts fand.
+  2. **Ein falsch positiver Treffer in meinem eigenen Text:** "Probe ATHLETIK (wer sich
+     mit dem ganzen K\u00f6rper dagegenwirft)" - dort ist K\u00f6rper Prosa, nicht der
+     abgeschaffte Wertename. **Ich habe umformuliert statt die Pruefung zu lockern:** Eine
+     Pruefung, die ich fuer meinen eigenen Text aufweiche, laesst beim naechsten Mal einen
+     echten alten Wertenamen durch (Lehre vom 16.10.).
+- **[OFFEN] `2.1` hat weiterhin kein `uebergeordnetesZiel`** (Stimmung ist da). Mit der
+  Stunde vor dem Sturm und vierzehn Stationen waere eines sinnvoll - aber was dort als
+  Ziel steht, ist eine inhaltliche Entscheidung und gehoert Hendrik.
+
+
 ### 2026-10-20 - Fehler: ein entfernter Spieler blieb in den Zeiten stehen
 - **Hendriks Meldung:** "Ich hatte mich zum Testen noch mal eingetragen und kann den Spieler
   „pnpgang“ jetzt nicht mehr vollständig aus der Session entfernen ... in den Zeiten ist er

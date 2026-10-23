@@ -34,7 +34,7 @@ let f = 0, anzahl = 0;
 const chk = (n, c, x) => { anzahl++; console.log((c ? 'OK  ' : 'FAIL') + ' ' + n + (c ? '' : '  <<< ' + JSON.stringify(x))); if (!c) f++; };
 
 /* Welche Szenen sind durch? */
-const UMGESTELLT = ['1.1'];
+const UMGESTELLT = ['1.1', '3.1'];
 
 const SZENEN_DATEIEN = ['scenes', 'golden_lion_scenes', 'schatzinsel_scenes',
   'spanischer_hafen_scenes', 'schmugglernest_scenes', 'riffinsel_scenes',
@@ -78,14 +78,28 @@ function markerVon(sid) {
   try { basis = vm.runInContext('GOLDEN_LION_MARKERS_BASE', ctx); } catch (e) {}
   if (!basis) return [];
   const versteckt = s.hiddenMarkers || [];
-  return basis.map(m => m.id).filter(id => versteckt.indexOf(id) < 0);
+  /* Die Basis ist beim Golden-Lion-Muster ein OBJEKT (id -> marker),
+     beim flachen Muster ein Array. Beides zulassen - sonst bricht die
+     Pruefung an der ersten Szene, die nicht Grimsgate ist. */
+  const ids = Array.isArray(basis) ? basis.map(m => m.id) : Object.keys(basis);
+  return ids.filter(id => versteckt.indexOf(id) < 0);
 }
 
 function textVon(sid) {
   return markerVon(sid).map(id => {
     const o = ORTE[id];
     if (!o || !o.interaktionen) return '';
-    return Object.keys(o.interaktionen).map(k => JSON.stringify(o.interaktionen[k])).join(' ');
+    return Object.keys(o.interaktionen).filter(k => {
+      /* Nur was in DIESER Szene wirklich im Panel erscheint. Ohne diesen
+         Filter zog eine Szene den Text ihrer Nachbarszenen mit herein -
+         eine Szene, die ihre Orte mit einer noch nicht umgestellten teilt
+         (3.1 mit 2.1 auf der Golden Lion), waere damit nie eintragbar
+         gewesen, obwohl sie selbst sauber ist. */
+      const i = o.interaktionen[k];
+      if (i.nurSzenen && i.nurSzenen.indexOf(sid) < 0) return false;
+      if (i.nichtInSzenen && i.nichtInSzenen.indexOf(sid) >= 0) return false;
+      return true;
+    }).map(k => JSON.stringify(o.interaktionen[k])).join(' ');
   }).join(' ');
 }
 

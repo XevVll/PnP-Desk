@@ -882,6 +882,36 @@ Technisch umgesetzt über ein neues Szenen-Feld `hiddenMarkers` (Liste von Marke
 dieser Szene nicht erscheinen) — Erweiterung des Basis/Override-Prinzips aus 13.3, ohne die
 Grundarchitektur anzutasten.
 
+> **Der Sturm ist eine GEFÜHRTE KETTE (Hendrik, 23.10.2026).** Vorher lagen hier vier
+> Aufgaben, die voneinander nichts wussten — vier Orte, vier Einzelwürfe, nichts baute
+> aufeinander auf, nichts kam aus der Stunde davor. Hendriks Vorgabe: „Den Sturm würde ich
+> gerne etwas guiden." Seitdem führt die Spielleitung von Station zu Station; **die Gruppe
+> entscheidet nicht, WOHIN sie geht, sondern WIE sie die Arbeit verteilt.**
+>
+> | # | Ort | Was geschieht |
+> |---|---|---|
+> | 1 | Oberdeck | Der Sturm zieht auf, alle werden an Deck geholt, Meldung von unten: Wasser im Frachtraum |
+> | 2 | Frachtraum | Cormac schickt die Gruppe runter. Pumpräder (die zwei Stärksten, **Konstitution**), Wasser schöpfen, Holz holen, flicken (**Handwerk**) |
+> | 3 | Batteriedeck | **Auf dem Weg nach oben** die losgerissene Kanone — stemmen (**Stärke**) oder ein Einfall (**Handwerk/Allgemeinwissen**); Verletzungen möglich |
+> | 4 | Oberdeck | Das Vordersegel hat sich losgerissen, der Mast droht zu reißen. Alle packen an: Seile binden (**Segeln**), einer muss hoch (**Athletik −2**) |
+> | 5 | Oberdeck | Schräglage, eine Welle über das Deck, einer geht über Bord — **Wat fängt ihn**. Kein Wurf |
+> | 6 | Oberdeck | **Die Steuerkette reißt.** Tom hält den Kompass und gibt Befehle, die Spieler steuern mit den Ankern. Hier liegt das gemeinsame Rollenspiel |
+> | 7 | — | Der Sturm lichtet sich, die Insel liegt vor ihnen |
+>
+> **Einschübe, keine Stationen:** Ned stürzt (zwischen 4 und 5, wenn Luft ist), Tom am Ruder
+> (vor Station 6), Harwicks vielsagende Blicke. Alle drei dürfen ausfallen.
+>
+> **Die Kosten der Kette sind ZEIT, nicht Schaden.** Braucht die Gruppe unten lange, biegt
+> sich der Mast in Station 4 schon bedenklich, wenn sie ankommt. Ein Misserfolg im Frachtraum
+> und an der Steuerkette kostet deshalb keinen Schadenspunkt — nur an der Kanone gibt es
+> Verletzungen, und die bleiben bis zur Schatzinsel bestehen.
+>
+> **Das Holz liegt UNTEN, nicht in der Werkstatt.** Die Werkstatt ist in dieser Szene
+> ausgeblendet (siehe Tabelle oben) — der frühere Text verlangte trotzdem „Planken aus der
+> Werkstatt holen" und beschrieb damit einen Ort, den es auf der Spielerkarte im Sturm nicht
+> gibt. Jetzt liegen Fassdauben, Verschlagbretter, Werg und ein Topf Pech in der Ladung des
+> Frachtraums. Damit ist ein dokumentierter Widerspruch geschlossen.
+
 > **Korrektur (Juli 2026):** Das `descOverrides`-Prinzip (s. u.) galt bisher nur für den
 > Spieler-Text. Im Admin-Panel (`regie.html`) zeigten die vier aktiven Orte mit hinterlegten
 > `personen`/`kurz`/`ortHinweis`-Feldern (Achterdeck, Oberdeck, Batteriedeck, Frachtraum) für
@@ -932,27 +962,53 @@ und Wind reißen an den Spielern.
   **Misserfolg [OFFEN]** (Konsequenz noch nicht festgelegt)
 - Gleichzeitig würfeln die übrigen Spieler an Deck **Körper-Proben**, um sich festzuhalten
 
-**Oberdeck — Ned stürzt:** Ned Sharpe rutscht vorne am Bug aus und wird übers ganze Deck
-geschliffen. Spieler können versuchen, ihn aufzufangen (Probe **[OFFEN]** — Körper oder
-Geschick, welche genau bzw. ob wahlweise ist noch nicht entschieden).
+**Oberdeck — Ned stürzt (Einschub, keine Station):** Ned Sharpe rutscht vorne am Bug aus und
+wird übers ganze Deck geschliffen, an den Spielern vorbei Richtung Reling. Auffangen: Probe
+**Athletik**. Es ist eine Reaktion, kein Plan — der erste, der es versucht, würfelt.
 
 - **Aufgefangen** → Ned hat einen Freund fürs Leben gewonnen — großer, dauerhafter
-  Ruf-Gewinn bei Ned
-- **Nicht aufgefangen [OFFEN]** (Konsequenz noch nicht festgelegt)
+  Ruf-Gewinn bei Ned. Er sagt in diesem Moment nichts; das kommt später und dafür umso
+  deutlicher
+- **Nicht aufgefangen** → Er schlägt gegen die Reling und bleibt liegen, zwei Matrosen ziehen
+  ihn weg. Kein Tod, keine Dauerfolge — aber die Spieler haben zugesehen, und Ned weiß das.
+  **Kein Ruf-Gewinn, kein Malus; es bleibt einfach aus** (entschieden am 23.10.2026, vorher
+  zwei `[OFFEN]`)
 
-**Oberdeck — Der Höhepunkt des Sturms:** Ein paar Minuten in den Sturm hinein (SL-Ermessen)
-eskaliert die Lage weiter: Der Mast reißt — obwohl die Segel eingezogen wurden, reicht das
-gegen die Wucht des Sturms nicht. Das Ruder klemmt (Achterdeck), Tom kann dort nichts mehr
-ausrichten und kommt aufs Oberdeck. Praktisch die gesamte wichtige Crew versammelt sich dort.
+Passt zwischen Station 4 und 5, wenn die Gruppe noch Luft hat. Ist die Szene schon voll,
+diesen Moment **weglassen statt kürzen** — ein halb erzählter Stürzender ist schlechter als
+keiner.
 
-Jetzt zeigt sich, was wirklich in Tom steckt — **reiner Erzählmoment, bewusst kein Wurf,
-keine Spieler-Aufgabe:** Er springt übers Deck, checkt immer wieder seinen kleinen Kompass,
-zieht Seile über verschiedene Winden zum Bug, lehnt sich über die Reling, zählt leise, checkt
-wieder den Kompass — und hält so durch gezieltes Anker lassen (rechts/links) den Kurs auf
-eine tropische Insel.
+**Oberdeck — Station 6: Die gerissene Steuerkette.** Zeitpunkt im SL-Ermessen, aber nach
+Station 5. **Die Steuerkette reißt** — unten gibt etwas nach, das Ruderrad dreht plötzlich
+frei durch, und Tom greift ins Leere. Das Schiff gehorcht niemandem mehr. Er kommt aufs
+Oberdeck; praktisch die gesamte wichtige Crew ist dort inzwischen versammelt. (Dass zusätzlich
+der Mast nachgibt, ist eine optionale Eskalationsstufe und nicht nötig, wenn Station 4 schon
+teuer war.)
 
-Auflösung: Der Sturm lichtet sich, die übrigen Segel werden gehisst, Tom und Cormac dirigieren
-die Crew wie ein Orchester.
+Jetzt zeigt sich, was wirklich in Tom steckt: Er hält den Blick auf seinem kleinen Kompass,
+lehnt sich über die Reling, zählt leise in sich hinein, schaut wieder auf den Kompass. Er
+rechnet — und er **ruft**. Für Tom wird nicht gewürfelt; er irrt sich nicht.
+
+**Die Spieler steuern.** Ein Anker, kurz auf der richtigen Seite fallen gelassen und wieder
+eingeholt, zieht den Bug herum — die Idee gehört Tom, die Ausführung der Gruppe. Auf jeden
+seiner Rufe muss jemand reagieren: Anker fallen lassen und auf Kommando stoppen (**Segeln**),
+an der Winde gegen die Fahrt einholen (**Stärke**, mehrere gemeinsam), Rufe über das Deck
+weitergeben (**Überreden** oder **Einschüchtern**, je nachdem wie der Spieler brüllt). Drei
+bis vier Proben genügen — es ist ein Rhythmus, kein Rechenspiel, und ein Misserfolg kostet
+eine Kurskorrektur, keinen Schaden. **Dies ist die Stelle für gemeinsames Rollenspiel in
+dieser Szene:** Die Spieler sollen sich gegenseitig zurufen, nicht die Spielleitung fragen.
+
+> **ABGELÖST (Hendrik, 23.10.2026).** Hier stand bis dahin: „**reiner Erzählmoment, bewusst
+> kein Wurf, keine Spieler-Aufgabe**" — Tom machte alles, die Spieler sahen zu. Hendriks neue
+> Vorgabe: „Tom gibt Befehle mit dem Anker zu steuern. Ein paar Proben, ein wenig gemeinsames
+> Rollenspiel." **Toms Moment bleibt** — er ist der Einzige, der weiß, was zu tun ist, und
+> dafür wird nicht gewürfelt. Aber vier Minuten Zuschauen am Ende einer Kette, in der die
+> Gruppe gerade alles getragen hat, wäre der falsche Schluss. Die alte Fassung ist hier
+> bewusst zitiert und nicht gelöscht.
+
+Auflösung (Station 7): Der Sturm lichtet sich, die übrigen Segel werden gehisst, Tom und
+Cormac dirigieren die Crew wie ein Orchester — und es funktioniert, weil jeder weiß, wo er
+hingehört. Die Spieler inzwischen auch. Vor ihnen liegt eine tropische Insel.
 
 **Vielsagende Blicke (optional):** Während dessen bleibt Harwick über seinen Karten in der
 Kapitänskajüte, schaut ernst hinaus. Optionale Wahrnehmungs-Probe (keine Erschwernis, analog
