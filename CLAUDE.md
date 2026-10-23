@@ -126,6 +126,94 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-23 (Fortsetzung) — Die Insel ist gewichtet, und das Ende hat ein Rätsel
+- **Hendriks Frage:** „Wie kann ich die Insel irgendwie streamlinen und kürzer bauen?" Dazu nach
+  der Auswahl: **„Das Ende muss auch noch ein Rätsel bekommen oder irgendwie etwas, was die
+  Spieler spielerisch lösen können."**
+- **Erst gemessen, dann gebaut — und die Messung hat die Aufgabe geändert:** Die Schatzinsel hat
+  **29 Interaktionen auf neun Orten**, mehr als Grimsgate und das Schiff. **Das Problem ist die
+  ANZAHL, nicht die Länge der einzelnen Szene.** Also gewichten statt kürzen.
+- **Eine geführte Kette wie im Sturm wäre hier falsch**, und das ist der tragende Gedanke: Der
+  Sturm ist ein Korridor — alle an Deck, die Reihenfolge **ist** die Dramaturgie. Die Insel ist
+  das Gegenteil: Die Gruppe teilt sich auf, wählt Wege, und das Dorf **soll** offen bleiben
+  (Design-Prinzip 2.3, Wiederspielbarkeit durch Verpassen). Eine erzwungene Reihenfolge hätte
+  genau das zerstört.
+- **1. Jede der 29 trägt jetzt eine Marke, und nichts ist gelöscht.** Vorne im `kurz`-Feld, also
+  genau dort, wo das Panel sie zuerst zeigt: **17 [TRAGEND], 12 [BEIWERK]**, keine ohne.
+  - **Die Marke allein nützt nichts** — deshalb steht die Anweisung im `uebergeordnetesZiel` der
+    Szene `4.1`, wo die Spielleitung sie vor Augen hat: **drei Beiwerk-Begegnungen, vier
+    höchstens**, welche entscheidet die Gruppe durch das, wohin sie geht. **Alle 29 sind gut
+    vier Stunden, die tragenden plus drei etwa zweieinhalb — und es fehlt nichts.**
+  - **„Den Rest lass liegen" steht ausdrücklich dabei.** Die zwölf sind ein Vorrat, aus dem man
+    greift, keine Liste, die abzuarbeiten ist. Ohne diesen Satz spielt die Spielleitung im
+    Zweifel doch alles.
+  - **Die Einordnung ist mein Aufschlag**, und das steht so da: Eine Beiwerk-Begegnung, die am
+    Tisch wichtiger ist, wird umsortiert — es ist eine Zeile.
+- **2. Der Strand ist gebündelt, 8 → 6.** Wat beim Holzhacken, Josiahs Feuerstelle und Josiahs
+  Geschichte am Feuer standen als **drei gleichrangige** Interaktionen am Wrack — und waren
+  damit nicht als das zu erkennen, was sie sind: **der Parallelstrang für die, die NICHT ins
+  Dorf mitgehen.** Eine von ihnen sagte das sogar wörtlich im Titel. Jetzt ein Block
+  `lagerleben_am_strand` mit drei abgesetzten Momenten.
+  - **Alle neun Trigger-IDs unverändert übernommen** — sie liegen als `questDone/{szene}/{id}` in
+    Firebase, ein umbenannter nimmt der laufenden Kampagne lautlos ihre Haken.
+    **Interaktions-Keys werden dagegen nicht persistiert** (Changelog 22.08.2026), das
+    Zusammenlegen selbst ist deshalb unkritisch.
+  - **Nicht weiter als auf 6**, obwohl mein eigenes Auswahl-Label „8 → 4" sagte: Die übrigen fünf
+    sind tragend (Landung, loser Balken, Dirks Sturm-Payoff, Ezras Wundbrand → führt nach `7.1`,
+    Kajüten-Unterlagen → Hinweis aufs Schmugglernest). Weiter zu bündeln hätte Beats
+    zusammengeworfen, die nichts miteinander zu tun haben.
+- **3. Ein Faden in der Höhle ist gestrichen.** Die Kammer der Göttin trug **drei parallele Fäden
+  gleichzeitig**: Hebel-Mechanismus, Reparatur-Komplikation und eine Split-Fokus-Beruhigung der
+  Wächter aus der Ferne. Der dritte ist weg — er verlangte, dass sich die Gruppe **mitten im
+  Mechanismus-Problem** aufteilt, und das hat am Tisch niemand gleichzeitig im Kopf.
+  - **Dass die Wächter passieren lassen, bleibt** (`waechter_laesst_passieren`) — das ist Kanon
+    (Codex Kapitel III, Höhlenwache-Dienstsystem der Thahal). Gestrichen ist die **Probe** darauf,
+    nicht der Beat. Kammer: **19 → 18 Trigger, 16 → 9 Proben.**
+- **4. Das Rätsel am silbernen Stein** (neue Interaktion `hoehle.das_raetsel_am_silbernen_stein`,
+  9 Trigger). Die Höhle endete bisher in reiner Mechanik: Hebel, Körperproben, Truhen tragen.
+  - **Gebaut ausschließlich aus Vorhandenem**, nichts dazuerfunden: das gebündelte Licht auf dem
+    silbernen Stein wandert im Tagesverlauf über vier Mulden, und die Inschrift am Sockel der
+    Göttinnenfigur — **„Vertraut den Vorzeichen"**, längst Kanon in `dorf_heilerin` — sagt, welche
+    Mulde den Stein aufnehmen muss.
+  - **Das Rätsel ist die ABKÜRZUNG, nicht die Pflicht.** Der alte Weg über Hebel und Körperkraft
+    bleibt vollständig erhalten. Wer löst, spart sich die Komplikation; wer nicht löst oder es gar
+    nicht findet, kommt trotzdem an den Schatz. **Ein Rätsel, das den Zugang blockiert, wäre ein
+    Fehlschlag-Ende — und die Insel ist eine Pflichtstation.**
+  - **Die vier Zeichen sind ein Aufschlag** (Fisch über Wellen · Vogel mit ausgebreiteten
+    Schwingen · Hand mit gespreizten Fingern · ein Ring mit drei Punkten = die Lösung, passend
+    zum Sockel der Figur) und ausdrücklich als solcher im `details`-Feld gekennzeichnet.
+  - **Nebenwirkung, die mitdokumentiert ist:** `dorf_heilerin.die_figur_der_goettin` ist damit
+    **tragend** geworden — wer die Heilerin überspringt, kann das Rätsel nur noch durch eigenes
+    Nachdenken lösen.
+- **Bibel 7.1a ist neu** (die Insel hatte überhaupt keinen eigenen Abschnitt, nur eine Zeile in
+  der Gesamtübersicht): Marken-Tabelle, die Drei-Begegnungen-Regel, die Begründung gegen die
+  geführte Kette, die Bündelung, der gestrichene Faden und das Rätsel. **Zum Wächter-Faden stand
+  in der Bibel nichts** — es gab also keine abgelöste Kanon-Stelle zu kennzeichnen, sondern eine
+  Lücke zu füllen.
+- **Getestet: 1647 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10. Die Insel wird dabei **wirklich aufgelöst**: 29
+  Interaktionen, 17 tragend, 12 Beiwerk, **keine ohne Marke**, und die Zahl im Szenenziel stimmt
+  mit der gezählten überein.
+  - **Die Orte der Insel werden aus den MARKERN der Szene `4.1` abgeleitet**, nicht aus einer
+    Namensliste. Mein erster Anlauf filterte per Teilstring und meldete sechs Interaktionen „ohne
+    Marke" — `lagerhaeuser` traf auf „lager", `hafen_markt` auf „markt", `schmuggler_lager` auf
+    beides. **Die Prüfung war falsch, nicht die Daten.**
+- **Drei eigene Fehler, zwei davon dieselbe dokumentierte Falle:**
+  1. **Ein `assert` war falsch, nicht die Datei:** Ich erwartete ein langes `uebergeordnetesZiel`
+     bei `4.1` und brach bei 65 Zeichen ab. Es ist ein Einzeiler mit nachgestelltem Kommentar —
+     die Prüfung hatte eine Erwartung, die Datei hatte recht.
+  2. **Die Heredoc-Falle, und diesmal bei QUOTIERTEM Delimiter** (`<< 'PYEOF'`): Ein `\n` im
+     Python-Text kam als echter Zeilenumbruch an und stand damit **mitten im JS-String** —
+     `js/regie.js` war unparsebar. Reparatur über das Write-Werkzeug mit `chr(92)`, also genau den
+     im Projekt vermerkten Weg. **Merke, schärfer als bisher: der quotierte Delimiter schützt
+     hier NICHT.**
+  3. Die bekannte vm-Falle: `const SZENEN_REGIE` im Skript-Scope ist von außen nicht als
+     Kontext-Eigenschaft sichtbar — die Prüfung reicht die Namen jetzt im Skript selbst heraus.
+- **[OFFEN] Die Insel steht weiter auf dem ALTEN Wertesystem.** Der neue Rätseltext ist sauber
+  (Allgemeinwissen, Aufmerksamkeit), die rund 45 übrigen Probennennungen der Szene `4.1` sind es
+  nicht — `4.1` ist die dickste der elf noch nicht umgestellten Szenen. Das ist ein eigener
+  Durchgang und war hier nicht beauftragt.
+
 ### 2026-10-23 - Der Sturm ist jetzt eine gefuehrte Kette in sieben Stationen
 - **Hendriks Vorgabe:** "Den Sturm wuerde ich gerne etwas guiden" - mit dem kompletten
   Ablauf: Sturm zieht auf, alle an Deck, Meldung Wasser im Frachtraum \u2192 Cormac

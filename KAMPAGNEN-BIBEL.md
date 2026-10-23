@@ -400,6 +400,72 @@ Verändern Kampfunterstützung, Informationszugang und Einfluss auf den Kapitän
 5. GRABESINSEL (fest) ........................... Ritual + Finale, Session 3
 ```
 
+### 7.1a Die Schatzinsel — Länge und Gewichtung (Oktober 2026)
+
+Die Schatzinsel ist mit **29 Interaktionen auf neun Orten die größte Szene der Kampagne** —
+deutlich größer als Grimsgate oder das Schiff. Gespielt wird sie nicht als Liste.
+
+**Jede Interaktion trägt vorne im `kurz`-Feld eine Marke** (`js/regie.js`), also genau dort, wo
+das Admin-Panel sie zuerst anzeigt:
+
+| Marke | Anzahl | Bedeutung |
+|---|---|---|
+| **[TRAGEND]** | 17 | Ohne sie fehlt der Handlung etwas — ein Beat, ein Hinweis, ein Übergang |
+| **[BEIWERK]** | 12 | Schön, aber die Handlung kommt ohne sie an |
+
+**Von den zwölf Beiwerk-Begegnungen spielt man drei, vier höchstens** — welche, entscheidet die
+Gruppe durch das, wohin sie geht. Der Rest bleibt liegen, und **niemand verpasst etwas**: Die
+zwölf sind ein Vorrat, aus dem die Spielleitung greift, keine Liste, die abzuarbeiten ist. Alle
+29 gespielt sind gut vier Stunden Insel; die tragenden plus drei Beiwerk-Begegnungen sind rund
+zweieinhalb — und es fehlt nichts. Die Zahlen und die Einordnung stehen auch im
+`uebergeordnetesZiel` der Szene `4.1`, damit die Spielleitung sie vor Augen hat, ohne hier
+nachzuschlagen.
+
+> **Die Marken sind ein Aufschlag, kein Gesetz.** Ist eine Beiwerk-Begegnung am Tisch wichtiger
+> als eine tragende, wird sie umsortiert — es ist eine Zeile im `kurz`-Feld.
+
+**Warum keine geführte Kette wie im Sturm (10.11):** Der Sturm ist ein Korridor — alle sind an
+Deck, die Reihenfolge der Stationen ist die Dramaturgie. Die Insel ist das Gegenteil: Die Gruppe
+teilt sich auf, wählt Wege, und das Dorf soll offen bleiben (Design-Prinzip 2.3,
+Wiederspielbarkeit durch Verpassen). Eine erzwungene Reihenfolge würde genau das zerstören.
+Das Problem der Insel war nie die Länge der einzelnen Szene, sondern ihre **Anzahl** — deshalb
+gewichten statt ordnen.
+
+**Der Parallelstrang am Strand ist gebündelt.** Wat beim Holzhacken, Josiahs Feuerstelle und
+Josiahs Geschichte am Feuer standen als drei gleichrangige Interaktionen am Wrack und waren
+damit nicht als das zu erkennen, was sie sind: *was am Strand geschieht, während die anderen im
+Dorf sind.* Sie liegen jetzt als ein Block `lagerleben_am_strand` zusammen (alle neun
+Trigger-IDs unverändert übernommen — sie liegen als `questDone` in Firebase). Der Strand ist
+damit von acht auf sechs Interaktionen gekommen; die übrigen fünf sind tragend (Landung, loser
+Balken, Dirks Sturm-Payoff, Ezras Wundbrand → führt nach `7.1`, Kajüten-Unterlagen → Hinweis
+aufs Schmugglernest).
+
+**Ein Faden in der Höhle ist gestrichen.** Die Kammer der Göttin trug drei parallele Fäden
+gleichzeitig: den Hebel-Mechanismus, die Reparatur-Komplikation und eine Split-Fokus-Beruhigung
+der Wächter aus der Ferne. Der dritte ist entfallen — er verlangte, dass sich die Gruppe mitten
+im Mechanismus-Problem aufteilt, und das hat am Tisch niemand gleichzeitig im Kopf. Dass die
+Wächter die Gruppe passieren lassen, bleibt erhalten (das ist Kanon, Codex Kapitel III:
+Höhlenwache-Dienstsystem der Thahal) — nur die Probe darauf nicht mehr. Die Kammer ist damit
+von 19 auf 18 Trigger und von 16 auf 9 Proben gekommen.
+
+**Das Ende hat ein Rätsel (Hendriks Vorgabe, 23.10.2026).** Die Höhle endete bisher in reiner
+Mechanik: Hebel, Körperproben, Truhen tragen. Neue Interaktion
+`hoehle.das_raetsel_am_silbernen_stein`: Das gebündelte Licht auf dem silbernen Stein wandert
+im Tagesverlauf über vier Mulden mit eingeschlagenen Zeichen; die Inschrift am Sockel der
+Göttinnenfigur (*„Vertraut den Vorzeichen"*, bereits Kanon in `dorf_heilerin`) ist der
+Schlüssel, welche Mulde den Stein aufnehmen muss.
+
+- **Das Rätsel ist die Abkürzung, nicht die Pflicht.** Der alte Weg über Hebel und Körperkraft
+  bleibt vollständig erhalten. Wer das Rätsel löst, spart sich die Komplikation; wer es nicht
+  löst oder gar nicht findet, kommt trotzdem an den Schatz. Ein Rätsel, das den Zugang
+  blockiert, wäre ein Fehlschlag-Ende — und die Insel ist eine Pflichtstation.
+- **Die vier Zeichen sind ein Aufschlag** (Fisch über Wellen · Vogel mit ausgebreiteten Schwingen
+  · Hand mit gespreizten Fingern · ein Ring mit drei Punkten = die Lösung, passend zum Sockel
+  der Figur) und als solcher im `details`-Feld gekennzeichnet. Sie sind Hendriks Entscheidung,
+  nicht gesetzt.
+- Der Hinweis aus dem Dorf macht `dorf_heilerin.die_figur_der_goettin` damit **tragend** — wer
+  die Heilerin überspringt, kann das Rätsel nur noch durch eigenes Nachdenken lösen.
+
 ### 7.2 Verzweigung 1 — nach der Schatzinsel
 
 Freie Spielerwahl. Alle drei Wege laufen bei der Artefaktbucht wieder zusammen.
