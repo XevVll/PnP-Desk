@@ -164,6 +164,15 @@ Ausstattungsdetails, die konsistent bleiben müssen:
   „gemütliches" Interieur wäre auf See falsch.
 - Im **Frachtraum kein offenes Feuer** (Tauwerk, Segeltuch, trockener Proviant). Licht fällt
   gedämpft durch eine Gitterluke von einem darüberliegenden Innendeck.
+- **Die Waffenkammer liegt hinter der Werkstatt** (Hendrik, 24.10.2026). Sie ist ein
+  **fiktiver Raum ohne eigene Funktion** — kein Marker, keine Szene, kein Inhalt; sie
+  existiert nur, damit das Schiff innen stimmig ist. Der **Frachtraum liegt teilweise
+  darunter, ist aber ausschließlich von oben zugänglich** — es gibt keinen Durchgang
+  von der Waffenkammer nach unten. Das erklärt, warum ein Geräusch aus dem Frachtraum
+  oben zu hören ist (Gitterluke), ohne dass jemand direkt hinuntersteigen könnte.
+  Am Tisch gespielt am 23.10.2026: Das Geräusch des blinden Passagiers fällt während
+  eines Gesprächs in der Kajüte auf und führt Wat — den Waffenmeister — in den Raum
+  unter seiner eigenen Kammer.
 
 ---
 
@@ -402,21 +411,21 @@ Verändern Kampfunterstützung, Informationszugang und Einfluss auf den Kapitän
 
 ### 7.1a Die Schatzinsel — Länge und Gewichtung (Oktober 2026)
 
-Die Schatzinsel ist mit **29 Interaktionen auf neun Orten die größte Szene der Kampagne** —
+Die Schatzinsel ist mit **30 Interaktionen auf neun Orten die größte Szene der Kampagne** —
 deutlich größer als Grimsgate oder das Schiff. Gespielt wird sie nicht als Liste.
 
-**Jede Interaktion trägt vorne im `kurz`-Feld eine Marke** (`js/regie.js`), also genau dort, wo
+**Jede der 30 Interaktionen trägt vorne im `kurz`-Feld eine Marke** (`js/regie.js`), also genau dort, wo
 das Admin-Panel sie zuerst anzeigt:
 
 | Marke | Anzahl | Bedeutung |
 |---|---|---|
-| **[TRAGEND]** | 17 | Ohne sie fehlt der Handlung etwas — ein Beat, ein Hinweis, ein Übergang |
+| **[TRAGEND]** | 18 | Ohne sie fehlt der Handlung etwas — ein Beat, ein Hinweis, ein Übergang |
 | **[BEIWERK]** | 12 | Schön, aber die Handlung kommt ohne sie an |
 
 **Von den zwölf Beiwerk-Begegnungen spielt man drei, vier höchstens** — welche, entscheidet die
 Gruppe durch das, wohin sie geht. Der Rest bleibt liegen, und **niemand verpasst etwas**: Die
 zwölf sind ein Vorrat, aus dem die Spielleitung greift, keine Liste, die abzuarbeiten ist. Alle
-29 gespielt sind gut vier Stunden Insel; die tragenden plus drei Beiwerk-Begegnungen sind rund
+30 gespielt sind gut vier Stunden Insel; die tragenden plus drei Beiwerk-Begegnungen sind rund
 zweieinhalb — und es fehlt nichts. Die Zahlen und die Einordnung stehen auch im
 `uebergeordnetesZiel` der Szene `4.1`, damit die Spielleitung sie vor Augen hat, ohne hier
 nachzuschlagen.

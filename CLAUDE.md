@@ -126,6 +126,100 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-24 — Wat wird weich, und Josiah findet sein Vertrauen wieder
+- **Anlass war Hendriks Bericht aus der gespielten Sitzung** (Tag auf dem Schiff + Sturm), kein
+  Transkript und kein Export — sein eigener Rückblick. Daraus zwei Korrekturen an mir und eine
+  neue Szene.
+- **Der Abgleich hat drei Kanon-Stellen bestätigt, die am Tisch genau so gespielt wurden:**
+  **Pip** trägt in `js/npcs.js` `Athletik 3 · Heimlichkeit 3` bei Attributen auf 1 und die Notiz
+  „Kommt überall durch, wo ein Erwachsener stecken bliebe" — dass der Spieler kaum mithielt, ist
+  sein Blatt. **Ezra und Ned am Bug** sind Bibel 10.3 wörtlich („unterhalten sich über den
+  Bordellbesuch — konkret über den Vorfall"). **Dirk** ist Bibel 10.4 punktgenau: nur eine echte
+  Handwerks-Probe weckt ihn, „bei Erfolg taut er kurz auf und merkt sich den Spieler".
+- **Hendriks Korrektur 1: die Waffenkammer.** Ich hatte sie aus der Decksliste (Bibel 3.3)
+  hergeleitet, wo sie **gar nicht vorkommt** — dort steht nur „Licht fällt gedämpft durch eine
+  Gitterluke von einem darüberliegenden Innendeck". Hendrik verortet sie **hinter der Werkstatt**,
+  als **fiktiven Raum ohne eigene Funktion**: kein Marker, keine Szene, kein Inhalt. Der Frachtraum
+  liegt **teilweise darunter, ist aber ausschließlich von oben zugänglich** — kein Durchgang nach
+  unten. In Bibel 3.3 nachgetragen, weil genau das erklärt, warum das Geräusch oben zu hören war,
+  ohne dass jemand hinabsteigen konnte.
+- **Hendriks Korrektur 2, und sie dreht den Finale-Beat:** Ich hatte aus seinem Bericht gelesen,
+  Josiah habe Wat aufgegeben („tote Augen, zeigten nichts"), und das als bitteren Vorgriff auf
+  `wat_und_josiah_fallen` gefeiert. **Falsch.** Hendrik: „Josiah wird nicht von Wat ablassen. Er
+  wird wieder die Stärke finden, um Wat zu vertrauen." Damit stirbt Josiah im Finale für einen
+  Mann, in dem er das Gute **wiedergefunden** hat — nicht für einen, den er abgeschrieben hatte.
+  Wärmer, und es trägt besser.
+- **Der eigentliche Fund: Hendriks „Junge auf der Insel" ist SORATHI, und die Szene löst eine
+  Schuld ein, die er sich selbst notiert hat.** Die ganze Vorgeschichte steht längst in
+  `ORTE.lager.sorathis_besuch`: Wat fand die vom Wildschwein aufgeschlitzte Mutter und den kleinen
+  Jungen beim Jagen, kniete vor dem verängstigten Kind und versprach rau „Sie wird wieder gesund",
+  ließ sich danach nie im Dorf blicken — nickte Sorathi aber jedes Mal anerkennend zu. Und dort
+  steht wörtlich:
+
+      GM-Hinweis: Vorgriff fuer eine spaetere Szene - konfrontiert man Wat spaeter damit,
+      bleibt er schroff, aber bei der Nachricht von Sorathis Kupferritus ODER seiner Hilfe
+      kann selbst er sich ein kleines Laecheln nicht verkneifen.
+
+  **Hendriks Szene erfüllt beide Bedingungen auf einmal** — der Ritus ist der **Kupferritus**, den
+  Sorathi vor zwei Mondläufen abgeschlossen hat (ebenfalls schon Kanon), und die Hilfe ist das
+  Mittragen des verletzten Ezra. Nichts davon musste erfunden werden.
+- **Neue Interaktion `schiffswrack.sorathi_auf_dem_rueckweg`** (9 Trigger, `[TRAGEND]`): Sorathi
+  begleitet die Gruppe zum Schiff, fasst bei Ezra mit an **ohne dass ihn jemand auffordert**,
+  erzählt unterwegs vom Kupferritus. Wat hört zu, seine Züge werden weicher — fast Stolz —, dann
+  der raue Spruch: **„Dass du kleiner Scheißer mal wirklich in der Lage sein wirst, dein Dorf zu
+  beschützen, hätte ich nicht gedacht."**
+  - **Platziert an `schiffswrack`, hinter `eber_und_wundbrand`** — dessen `kurz` sagt bereits „Auf
+    dem Rückweg vom Dorf erwischt ein Wildschwein Ezra Coombe". Die beiden Szenen greifen
+    ineinander, statt nebeneinander zu stehen.
+  - **Kein Wurf.** Es gibt nichts zu entdecken und nichts zu schaffen; Mechanik würde den Moment
+    zerreden (Bibel 2.6).
+  - **Der Merkposten ist der Kern:** Wer Wat nicht kennt, hört eine Beleidigung an einem Jungen,
+    der gerade einen Verletzten mitgetragen hat. Sorathi, Josiah und jeder, der Wat kennt, hört
+    das Größte, was dieser Mensch zu geben hat. **Die Spielleitung erklärt das ausdrücklich NICHT**
+    — sie spielt es und lässt die Spieler selbst entscheiden, was sie gehört haben
+    (Design-Regel 2.8).
+  - **Wat wird dadurch nicht warm**, und das steht als eigener Trigger da: Kanon ist, dass er
+    distanziert bleibt. Der Spruch ist ein Augenblick, keine Wandlung — wer ihn darauf anspricht,
+    bekommt Schroffheit zurück.
+  - Ein Trigger `zahlt_ins_finale` nennt die Zahlstelle, damit sie am Tisch nicht untergeht.
+- **Die Zahlen von gestern sind nachgezogen, an BEIDEN Stellen.** Mit der neuen Szene sind es
+  **30 Interaktionen, 18 tragend, 12 Beiwerk** — gegengezählt, nicht geschätzt. Geändert im
+  `uebergeordnetesZiel` von `4.1` **und** in Bibel 7.1a (Tabelle, Fließtext, Stundenangabe). Eine
+  Doku, die etwas anderes sagt als der Code, ist genau der Fehler vom 14.10. (fünf Wochen falsche
+  Auskunft) — und ich hatte die Zahlen erst gestern selbst dort hineingeschrieben.
+- **Getestet: 1626 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10. Die Szene wird dabei **wirklich aufgelöst** (Titel,
+  9 Trigger, Vorlese-Spruch mit echten Umlauten), und die Insel-Zählung wird aus den **Markern der
+  Szene `4.1`** abgeleitet statt aus einer Namensliste.
+- **Zwei eigene Fehler, beide in derselben Datei und beide vermeidbar:**
+  1. **Unmaskierte Anführungszeichen im `details`-Text.** Mein `js()`-Helfer wandelte nur
+     Zeilenumbrüche, nicht die geraden `"` um die Szenentitel — `js/regie.js` war unparsebar
+     (`SyntaxError: Unexpected identifier 'Sorathis'`). Jetzt maskiert der Helfer sie, **und** im
+     Text stehen ohnehin nur typografische „…" wie bei den Nachbar-Interaktionen.
+  2. **Die Heredoc-Falle, am zweiten Tag in Folge und diesmal beim Reparieren.** Ich wollte das
+     Skript per `python - << 'PYEOF'` nachpatchen; der Backslash in `'\n'` kam nicht an, das
+     `assert` meldete „0 Treffer" — und weil ich beides in einer Befehlskette hatte, lief danach
+     **das unveränderte Skript ein zweites Mal** und brach die Datei erneut. **Merke, jetzt
+     wirklich scharf: kein Heredoc für Python mit Backslashes, auch nicht mit quotiertem
+     Delimiter — und eine fehlgeschlagene Reparatur nicht mit dem Folgebefehl verketten.**
+  - **Vor dem `git checkout -- js/regie.js` geprüft, ob fremde Arbeit dranhängt** (`git status`,
+    `git diff --stat`: nur meine 20 Zeilen). Am 23.10. hatte ich mit genau diesem Befehl
+    uncommittete Arbeit vernichtet.
+- **[OFFEN] Drei Nachträge aus dem Kontinuitäts-Check stehen noch**, Hendriks Entscheidung:
+  (a) Trigger 4 von `wat_und_der_junge` heißt „Jemand läuft zu Josiah — **nicht zum Kapitän**",
+  aber am Tisch war Harwick anwesend, hat Cormac und Tom zum Festhalten befehligt, Wat direkt
+  befohlen — und Wat hat **auch ihn** ignoriert. Das widerlegt den Beat nicht, es schärft ihn, aber
+  der Trigger-Text liest sich jetzt falsch. (b) Wats Begründung aus dem Spiel („Wenn das Balg uns
+  in die Fässer gepisst hat, werden wir auf dem Meer verdursten!") gibt ihm ein Motiv, das die
+  Szene im Kanon **gar nicht hat**. (c) Neds Gewissheit, einen Doppelgänger eines Spielers im
+  Bordell gesehen zu haben, verwandelt die Kanon-Zeile „reine Verlegenheit, **keine Folge**" in
+  einen laufenden Faden.
+- **[OFFEN] Ohne Export bleibt der Kontinuitäts-Check unvollständig:** welche Trigger wirklich
+  abgehakt sind und wie der Ruf-Stand aussieht, ist nicht nachprüfbar. Relevant vor allem bei Pip,
+  dessen Blatt sagt: „Spieler sind freundlich zu ihm oder beschützen ihn → die ganze Crew taut auf."
+- **[OFFEN] `4.1` steht weiter auf dem alten Wertesystem.** Die neue Szene ist davon nicht
+  betroffen — sie hat **keine Probe** —, die rund 45 übrigen Probennennungen der Insel aber schon.
+
 ### 2026-10-23 (Fortsetzung) — Die Insel ist gewichtet, und das Ende hat ein Rätsel
 - **Hendriks Frage:** „Wie kann ich die Insel irgendwie streamlinen und kürzer bauen?" Dazu nach
   der Auswahl: **„Das Ende muss auch noch ein Rätsel bekommen oder irgendwie etwas, was die
