@@ -126,6 +126,48 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-25 (Fortsetzung 3) — Das Szenenziel lässt sich ein- und ausklappen
+- **Hendriks Wunsch:** „Ich würde das übergeordnete Ziel gerne ein und ausklappen können."
+- **Ein Klick auf die Überschrift klappt es zu**, ein zweiter wieder auf. Eingeklappt bleibt die
+  **erste Zeile als Kurzfassung** stehen (bis 90 Zeichen, an der Wortgrenze geschnitten) — ein
+  blankes Label allein sähe aus wie ein leeres Feld, und man muss am Tisch sehen können, was dort
+  steckt, ohne es aufzuklappen.
+- **Geklappt wird per CSS-Klasse, NICHT per Neuzeichnen**, und das ist die tragende Entscheidung:
+  `renderSceneHead()` hängt an mehreren Firebase-Lauschern (Trigger, Notizen, Sichtbarkeit,
+  Graph, Arena). Beide Textfassungen stehen deshalb **immer** im Markup, `.sh-goal.zu` entscheidet,
+  welche zu sehen ist. Das Klappen muss von diesen Lauschern nichts wissen und sie nicht von ihm.
+- **Der Zustand liegt im `localStorage`**, nicht nur im Speicher. Die Regie wird am Abend mehrfach
+  neu geladen; ein Ziel, das dabei jedes Mal wieder aufklappt, wäre genau das Ärgernis, das hier
+  weggehen soll. Dieselbe Linie wie beim Privat-Haken der Würfelleiste (14.10.) — ein Klapp-Zustand
+  ist eine Haltung, keine Einzelentscheidung.
+  - **Die Vorgabe ist OFFEN.** Eingeklappt als Vorgabe würde Information vor jemandem verbergen,
+    der von der Klappe nichts weiß.
+  - **Jeder Zugriff ist in `try/catch`** — in einem privaten Fenster oder bei geblockten
+    Seitendaten wirft `localStorage`, und daran darf die Regie nicht hängen. Steht als eigene
+    Prüfung da.
+- **Mit der Tastatur erreichbar** (`tabindex`, `role="button"`, Enter und Leertaste,
+  `aria-expanded` wandert mit) — dasselbe Muster wie bei den Marken-Chips (14.10.).
+- **Der Zustand steht ganz oben bei den übrigen State-Variablen**, nicht bei den Klapp-Funktionen
+  tausend Zeilen weiter unten: Der Firebase-Init-catch-Zweig ruft `renderAll()` **synchron** auf,
+  und eine später deklarierte `let`-Variable ist dort noch in der TDZ. Genau diese Falle hat am
+  23.08.2026 das Adminpanel gebrochen.
+- **Getestet: 343 Prüfungen in `t_regie_wuerfel.js`, 0 Fehler** (18 neue, 1727 über vierzehn
+  Skripte, ein Fehlschlag — der bekannte aus `t_figuren.js`).
+  - Der Code wird **aus `js/regie_vault.js` geschnitten und ausgeführt**, nicht nachgebaut.
+    **Zwei Schnitte**, weil Zustand und Funktionen aus dem TDZ-Grund weit auseinander liegen.
+  - Geprüft wird das Verhalten, nicht eine Zeile: beide Textfassungen im Markup, der gemerkte
+    Zustand sitzt **schon beim Zeichnen** an der Klasse, Klick schaltet um und schreibt mit,
+    `aria-expanded` folgt, die Kurzfassung schneidet an der Wortgrenze und wirft Zeilenumbrüche
+    weg, und ein gesperrter `localStorage` bricht nichts.
+  - **Gegengeprüft:** Nimmt man das Merken heraus, schlagen zwei Prüfungen an — der eingeklappte
+    Zustand käme ein Neuladen nicht hinüber.
+- **Ein eigener Fehler, zweimal dieselbe Sorte:** Mein erster Schnitt-Endanker
+  (`function renderSceneTree`) existiert nicht, und danach schlug die Korrektur fehl, weil
+  `tests/t_regie_wuerfel.js` **CRLF** hat und mein Suchtext LF. Beides vor dem Schreiben gefangen.
+- **[OFFEN] Die `Stimmung` darunter kann genauso lang werden** und ist weiter fest aufgeklappt —
+  bei `4.1` sind es sechs Zeilen. Die Mechanik wäre dort dieselbe Klasse; nicht eingebaut, weil
+  nicht beauftragt.
+
 ### 2026-10-25 (Fortsetzung 2) — Fehler: ich hatte ein Design-Dokument ins Szenenziel geschrieben
 - **Hendriks Meldung, mit dem Panel-Text als Beleg:** „Das ist doch unsinn das so hinzuschreiben.
   Es sollte ein Ziel formuliert werden und etwas drumrum. Aber nicht so!"

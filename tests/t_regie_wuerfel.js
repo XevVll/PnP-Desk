@@ -1474,6 +1474,133 @@ chk('danach ist sie überall weg',
   W.ctx.module.exports.eigeneListe().length === 0 &&
   W.werkstatt().indexOf('Noch nichts erfunden') > 0);
 
+console.log('=== DAS SZENENZIEL LAESST SICH EIN- UND AUSKLAPPEN ===');
+/* Hendriks Wunsch vom 25.10.2026, nachdem das Ziel von 4.1 auf eine lesbare
+   Laenge gekuerzt war: "Ich wuerde das uebergeordnete Ziel gerne ein und
+   ausklappen koennen."
+
+   Geschnitten AUS js/regie_vault.js, nicht nachgebaut: eine Kopie wuerde genau
+   das nicht pruefen, worum es geht. Geprueft wird, dass beide Textfassungen im
+   Markup stehen (das CSS entscheidet, nicht ein Neuzeichnen), dass der Zustand
+   ein Neuladen uebersteht, und dass der eingeklappte Zustand noch erkennen
+   laesst, was dort steht. */
+(function () {
+  function schnitt(von, bis, name) {
+    const a = VAULT.indexOf(von);
+    const b = VAULT.indexOf(bis, a);
+    chk('Schnitt gefunden: ' + name, a >= 0 && b > a, { a: a, b: b });
+    return (a >= 0 && b > a) ? VAULT.slice(a, b) : '';
+  }
+  /* ZWEI Schnitte: der Zustand steht oben bei den uebrigen State-Variablen
+     (TDZ-Falle vom 23.08.2026 - renderAll() laeuft im Firebase-catch synchron),
+     die Klapp-Funktionen rund tausend Zeilen weiter unten vor renderSceneHead. */
+  const ZUSTAND = schnitt('const ZIEL_ZU_KEY', 'let paneA', 'Zustand')
+    + schnitt('function zielKurz(', 'function renderSceneHead() {', 'Klapp-Funktionen');
+  const MARKUP = schnitt("html += '<div class=\"sh-goal'", "+ '</div>';", 'Ziel-Markup')
+    + "+ '</div>';";
+
+  function lauf(gemerkt) {
+    const speicher = {};
+    if (gemerkt !== null) speicher['korsaren_regie_ziel_zu'] = gemerkt;
+    const knoten = {
+      klassen: {},
+      classList: {
+        contains: function (k) { return !!knoten.klassen[k]; },
+        toggle: function (k, an) { knoten.klassen[k] = !!an; }
+      },
+      attr: {},
+      querySelector: function () {
+        return { setAttribute: function (k, v) { knoten.attr[k] = v; } };
+      }
+    };
+    const ctx = {
+      console: { log: function () {} },
+      localStorage: {
+        getItem: function (k) { return (k in speicher) ? speicher[k] : null; },
+        setItem: function (k, v) { speicher[k] = String(v); }
+      },
+      document: { getElementById: function (id) { return id === 'shGoal' ? knoten : null; } }
+    };
+    vm.createContext(ctx);
+    new vm.Script(ZUSTAND
+      + ';function zielHtml(sr){ let html = ""; ' + MARKUP + ' return html; }'
+      + ';globalThis.__k = { html: zielHtml, kurz: zielKurz, klapp: zielKlapp,'
+      + ' zu: function () { return zielZu; } };').runInContext(ctx);
+    return { k: ctx.__k, knoten: knoten, speicher: speicher };
+  }
+
+  /* Ohne gemerkten Zustand steht das Ziel OFFEN. Eingeklappt als Vorgabe wuerde
+     Information vor jemandem verbergen, der von der Klappe nichts weiss. */
+  const frisch = lauf(null);
+  const hOffen = frisch.k.html({ uebergeordnetesZiel: 'Kurzes Ziel.' });
+  chk('ohne gemerkten Zustand ist das Ziel offen',
+    hOffen.indexOf('class="sh-goal"') >= 0 && hOffen.indexOf(' zu"') < 0, hOffen);
+  chk('offen: aria-expanded true', hOffen.indexOf('aria-expanded="true"') > 0, hOffen);
+
+  /* BEIDE Textfassungen stehen immer im Markup - das ist der Kern der
+     Entscheidung, per CSS zu klappen statt neu zu zeichnen. */
+  chk('beide Textfassungen stehen im Markup',
+    hOffen.indexOf('sh-goal-text') > 0 && hOffen.indexOf('sh-goal-kurz') > 0, hOffen);
+  chk('der Kopf ist anklickbar und per Tastatur erreichbar',
+    hOffen.indexOf('onclick="zielKlapp()"') > 0 && hOffen.indexOf('tabindex="0"') > 0
+    && hOffen.indexOf('role="button"') > 0 && hOffen.indexOf('onkeydown') > 0, hOffen);
+
+  /* Ein gemerkter Zustand gilt sofort beim Zeichnen - sonst klappte das Ziel
+     bei jedem Neuladen der Regie wieder auf, also genau das Aergernis. */
+  const gemerkt = lauf('1');
+  const hZu = gemerkt.k.html({ uebergeordnetesZiel: 'Kurzes Ziel.' });
+  chk('gemerkt eingeklappt: die Klasse sitzt schon beim Zeichnen',
+    hZu.indexOf('class="sh-goal zu"') >= 0, hZu);
+  chk('eingeklappt: aria-expanded false', hZu.indexOf('aria-expanded="false"') > 0, hZu);
+
+  /* Klicken schaltet um, schreibt mit und pflegt aria-expanded. */
+  const u = lauf(null);
+  u.k.html({ uebergeordnetesZiel: 'Egal.' });
+  u.k.klapp();
+  chk('Klick klappt zu', u.knoten.klassen['zu'] === true && u.k.zu() === true,
+    u.knoten.klassen);
+  chk('und merkt es sich', u.speicher['korsaren_regie_ziel_zu'] === '1', u.speicher);
+  chk('aria-expanded wandert mit', u.knoten.attr['aria-expanded'] === 'false', u.knoten.attr);
+  u.k.klapp();
+  chk('zweiter Klick klappt wieder auf',
+    u.knoten.klassen['zu'] === false && u.speicher['korsaren_regie_ziel_zu'] === '0',
+    u.speicher);
+
+  /* Die Kurzfassung muss den Ort erkennbar lassen - ein blankes Label saehe aus
+     wie ein leeres Feld. Geschnitten wird an der Wortgrenze, Zeilenumbrueche
+     fallen weg (eingeklappt ist genau EINE Zeile der Sinn). */
+  chk('kurzer Text bleibt unangetastet',
+    frisch.k.kurz('Kurzes Ziel.') === 'Kurzes Ziel.', frisch.k.kurz('Kurzes Ziel.'));
+  const lang = 'Harwicks Schatz der Thahal holen und die Insel wieder verlassen. Der Weg '
+    + 'dorthin fuehrt ueber das Dorf, daran haengt alles weitere.';
+  const kurz = frisch.k.kurz(lang);
+  chk('langer Text wird gekuerzt', kurz.length < lang.length && kurz.length <= 92, kurz);
+  chk('und zwar an der Wortgrenze, nicht mitten im Wort',
+    lang.indexOf(kurz.replace(' …', '')) === 0
+    && lang.charAt(kurz.replace(' …', '').length) === ' ', kurz);
+  chk('Zeilenumbrueche fallen weg',
+    frisch.k.kurz('Zeile eins.\n\nZeile zwei.') === 'Zeile eins. Zeile zwei.',
+    frisch.k.kurz('Zeile eins.\n\nZeile zwei.'));
+
+  /* Ein Browser ohne localStorage (privates Fenster, geblockte Seitendaten)
+     darf die Regie nicht lahmlegen - der Zugriff kann werfen. */
+  const sperr = {
+    console: { log: function () {} },
+    localStorage: {
+      getItem: function () { throw new Error('blockiert'); },
+      setItem: function () { throw new Error('blockiert'); }
+    },
+    document: { getElementById: function () { return null; } }
+  };
+  let heil = true;
+  try {
+    vm.createContext(sperr);
+    new vm.Script(ZUSTAND + ';globalThis.__z = zielZu; zielKlapp();').runInContext(sperr);
+  } catch (e) { heil = false; }
+  chk('ein gesperrter localStorage bricht nichts', heil && sperr.__z === false,
+    { heil: heil, zu: sperr.__z });
+})();
+
 /* Zum Schluss, was am Firebase-Versprechen haengt: Das loest erst auf,
    wenn der synchrone Lauf durch ist - vorher stuende hier noch die
    vorige Meldung. */

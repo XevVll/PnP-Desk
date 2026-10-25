@@ -139,6 +139,16 @@
   .sh-goal-label, .sh-mood-label, .sh-quests-label { font-size: 0.76rem; letter-spacing: .5px; text-transform: uppercase; font-weight: 700; color: var(--vgold); white-space: nowrap; }
   .sh-mood-label { color: var(--vink-dim); }
   .sh-mood-text { color: var(--vink-dim); font-size: 0.86rem; }
+  /* Ein-/ausklappbares Szenenziel (25.10.2026). Beide Textfassungen stehen im
+     Markup, das CSS entscheidet - so kostet das Klappen kein Neuzeichnen. */
+  .sh-goal-label { cursor: pointer; user-select: none; }
+  .sh-goal-label:hover, .sh-goal-label:focus-visible { color: #ffd98a; outline: none; }
+  .sh-goal-caret { display: inline-block; transition: transform .15s; font-size: 0.7rem; }
+  .sh-goal.zu .sh-goal-caret { transform: rotate(-90deg); }
+  .sh-goal-kurz { display: none; color: var(--vink-dim); font-size: 0.86rem;
+    font-style: italic; min-width: 0; }
+  .sh-goal.zu .sh-goal-text { display: none; }
+  .sh-goal.zu .sh-goal-kurz { display: inline; }
   .sh-quests { margin-top: 6px; }
   .sh-quests-label { display: block; margin-bottom: 4px; }
   .sh-quest { display: flex; align-items: flex-start; gap: 10px; background: var(--vpanel2); border-left: 3px solid var(--vgold); border-radius: 0 4px 4px 0; padding: 0.4rem 0.6rem; margin-bottom: 6px; }

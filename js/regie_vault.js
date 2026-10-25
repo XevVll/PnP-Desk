@@ -20,6 +20,11 @@ const statusEl = document.getElementById('status');
 let db = null;
 let liveScene = null;
 let viewState = { szene: null };
+// Ein-/ausgeklapptes Szenenziel. Im localStorage, damit es ein Neuladen
+// der Regie uebersteht - sonst klappt es am Abend immer wieder auf.
+const ZIEL_ZU_KEY = 'korsaren_regie_ziel_zu';
+let zielZu = false;
+try { zielZu = localStorage.getItem(ZIEL_ZU_KEY) === '1'; } catch (e) {}
 let paneA = { type: 'ort', sceneId: null, ortId: null };
 let paneB = { type: 'npc', npcId: 'tom' };
 
@@ -1323,6 +1328,27 @@ function activeQuestsForScene(sceneId, sceneRegie) {
   });
   return quests;
 }
+// Kurzfassung fuer das eingeklappte Ziel: erster Satz, hoechstens 90 Zeichen,
+// an der Wortgrenze geschnitten. Zeilenumbrueche fallen weg - eingeklappt ist
+// genau eine Zeile der Sinn der Sache.
+function zielKurz(t) {
+  const flach = String(t).replace(/\s+/g, ' ').trim();
+  if (flach.length <= 90) return flach;
+  const schnitt = flach.slice(0, 90);
+  const luecke = schnitt.lastIndexOf(' ');
+  return (luecke > 40 ? schnitt.slice(0, luecke) : schnitt) + ' \u2026';
+}
+// Klappt per Klasse statt per Neuzeichnen - renderSceneHead() haengt an
+// mehreren Firebase-Lauschern und soll vom Klappen nichts wissen muessen.
+function zielKlapp() {
+  const el = document.getElementById('shGoal');
+  if (!el) return;
+  zielZu = !el.classList.contains('zu');
+  el.classList.toggle('zu', zielZu);
+  const kopf = el.querySelector('.sh-goal-label');
+  if (kopf) kopf.setAttribute('aria-expanded', zielZu ? 'false' : 'true');
+  try { localStorage.setItem(ZIEL_ZU_KEY, zielZu ? '1' : '0'); } catch (e) {}
+}
 function renderSceneHead() {
   const el = document.getElementById('sceneHead');
   if (!el || !viewState.szene) return;
@@ -1330,7 +1356,15 @@ function renderSceneHead() {
   const quests = activeQuestsForScene(viewState.szene, sceneRegieSnapshot);
   let html = '';
   if (sr && sr.uebergeordnetesZiel) {
-    html += '<div class="sh-goal"><span class="sh-goal-label">🎯 Übergeordnetes Ziel</span><span class="sh-goal-text">' + sr.uebergeordnetesZiel + '</span></div>';
+    html += '<div class="sh-goal' + (zielZu ? ' zu' : '') + '" id="shGoal">'
+      + '<span class="sh-goal-label" onclick="zielKlapp()"'
+      + ' onkeydown="if(event.key===&quot;Enter&quot;||event.key===&quot; &quot;){event.preventDefault();zielKlapp();}"'
+      + ' tabindex="0" role="button" aria-expanded="' + (zielZu ? 'false' : 'true') + '"'
+      + ' title="Anklicken zum Ein- und Ausklappen">'
+      + '🎯 Übergeordnetes Ziel <span class="sh-goal-caret">▾</span></span>'
+      + '<span class="sh-goal-text">' + sr.uebergeordnetesZiel + '</span>'
+      + '<span class="sh-goal-kurz">' + zielKurz(sr.uebergeordnetesZiel) + '</span>'
+      + '</div>';
   }
   if (sr && sr.stimmung) {
     html += '<div class="sh-mood"><span class="sh-mood-label">Stimmung</span><span class="sh-mood-text">' + sr.stimmung + '</span></div>';
