@@ -194,22 +194,19 @@ Object.keys(DORF_ORTE).forEach(id => {
 
 const SZ = vm.runInContext('SZENEN_REGIE', ctx);
 const ziel = (SZ['4.1'] || {}).uebergeordnetesZiel || '';
-const mZahl = ziel.match(/DIE (\d+) DORF-AUFGABEN/);
+const mZahl = ziel.match(/Die (\d+) Begegnungen mit der Marke/);
 chk('Szenenziel nennt die Zahl der Dorf-Aufgaben', !!mZahl, ziel.slice(0, 80));
 if (mZahl) chk('Szenenziel: ' + mZahl[1] + ' == gezaehlt ' + aufgaben,
   Number(mZahl[1]) === aufgaben, { ziel: mZahl[1], gezaehlt: aufgaben, je: gez });
 
-/* Die Aufschluesselung im Ziel muss zu den Orten passen - sonst sucht die
-   Spielleitung Aufgaben an einem Ort, an dem keine liegen. */
-Object.keys(DORF_ORTE).forEach(id => {
-  const re = new RegExp(DORF_ORTE[id] + '\\s+(\\d+)');
-  const m = ziel.match(re);
-  chk('Ziel: ' + DORF_ORTE[id] + ' ' + (m ? m[1] : '?') + ' == ' + gez[id],
-    !!m && Number(m[1]) === gez[id], { im_ziel: m && m[1], gezaehlt: gez[id] });
-});
+/* Die Aufschluesselung je Ort (Dorfplatz 7 / Markt 5 / ...) stand bis zum
+   25.10.2026 im Szenenziel und wurde hier dagegen geprueft. Das Ziel ist
+   jetzt kurz, die Aufschluesselung steht in Bibel 7.1a - eine Markdown-
+   Tabelle zu parsen waere fragiler als nuetzlich. Die Zahlen je Ort werden
+   weiter gezaehlt und in der Fehlermeldung der Gesamtzahl mitgegeben. */
 
 /* DER KERN: die genannte Schwelle muss erreichbar sein. */
-const mS = ziel.match(/\*\*(\d+)(?:[^\d]{1,3})(\d+) gespielte Aufgaben reichen\*\*/);
+const mS = ziel.match(/(\d+) bis (\d+) reichen/);
 chk('Szenenziel nennt eine Schwelle', !!mS, ziel.slice(0, 120));
 if (mS) {
   chk('Schwelle ' + mS[1] + '-' + mS[2] + ' ist erreichbar (<= ' + aufgaben + ')',

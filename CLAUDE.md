@@ -126,6 +126,50 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-25 (Fortsetzung 2) — Fehler: ich hatte ein Design-Dokument ins Szenenziel geschrieben
+- **Hendriks Meldung, mit dem Panel-Text als Beleg:** „Das ist doch unsinn das so hinzuschreiben.
+  Es sollte ein Ziel formuliert werden und etwas drumrum. Aber nicht so!"
+- **Er hat recht, und die Zahlen sagen es deutlich.** `uebergeordnetesZiel` ist ein Ziel-Feld. Die
+  übrigen Szenen liegen bei **33 bis 239 Zeichen** — `1.1` schlicht „An Bord der Golden Lion
+  gelangen." `4.1` stand bei **2387**. Ich hatte die ganze Bibel-Sektion samt Zwei-Tage-Ablauf,
+  Marken-Aufschlüsselung, beiden Ausgängen und Trigger-Statistik in ein einzelnes Feld kopiert,
+  das am Tisch oben im Panel steht und mit einem Blick lesbar sein muss.
+- **Jetzt 476 Zeichen** und in der Form, die er verlangt hat — ein Ziel, dann das Nötigste:
+
+      Harwicks Schatz der Thahal holen und die Insel wieder verlassen. Der Weg dorthin
+      führt über das Dorf: es muss auf Harwicks Seite gezogen werden, daran hängen
+      Siegel, Höhle und Schatz. Die 15 Begegnungen mit der Marke [DORF-AUFGABE] sind
+      der Punktestand — 5 bis 7 reichen, welche, entscheidet die Gruppe. Höhepunkt ist
+      die Rede am Höhleneingang, nicht die Höhle selbst. Zwei Spieltage, rund
+      zweieinhalb Stunden; Ablauf, Schwelle und beide Ausgänge stehen in Bibel 7.1a.
+
+- **Nichts davon ist verloren**, und das war die Vorbedingung: Zwei-Tage-Tabelle, Punktestand,
+  Rede mit beiden Pfaden und die Streichliste stehen seit heute Vormittag in **Bibel 7.1a**, der
+  Ablauf zusätzlich an den Triggern von `ankunft_vanthei` und `die_warnung`. Das Feld verweist
+  jetzt dorthin, statt es zu wiederholen.
+- **Die Schwelle steht bewusst als ZIFFERN da** („5 bis 7"), nicht ausgeschrieben: Nur so kann
+  `tests/t_szenen.js` weiter prüfen, dass sie überhaupt erreichbar ist — und genau diese Prüfung
+  ist der Schutz gegen meinen Fehler von heute Vormittag.
+- **Die Prüfung ist mitgezogen, nicht gelockert:**
+  - Die Zahl der Aufgaben wird jetzt aus „Die 15 Begegnungen mit der Marke" gelesen, die Schwelle
+    aus „5 bis 7 reichen".
+  - **Die Aufschlüsselung je Ort wird nicht mehr gegen das Ziel geprüft** — sie steht dort nicht
+    mehr, und eine Markdown-Tabelle in der Bibel zu parsen wäre fragiler als nützlich. Die Zahlen
+    je Ort werden weiter **gezählt** und in der Fehlermeldung der Gesamtzahl mitgegeben, gehen
+    also nicht verloren. Begründung samt Datum steht als Kommentar an der Stelle.
+  - **Gegengeprüft:** Dreht man zehn Marken auf `[BEIWERK]` zurück, schlagen weiterhin
+    13 Prüfungen an, darunter die entscheidende: `Schwelle 5-7 ist erreichbar (<= 5)` →
+    `{"schwelle":"7","aufgaben":5}`.
+- **Getestet: 1709 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10.
+- **Ein eigener Fehler beim Kürzen:** Mein Anker suchte sechs Leerzeichen Einrückung,
+  `SZENEN_REGIE` hat aber vier. Das `assert` brach vor dem Schreiben ab, die Datei blieb
+  unversehrt.
+- **[OFFEN] `3.1` ist mit 531 Zeichen der nächstlängste** und ebenfalls von mir — die sieben
+  Sturm-Stationen als Abhakliste. Deutlich kürzer als `4.1` vorher, aber doppelt so lang wie das
+  nächste. Nicht angefasst, weil nicht beauftragt; falls es am Tisch auch dort stört, ist es
+  dieselbe Kürzung.
+
 ### 2026-10-25 (Fortsetzung) — Die Insel ist umgebaut: ein Punktestand, eine Rede, eine Session
 - **Hendriks Freigabe:** „Wunde durch den Balken kommt weg. passt. Umsetzen bitte." Damit ist der
   Umbau aus dem Vormittag ausgeführt — Inhalte von Hendrik, hier die Umsetzung.
