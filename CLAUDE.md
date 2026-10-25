@@ -126,6 +126,88 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-25 — Fehler: ich hatte den Punktestand der Insel als Beiwerk markiert
+- **Hendriks Auftrag:** „Die Insel ist immer noch zu lang und zu starr und das Ende hat quasi
+  keine spielerische Lösung. Ich würde die Insel gerne in einer Session 2 bis 2,5 h
+  durchspielen." Dazu, nach dem Messen: **„Wir sollten ein mal festlegen, welche Station wofür
+  ist und was/ob Spieler hier eine explizite Aufgabe haben."**
+- **Erst gemessen, und die Zahl widerlegt meinen eigenen Changelog von vorgestern:** Die Insel
+  hat **161 Trigger, davon 123 in den tragenden**. Bei 150 Minuten wären das **1,2 Minuten pro
+  Trigger**. Meine Behauptung vom 23.10. — „die tragenden plus drei Beiwerk sind rund
+  zweieinhalb Stunden" — war eine Schätzung ohne Rechnung und schlicht falsch.
+- **DER BEFUND, und er ist ein schwerer Fehler von mir:** `stammesdorf.die_gegenrede` sagt
+  wörtlich *„ca. 10 der 16 Aufgaben"*. Und es sind **genau 16** — Dorfplatz 7 · Markt 5 ·
+  Heilerin 3 · Tempel 1. **Das Dorf ist ein Überzeugungsspiel mit Punktestand**, und sein
+  Ergebnis gabelt in zwei echte Wege.
+  - **Am 23.10. habe ich zehn dieser 16 mit `[BEIWERK]` beklebt** und ins `uebergeordnetesZiel`
+    von `4.1` geschrieben: *„Spiel drei bis vier Beiwerk-Begegnungen, den Rest lass liegen:
+    niemand verpasst etwas."*
+  - **Bei 3 von 16 ist die Schwelle von 10 nie erreichbar.** Meine Anweisung hätte die Gegenrede
+    **garantiert** ausfallen lassen und jede Gruppe in den Fehlschlag-Pfad gezwungen — lautlos,
+    und für die Spielleitung nicht als Fehler erkennbar, weil es sich wie ihre eigene
+    Entscheidung anfühlt. **„Niemand verpasst etwas" war die exakte Umkehrung der Wahrheit:**
+    man verpasst den Hauptpfad der Insel.
+  - **Das ist dieselbe Fehlerklasse wie der `arenaBossLebt()`-Fall vom 18.10.** — eine
+    Pflichtmechanik, die lautlos wirkungslos wird, statt sichtbar zu brechen.
+- **Behoben: alle 16 tragen jetzt `[DORF-AUFGABE]`** statt `[TRAGEND]`/`[BEIWERK]`. Nachgezählt:
+  16 Dorf-Aufgaben, 12 tragend, 2 Beiwerk, keine ohne Marke.
+- **Die Antwort auf Hendriks Frage stand damit im Code, nicht in meinem Kopf:** Die Insel hat
+  **genau eine** Kernaufgabe — *das Dorf auf Harwicks Seite ziehen* — mit Punktestand, einer Rede
+  als Finale und einem Scheiter-Pfad, der nicht in eine Sackgasse führt.
+- **Mein Erkundungs-Graph-Vorschlag ist damit zurückgezogen.** „Zu starr" entstand nicht aus der
+  Struktur: **10 von 16 wählen ist Spielerentscheidung** und war immer eingebaut — ich hatte die
+  Wahl zugeklebt. Der Graph wäre der große Eingriff gewesen und ist nicht nötig.
+- **Hendriks Umbau, der daraus folgt** (Inhalte von ihm, hier nur festgehalten):
+  - **Zwei Spieltage.** Tag 1: Strand (kurz) → Weg → Dorfankunft → 3–4 Aufgaben → Lager.
+    Tag 2: 2–3 Aufgaben → Warnung → Schiff → See → Höhle. **Reihenfolge Dorf → Schiff → Höhle →
+    fertig.**
+  - **Der Auftrag, der gefehlt hat:** Harwick wird weggeschickt, **die Crew nicht** — er bittet
+    herauszufinden, wer zu ihm steht. Erst damit sind die 16 Aufgaben eine Aufgabe und nicht eine
+    Sammlung von Begegnungen.
+  - **Die Rede findet nicht im Dorf statt, sondern an der Höhle.** Die Dorfbewohner warnen, dass
+    der Häuptling die heilige Stätte abschotten will, und wollen Vanthai dort treffen. Damit
+    **wird der Punktestand sichtbar**: die Überzeugten laufen mit und stellen sich gegen ihren
+    eigenen Häuptling.
+  - **Crew und Spieler kommen von See**, weil sie Fremde sind — Tradition. Sorathi begleitet sie
+    und übersetzt.
+  - **Die Rede wird unverändert übernommen.** Alle drei Teile samt vier Güteklassen bleiben; das
+    Siegel bleibt ihr Preis. Nachgeprüft: Teil 2 setzt voraus, dass die Spieler von Jessica
+    wissen — das geschieht in der Nacht zuvor im Lager, die Reihenfolge trägt. Der Patzer-Satz
+    referenziert bereits die Höhle.
+  - **Misserfolg:** Handgemenge zwischen den beiden Dorffraktionen. Die Spieler gewinnen
+    körperlich, aber es ist **ein Kampf, den alle verlieren** — verletzte Dorfbewohner, gedrückte
+    Stimmung. **Kein Kampfmodus:** der Ausgang steht fest, beweglich ist nur der Preis.
+  - **Was Hendrik streicht:** loser Balken, Dirks Payoff, Lagerleben, Kajüten-Unterlagen (Strand)
+    sowie Hebel, Seil, Reparatur, Gegenhalten, Boden-Probe (Höhle). **Und mein Rätsel am
+    silbernen Stein vom 23.10. fliegt komplett** — es war die Abkürzung statt der Pflicht, und
+    seine Lösung war 1-aus-4-Raten nach GM-Beschreibung. Die spielerische Lösung der Insel ist
+    das Dorf und die Rede; ein zweites Rätsel konkurriert damit, statt es zu belohnen.
+- **Mein ursprünglicher Haupteinwand ist durch Hendriks Neuordnung von selbst erledigt:** Ich
+  hatte kritisiert, dass **31 Trigger hinter dem Höhepunkt** liegen (Eber, Sorathi, Kajüte,
+  Dirk — alle am Strand, alle nach dem Schatz). In seiner Reihenfolge liegt der Weg zum Schiff
+  **davor** und speist die Höhle sogar, weil Sorathi dadurch an Bord ist und die Rede übersetzen
+  kann. Die Insel endet jetzt mit ihrem Höhepunkt.
+- **Neue `INSEL-IN-EINER-SESSION.md`** — Arbeitsdokument, kein Kanon: gemessener Ausgangszustand,
+  die eine Kernaufgabe, die Kette über zwei Tage mit Trigger-Budget (**~88 Trigger, rund 150
+  Minuten**), die Rede mit beiden Pfaden, was gestrichen wird, die Kanon-Nachträge und vier
+  offene Punkte. Wandert nach der Umsetzung in Bibel 7.1a.
+- **Das Szenenziel von `4.1` ist neu geschrieben** und trägt jetzt die Zwei-Tage-Struktur, die
+  16 Aufgaben als Punktestand, die 5–7er-Schwelle und beide Pfade — statt meiner falschen
+  Anweisung.
+- **Getestet: 1626 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10. Nachgezählt wird aus den **Markern der Szene
+  `4.1`**, nicht aus einer Namensliste.
+- **[OFFEN] Drei Kanon-Stellen müssen nachgezogen werden:** Bibel 10.4 verspricht Dirks Payoff
+  ausdrücklich nach dem Sturm — fällt er weg, steht dort eine Schuld, die nie eingelöst wird.
+  Bibel 2.7 sagt, der Knoten dürfe nur **einmal** auftauchen; Hendrik will ihn zweimal (Lager und
+  nachts auf dem Schiff), die Regel braucht also eine begründete Ausnahme. Und Bibel 7.1a muss
+  komplett neu, mit der alten Fassung als abgelöst gekennzeichnet statt gelöscht.
+- **[OFFEN] `sam_oakleys_wunde` verliert seine Prämisse** — die Aufgabe bei der Heilerin verweist
+  auf die Wunde vom losen Balken, und der fällt weg. Entweder andere Herkunft oder **15 statt 16**
+  Dorf-Aufgaben.
+- **[OFFEN] Schritt 3, der eigentliche Umbau**, steht noch: Strand kürzen, Dorfankunft als
+  Auftrag, Lager-Verschmelzung, `die_gegenrede` nach `hoehle` umhängen, Höhle entschlacken.
+
 ### 2026-10-24 — Wat wird weich, und Josiah findet sein Vertrauen wieder
 - **Anlass war Hendriks Bericht aus der gespielten Sitzung** (Tag auf dem Schiff + Sturm), kein
   Transkript und kein Export — sein eigener Rückblick. Daraus zwei Korrekturen an mir und eine

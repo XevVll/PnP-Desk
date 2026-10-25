@@ -1373,7 +1373,7 @@ const ORTE = {
     interaktionen: {
       "der_zweifler": {
         title: "Kelo — Der Zweifler",
-        kurz: "[TRAGEND] Ein junger Mann, der aus Angst vor Konsequenzen (noch) nicht zu Sorathis Seite steht. Rhetorik/Auftreten ODER Körper (alternative Probe, wie beim Trewin-Zwillinge-Trinkspiel).",
+        kurz: "[DORF-AUFGABE] Ein junger Mann, der aus Angst vor Konsequenzen (noch) nicht zu Sorathis Seite steht. Rhetorik/Auftreten ODER Körper (alternative Probe, wie beim Trewin-Zwillinge-Trinkspiel).",
         details: "Kelo hält sich am Rand der Menge, beobachtet die Fremden, spricht aber niemanden direkt an. Fragt man ihn, windet er sich: er glaubt Sorathis Worten, aber was, wenn der Häuptling am Ende doch Recht behält und alles nur schlimmer wird? Er will überzeugt werden, nicht überredet.",
         trigger: [
           { id: "angesprochen", label: "Kelo lässt sich auf ein Gespräch ein", info: "Kelo hält sich am Rand der Menge, beobachtet die Fremden, spricht aber niemanden direkt an. Fragt man ihn, windet er sich: er glaubt Sorathis Worten, aber was, wenn der Häuptling am Ende doch Recht behält?" },
@@ -1384,7 +1384,7 @@ const ORTE = {
       },
       "der_trauernde": {
         title: "Der Trauernde",
-        kurz: "[BEIWERK] Ein Dorfbewohner trauert um die Verbindung zur Göttin (toter heiliger Baum). Rhetorik, kurzer Beat.",
+        kurz: "[DORF-AUFGABE] Ein Dorfbewohner trauert um die Verbindung zur Göttin (toter heiliger Baum). Rhetorik, kurzer Beat.",
         details: "Am Rand des Platzes sitzt jemand still vor sich hin, den Blick auf die Stelle gerichtet, wo früher der heilige Baum stand. Ein tröstendes Wort reicht - keine große Verhandlung.",
         trigger: [
           { id: "erfolg", label: "Tröstendes Wort gefunden", info: "Ein tröstendes Wort reicht - keine große Verhandlung. Der Dorfbewohner nickt dankbar." },
@@ -1393,7 +1393,7 @@ const ORTE = {
       },
       "wer_steht_wirklich_wo": {
         title: "Wer steht wirklich wo?",
-        kurz: "[TRAGEND] Instinkt/Menschenkenntnis: beim Beobachten des Dorflebens erkennen, wer wirklich hinter Ta'ahal steht und wer nur schweigt.",
+        kurz: "[DORF-AUFGABE] Instinkt/Menschenkenntnis: beim Beobachten des Dorflebens erkennen, wer wirklich hinter Ta'ahal steht und wer nur schweigt.",
         details: "Wer das Dorfleben eine Weile beobachtet - Blicke, wer mit wem redet, wer sich fernhält - kann lesen, wo die Gräben wirklich verlaufen, nicht nur, wo sie öffentlich behauptet werden.",
         trigger: [
           { id: "erfolg", label: "Verdeckten Verbündeten erkannt", info: "Ein Dorfbewohner hält sich auffällig zurück, wenn Ta'ahal spricht - ein möglicher stiller Verbündeter." },
@@ -1402,7 +1402,7 @@ const ORTE = {
       },
       "die_luege_durchschauen": {
         title: "Die Lüge durchschauen",
-        kurz: "[TRAGEND] Instinkt/Menschenkenntnis: jemand gibt sich neutral, verbirgt aber etwas (Bibel 2.2).",
+        kurz: "[DORF-AUFGABE] Instinkt/Menschenkenntnis: jemand gibt sich neutral, verbirgt aber etwas (Bibel 2.2).",
         details: "Ein Dorfbewohner gibt sich betont gleichgültig gegenüber der ganzen Sache - zu betont, um echt zu sein.",
         trigger: [
           { id: "erfolg", label: "Lüge erkannt, Gespräch öffnet sich", info: "Die aufgesetzte Gleichgültigkeit fällt auf - konfrontiert damit, gibt der Dorfbewohner zu, dass ihn die Sache doch beschäftigt, und redet." },
@@ -1411,7 +1411,7 @@ const ORTE = {
       },
       "der_wissbegierige": {
         title: "Staaf — Der Wissbegierige",
-        kurz: "[BEIWERK] Ein Dorfbewohner, generell an jeglichem Fachwissen interessiert. Offener Int-/Fachwissen-Wurf auf das, was der Charakter zufällig draufhat.",
+        kurz: "[DORF-AUFGABE] Ein Dorfbewohner, generell an jeglichem Fachwissen interessiert. Offener Int-/Fachwissen-Wurf auf das, was der Charakter zufällig draufhat.",
         details: "Staaf ist fasziniert von allem, was die Fremden über die Welt jenseits der Insel wissen - gleich zu welchem Thema. Er stellt Fragen, hört aufmerksam zu, will verstehen. Der genaue Themenbereich ergibt sich aus dem Charakter am Tisch - bewusst nicht festgelegt, damit die Aufgabe für jede Gruppe funktioniert.",
         trigger: [
           { id: "erfolg", label: "Staaf ist begeistert", info: "Eine verständliche, richtige Antwort auf ein Fachgebiet, das der Charakter beherrscht, begeistert Staaf sichtlich - er wird zum Verbündeten." },
@@ -1420,7 +1420,7 @@ const ORTE = {
       },
       "kraftprobe_unter_zeugen": {
         title: "Kraftprobe unter Zeugen",
-        kurz: "[BEIWERK] Ein junger, stolzer Thahal fordert zum Kräftemessen vor kleinem Publikum. Körper-Probe.",
+        kurz: "[DORF-AUFGABE] Ein junger, stolzer Thahal fordert zum Kräftemessen vor kleinem Publikum. Körper-Probe.",
         details: "Vor ein paar Zuschauern fordert ein junger Thahal zum Kräftemessen heraus - Baumstamm-Heben oder Ringen, was sich gerade anbietet. Erfolg verdient sichtbaren Respekt, nicht nur beim Gegner selbst.",
         trigger: [
           { id: "guter_erfolg", label: "Guter Erfolg — Respekt vor der ganzen Gruppe", info: "Ein überlegener Sieg sorgt für anerkennendes Raunen in der ganzen Zuschauermenge, nicht nur beim Herausforderer." },
@@ -1430,7 +1430,7 @@ const ORTE = {
       },
       "kletter_aufgabe": {
         title: "Kletter-Aufgabe",
-        kurz: "[BEIWERK] An einem Haus hochklettern, aus Spaß/als Mutprobe. Geschick-Probe.",
+        kurz: "[DORF-AUFGABE] An einem Haus hochklettern, aus Spaß/als Mutprobe. Geschick-Probe.",
         details: "Ein paar Dorfkinder fordern spielerisch zu einer Mutprobe heraus: an einer der kunstvoll gebauten Hütten hochklettern. Leichtfüßiger Moment, kein Ernstfall.",
         trigger: [
           { id: "erfolg", label: "Mutprobe gemeistert", info: "Sauber hochgeklettert - die Kinder johlen begeistert." },
@@ -1446,7 +1446,7 @@ const ORTE = {
     interaktionen: {
       "der_pistolen_wunsch": {
         title: "Der Pistolen-Wunsch",
-        kurz: "[BEIWERK] Ein Dorfbewohner hat ein Auge auf die Pistole eines Spielers geworfen. Handel-Probe mit echtem Risiko.",
+        kurz: "[DORF-AUFGABE] Ein Dorfbewohner hat ein Auge auf die Pistole eines Spielers geworfen. Handel-Probe mit echtem Risiko.",
         details: "Ein Händler entdeckt die Pistole eines Spielers und lässt nicht locker - er will sie unbedingt eintauschen. Ein guter Handel-Wurf lenkt sein Interesse auf etwas Entbehrlicheres (Schuhe, Hemd); bei Misserfolg bleibt die Pistole hartnäckig im Gespräch.",
         trigger: [
           { id: "umgelenkt", label: "Interesse erfolgreich umgelenkt", info: "Ein guter Handel-Wurf lenkt sein Interesse auf etwas Entbehrlicheres - Schuhe, ein Hemd. Die Pistole bleibt, wo sie ist." },
@@ -1455,7 +1455,7 @@ const ORTE = {
       },
       "der_preis_fuer_ein_geheimnis": {
         title: "Der Preis für ein Geheimnis",
-        kurz: "[TRAGEND] Ein Dorfbewohner weiß etwas Wichtiges, verlangt aber im Gegenzug etwas, das dem Spieler selbst wichtig ist.",
+        kurz: "[DORF-AUFGABE] Ein Dorfbewohner weiß etwas Wichtiges, verlangt aber im Gegenzug etwas, das dem Spieler selbst wichtig ist.",
         details: "Ein Dorfbewohner deutet an, etwas Nützliches zu wissen - verlangt aber im Gegenzug etwas Persönliches (ein Ausrüstungsstück, ein Andenken). Handel-Wurf entscheidet, wie viel tatsächlich hergegeben werden muss.",
         trigger: [
           { id: "guter_erfolg", label: "Guter Erfolg — Information für wenig Gegenwert", info: "Ein geschickter Handel-Wurf drückt den Preis fast auf nichts herunter." },
@@ -1465,7 +1465,7 @@ const ORTE = {
       },
       "der_haendler": {
         title: "Der Händler",
-        kurz: "[BEIWERK] Kleiner Gefallen/Information gegen etwas Charme. Rhetorik, kurz.",
+        kurz: "[DORF-AUFGABE] Kleiner Gefallen/Information gegen etwas Charme. Rhetorik, kurz.",
         details: "Ein Händler ist für einen kleinen Gefallen zu haben, wenn man ihn charmant genug anspricht - nichts, das lange dauert.",
         trigger: [
           { id: "erfolg", label: "Gefallen erwirkt", info: "Ein bisschen Charme reicht - der Händler hilft gerne weiter." },
@@ -1474,7 +1474,7 @@ const ORTE = {
       },
       "wurf_wettkampf": {
         title: "Wurf-Wettkampf",
-        kurz: "[BEIWERK] Freundlicher Wettkampf gegen einen Dorfbewohner. Geschick-Probe, kein Fehlschlag-Malus.",
+        kurz: "[DORF-AUFGABE] Freundlicher Wettkampf gegen einen Dorfbewohner. Geschick-Probe, kein Fehlschlag-Malus.",
         details: "Am Rand des Marktes wird gewettet, wer am treffsichersten wirft - ein freundschaftlicher Wettkampf ohne Konsequenzen bei Misserfolg.",
         trigger: [
           { id: "erfolg", label: "Wettkampf gewonnen", info: "Ein sauberer Sieg, begleitet von anerkennendem Gelächter." },
@@ -1483,7 +1483,7 @@ const ORTE = {
       },
       "das_fallende_regal": {
         title: "Das fallende Regal",
-        kurz: "[BEIWERK] Ein schweres Regal fällt auf einen Menschen - spontane Rettungsaktion. Körper-Probe.",
+        kurz: "[DORF-AUFGABE] Ein schweres Regal fällt auf einen Menschen - spontane Rettungsaktion. Körper-Probe.",
         details: "Ohne Vorwarnung kippt ein schwer beladenes Warenregal auf einen Marktstand-Betreiber zu. Sofortiges Handeln ist gefragt, kein Zögern.",
         trigger: [
           { id: "erfolg", label: "Rettung gelungen", info: "Das Regal wird rechtzeitig aufgefangen/weggestemmt - der Betreiber kommt mit dem Schrecken davon, sichtlich dankbar." },
@@ -1507,7 +1507,7 @@ const ORTE = {
     interaktionen: {
       "sam_oakleys_wunde": {
         title: "Sam Oakleys Wunde",
-        kurz: "[BEIWERK] Die Wunde vom losen Balken (Station 1) ist noch nicht richtig verheilt - echte Behandlung statt nur Erste Hilfe.",
+        kurz: "[DORF-AUFGABE] Die Wunde vom losen Balken (Station 1) ist noch nicht richtig verheilt - echte Behandlung statt nur Erste Hilfe.",
         details: "Sam Oakley humpelt noch immer sichtbar von der Verletzung am Schiffswrack. Venari bietet ihre Hütte für eine ordentliche Behandlung an, wenn jemand mit Heilkunde-Kenntnissen mit anpackt.",
         trigger: [
           { id: "guter_erfolg", label: "Guter Erfolg — Wunde vollständig versorgt", info: "Eine saubere, kundige Behandlung - Sam ist sichtlich erleichtert und Venari beeindruckt von echtem Können." },
@@ -1517,7 +1517,7 @@ const ORTE = {
       },
       "die_richtige_heilpflanze": {
         title: "Die richtige Heilpflanze",
-        kurz: "[BEIWERK] Venari testet die Pflanzenkenntnis: die richtige Heilpflanze unter mehreren ähnlichen erkennen/sammeln.",
+        kurz: "[DORF-AUFGABE] Venari testet die Pflanzenkenntnis: die richtige Heilpflanze unter mehreren ähnlichen erkennen/sammeln.",
         details: "Venari legt mehrere ähnlich aussehende getrocknete Pflanzen nebeneinander und fragt, welche wirklich heilt und welche nur ähnlich aussieht - eine stille Prüfung, kein Verhör.",
         trigger: [
           { id: "erfolg", label: "Richtige Pflanze erkannt", info: "Die richtige Pflanze wird sicher erkannt - Venari nickt anerkennend." },
@@ -1526,7 +1526,7 @@ const ORTE = {
       },
       "die_figur_der_goettin": {
         title: "Die Figur der Göttin",
-        kurz: "[TRAGEND] Eine geschnitzte Figur mit Schmuck (gehört einem Dorfbewohner, nicht Venari) trägt eine lateinische Inschrift. Geschichte-Wurf übersetzt sie - Bezug zu Vanthei.",
+        kurz: "[DORF-AUFGABE] Eine geschnitzte Figur mit Schmuck (gehört einem Dorfbewohner, nicht Venari) trägt eine lateinische Inschrift. Geschichte-Wurf übersetzt sie - Bezug zu Vanthei.",
         details: "Ein Dorfbewohner besitzt eine geschnitzte Figur, die er seiner Göttin zuschreibt - die Gesichtszüge ähneln eher den Inselbewohnern als Europäern, sie trägt Schmuck. Am Sockel ist eine Inschrift eingeritzt, in einer Sprache, die niemand im Dorf deuten kann. Er zeigt sie den Spielern in der Hoffnung, dass sie mehr wissen. Ein Geschichte-Wurf (Latein-/Bildungswissen) übersetzt die Inschrift: „Vertraut den Vorzeichen“ (o. ä.) - ein Satz, der sich mit Vanthei in Verbindung bringen lässt und in der Gegenrede wiederverwendet werden kann.",
         trigger: [
           { id: "gezeigt", label: "Figur wird gezeigt", info: "Ein Dorfbewohner zeigt die Figur den Spielern in der Hoffnung, dass sie mehr über die Inschrift wissen als er selbst." },
@@ -1552,7 +1552,7 @@ const ORTE = {
     interaktionen: {
       "der_wachposten": {
         title: "Toma'ru — Der Wachposten",
-        kurz: "[TRAGEND] Bewacht das Siegel. Rhetorik/Auftreten (Kameradschaft/Ablenkung) ODER Körper (Respekt durch Kraftprobe) - erleichtert einen späteren Diebstahl-Versuch.",
+        kurz: "[DORF-AUFGABE] Bewacht das Siegel. Rhetorik/Auftreten (Kameradschaft/Ablenkung) ODER Körper (Respekt durch Kraftprobe) - erleichtert einen späteren Diebstahl-Versuch.",
         details: "Toma'ru steht Wache vor dem Tempeleingang, aufmerksam, aber gesprächsbereit. Zwei Wege, ihn dazu zu bringen, heute Abend „nicht so aufmerksam“ zu sein: ein gutes Gespräch (Kameradschaft, Ablenkung) oder eine Demonstration von Stärke, die seinen Respekt verdient statt seiner Worte zu bedürfen. Erfolg setzt einen Vorteil für einen späteren Schleichversuch - die eigentliche Schleich-Mechanik selbst ist Teil eines separaten, späteren Planungsschritts (Höhlen-Zugänge).",
         trigger: [
           { id: "angesprochen", label: "Toma'ru lässt sich auf ein Gespräch ein", info: "Toma'ru steht Wache, aufmerksam, aber gesprächsbereit - kein unfreundlicher Wächter, nur pflichtbewusst." },
@@ -2361,7 +2361,12 @@ const SZENEN_REGIE = {
     // Die Laengen-Anweisung (23.10.2026, Hendriks Auftrag "die Insel streamlinen"):
     // 30 Interaktionen, davon 18 tragend und 12 Beiwerk. Die Marke steht vorne in
     // jedem kurz-Feld. Drei Beiwerk-Begegnungen sind das realistische Mass.
-    uebergeordnetesZiel: "Harwicks Schatz der Thahal holen und die Insel wieder verlassen.\n\n**L\u00c4NGE:** Diese Insel hat **30 Interaktionen** \u2014 die gr\u00f6\u00dfte Szene der Kampagne. Jede tr\u00e4gt vorne im Kurztext eine Marke: **18 sind [TRAGEND]**, **12 sind [BEIWERK]**. Spiel die tragenden und **drei bis vier Beiwerk-Begegnungen** \u2014 welche, entscheidet die Gruppe durch das, wohin sie geht. Den Rest lass liegen: **niemand verpasst etwas.** Die zw\u00f6lf sind ein Vorrat, aus dem du greifst, keine Liste, die abzuarbeiten ist. Alle 30 sind gut vier Stunden, die tragenden plus drei etwa zweieinhalb. Die Marken sind ein Aufschlag \u2014 sortier um, was dir am Tisch wichtiger ist.", // Bibel 2.9
+    // Zwei-Tage-Struktur (Hendrik, 25.10.2026). Die Insel hat GENAU EINE Kernaufgabe:
+    // das Dorf auf Harwicks Seite ziehen. 16 Dorf-Aufgaben, 5-7 reichen - und ihr
+    // Ergebnis entscheidet die Rede an der Hoehle.
+    // ACHTUNG: Die [BEIWERK]-Marken an diesen 16 waren ein FEHLER (23.10.2026) -
+    // bei drei gespielten Aufgaben ist die Schwelle nie erreichbar.
+    uebergeordnetesZiel: "Harwicks Schatz der Thahal holen und die Insel wieder verlassen.\n\n**EINE KERNAUFGABE:** Das Dorf auf Harwicks Seite ziehen. Alles andere h\u00e4ngt daran \u2014 das Siegel, die H\u00f6hle, der Schatz.\n\n**DIE 16 DORF-AUFGABEN SIND DER PUNKTESTAND**, nicht Beiwerk. Jede tr\u00e4gt vorne [DORF-AUFGABE]: Dorfplatz 7 \u00b7 Markt 5 \u00b7 Heilerin 3 \u00b7 Tempel 1. **5\u20137 gespielte Aufgaben reichen** (der Kanontext in \"Sorathis Unterbrechung\" nennt noch 10 \u2014 bei 2,5 Stunden ist das zu viel). Welche gespielt werden, entscheidet die Gruppe. **Wer wenig schafft, verliert nicht das Spiel, sondern bekommt den h\u00e4rteren Weg.**\n\n**TAG 1:** Strand (Stimmung, Harwick stellt die Gruppe, Wat winkt ab) \u2192 Weg zum Dorf (Metallschmuck) \u2192 Dorfankunft: Harwick wird weggeschickt, **die Crew nicht** \u2014 er bittet herauszufinden, wer zu ihm steht \u2192 **3\u20134 Dorf-Aufgaben** \u2192 es wird dunkel \u2192 Lager: Sorathi kommt, Kupferritus, die Frage nach Jessica beendet die Szene, Cormacs Knoten.\n\n**TAG 2:** **2\u20133 weitere Dorf-Aufgaben** \u2192 Dorfbewohner warnen: der H\u00e4uptling will die heilige St\u00e4tte abschotten, sie wollen Vanthai den Stein geben und ihn an der H\u00f6hle treffen \u2192 R\u00fcckweg zum Schiff (Eber erwischt Ezra, Sorathi begleitet sie und tr\u00e4gt mit) \u2192 **von See zur H\u00f6hle**, denn Fremde kommen \u00fcber das Wasser \u2192 Aufruhr an der H\u00f6hle \u2192 **DIE REDE** \u2192 Schatz.\n\n**DIE REDE IST DER H\u00d6HEPUNKT, NICHT DIE H\u00d6HLE.** Sie liegt am H\u00f6hleneingang, vor der versammelten Menge, w\u00e4hrend der H\u00e4uptling dagegenredet. Drei Rhetorik-W\u00fcrfe, eine Rettung durch einen ANDEREN Spieler, und die schlechten Stufen sind zum Vorlesen gedacht \u2014 der Spa\u00df steckt dort.\n\n**Erfolg** \u2192 das Dorf verlangt das Siegel f\u00fcr Vanthai, der W\u00e4chter setzt es in den Sockel, **alle beladen gemeinsam**. **Misserfolg** \u2192 Handgemenge zwischen den beiden Dorffraktionen: die Spieler gewinnen k\u00f6rperlich, aber es ist ein Kampf, den alle verlieren \u2014 verletzte Dorfbewohner, gedr\u00fcckte Stimmung, Teilschatz, und der Fehlbetrag f\u00e4llt beim Artefakthandel (9.1) auf.\n\n**Zeit:** rund 2,5 Stunden. Wer alle 16 Dorf-Aufgaben spielt, sitzt deutlich l\u00e4nger.", // Bibel 2.9
     stimmung: "Fester Boden nach dem Sturm — für die meisten an Bord grenzt das an reines Glück. Der Strand ist voller Betrieb: Balken werden herangeschleppt, der Schmied schlägt am improvisierten Amboss Beschläge zurecht, Leitern lehnen am Rumpf. Die Golden Lion liegt auf der Seite in der sandigen Bucht, der vordere Mast gebrochen, Tauwerk und Trümmer über den Sand verstreut. Ringsum dichter, grüner Dschungel — Vogelrufe, Insektensurren, feuchte Wärme. Unbekanntes Land hinter der Brandung.",
     ghosts: [
       {
