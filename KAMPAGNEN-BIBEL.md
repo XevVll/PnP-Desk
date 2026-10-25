@@ -89,6 +89,12 @@ Hochwirksame Symbole werden bewusst selten eingesetzt. **Cormacs Knoten** (das g
 das die Tochter ihm beibrachte) darf in **maximal zwei Szenen** auftauchen. Ein drittes Mal
 würde es abnutzen.
 
+**Die beiden Plätze sind seit dem 25.10.2026 belegt** (Hendrik): im **Nachtlager der Schatzinsel**
+(`lager.sorathis_besuch`, Trigger `cormacs_tribut` — Cormac sagt dort nichts, er hält nur den
+Knoten, nachdem Harwick sich zurückgezogen hat) und **nachts auf dem Schiff**, falls Spieler
+dort sind. Ein drittes Auftauchen beim Artefakthandel (Kindersklaven) hat Hendrik ausdrücklich
+offen gelassen — **das wäre eine Entscheidung gegen diese Regel und darf nicht nebenbei passieren.**
+
 ### 2.8 Marker-Beschreibungen: Ort statt Plot
 `desc`-Felder in den `*_scenes.js`-Dateien geben ausschließlich Ort und Stimmung wieder. Sie
 dürfen **nicht** zu Handlungen anstiften, Aufgaben formulieren, Plot-Wissen unterstellen, das
@@ -409,71 +415,139 @@ Verändern Kampfunterstützung, Informationszugang und Einfluss auf den Kapitän
 5. GRABESINSEL (fest) ........................... Ritual + Finale, Session 3
 ```
 
-### 7.1a Die Schatzinsel — Länge und Gewichtung (Oktober 2026)
+### 7.1a Die Schatzinsel — eine Session, ein Punktestand (Oktober 2026)
 
-Die Schatzinsel ist mit **30 Interaktionen auf neun Orten die größte Szene der Kampagne** —
-deutlich größer als Grimsgate oder das Schiff. Gespielt wird sie nicht als Liste.
+**Hendriks Vorgabe (25.10.2026):** *„Die Insel ist immer noch zu lang und zu starr und das Ende
+hat quasi keine spielerische Lösung. Ich würde die Insel gerne in einer Session 2 bis 2,5 h
+durchspielen."*
 
-**Jede der 30 Interaktionen trägt vorne im `kurz`-Feld eine Marke** (`js/regie.js`), also genau dort, wo
-das Admin-Panel sie zuerst anzeigt:
+**Die Insel hat genau EINE Kernaufgabe: das Dorf auf Harwicks Seite ziehen.** Alles andere hängt
+daran — das Siegel, der Zugang zur Höhle, die Höhe des Schatzes und am Ende, ob beim
+Artefakthandel (7.3) genug Handelsware an Bord ist.
 
-| Marke | Anzahl | Bedeutung |
+#### Der Punktestand
+
+**Fünfzehn Dorf-Aufgaben**, jede vorne im `kurz`-Feld mit `[DORF-AUFGABE]` markiert
+(`js/regie.js`) — also genau dort, wo das Admin-Panel sie zuerst zeigt:
+
+| Ort | Aufgaben |
+|---|---|
+| Dorfplatz | 7 |
+| Markt | 5 |
+| Heilerin | 2 |
+| Tempel (Wachposten) | 1 |
+
+**Fünf bis sieben gespielte Aufgaben reichen.** Welche gespielt werden, entscheidet die Gruppe
+durch das, wohin sie geht — die Wahl war immer eingebaut, sie war nur zugeklebt (siehe den
+abgelösten Stand unten). Wer wenig schafft, verliert nicht das Spiel, sondern bekommt den
+härteren Weg.
+
+> **Die Schwelle muss erreichbar bleiben.** `tests/t_szenen.js` prüft, dass die im Szenenziel
+> genannte Zahl zur gezählten passt und die genannte Schwelle nicht über der Zahl der
+> vorhandenen Aufgaben liegt. Eine Schwelle, die niemand erreichen kann, lässt die Rede
+> **lautlos** ausfallen — dieselbe Fehlerklasse wie `arenaBossLebt()` (siehe
+> `ARENA-ENDKAMPF.md` 4.5).
+
+#### Der Auftrag, der gefehlt hat
+
+Der Häuptling weist Harwick öffentlich zurück und schickt ihn weg — **die Crew nicht**. Harwick
+bittet die Spieler herauszufinden, wer im Dorf noch zu ihm steht. **Erst dieser Satz macht aus
+den fünfzehn Aufgaben eine Aufgabe** statt einer Sammlung von Begegnungen; vorher stand er
+nirgends.
+
+#### Zwei Spieltage
+
+| | Station | Was dort passiert |
 |---|---|---|
-| **[TRAGEND]** | 18 | Ohne sie fehlt der Handlung etwas — ein Beat, ein Hinweis, ein Übergang |
-| **[BEIWERK]** | 12 | Schön, aber die Handlung kommt ohne sie an |
+| **Tag 1** | Strand | Einmal die Stimmung, Harwick stellt die Gruppe zusammen, **Wat winkt ab**. Die Spieler merken, dass die Insel nicht zufällig angesteuert wurde; direkte Fragen werden abgeblockt. Kurz halten. |
+| | Weg zum Dorf | Metallschmuck-Verbot |
+| | Dorfankunft | Ta'ahal weist Vanthai zurück, **der Auftrag** |
+| | 3–4 Dorf-Aufgaben | — |
+| | Nachtlager | Sorathi kommt, bietet seine Hilfe an, Kupferritus. **Die Frage nach Jessica beendet die Szene** — Harwick ist danach zu keinem Gespräch mehr zu bewegen. Cormac schaut ihm nach und hält seinen Knoten, ohne etwas zu sagen. |
+| **Tag 2** | 2–3 weitere Dorf-Aufgaben | — |
+| | Die Warnung | Der Häuptling will die heilige Stätte abschotten — das hat es noch nie gegeben. Die Überzeugten wollen Vanthai den Stein geben und ihn an der Höhle treffen. |
+| | Rückweg zum Schiff | Der Eber erwischt Ezra; Sorathi begleitet die Gruppe und trägt mit |
+| | Von See zur Höhle | Fremde kommen über das Wasser — Tradition |
+| | **Die Rede** | Der Höhepunkt |
+| | Die Kammer | Schatz, Flut, Abfahrt |
 
-**Von den zwölf Beiwerk-Begegnungen spielt man drei, vier höchstens** — welche, entscheidet die
-Gruppe durch das, wohin sie geht. Der Rest bleibt liegen, und **niemand verpasst etwas**: Die
-zwölf sind ein Vorrat, aus dem die Spielleitung greift, keine Liste, die abzuarbeiten ist. Alle
-30 gespielt sind gut vier Stunden Insel; die tragenden plus drei Beiwerk-Begegnungen sind rund
-zweieinhalb — und es fehlt nichts. Die Zahlen und die Einordnung stehen auch im
-`uebergeordnetesZiel` der Szene `4.1`, damit die Spielleitung sie vor Augen hat, ohne hier
-nachzuschlagen.
+**Reihenfolge: Dorf → Schiff → Höhle → fertig.** Dadurch liegt der Rückweg **vor** dem Höhepunkt
+statt dahinter, und er speist ihn sogar: Sorathi ist dadurch an Bord und kann an der Höhle
+übersetzen. Vorher lagen 31 Trigger hinter dem Schatz.
 
-> **Die Marken sind ein Aufschlag, kein Gesetz.** Ist eine Beiwerk-Begegnung am Tisch wichtiger
-> als eine tragende, wird sie umsortiert — es ist eine Zeile im `kurz`-Feld.
+#### Die Rede liegt an der Höhle, nicht im Dorf
 
-**Warum keine geführte Kette wie im Sturm (10.11):** Der Sturm ist ein Korridor — alle sind an
-Deck, die Reihenfolge der Stationen ist die Dramaturgie. Die Insel ist das Gegenteil: Die Gruppe
-teilt sich auf, wählt Wege, und das Dorf soll offen bleiben (Design-Prinzip 2.3,
-Wiederspielbarkeit durch Verpassen). Eine erzwungene Reihenfolge würde genau das zerstören.
-Das Problem der Insel war nie die Länge der einzelnen Szene, sondern ihre **Anzahl** — deshalb
-gewichten statt ordnen.
+**Hendriks Idee (25.10.2026)**, und sie ist der Kern der ganzen Umstellung: Die Dorfbewohner
+warnen, dass der Häuptling die Stätte abschotten will, und wollen Vanthai dort treffen. Am
+Höhleneingang stehen damit beide Fraktionen gegeneinander, der Häuptling versperrt den Eingang
+und redet gegen Vanthai — **und die Spieler müssen sofort antworten**, ohne Vorbereitung.
 
-**Der Parallelstrang am Strand ist gebündelt.** Wat beim Holzhacken, Josiahs Feuerstelle und
-Josiahs Geschichte am Feuer standen als drei gleichrangige Interaktionen am Wrack und waren
-damit nicht als das zu erkennen, was sie sind: *was am Strand geschieht, während die anderen im
-Dorf sind.* Sie liegen jetzt als ein Block `lagerleben_am_strand` zusammen (alle neun
-Trigger-IDs unverändert übernommen — sie liegen als `questDone` in Firebase). Der Strand ist
-damit von acht auf sechs Interaktionen gekommen; die übrigen fünf sind tragend (Landung, loser
-Balken, Dirks Sturm-Payoff, Ezras Wundbrand → führt nach `7.1`, Kajüten-Unterlagen → Hinweis
-aufs Schmugglernest).
+**Damit wird der Punktestand sichtbar.** Im Dorf war er eine Zahl im Kopf der Spielleitung; an
+der Höhle laufen die Überzeugten mit und stellen sich gegen ihren eigenen Häuptling. Wie viele es
+sind, sagt die Spielleitung an — sie rechnet es nicht vor.
 
-**Ein Faden in der Höhle ist gestrichen.** Die Kammer der Göttin trug drei parallele Fäden
-gleichzeitig: den Hebel-Mechanismus, die Reparatur-Komplikation und eine Split-Fokus-Beruhigung
-der Wächter aus der Ferne. Der dritte ist entfallen — er verlangte, dass sich die Gruppe mitten
-im Mechanismus-Problem aufteilt, und das hat am Tisch niemand gleichzeitig im Kopf. Dass die
-Wächter die Gruppe passieren lassen, bleibt erhalten (das ist Kanon, Codex Kapitel III:
-Höhlenwache-Dienstsystem der Thahal) — nur die Probe darauf nicht mehr. Die Kammer ist damit
-von 19 auf 18 Trigger und von 16 auf 9 Proben gekommen.
+**Der Wortlaut der Rede ist unverändert übernommen** (`hoehle.die_gegenrede`): drei Teile mal vier
+Erfolgsstufen, Hendriks eigener Text, dazu die Rettung durch einen **anderen** Spieler
+(Auftreten als komödiantische Ablenkung oder Drohen). Nachgeprüft: Teil 2 setzt voraus, dass die
+Spieler von Jessica wissen — das geschieht in der Nacht zuvor im Lager, die Reihenfolge trägt.
+Der Patzer-Satz verwies schon vorher auf die Höhle. Alle sechs Trigger-IDs sind beim Umzug
+mitgewandert (`questDone/4.1/…`).
 
-**Das Ende hat ein Rätsel (Hendriks Vorgabe, 23.10.2026).** Die Höhle endete bisher in reiner
-Mechanik: Hebel, Körperproben, Truhen tragen. Neue Interaktion
-`hoehle.das_raetsel_am_silbernen_stein`: Das gebündelte Licht auf dem silbernen Stein wandert
-im Tagesverlauf über vier Mulden mit eingeschlagenen Zeichen; die Inschrift am Sockel der
-Göttinnenfigur (*„Vertraut den Vorzeichen"*, bereits Kanon in `dorf_heilerin`) ist der
-Schlüssel, welche Mulde den Stein aufnehmen muss.
+**Ausgang bei Erfolg:** Das Dorf verlangt das Siegel für Vanthai, der Wächter setzt es in den
+Sockel, alle beladen gemeinsam.
 
-- **Das Rätsel ist die Abkürzung, nicht die Pflicht.** Der alte Weg über Hebel und Körperkraft
-  bleibt vollständig erhalten. Wer das Rätsel löst, spart sich die Komplikation; wer es nicht
-  löst oder gar nicht findet, kommt trotzdem an den Schatz. Ein Rätsel, das den Zugang
-  blockiert, wäre ein Fehlschlag-Ende — und die Insel ist eine Pflichtstation.
-- **Die vier Zeichen sind ein Aufschlag** (Fisch über Wellen · Vogel mit ausgebreiteten Schwingen
-  · Hand mit gespreizten Fingern · ein Ring mit drei Punkten = die Lösung, passend zum Sockel
-  der Figur) und als solcher im `details`-Feld gekennzeichnet. Sie sind Hendriks Entscheidung,
-  nicht gesetzt.
-- Der Hinweis aus dem Dorf macht `dorf_heilerin.die_figur_der_goettin` damit **tragend** — wer
-  die Heilerin überspringt, kann das Rätsel nur noch durch eigenes Nachdenken lösen.
+**Ausgang bei Misserfolg** (Hendriks Fassung): **Handgemenge zwischen den beiden
+Dorffraktionen.** Die Spieler gewinnen körperlich — aber es ist ein Kampf, den alle verlieren:
+verletzte Dorfbewohner, eine gedrückte Stimmung über diesem „Sieg", Teilschatz, und der
+Fehlbetrag fällt beim Artefakthandel auf. **Bewusst kein Kampfmodus**: Der Ausgang steht fest,
+beweglich ist nur der Preis. Harwick kennt dann einen Geheimgang, Sorathi hilft dabei.
+
+> Hendrik dazu: *„Ich werde aber dafür sorgen, dass die Spieler die Rede schaffen. Es soll ein
+> lustiger Austausch sein."* Die schlechten Stufen sind zum Vorlesen gedacht, nicht als Strafe.
+
+#### Was gestrichen ist
+
+**Strand** (52 → 26 Trigger): loser Balken, Dirks Sturm-Payoff, Lagerleben am Strand,
+Kajüten-Unterlagen. **Höhle:** Hebel-Mechanismus, Seil, Reparatur-Komplikation, Gegenhalten,
+Boden-Probe (Kammer 18 → 11 Trigger). **Heilerin:** `sam_oakleys_wunde` — sie verwies auf die
+Wunde vom losen Balken und verlor mit ihm ihre Prämisse (damit 15 statt 16 Dorf-Aufgaben).
+
+**Und das Rätsel am silbernen Stein vom 23.10.2026 fällt komplett weg.** Es war die Abkürzung
+statt der Pflicht, und seine Lösung war Raten aus vier Zeichen nach einer GM-Beschreibung. Die
+spielerische Lösung der Insel ist das Dorf und die Rede; ein zweites Rätsel konkurriert damit,
+statt es zu belohnen. Der Hinweis aus dem Dorf (`dorf_heilerin.die_figur_der_goettin`) bleibt als
+Dorf-Aufgabe bestehen, trägt aber kein Rätsel mehr.
+
+**Der Diebstahl des Siegels ist kein Weg mehr.** Bis zum 25.10.2026 war er der Fehlschlag-Pfad
+(und das Ziel einer offenen Spielerdiskussion im Lager). Das Siegel ist jetzt der Preis der Rede;
+die Diskussion im Lager dreht sich stattdessen darum, wen man morgen noch gewinnen muss und wer
+sprechen soll.
+
+**Gemessen: 140 Trigger** auf neun Orten, davon je Durchgang rund **118 gespielt** (nur 5–7 der
+15 Dorf-Aufgaben) — vorher 161. Rund zweieinhalb Stunden.
+
+> #### ⚠ Abgelöst: die Gewichtung vom 23.10.2026
+>
+> Die vorige Fassung dieses Abschnitts teilte die damals 30 Interaktionen in **18 [TRAGEND] und
+> 12 [BEIWERK]** und schrieb: *„Von den zwölf Beiwerk-Begegnungen spielt man drei, vier
+> höchstens … Der Rest bleibt liegen, und niemand verpasst etwas."*
+>
+> **Das war falsch, und zwar folgenschwer.** Zehn dieser „Beiwerk"-Begegnungen waren
+> Dorf-Aufgaben, also der Punktestand, von dem die Rede abhängt (`die_gegenrede` nannte damals
+> *„ca. 10 der 16 Aufgaben"*). Bei drei von sechzehn ist diese Schwelle **nie** erreichbar: Die
+> Rede wäre garantiert ausgefallen und jede Gruppe in den Fehlschlag-Pfad gezwungen — lautlos,
+> und für die Spielleitung nicht als Fehler erkennbar, weil es sich wie ihre eigene Entscheidung
+> anfühlt. *„Niemand verpasst etwas"* war die exakte Umkehrung der Wahrheit: man verpasst den
+> Hauptpfad der Insel.
+>
+> Ebenfalls abgelöst: die Begründung *„keine geführte Kette wie im Sturm (10.11), weil die
+> Gruppe sich aufteilt und Wege wählt"*. Sie gilt für die **Dorf-Aufgaben** weiter — dort ist die
+> Wahl der Punkt. Der **Rahmen** um sie herum ist jetzt sehr wohl eine Kette, und das ist der
+> Grund, warum die Insel in eine Session passt.
+>
+> Der Strand-Block `lagerleben_am_strand` (am 23.10. aus drei Interaktionen gebündelt) ist
+> gestrichen; der gestrichene Wächter-Faden in der Kammer bleibt gestrichen, dass die Wächter
+> passieren lassen, bleibt Kanon (Codex Kapitel III).
 
 ### 7.2 Verzweigung 1 — nach der Schatzinsel
 
@@ -793,6 +867,8 @@ Objekt** weckt Interesse. Fachlich klingendes Gerede allein reicht nicht.
 **nach der Sturm-Szene** (eigener, noch auszuarbeitender Programmpunkt), kommt Dirk mit einem
 kniffligen mechanischen Problem auf genau diesen Spieler zu — dort besteht die Chance auf
 einen **großen** Ruf-Gewinn.
+
+> **[OFFEN] Die Einlösung ist am 25.10.2026 entfallen.** Dirks Payoff lag als `schiffswrack.dirk_payoff` am Strand der Schatzinsel und ist beim Kürzen der Insel auf eine Session gestrichen worden (siehe 7.1a). Die Zusage hier steht damit ohne Einlösung — **das ist eine Schuld, nicht ein gelöster Punkt.** Wo sie eingelöst wird, ist Hendriks Entscheidung; naheliegend wäre die Golden Lion nach der Insel (`5.1`), weil Dirk dort ohnehin steht.
 
 > **Korrektur (Juli 2026):** Ursprünglich stand hier „in der Sturm-Szene" — Dirks Payoff liegt
 > aber **nach** dem Sturm, nicht während. Während des Sturms selbst hat das Batteriedeck eine

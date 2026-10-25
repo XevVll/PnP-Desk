@@ -160,6 +160,103 @@ Object.keys(ERWARTET).forEach(sid => {
   });
 });
 
+console.log('=== DIE INSEL HAT EINEN PUNKTESTAND (4.1) ===');
+/* Am 23.10.2026 habe ich zehn der Dorf-Aufgaben mit [BEIWERK] beklebt und ins
+   Szenenziel geschrieben, man solle drei bis vier davon spielen und "den Rest
+   liegen lassen". Die Rede an der Hoehle verlangt aber eine Mindestzahl
+   geloester Aufgaben - bei drei von fuenfzehn ist die Schwelle NIE erreichbar.
+   Die Gegenrede waere damit lautlos ausgefallen und jede Gruppe in den
+   Fehlschlag-Pfad gezwungen; fuer die Spielleitung nicht als Fehler erkennbar,
+   weil es sich wie ihre eigene Entscheidung anfuehlt.
+
+   Dieselbe Fehlerklasse wie arenaBossLebt() am 18.10.: eine Pflichtmechanik,
+   die wirkungslos wird, statt sichtbar zu brechen. Diese Pruefung haelt drei
+   Dinge zusammen, die auseinanderlaufen koennen:
+     - jede Dorf-Aufgabe traegt ihre Marke
+     - die Zahl im Szenenziel stimmt mit der gezaehlten
+     - die genannte SCHWELLE ist ueberhaupt erreichbar                      */
+const DORF_ORTE = { dorf_platz: 'Dorfplatz', dorf_markt: 'Markt',
+  dorf_heilerin: 'Heilerin', dorf_tempel: 'Tempel' };
+const gez = {};
+let aufgaben = 0;
+Object.keys(DORF_ORTE).forEach(id => {
+  const o = ORTE[id];
+  const ks = (o && o.interaktionen) ? Object.keys(o.interaktionen) : [];
+  gez[id] = 0;
+  ks.forEach(k => {
+    const kurz = o.interaktionen[k].kurz || '';
+    chk(id + '/' + k + ' traegt [DORF-AUFGABE]', kurz.indexOf('[DORF-AUFGABE]') === 0,
+      kurz.slice(0, 40));
+    if (kurz.indexOf('[DORF-AUFGABE]') === 0) { gez[id]++; aufgaben++; }
+  });
+  chk(id + ' hat ueberhaupt Aufgaben', gez[id] > 0, gez[id]);
+});
+
+const SZ = vm.runInContext('SZENEN_REGIE', ctx);
+const ziel = (SZ['4.1'] || {}).uebergeordnetesZiel || '';
+const mZahl = ziel.match(/DIE (\d+) DORF-AUFGABEN/);
+chk('Szenenziel nennt die Zahl der Dorf-Aufgaben', !!mZahl, ziel.slice(0, 80));
+if (mZahl) chk('Szenenziel: ' + mZahl[1] + ' == gezaehlt ' + aufgaben,
+  Number(mZahl[1]) === aufgaben, { ziel: mZahl[1], gezaehlt: aufgaben, je: gez });
+
+/* Die Aufschluesselung im Ziel muss zu den Orten passen - sonst sucht die
+   Spielleitung Aufgaben an einem Ort, an dem keine liegen. */
+Object.keys(DORF_ORTE).forEach(id => {
+  const re = new RegExp(DORF_ORTE[id] + '\\s+(\\d+)');
+  const m = ziel.match(re);
+  chk('Ziel: ' + DORF_ORTE[id] + ' ' + (m ? m[1] : '?') + ' == ' + gez[id],
+    !!m && Number(m[1]) === gez[id], { im_ziel: m && m[1], gezaehlt: gez[id] });
+});
+
+/* DER KERN: die genannte Schwelle muss erreichbar sein. */
+const mS = ziel.match(/\*\*(\d+)(?:[^\d]{1,3})(\d+) gespielte Aufgaben reichen\*\*/);
+chk('Szenenziel nennt eine Schwelle', !!mS, ziel.slice(0, 120));
+if (mS) {
+  chk('Schwelle ' + mS[1] + '-' + mS[2] + ' ist erreichbar (<= ' + aufgaben + ')',
+    Number(mS[2]) <= aufgaben, { schwelle: mS[2], aufgaben: aufgaben });
+  chk('Schwelle ist keine Null', Number(mS[1]) > 0, mS[1]);
+}
+
+/* Keine Insel-Interaktion ohne Marke - eine unmarkierte ist im Panel nicht als
+   tragend oder optional zu erkennen. */
+markerVon('4.1').forEach(id => {
+  const o = ORTE[id];
+  if (!o || !o.interaktionen) return;
+  Object.keys(o.interaktionen).forEach(k => {
+    const it = o.interaktionen[k];
+    if (it.nurSzenen && it.nurSzenen.indexOf('4.1') < 0) return;
+    if (it.nichtInSzenen && it.nichtInSzenen.indexOf('4.1') >= 0) return;
+    chk(id + '/' + k + ' hat eine Marke', /^\[[^\]]+\]/.test(it.kurz || ''),
+      (it.kurz || '').slice(0, 40));
+  });
+});
+
+/* Die Rede ist der Hoehepunkt und liegt seit dem 25.10.2026 an der HOEHLE.
+   Haengt sie jemand zurueck ins Dorf, bricht Hendriks Reihenfolge
+   (Dorf -> Schiff -> Hoehle) und der Aufruhr hat keine Buehne mehr. */
+chk('die_gegenrede liegt an "hoehle"',
+  !!((ORTE.hoehle.interaktionen || {}).die_gegenrede), Object.keys(ORTE.hoehle.interaktionen));
+chk('die_gegenrede liegt NICHT mehr an "stammesdorf"',
+  !((ORTE.stammesdorf.interaktionen || {}).die_gegenrede),
+  Object.keys(ORTE.stammesdorf.interaktionen));
+chk('das Handgemenge ist der Fehlschlag-Pfad',
+  !!((ORTE.hoehle.interaktionen || {}).das_handgemenge), Object.keys(ORTE.hoehle.interaktionen));
+chk('die_warnung ist das Scharnier ins zweite Tagwerk',
+  !!((ORTE.stammesdorf.interaktionen || {}).die_warnung),
+  Object.keys(ORTE.stammesdorf.interaktionen));
+
+/* Die sechs Trigger-IDs der Rede sind beim Umzug mitgewandert. Sie liegen als
+   questDone/4.1/{id} in Firebase - umbenannt nehmen sie der laufenden Kampagne
+   lautlos ihre Haken. Als KOPIE festgenagelt, nicht aus dem Code abgeleitet. */
+['sorathi_unterbricht', 'menge_bildet_sich', 'haeuptling_rede_gegen_vanthei',
+  'gegenrede_erfolg', 'gegenrede_misslingt', 'zeit_abgelaufen_diebstahl'].forEach(id => {
+  const da = (ORTE.hoehle.interaktionen.die_gegenrede.trigger || []).map(t => t.id);
+  chk('Rede-Trigger "' + id + '" unveraendert', da.indexOf(id) >= 0, da);
+});
+chk('die Rede hat weiterhin drei redeTeile',
+  (ORTE.hoehle.interaktionen.die_gegenrede.redeTeile || []).length === 3,
+  (ORTE.hoehle.interaktionen.die_gegenrede.redeTeile || []).length);
+
 console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

@@ -126,6 +126,126 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-25 (Fortsetzung) — Die Insel ist umgebaut: ein Punktestand, eine Rede, eine Session
+- **Hendriks Freigabe:** „Wunde durch den Balken kommt weg. passt. Umsetzen bitte." Damit ist der
+  Umbau aus dem Vormittag ausgeführt — Inhalte von Hendrik, hier die Umsetzung.
+- **Gemessen: 161 → 140 Trigger**, davon je Durchgang rund **118 gespielt** (nur 5–7 der 15
+  Dorf-Aufgaben). Nachgezählt, nicht geschätzt.
+- **Die Höhle hat jetzt einen Höhepunkt statt einer Mechanik-Kette** (2 Interaktionen mit 27
+  Triggern → 4 mit 29):
+  - **`die_gegenrede` ist von `stammesdorf` an `hoehle` umgezogen.** Alle sechs Trigger-IDs und
+    alle drei `redeTeile` unverändert übernommen — sie liegen als `questDone/4.1/{id}` in
+    Firebase, ein umbenannter nimmt der laufenden Kampagne lautlos ihre Haken.
+  - **Neu `ankunft_von_see`** (6 Trigger): die Bühne. Beide Fraktionen stehen schon da, der
+    Häuptling versperrt den Eingang, er ergreift das Wort — **die Spieler müssen sofort
+    antworten**, ohne Vorbereitung.
+  - **Neu `das_handgemenge`** (6 Trigger): der Fehlschlag-Pfad. **Bewusst kein Kampfmodus** — der
+    Ausgang steht fest, beweglich ist nur der Preis. Die Spieler gewinnen körperlich, aber es ist
+    ein Kampf, den alle verlieren.
+  - **Die Kammer der Göttin: 18 → 11 Trigger.** Hebel, Seil, Reparatur-Komplikation, Gegenhalten
+    und Boden-Probe sind weg. `siegel_uebergabe` und `waechter_laesst_passieren` gewinnen dadurch
+    Gewicht, ohne dass eine Zeile daran geändert wurde.
+  - **Mein Rätsel am silbernen Stein vom 23.10. ist gelöscht.** Es war die Abkürzung statt der
+    Pflicht, und seine Lösung war 1-aus-4-Raten nach einer GM-Beschreibung. Die spielerische
+    Lösung der Insel ist das Dorf und die Rede; ein zweites Rätsel konkurriert damit.
+- **Der Auftrag, der gefehlt hat, steht jetzt im Dorf** (`ankunft_vanthei`, 8 → 11 Trigger):
+  Harwick wird weggeschickt, **die Crew nicht**, und er bittet herauszufinden, wer zu ihm steht.
+  **Erst dieser Satz macht aus den fünfzehn Aufgaben eine Aufgabe** statt einer Sammlung von
+  Begegnungen. Dazu die bruchstückhafte Verständigung — sie ist zugleich der Grund, warum die
+  Rede ohne Sorathi nicht funktioniert.
+- **Neu `stammesdorf.die_warnung`** (7 Trigger) als Scharnier in den zweiten Tag: Ta'ahal will die
+  heilige Stätte abschotten, das hat es noch nie gegeben, die Überzeugten wollen Vanthai den Stein
+  geben und ihn an der Höhle treffen. Harwick bricht sofort zum Schiff auf — **Fremde kommen von
+  See.** Ein Trigger nennt ausdrücklich die Reihenfolge Dorf → Schiff → Höhle.
+- **Der Strand: 52 → 26 Trigger.** `dirk_payoff`, `loser_balken`, `lagerleben_am_strand` und
+  `kajuete_unterlagen` sind weg; `landung` bekommt Wats Abwinken samt Hendriks Wortlaut und den
+  Grundstein zum Nachbohren („nicht zufällig angesteuert", direkte Fragen werden abgeblockt).
+  - **`eber_und_wundbrand` und `sorathi_auf_dem_rueckweg` bleiben** — das ist der Rückweg am
+    zweiten Tag, und der liegt in Hendriks Reihenfolge **vor** der Höhle. Damit ist mein eigener
+    Haupteinwand von heute Vormittag (31 Trigger hinter dem Höhepunkt) von selbst erledigt, und
+    der Rückweg speist die Höhle sogar: Sorathi ist dadurch an Bord und kann übersetzen.
+- **Das Lager ist zugespitzt** (12 → 15 Trigger, nichts gelöscht): Die Frage nach Jessica **beendet
+  die Szene** — Harwick ist danach zu keinem Gespräch mehr zu bewegen, und das steht jetzt am
+  Trigger. `cormacs_tribut` ist umgeschrieben: **Cormac sagt nichts**, er schaut Harwick nach und
+  hält seinen Knoten. Neu dazu: Sorathi bietet von sich aus seine Hilfe an, und es gibt
+  Dorfbewohner, die an Vanthai glauben.
+- **`sam_oakleys_wunde` ist weg** (Hendriks Entscheidung) — sie verwies auf die Wunde vom losen
+  Balken und verlor mit ihm ihre Prämisse. Damit **15 statt 16 Dorf-Aufgaben**: Dorfplatz 7 ·
+  Markt 5 · Heilerin 2 · Tempel 1.
+- **Der Diebstahl des Siegels ist an fünf Stellen abgelöst**, und zwar **gekennzeichnet statt
+  gelöscht:** `gegenrede_misslingt` (hieß „Diebstahl-Plan nötig"), `zeit_abgelaufen_diebstahl`,
+  der `ortHinweis` am Tempel („Überzeugen/Diebstahl/Gewalt"), die `kurz` des Wachpostens
+  („erleichtert einen späteren Diebstahl-Versuch" → zahlt in den Punktestand) und Sorathis
+  Vorstellung in `ankunft_vanthei` („einziger Zugang zu Diebstahl/Aufhetzen" → über ihn kommen
+  Warnung und Übersetzung).
+  - **`offene_diskussion_siegel` ist umgelenkt, nicht entfernt** — der Trigger hält das einzige
+    `grantsQuest`-Beispiel der Bibel (2.9). Die Diskussion bleibt, ihr Gegenstand wechselt: wen
+    man morgen noch gewinnen muss und wer vor der Höhle sprechen soll.
+- **Zwei verwaiste Kommentarblöcke gefunden, weil ein `assert` nicht aufging** — nicht durch
+  Hinsehen. Einer beschrieb die Rede noch im Dorf und nannte „10 der 16", der andere erklärte mein
+  gelöschtes Rätsel samt dem entfernten Hebel-Weg. Beide bereinigt, die Rede-Erklärung ist an
+  ihren jetzigen Ort umgezogen. **Eine Doku, die etwas anderes sagt als der Code, ist genau der
+  Fehler vom 14.10.** (fünf Wochen falsche Auskunft) — und Kommentare sind Doku.
+- **Neue Prüfung in `tests/t_szenen.js` (66 neue), und sie ist der eigentliche Gewinn:** Sie hält
+  drei Dinge zusammen, die auseinanderlaufen können — jede Dorf-Aufgabe trägt ihre Marke, die Zahl
+  im Szenenziel stimmt mit der gezählten, und **die genannte Schwelle ist überhaupt erreichbar.**
+  Dazu: keine Insel-Interaktion ohne Marke, die Rede liegt an `hoehle` und **nicht mehr** an
+  `stammesdorf`, alle sechs Rede-Trigger-IDs als **Kopie** festgenagelt.
+  - **Gegengeprüft auf einer Kopie, und das ist der Beleg:** Dreht man zehn Marken auf
+    `[BEIWERK]` zurück — also den Stand vom 23.10. —, schlagen **15 Prüfungen** an, und die
+    entscheidende nennt den Fehler wörtlich: `Schwelle 5-7 ist erreichbar (<= 5)` →
+    `{"schwelle":"7","aufgaben":5}`.
+  - **Eine Prüfung habe ich wieder herausgenommen, bevor sie jemandem im Weg stand:** Sie zählte
+    das Wort „Diebstahl" im Inselteil und versuchte, lebende von gekennzeichneten Vorkommen zu
+    unterscheiden. Das prüft Formulierung, nicht Verhalten — und eine Prüfung, deren Logik ich
+    selbst nicht in einem Satz erklären kann, ist schlechter als keine.
+- **Getestet: 1713 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10.
+- **Bibel 7.1a ist komplett neu**, mit der Gewichtung vom 23.10. als **abgelöst gekennzeichnet
+  statt gelöscht**, samt der Begründung, warum sie falsch war. Dazu steht dort die
+  Zwei-Tage-Tabelle, der Punktestand, die Rede an der Höhle mit beiden Ausgängen und die Liste
+  des Gestrichenen.
+- **Ein Nachtrag war unnötig, und das ist eine Korrektur an mir:** Ich hatte heute Vormittag
+  notiert, Bibel 2.7 erlaube den Knoten nur **einmal**. Nachgelesen: dort steht seit je **„maximal
+  zwei Szenen"**. Hendriks Wunsch war also immer schon Kanon. Ergänzt ist nur, **welche zwei
+  Plätze jetzt belegt sind** (Nachtlager der Insel, nachts auf dem Schiff) — damit ein drittes
+  Auftauchen beim Artefakthandel nicht nebenbei passiert, sondern als Entscheidung gegen die
+  Regel.
+- **Bibel 10.4 trägt jetzt eine Schuld statt einer Zusage:** Dort stand, Dirks Payoff komme
+  „nach der Sturm-Szene" — die Einlösung war `schiffswrack.dirk_payoff` und ist gestrichen. Als
+  `[OFFEN]` eingetragen, mit `5.1` als naheliegendem Ort, aber nicht eigenmächtig verschoben.
+- **`INSEL-IN-EINER-SESSION.md` ist gelöscht**, wie es im Dokument selbst vorgesehen war: der
+  Inhalt steht jetzt in Bibel 7.1a. Ein Arbeitsdokument, das „16 Dorf-Aufgaben" sagt, während der
+  Code 15 hat, ist schlimmer als keines.
+- **Vier eigene Fehler beim Bauen, alle vor dem Schreiben gefangen:**
+  1. **Ein Blindgänger im eigenen Skript:** `loeschen('sorathis_erkenntnis') if False else None` —
+     die Zeile tat nichts. Und sie sollte es auch nicht: **`sorathis_erkenntnis` ist der Grund,
+     warum Sorathi hilft und warum die Dorfbewohner Vanthai den Stein geben wollen.** Mein Plan
+     hatte ihn zum Streichen vorgesehen; nachgelesen trägt er die Verbindung vom Lager zur Höhle.
+     Außerdem gab es `offene_diskussion_siegel` in meiner Streichliste als „nicht vorhanden" —
+     vorhanden war er, nur in anderer Formatierung, weshalb mein `grep`-Muster ihn übersah.
+     **Merke: eine regexbasierte Trigger-Liste ist keine Bilanz, die Formatierung wechselt.**
+  2. **Die Heredoc-Falle, zum vierten Mal im Projekt** — `—` in einem Python-Suchtext kam
+     durch das Bash-Heredoc nicht an. Danach dieselbe Sorte Verwechslung umgekehrt: im Quelltext
+     steht an manchen Stellen der **Escape** `·`, nicht das Zeichen, und mein Suchtext trug
+     das Zeichen.
+  3. **Ein doppeltes Komma** (`},,`) — mein Einschub setzte ein Komma, das `spanne()` längst
+     mitgenommen hatte. Gezielt repariert statt `git checkout`: an der Datei hingen drei
+     ungesicherte Schritte. Am 23.10. hatte ich mit genau diesem Befehl uncommittete Arbeit
+     vernichtet.
+  4. Die bekannte vm-Falle: `const SZENEN_REGIE` ist von außen nicht als Kontext-Eigenschaft
+     sichtbar — im Kontext geholt. Dazu die `/tmp`-Falle: Python sieht den Pfad anders als die
+     Git-Bash, die Gegenprobe läuft deshalb im Scratchpad.
+- **[OFFEN] Was „der Baum" in Wats Abwinken bedeutet, steht nirgends im Kanon.** Hendriks Wortlaut
+  ist übernommen („Wenn dein Scheiß mit dem Baum raus kommt, möchte ich hier nicht
+  festhängen."), und am Trigger steht, dass die Spielleitung es **nicht** erklärt (Design-Regel
+  2.8). Als Vorgeschichte zwischen Wat und Harwick auf dieser Insel ist es aber eine echte Lücke.
+- **[OFFEN] Der Hinweis aufs Schmugglernest** kam diegetisch aus `kajuete_unterlagen`, und die
+  ist gestrichen. Es gibt einen zweiten Weg (das Schmugglerlied mit Koordinaten in
+  `kapitaenskajuete`, Szene `5.1`) — ob der allein trägt, ist am Tisch zu sehen.
+- **[OFFEN] `4.1` steht weiter auf dem alten Wertesystem.** Der neue Text ist sauber, die rund 45
+  übrigen Probennennungen der Szene sind es nicht. Eigener Durchgang, hier nicht beauftragt.
+
 ### 2026-10-25 — Fehler: ich hatte den Punktestand der Insel als Beiwerk markiert
 - **Hendriks Auftrag:** „Die Insel ist immer noch zu lang und zu starr und das Ende hat quasi
   keine spielerische Lösung. Ich würde die Insel gerne in einer Session 2 bis 2,5 h
