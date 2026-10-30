@@ -56,6 +56,7 @@ vm.runInContext('this.X = {' + [
   'ARENA_DIENER_SCHLUESSEL', 'arenaIniEintraege', 'arenaIniTokens', 'arenaAusteilen',
   'arenaIniIndex', 'arenaIniAmZug', 'arenaIniWeiter', 'arenaIniFreigabe', 'arenaIniBonus',
   'arenaFeldFrei', 'arenaNaechstesZiel', 'arenaSchrittZu', 'arenaDienerZug', 'arenaDienerRunde',
+  'arenaWeg', 'arenaSchrittGierig', 'ARENA_NACHBARN',
   'arenaAngriffAenderungen', 'arenaAngriffText', 'arenaAnwenden',
   'arenaIniLanden', 'arenaIniNeueRunde', 'arenaMischen',
   'kartenText', 'kartenVergleich', 'jokerBonus'
@@ -922,6 +923,100 @@ function held(id, opts) {
         const s = A.arenaSchrittZu({ id: 'd', x: 0, y: 0 }, { x: -5, y: -5 }, {}, REGELN);
         return s === null || (s.x >= 0 && s.y >= 0);
       })());
+  })();
+
+  /* ---------- DER WEG WIRD GESUCHT, NICHT GERATEN (30.10.2026, Forts. 4) ----------
+     Der gierige Schritt lief vor eine geschlossene Reihe und blieb dort stehen.
+     Auf einem Brett mit einem Dutzend Dienern ist das nicht der Ausnahmefall,
+     sondern der Normalfall, sobald es eng wird - eine Automatik, die genau dann
+     aufgibt, wenn sie gebraucht wird, gibt der SL die Arbeit zurueck.
+
+     Die aussagekraeftigste Pruefung hier ist die, die BEIDE Fassungen
+     nebeneinander laufen laesst: In derselben Lage findet der Wegfinder einen
+     Zug und der gierige Schritt keinen. */
+  (function () {
+    // Eine Mauer quer ueber y=3, EINE Luecke bei x=12.
+    function mauer(luecke) {
+      const t = { d: { id: 'd', typ: 'diener', x: 5, y: 2 },
+                  p: { typ: 'spieler', x: 5, y: 10 } };
+      for (let x = 0; x < REGELN.breite; x++) {
+        if (x === luecke) continue;
+        t['m' + x] = { typ: 'diener', x: x, y: 3 };
+      }
+      return t;
+    }
+    const t = mauer(12);
+    const d = t.d, ziel = t.p;
+
+    const gierig = A.arenaSchrittGierig(d, ziel, t, REGELN);
+    chk('der gierige Schritt gibt vor der Mauer auf', gierig === null, gierig);
+
+    const weg = A.arenaWeg(d, ziel, t, REGELN, 'd');
+    chk('der Wegfinder findet einen Weg', weg !== null && weg.length > 0, weg && weg.length);
+    chk('und er fuehrt durch die Luecke',
+      !!weg && weg.some(function (f) { return f.x === 12 && f.y === 3; }),
+      weg);
+    chk('der Weg endet am Ziel angrenzend',
+      !!weg && A.arenaDistanz(weg[weg.length - 1], ziel) <= REGELN.nahkampfReichweite,
+      weg && weg[weg.length - 1]);
+    chk('kein Feld des Weges ist besetzt',
+      !!weg && weg.every(function (f) { return A.arenaFeldFrei(f, t, 'd'); }), weg);
+    chk('und jeder Schritt grenzt an den vorigen',
+      !!weg && weg.every(function (f, i) {
+        return A.arenaDistanz(i ? weg[i - 1] : d, f) === 1;
+      }), weg);
+
+    const schritt = A.arenaSchrittZu(d, ziel, t, REGELN);
+    chk('die Figur laeuft los, statt stehen zu bleiben', schritt !== null, schritt);
+    chk('und zwar Richtung Luecke, nicht gegen die Mauer',
+      !!schritt && schritt.x > d.x, schritt);
+    chk('hoechstens ihre Bewegung weit',
+      !!schritt && A.arenaDistanz(d, schritt) <= REGELN.bewegung, schritt);
+
+    // Zweimal dieselbe Lage, zweimal derselbe Weg - sonst waere am Tisch nicht
+    // nachvollziehbar, warum eine Figur dorthin gelaufen ist.
+    chk('derselbe Stand ergibt denselben Weg',
+      JSON.stringify(A.arenaWeg(d, ziel, mauer(12), REGELN, 'd')) === JSON.stringify(weg));
+
+    // Luecke am anderen Ende: der Weg dreht mit.
+    const links = mauer(1);
+    const sl = A.arenaSchrittZu(links.d, links.p, links, REGELN);
+    chk('liegt die Luecke links, laeuft sie nach links', !!sl && sl.x < 5, sl);
+
+    // Gar kein Weg: Mauer ohne Luecke. Dann greift der Rueckfall, und der
+    // findet hier nichts - also stehen bleiben statt wackeln.
+    const dicht = mauer(-1);
+    chk('ohne Luecke gibt es keinen Weg', A.arenaWeg(dicht.d, dicht.p, dicht, REGELN, 'd') === null);
+    chk('und die Figur bleibt stehen', A.arenaSchrittZu(dicht.d, dicht.p, dicht, REGELN) === null);
+
+    /* Der Rueckfall ist nicht nur Zierde: Steht die Figur VOR der dichten
+       Mauer, aber noch ein Feld entfernt, soll sie dieses Feld noch gehen -
+       lieber einen Schritt naeher als gar nichts. */
+    const weitWeg = mauer(-1);
+    weitWeg.d = { id: 'd', typ: 'diener', x: 5, y: 0 };
+    chk('der Rueckfall geht wenigstens ein Feld naeher',
+      JSON.stringify(A.arenaSchrittZu(weitWeg.d, weitWeg.p, weitWeg, REGELN)) === '{"x":5,"y":2}',
+      A.arenaSchrittZu(weitWeg.d, weitWeg.p, weitWeg, REGELN));
+
+    // Schon daneben: leerer Weg, kein Zug.
+    chk('steht sie schon daneben, ist der Weg leer',
+      JSON.stringify(A.arenaWeg({ id: 'd', x: 5, y: 9 }, ziel, {}, REGELN, 'd')) === '[]');
+
+    // Das ZIEL selbst ist kein Hindernis - auf es soll eingeschlagen werden.
+    const eng = { d: { id: 'd', typ: 'diener', x: 5, y: 2 }, p: { typ: 'spieler', x: 5, y: 4 } };
+    chk('das Ziel selbst sperrt den Weg nicht',
+      A.arenaWeg(eng.d, eng.p, eng, REGELN, 'd').length === 1,
+      A.arenaWeg(eng.d, eng.p, eng, REGELN, 'd'));
+
+    // Und der ganze Durchgang: der Diener kommt an der Mauer nicht zum Stehen.
+    const lauf = mauer(12);
+    delete lauf.d;
+    lauf.a_d = { typ: 'diener', name: 'Diener', x: 5, y: 2, kaempfen: 2, parade: 5,
+                 robustheit: 5, staerke: 2, waffe: 1, wundenMax: 0, geladen: true };
+    const runde = A.arenaDienerRunde(lauf, REGELN, null, 2);
+    const stand = A.arenaAnwenden(lauf, runde.aenderungen);
+    chk('im ganzen Durchgang laeuft er an der Mauer vorbei',
+      stand.a_d.x !== 5 || stand.a_d.y !== 2, stand.a_d);
   })();
 
   // -------------------------------------------------- Ein Dienerzug

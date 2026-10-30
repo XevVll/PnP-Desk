@@ -13,7 +13,8 @@ Technischer Kontext: [CLAUDE.md](CLAUDE.md). Regel- und Story-Kontext:
 umgestellt — die Arena war die letzte Stelle im Projekt, die noch nach dem alten System
 rechnete. Am selben Tag dazu **Initiative über das Aktionsdeck** (3.6) und die
 **Diener-Automatik** (3.7): Die Reihe bestimmt, wer am Zug ist, und die Wiedergänger gehen von
-selbst auf den nächstgelegenen Gegner los. Weiterhin **nicht am Tisch erprobt.**
+selbst auf den nächstgelegenen Gegner los — ihr **Weg wird gesucht**, nicht geraten (3.7a).
+Weiterhin **nicht am Tisch erprobt.**
 
 ---
 
@@ -218,8 +219,7 @@ gehört der SL und den Spielern, nicht dem Brett.
 | Frage | Antwort |
 |---|---|
 | Ziel | nächster lebender Gegner (Chebyshev), bei Gleichstand die kleinere Token-Kennung |
-| Weg | gieriger Schritt, kein A*: das angrenzende freie Feld, das dem Ziel näher liegt |
-| bei Gleichstand der Entfernung | die kürzere **Luftlinie** — sonst driftet die Reihe sichtbar zur Seite |
+| Weg | der **kürzeste gesuchte** Weg bis an das Ziel heran (3.7a) |
 | bringt kein Feld etwas | **stehen bleiben** statt hin und her wackeln |
 | Angriff | nach der Bewegung, wenn das Ziel angrenzt (Bewegung **und** Handlung, wie bei jeder Figur) |
 | angeschlagen | läuft trotzdem los, schlägt aber nicht zu (3.4) |
@@ -230,12 +230,37 @@ Tokenkarte zwischen den Zügen mit `arenaAnwenden()` fort. Ohne das rechnet jede
 alten Stand — zwei landen auf demselben Feld, und der zweite schlägt auf einen Toten ein. Dafür
 steht eine eigene Prüfung da (7).
 
-**Die Grenze ist ehrlich:** Der gierige Schritt kann vor einer geschlossenen Reihe hängen
-bleiben. Bewusst in Kauf genommen — die SL kann jede Figur jederzeit versetzen (4.1), und ein
-Wegfinder auf 16×16 wäre Aufwand für einen Fall, den man mit einem Klick löst.
-
 Daneben steht ein eigener Knopf **„☠ Wiedergänger handeln"** (Schlachtfeld und Kompakt-Panel)
 für den Fall, dass die SL sie außerhalb der Reihe braucht.
+
+### 3.7a Der Weg wird gesucht, nicht geraten (30.10.2026, Fortsetzung 4)
+
+Im ersten Anlauf lief die Automatik einen **gierigen Schritt**: das angrenzende freie Feld, das
+dem Ziel näher liegt als das eigene. Das stand hier als bewusste Grenze — *„kann vor einer
+geschlossenen Reihe hängen bleiben, die SL versetzt sie dann"*.
+
+**Die Begründung trug nicht.** Auf einem Brett, auf dem bis zu einem Dutzend Diener herumsteht,
+ist „eine geschlossene Reihe" nicht der Ausnahmefall, sondern der Normalfall, sobald es eng
+wird — und eine Automatik, die genau dann aufgibt, wenn sie gebraucht wird, nimmt der
+Spielleitung die Arbeit nicht ab, sondern gibt sie ihr zurück.
+
+**`arenaWeg()` sucht jetzt mit einer Breitensuche** den kürzesten Weg bis zu einem Feld, das am
+Ziel **angrenzt**; gelaufen werden die ersten `bewegung` Schritte dieses Weges.
+
+- **Breitensuche, nicht A\*.** Das Brett hat 256 Felder — die Heuristik ist gespart. Was zählt,
+  ist die Sperrung: besetzte Felder sind Mauern, **das Ziel selbst ist keine** (auf es soll ja
+  eingeschlagen werden).
+- **Die Nachbarreihenfolge ist fest** (`ARENA_NACHBARN`, gerade Richtungen vor den Diagonalen).
+  Sie entscheidet, welcher von mehreren gleich kurzen Wegen gefunden wird, ist also kein Beiwerk:
+  Derselbe Stand ergibt immer denselben Weg, und ein Weg, der geradeaus geht, wo er geradeaus
+  gehen kann, sieht am Tisch richtig aus.
+- **Gibt es gar keinen Weg** (komplett eingemauert), bleibt der gierige Schritt als **Rückfall**
+  (`arenaSchrittGierig()`) — lieber ein Feld näher als gar nichts. Steht auch dort nichts offen,
+  bleibt die Figur stehen.
+
+Die aussagekräftigste Prüfung dazu lässt **beide Fassungen nebeneinander** laufen: eine Mauer
+quer über das Brett mit einer einzigen Lücke. Der Wegfinder findet einen Zug durch die Lücke, der
+gierige Schritt findet **keinen**. Liegt die Lücke links, dreht der Weg mit.
 
 ---
 
@@ -565,6 +590,8 @@ gedacht, jede Regelverzweigung deterministisch zu testen.
 | `arenaIniFreigabe(eintrag, tokens)` | welche Figur freigegeben wird (auf der Diener-Karte: niemand) |
 | `arenaIniBonus(ini, tokenId, tokens)` | der Joker-Zuschlag für diese Figur |
 | `arenaNaechstesZiel(figur, tokens)` | nächster lebender Gegner |
+| `arenaWeg(von, ziel, tokens, regeln, ausserId)` | kürzester Weg bis ans Ziel heran (Breitensuche); `[]` = steht schon dort, `null` = kein Weg |
+| `arenaSchrittGierig(...)` | der alte gierige Schritt, jetzt nur noch Rückfall |
 | `arenaSchrittZu(figur, ziel, tokens, regeln)` | ein Zug Bewegung, oder null fürs Stehenbleiben |
 | `arenaDienerZug(id, ...)` / `arenaDienerRunde(...)` | ein Diener bzw. alle; liefert Änderungen, Logzeilen und den fortgeschriebenen Stand |
 | `arenaIniLanden(...)` / `arenaIniNeueRunde(...)` | der Ablauf („wir landen auf Karte i", „neue Runde, neue Karten") |
@@ -588,7 +615,7 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-**`tests/t_arena.js`, 262 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+**`tests/t_arena.js`, 279 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
 Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System) und am selben
 Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
 
@@ -621,6 +648,11 @@ Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
    Brett nicht; ein angeschlagener Diener läuft, schlägt aber nicht zu; wer schon gehandelt hat,
    wird übersprungen; **kein Feld ist doppelt belegt**; der Seelenlose und die Spieler werden von
    der Automatik nicht angefasst.
+7. **Der Wegfinder** (3.7a) — eine Mauer mit einer Lücke: Der Weg führt **durch die Lücke**,
+   endet am Ziel angrenzend, besteht aus lauter freien und lauter angrenzenden Feldern, und
+   derselbe Stand ergibt denselben Weg. Liegt die Lücke links, dreht er mit. Ohne Lücke gibt es
+   keinen Weg, und dann greift der **Rückfall** — der geht wenigstens ein Feld näher, wenn noch
+   eines frei ist. Das Ziel selbst sperrt den Weg nicht.
 
 Dazu: angeschlagen sperrt den Angriff und nicht die Bewegung · Nachladen erst die Runde darauf ·
 eine liegende Figur ist kein Ziel · die Vorlagen stimmen mit den NSC-Blättern überein · die alten
@@ -652,6 +684,7 @@ Fehler wörtlich:
 | Schritt ohne Luftlinien-Entscheid | **1 Prüfung**, *„und geradeaus, nicht schräg daneben"* |
 | Joker zählt nicht auf den Schaden | **1 Prüfung** → `[7,7]` |
 | `arenaMischen()` weist stumpf zu | **7 Prüfungen**, darunter *„Nachschub, der sofort losläuft: kein Pfadkonflikt"* → `["tokens/neu","tokens/neu/x"]` |
+| wieder nur der gierige Schritt statt des Wegfinders | **5 Prüfungen**, darunter *„die Figur läuft los, statt stehen zu bleiben"* → `null` |
 
 **Ein Integrationstest über die Ansichten gehört nicht ins Repo** (Skill `pnp-safe-test`) und
 liegt im Scratchpad der jeweiligen Session: lokaler HTTP-Server, abgefangene
@@ -793,10 +826,11 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 - ~~Keine Initiative~~ — **behoben am 30.10.2026** (3.6, Bibel 4.4b): Dasselbe Aktionsdeck wie
   der Kampfmodus, eine Karte je Wild Card, eine für alle Diener, und die Reihe schaltet die Runde
   selbst weiter.
-- **Der Weg der Diener ist ein gieriger Schritt, kein Wegfinder.** Vor einer geschlossenen Reihe
-  können sie hängen bleiben; die SL versetzt sie dann (4.1). Ein A* auf 16×16 wäre Aufwand für
-  einen Fall, den ein Klick löst — falls es am Tisch doch stört, ist es eine abgegrenzte Stelle
-  (`arenaSchrittZu`).
+- ~~Der Weg der Diener ist ein gieriger Schritt, kein Wegfinder~~ — **behoben am 30.10.2026
+  (Fortsetzung 4), siehe 3.7a.** Gesucht wird mit einer Breitensuche; der gierige Schritt ist nur
+  noch der Rückfall für den Fall, dass es gar keinen Weg gibt. **Was bleibt:** keine Deckung,
+  keine Sichtlinien, keine Zonen — und eine Figur, die *vollständig* eingemauert ist, bleibt
+  stehen. Das ist dann auch richtig.
 - **Der Joker wirkt nur auf Wurf und Schaden**, nicht auf „handelt, wann er will": Die Reihe steht
   fest, sobald sie ausgeteilt ist. Die SL kann aber jeden Eintrag anklicken und damit von Hand
   vorziehen — das ist der Joker in der Praxis.

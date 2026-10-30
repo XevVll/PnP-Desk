@@ -701,13 +701,28 @@ function arenaIniBonus(ini, tokenId, tokens) {
    waere am Tisch nicht nachvollziehbar und im Test nicht
    pruefbar.
 
-   Der Weg ist ein gieriger Schritt, kein A*: Von den
-   angrenzenden freien Feldern wird genommen, welches dem Ziel
-   naeher liegt als das eigene. Bringt keines eine echte
-   Annaeherung, bleibt die Figur STEHEN, statt sinnlos hin und
-   her zu wackeln. Das kann vor einer geschlossenen Reihe haengen
-   bleiben - bewusst in Kauf genommen, die SL kann jede Figur
-   jederzeit versetzen (Versetzen-Modus im Schlachtfeld).
+   DER WEG WIRD GESUCHT, nicht geraten (seit 30.10.2026,
+   Fortsetzung 4). Erst stand hier ein gieriger Schritt: das
+   angrenzende freie Feld, das dem Ziel naeher liegt. Der laeuft
+   vor eine geschlossene Reihe und bleibt dort stehen - auf einem
+   Brett, auf dem bis zu einem Dutzend Diener in der Gegend
+   herumstehen, ist das nicht der Ausnahmefall, sondern der
+   Normalfall, sobald es eng wird. Eine Automatik, die genau dann
+   aufgibt, wenn sie gebraucht wird, nimmt der SL die Arbeit nicht
+   ab, sondern gibt sie ihr zurueck.
+
+   Gesucht wird mit einer BREITENSUCHE (arenaWeg) bis zu einem
+   Feld, das am Ziel angrenzt; gelaufen werden dann die ersten
+   paar Schritte dieses Weges. Chebyshev-Nachbarschaft, besetzte
+   Felder sind gesperrt, das ZIEL selbst ist kein Hindernis (es
+   ist der Gegner, auf den eingeschlagen werden soll). Die
+   Suchreihenfolge ist fest, also ist der Weg reproduzierbar -
+   dieselbe Begruendung wie bei der Zielwahl.
+
+   Gibt es GAR KEINEN Weg (komplett eingemauert), bleibt der
+   gierige Schritt als Rueckfall: Lieber ein Feld naeher als
+   gar nichts. Steht auch dort nichts offen, bleibt die Figur
+   stehen, statt hin und her zu wackeln.
 
    Angeschlagen hindert nicht am Gehen, nur am Zuschlagen
    (arenaKannAngreifen) - ein angeschlagener Diener laeuft also
@@ -731,41 +746,104 @@ function arenaNaechstesZiel(figur, tokens) {
   return best;
 }
 
-/* Wohin die Figur in diesem Zug laeuft, oder null fuer "bleibt stehen". */
-function arenaSchrittZu(figur, ziel, tokens, regeln) {
+/* Die acht Nachbarfelder in FESTER Reihenfolge. Die Reihenfolge entscheidet,
+   welcher von mehreren gleich kurzen Wegen gefunden wird - sie ist also kein
+   Beiwerk, sondern der Grund, warum derselbe Stand immer denselben Weg ergibt.
+   Gerade Richtungen zuerst, dann die Diagonalen: Ein Weg, der geradeaus geht,
+   wo er geradeaus gehen kann, sieht am Tisch richtig aus. */
+const ARENA_NACHBARN = [
+  { dx: 0, dy: -1 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }, { dx: 1, dy: 0 },
+  { dx: -1, dy: -1 }, { dx: 1, dy: -1 }, { dx: -1, dy: 1 }, { dx: 1, dy: 1 }
+];
+
+/* Der kuerzeste Weg bis zu einem Feld, das am Ziel ANGRENZT - als Liste der
+   Felder ohne das Startfeld. Leere Liste heisst "steht schon dort", null heisst
+   "es gibt keinen Weg".
+
+   Breitensuche und nicht A*: Das Brett hat 256 Felder, da ist die Heuristik
+   gespart. Was zaehlt, ist die Sperrung - besetzte Felder sind Mauern, das Ziel
+   selbst nicht (auf das soll ja eingeschlagen werden). */
+function arenaWeg(von, ziel, tokens, regeln, ausserId) {
+  if (arenaDistanz(von, ziel) <= regeln.nahkampfReichweite) return [];
+  const start = von.x + ':' + von.y;
+  const vorher = {};
+  vorher[start] = null;
+  let rand = [{ x: von.x, y: von.y }];
+  while (rand.length) {
+    const naechsterRand = [];
+    for (let i = 0; i < rand.length; i++) {
+      const hier = rand[i];
+      for (let n = 0; n < ARENA_NACHBARN.length; n++) {
+        const f = { x: hier.x + ARENA_NACHBARN[n].dx, y: hier.y + ARENA_NACHBARN[n].dy };
+        if (f.x < 0 || f.y < 0 || f.x >= regeln.breite || f.y >= regeln.hoehe) continue;
+        const k = f.x + ':' + f.y;
+        if (k in vorher) continue;
+        if (!arenaFeldFrei(f, tokens, ausserId)) continue;
+        vorher[k] = hier.x + ':' + hier.y;
+        if (arenaDistanz(f, ziel) <= regeln.nahkampfReichweite) {
+          // Rueckwaerts aufrollen und umdrehen.
+          const weg = [];
+          let lauf = k;
+          while (lauf && lauf !== start) {
+            const t = lauf.split(':');
+            weg.unshift({ x: +t[0], y: +t[1] });
+            lauf = vorher[lauf];
+          }
+          return weg;
+        }
+        naechsterRand.push(f);
+      }
+    }
+    rand = naechsterRand;
+  }
+  return null;
+}
+
+/* Der gierige Schritt - seit dem 30.10.2026 nur noch der RUECKFALL fuer den
+   Fall, dass es gar keinen Weg gibt (komplett eingemauert). Lieber ein Feld
+   naeher als gar nichts; bringt kein Feld eine echte Annaeherung, bleibt die
+   Figur stehen, statt hin und her zu wackeln. */
+function arenaSchrittGierig(figur, ziel, tokens, regeln) {
   const weite = Math.max(1, figur.bewegung || regeln.bewegung);
   let x = figur.x, y = figur.y, gelaufen = 0;
   for (let s = 0; s < weite; s++) {
     const hier = { x: x, y: y };
     if (arenaDistanz(hier, ziel) <= regeln.nahkampfReichweite) break;
     let best = null;
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        if (!dx && !dy) continue;
-        const f = { x: x + dx, y: y + dy };
-        if (f.x < 0 || f.y < 0 || f.x >= regeln.breite || f.y >= regeln.hoehe) continue;
-        if (!arenaFeldFrei(f, tokens, figur.id)) continue;
-        const dist = arenaDistanz(f, ziel);
-        if (dist >= arenaDistanz(hier, ziel)) continue;   // nur echte Annaeherung
-        /* Bei gleicher Entfernung entscheidet die LUFTLINIE, und das ist keine
-           Feinheit: Chebyshev zaehlt diagonal wie gerade, also sind "schraeg
-           weg in x, naeher in y" und "geradeaus" gleich weit. Nach reiner
-           Kennung driftete die ganze Reihe sichtbar zur Seite, statt auf das
-           Ziel zuzulaufen. Die Kennung bleibt als letzter Entscheid, damit das
-           Ergebnis reproduzierbar ist. */
-        const luft = (f.x - ziel.x) * (f.x - ziel.x) + (f.y - ziel.y) * (f.y - ziel.y);
-        const schl = f.x * 10000 + f.y;
-        if (!best || dist < best.dist
-          || (dist === best.dist && luft < best.luft)
-          || (dist === best.dist && luft === best.luft && schl < best.schl)) {
-          best = { f: f, dist: dist, luft: luft, schl: schl };
-        }
+    for (let n = 0; n < ARENA_NACHBARN.length; n++) {
+      const f = { x: x + ARENA_NACHBARN[n].dx, y: y + ARENA_NACHBARN[n].dy };
+      if (f.x < 0 || f.y < 0 || f.x >= regeln.breite || f.y >= regeln.hoehe) continue;
+      if (!arenaFeldFrei(f, tokens, figur.id)) continue;
+      const dist = arenaDistanz(f, ziel);
+      if (dist >= arenaDistanz(hier, ziel)) continue;   // nur echte Annaeherung
+      /* Bei gleicher Entfernung entscheidet die LUFTLINIE, und das ist keine
+         Feinheit: Chebyshev zaehlt diagonal wie gerade, also sind "schraeg weg
+         in x, naeher in y" und "geradeaus" gleich weit. Nach reiner Kennung
+         driftete die ganze Reihe sichtbar zur Seite, statt auf das Ziel
+         zuzulaufen. Die Kennung bleibt als letzter Entscheid, damit das
+         Ergebnis reproduzierbar ist. */
+      const luft = (f.x - ziel.x) * (f.x - ziel.x) + (f.y - ziel.y) * (f.y - ziel.y);
+      const schl = f.x * 10000 + f.y;
+      if (!best || dist < best.dist
+        || (dist === best.dist && luft < best.luft)
+        || (dist === best.dist && luft === best.luft && schl < best.schl)) {
+        best = { f: f, dist: dist, luft: luft, schl: schl };
       }
     }
     if (!best) break;
     x = best.f.x; y = best.f.y; gelaufen++;
   }
   return gelaufen ? { x: x, y: y } : null;
+}
+
+/* Wohin die Figur in diesem Zug laeuft, oder null fuer "bleibt stehen".
+   Gelaufen werden die ersten "bewegung" Schritte des gesuchten Weges. */
+function arenaSchrittZu(figur, ziel, tokens, regeln) {
+  const weite = Math.max(1, figur.bewegung || regeln.bewegung);
+  const weg = arenaWeg(figur, ziel, tokens, regeln, figur.id);
+  if (weg === null) return arenaSchrittGierig(figur, ziel, tokens, regeln);
+  if (!weg.length) return null;                       // steht schon daneben
+  return weg[Math.min(weg.length, weite) - 1];
 }
 
 /* ---------- Die Aenderungen eines Angriffs ----------
@@ -1009,7 +1087,8 @@ if (typeof module !== 'undefined' && module.exports) {
     ARENA_DIENER_SCHLUESSEL,
     arenaIniEintraege, arenaIniTokens, arenaAusteilen, arenaIniIndex,
     arenaIniAmZug, arenaIniWeiter, arenaIniFreigabe, arenaIniBonus,
-    arenaFeldFrei, arenaNaechstesZiel, arenaSchrittZu,
+    arenaFeldFrei, arenaNaechstesZiel, arenaWeg, arenaSchrittGierig, arenaSchrittZu,
+    ARENA_NACHBARN,
     arenaDienerZug, arenaDienerRunde,
     arenaIniLanden, arenaIniNeueRunde, arenaMischen
   };

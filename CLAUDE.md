@@ -129,6 +129,42 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-10-30 (Fortsetzung 4) — Die Wiedergänger finden ihren Weg
+- **Nachgelegt am selben Tag**, und zwar an der Stelle, die ich im Eintrag darunter selbst als
+  Grenze der Automatik benannt hatte: dem Weg.
+- **Die Begründung von vorhin trug nicht, und das ist der Punkt.** Dort stand, der gierige
+  Schritt könne „vor einer geschlossenen Reihe hängen bleiben — bewusst in Kauf genommen, die SL
+  versetzt sie dann". Auf einem Brett, auf dem **bis zu ein Dutzend Diener herumsteht**, ist eine
+  geschlossene Reihe aber nicht der Ausnahmefall, sondern der Normalfall, sobald es eng wird.
+  **Eine Automatik, die genau dann aufgibt, wenn sie gebraucht wird, nimmt der Spielleitung die
+  Arbeit nicht ab — sie gibt sie ihr zurück.**
+- **Neu `arenaWeg()`:** Breitensuche bis zu einem Feld, das am Ziel **angrenzt**; gelaufen werden
+  die ersten `bewegung` Schritte dieses Weges.
+  - **Breitensuche und nicht A\*** — das Brett hat 256 Felder, da ist die Heuristik gespart.
+    Was zählt, ist die Sperrung: besetzte Felder sind Mauern, **das Ziel selbst ist keine** (auf
+    es soll ja eingeschlagen werden).
+  - **Die Nachbarreihenfolge ist fest** (`ARENA_NACHBARN`, gerade Richtungen vor den Diagonalen)
+    und kein Beiwerk: Sie entscheidet, welcher von mehreren gleich kurzen Wegen gefunden wird.
+    Derselbe Stand ergibt damit immer denselben Weg — am Tisch muss nachvollziehbar sein, warum
+    eine Figur dorthin gelaufen ist. Und ein Weg, der geradeaus geht, wo er geradeaus gehen kann,
+    sieht richtig aus.
+  - **Der gierige Schritt bleibt als Rückfall** (`arenaSchrittGierig()`), für den Fall, dass es
+    gar keinen Weg gibt: lieber ein Feld näher als gar nichts. Ist auch dort nichts offen, bleibt
+    die Figur stehen — eine vollständig eingemauerte Figur bleibt richtigerweise stehen.
+- **Die aussagekräftigste Prüfung lässt BEIDE Fassungen nebeneinander laufen:** eine Mauer quer
+  über das Brett mit einer einzigen Lücke. Der Wegfinder findet einen Zug durch die Lücke, der
+  gierige Schritt findet **keinen** — und liegt die Lücke links statt rechts, dreht der Weg mit.
+  Dazu: der Weg besteht aus lauter freien und lauter *angrenzenden* Feldern (ein Weg mit einem
+  Sprung darin wäre keiner), er endet am Ziel angrenzend, und zweimal dieselbe Lage ergibt
+  zweimal denselben Weg.
+- **Getestet: 279 Prüfungen in `t_arena.js`, 0 Fehler** (17 neue; **2010 über vierzehn
+  Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **Gegengeprüft:** Setzt man wieder den gierigen Schritt ein, schlagen **5 Prüfungen** an, und
+    die erste nennt den Fehler wörtlich: `die Figur laeuft los, statt stehen zu bleiben` → `null`.
+- **`ARENA-ENDKAMPF.md`** hat dafür einen eigenen Abschnitt **3.7a**; in 9.2 ist die Lücke als
+  **behoben gekennzeichnet statt gelöscht**, samt dem, was bleibt (keine Deckung, keine
+  Sichtlinien, keine Zonen).
+
 ### 2026-10-30 (Fortsetzung 3) — Die Arena geht reihum, und die Wiedergänger laufen von selbst
 - **Hendriks Auftrag:** „Ich würde gerne das Schlachtfeld weiter automatisieren. Initiative kann
   über Karten verteilt werden und dann sollte es wirklich reihum gehen. Ich steuer den
