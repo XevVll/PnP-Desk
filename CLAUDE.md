@@ -16,9 +16,11 @@ Kernbeats des Finales geschehen. Vor jeder Arbeit an der Arena lesen.
 
 > **Würfelsystem fertig (14.10.2026):** Leiste beim Spieler, Anforderung und Protokoll in der
 > Regie, Würfe im Session-Export. **Die Arena ist seit dem 30.10.2026 mit umgestellt** — damit
-> rechnet keine Stelle im Projekt mehr nach W100. Offen am Regelsystem bleibt nur noch der
-> **Abenteuertext** (311 alte Wertenamen in `js/regie.js`, 24 verwaiste
-> „Schlechter Erfolg"-Passagen).
+> rechnet keine Stelle im Projekt mehr nach W100. Sie hat seit demselben Tag **Initiative über
+> das Aktionsdeck** und eine **Diener-Automatik**: Die Reihe bestimmt, wer am Zug ist, und die
+> Wiedergänger gehen von selbst los (Bibel 4.4b, `ARENA-ENDKAMPF.md` 3.6/3.7). Offen am
+> Regelsystem bleibt nur noch der **Abenteuertext** (311 alte Wertenamen in `js/regie.js`, 24
+> verwaiste „Schlechter Erfolg"-Passagen).
 >
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
@@ -126,6 +128,107 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-10-30 (Fortsetzung 3) — Die Arena geht reihum, und die Wiedergänger laufen von selbst
+- **Hendriks Auftrag:** „Ich würde gerne das Schlachtfeld weiter automatisieren. Initiative kann
+  über Karten verteilt werden und dann sollte es wirklich reihum gehen. Ich steuer den
+  Seelenlosen aber die kleinen untoten, sollten automatisch auf den nächst gelegenden gehen."
+- **DER BEFUND VORWEG, und es ist derselbe wie heute Mittag: die Bibel kannte die Initiative
+  nicht.** Das Aktionsdeck steht seit dem 15.10.2026 in `js/kampf.js` und wird im Kampfmodus
+  benutzt — in Abschnitt 4 kam es **nicht ein einziges Mal** vor. Neu: **Bibel 4.4b „Die
+  Initiative — das Aktionsdeck"**, dazu ein Absatz im handgeschriebenen Spickzettel von
+  `REGELREFERENZ.md`. Genau die Regel vom 14.10.: *Fehlt eine Regel dort, ist **das** der
+  Befund.*
+- **Das Deck ist DASSELBE wie im Kampfmodus.** `neuesDeck`/`austeilen`/`kartenVergleich`/
+  `jokerBonus` kommen aus `js/kampf.js`; ein zweites Aktionsdeck in der Arena wäre derselbe
+  Fehler wie ein zweiter Regelkern — und der Preis wäre, dass das Finale eine andere
+  Reihenfolge auswürfelt als jeder Kampf davor.
+- **Wer eine Karte bekommt, ist die Savage-Worlds-Regel und nicht gegriffen:** jede Wild Card
+  eine eigene, **jede Gegner-SORTE eine gemeinsame**. Auf dem Brett heißt das: Spieler,
+  Verbündete und der Seelenlose je eine, **alle Diener zusammen EINE.** Zwölf Wiedergänger sind
+  damit ein Eintrag in der Leiste statt zwölf — und genau das ist der Grund, warum sie am Tisch
+  lesbar bleibt.
+  - **Die Diener-Gruppe hält bewusst KEINE feste Liste.** Wer auf ihrer Karte handelt, wird erst
+    beantwortet, wenn die Karte dran ist. Nur so handelt **Nachschub, der mitten in der Runde
+    erscheint**, noch auf derselben Karte; eine beim Austeilen eingefrorene Liste hätte ihn bis
+    zur nächsten Runde stillstehen lassen.
+  - Wer am Boden liegt, bekommt keine Karte; ein Eintrag, dessen Figuren alle fallen, wird
+    **übersprungen** — in der Leiste bleibt er durchgestrichen stehen, damit man sieht, **wer**
+    gefallen ist.
+- **„Wirklich reihum" heißt, dass die Runde sich selbst weiterschaltet.** „Nächste Figur ▸" geht
+  einen Eintrag weiter; ist die Reihe durch, ist das der Rundenwechsel samt neuem Austeilen —
+  **auf dem Stand NACH dem Wechsel**, sonst bekommen Auferstandene und frischer Nachschub keine
+  Karte, obwohl sie stehen. Jeder Eintrag der Leiste ist anklickbar, damit die SL einen
+  vergessenen Zug nachholen kann.
+- **Der Joker wirkt wirklich** (+2 auf Wurf **und** Schaden, `arenaAngriff(..., bonus)`). Ohne
+  diese Stelle wäre die Jokerkarte ein rotes Zeichen in der Leiste ohne Wirkung — dann könnte man
+  das Deck auch weglassen.
+- **DIE DIENER-REGEL IST BEWUSST DUMM, und das ist der Punkt.** Ein Wiedergänger geht auf den
+  **nächsten** — nicht auf den schwächsten, nicht auf den gefährlichsten, nicht auf den schon
+  verwundeten. Er sucht sich kein Ziel aus, er geht los. Alles Klügere wäre Taktik, und Taktik
+  gehört der SL und den Spielern, nicht dem Brett. Bei gleicher Entfernung entscheidet die
+  Token-Kennung: willkürlich, aber **reproduzierbar** — eine Zufallswahl wäre am Tisch nicht
+  nachvollziehbar und im Test nicht prüfbar.
+  - **Die Züge werden SEQUENZIELL gerechnet**, nicht gleichzeitig. Sonst rechnet jeder Diener auf
+    dem alten Stand, zwei landen auf demselben Feld und der zweite schlägt auf einen Toten ein.
+  - **Der Seelenlose bleibt unberührt** — Hendriks Vorgabe, und es steht als eigene Prüfung da.
+- **Ein echter Fehler, den nur das Gegenlesen der Schreibpfade gefunden hat:** Beim Austeilen
+  schreibt die Arena `initiative` (das ganze Objekt), beim Landen `initiative/index` — **beides
+  im selben atomaren Paket.** Firebase lehnt ein `update()`, in dem ein Pfad Vorfahre eines
+  anderen ist, **komplett** ab. Dieselbe Falle noch unauffälliger bei den Tokens: Der
+  Rundenwechsel setzt frischen Nachschub als ganzes `tokens/t7`, und derselbe Diener läuft in
+  derselben Runde los → `tokens/t7/x`. Es wäre nicht halb schiefgegangen, sondern ganz, und erst
+  am Tisch. Behoben mit **`arenaMischen()`**, dazu eine Prüfung auf die **Form** jedes Pakets
+  statt nur auf seinen Inhalt.
+- **Dreimal Doppelung aufgelöst statt sie zu vermehren:** Die Änderungen und die Logzeile eines
+  Angriffs standen **wortgleich** in `karte.html` und `arena_admin.html` — die Diener-Automatik
+  wäre die dritte Kopie geworden. Jetzt `arenaAngriffAenderungen()`/`arenaAngriffText()` in
+  `js/arena.js`, wie die Logzeile selbst. Ebenso der Ablauf („wir landen auf Karte i", „neue
+  Runde, neue Karten"): Er stand im ersten Anlauf in `arena_admin.html` und wäre im
+  Kompakt-Panel ein zweites Mal nötig gewesen — jetzt `arenaIniLanden()`/`arenaIniNeueRunde()`.
+- **Die Spieler sehen die Leiste mit** (`karte.html`, unter dem Rundenkopf, nicht anklickbar).
+  Wer weiß, dass er nach dem Seelenlosen dran ist, kann sich seinen Zug überlegen, statt auf die
+  Freigabe zu warten. Dazu kommt „Am Zug" jetzt aus der Initiative statt aus der Freigabe —
+  auf der Diener-Karte ist niemand einzeln freigegeben, und dort stand vorher ein
+  Gedankenstrich, während ein Dutzend Figuren handelte.
+- **Getestet: 262 Prüfungen in `t_arena.js`, 0 Fehler** (88 neue; **1993 über vierzehn
+  Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **Acht Gegenproben, und jede nennt den Fehler wörtlich:** Diener auf den entferntesten
+    (3 Prüfungen, `"p_fern"`) · eigene Karte je Diener (11, acht Einträge statt fünf) · Züge auf
+    dem alten Stand (2, `kein Feld ist doppelt belegt` → `["b_d2","c_d3","6:4"]`) · die
+    Dienerkarte gibt doch frei (2) · Schritt ohne Luftlinie (1) · Joker nicht auf den Schaden
+    (1, `[7,7]`) · `arenaMischen()` weist stumpf zu (7, darunter
+    `["tokens/neu","tokens/neu/x"]`).
+- **Vier eigene Fehler, alle vor dem Schreiben gefangen — zwei davon von meinen eigenen
+  Prüfungen:**
+  1. **Die Dienerkarte gab den letzten übrigen Diener frei.** Die Freigabe hing allein an „genau
+     eine Figur auf diesem Eintrag" — bei einem einzigen verbliebenen Wiedergänger wurde er damit
+     an die Spieler durchgereicht. **Die Dienerkarte ist die Karte der GRUPPE; wie viele darauf
+     stehen, ändert daran nichts.**
+  2. **Die Diener drifteten sichtbar zur Seite.** Chebyshev zählt diagonal wie gerade, also sind
+     „schräg weg in x, näher in y" und „geradeaus" gleich weit; der Entscheid lief über die
+     Kennung, und damit zog die ganze Reihe nach links, obwohl das Ziel vor ihr stand. Jetzt
+     entscheidet die **Luftlinie**. Aufgefallen an einer Gegenprobe, nicht beim Hinsehen — alle
+     Prüfungen waren grün, weil keine nach der Richtung gefragt hatte.
+  3. **Zwei meiner Prüfungen konnten ihren Fehler nicht sehen.** Die Kollisionsprüfung las
+     `erg.tokens` statt den Stand, den das `update()` erzeugt — in der kaputten Variante ist das
+     der unveränderte Ausgangsstand, also meldete sie OK. Eine zweite prüfte „x ist nicht mehr 2"
+     und war ebenso grün. **Eine Prüfung, die den Fehler nicht sehen KANN, prüft nichts.**
+  4. **Eine falsche Erwartung, nicht der Code:** „drei Felder weg, Bewegung 2, also kommt er
+     nicht an" — nach zwei Feldern steht er angrenzend und schlägt im **selben** Zug zu.
+     Bewegung und Handlung, wie bei jeder anderen Figur.
+- **Dokumente nachgezogen, nicht nachgelassen:** **Bibel 4.4b** neu, der Spickzettel in
+  `REGELREFERENZ.md`, `ARENA-ENDKAMPF.md` in den Abschnitten 2, 3.6, 3.7, 4.1, 5.2, 6.1, 7, 8
+  (Fehler 12–16) und 9 — dort sind „Keine Initiative" und „keine Gegner-KI" als **behoben**
+  gekennzeichnet statt gelöscht. Dazu die Dateiköpfe von `js/arena.js` und `js/arena_scenes.js`.
+- **[OFFEN] Der Weg ist ein gieriger Schritt, kein Wegfinder.** Vor einer geschlossenen Reihe
+  können Diener hängen bleiben; die SL versetzt sie dann. Ein A* auf 16×16 wäre Aufwand für
+  einen Fall, den ein Klick löst — die Stelle ist abgegrenzt (`arenaSchrittZu`).
+- **[OFFEN] Der Joker handelt nicht, „wann er will".** Die Reihe steht, sobald sie ausgeteilt
+  ist; die SL kann aber jeden Eintrag anklicken und damit vorziehen. Ob das am Tisch reicht,
+  zeigt der Probekampf.
+- **[OFFEN] Ob der Ablauf sich gut anfühlt, zeigt erst ein Durchlauf** — zusammen mit den Werten
+  (`ARENA-ENDKAMPF.md` 9.1). Es ist jetzt erstmals ein Ablauf, der sich von selbst trägt.
 
 ### 2026-10-30 (Fortsetzung 2) — Die Verfolgung endet erzählerisch, und die Gruppe sitzt fest
 - **Hendriks Entscheidung:** „Die Verfolgung wird nur erzählerisch anhalten und den Spielern

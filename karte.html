@@ -106,6 +106,23 @@
     font-size: 13px; color: var(--ink-dim);
   }
   #arenaKopf b { color: var(--gold); font-weight: normal; letter-spacing: 1px; }
+  /* Die Reihenfolge der Runde. Spieler sehen sie bewusst MIT: Wer weiss, dass
+     er nach dem Seelenlosen dran ist, kann sich seinen Zug ueberlegen, statt
+     auf die Freigabe zu warten. Nicht anklickbar - geschaltet wird im
+     Schlachtfeld der SL. */
+  #arenaIni {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    justify-content: center; font-size: 12.5px; color: var(--ink-dim);
+  }
+  #arenaIni .ini-e {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid rgba(201,162,75,0.25); border-radius: 12px; padding: 2px 9px;
+  }
+  #arenaIni .ini-e.dran { border-color: var(--gold); color: var(--gold); background: rgba(201,162,75,0.16); }
+  #arenaIni .ini-e.weg { opacity: .35; text-decoration: line-through; }
+  #arenaIni .ini-k { color: var(--ink); }
+  #arenaIni .ini-e.dran .ini-k { color: var(--gold); }
+  #arenaIni .ini-k.joker { color: #a8391e; }
   #arenaBrett {
     position: relative;
     display: grid;
@@ -985,6 +1002,7 @@
   <!-- Kampf-Arena (Szenen mit "arena: true", siehe js/arena_scenes.js) -->
   <div id="arena" aria-hidden="true">
     <div id="arenaKopf"></div>
+    <div id="arenaIni"></div>
     <div id="arenaBrett"></div>
     <div id="arenaHinweis"></div>
     <div id="arenaLog"></div>
@@ -1854,6 +1872,7 @@
     const arenaEl = document.getElementById('arena');
     const arenaBrettEl = document.getElementById('arenaBrett');
     const arenaKopfEl = document.getElementById('arenaKopf');
+    const arenaIniEl = document.getElementById('arenaIni');
     const arenaHinweisEl = document.getElementById('arenaHinweis');
     const arenaLogEl = document.getElementById('arenaLog');
     let arenaRef = null, arenaListener = null, arenaScene = null, arenaSnap = {};
@@ -1869,6 +1888,7 @@
       arenaEl.classList.remove('on');
       arenaEl.setAttribute('aria-hidden', 'true');
       arenaBrettEl.innerHTML = '';
+      arenaIniEl.innerHTML = '';
     }
 
     function startArena(sceneId) {
@@ -1906,8 +1926,25 @@
       arenaBrettEl.style.gridTemplateRows = 'repeat(' + r.hoehe + ', ' + feld + 'px)';
       arenaBrettEl.style.backgroundImage = sz.hintergrund ? 'url("' + sz.hintergrund + '")' : 'none';
 
+      /* "Am Zug" kommt seit dem 30.10.2026 aus der Initiative und nicht mehr
+         allein aus der Freigabe: Auf der Diener-Karte ist niemand einzeln
+         freigegeben, und dort stand vorher ein Gedankenstrich, obwohl ein
+         Dutzend Figuren handelte. */
+      const ini = arenaSnap.initiative || null;
+      const dran = (typeof arenaIniAmZug === 'function') ? arenaIniAmZug(ini, tokens) : null;
+      const amZug = dran ? dran.name : (frei ? (frei.name || frei.id) : '—');
       arenaKopfEl.innerHTML = '<span>Runde <b>' + (arenaSnap.runde || 1) + '</b></span>' +
-        '<span>Am Zug: <b>' + (frei ? (frei.name || frei.id) : '—') + '</b></span>';
+        '<span>Am Zug: <b>' + escHtml(amZug) + '</b></span>';
+
+      const reihe = (ini && ini.reihe) || [];
+      arenaIniEl.innerHTML = !reihe.length ? '' : reihe.map(function (e, i) {
+        const ids = arenaIniTokens(e, tokens);
+        const k = e.karte || null;
+        return '<span class="ini-e' + (dran && dran.index === i ? ' dran' : '') +
+          (ids.length ? '' : ' weg') + '">' +
+          '<span class="ini-k' + (k && k.joker ? ' joker' : '') + '">' + escHtml(kartenText(k)) + '</span>' +
+          '<span>' + escHtml(e.name || e.key) + '</span></span>';
+      }).join('');
 
       // Erreichbare Felder und angreifbare Ziele der freigegebenen Figur.
       // NUR Figuren vom Typ "spieler" sind fuer Spieler steuerbar (Hendriks
@@ -2079,35 +2116,17 @@
       const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
       const z = Object.assign({ id: zielId }, tokens[zielId] || {});
       if (!a.typ || !z.typ) return;
-      const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null);
+      // Der Joker der Initiative gibt +2 auf Wurf UND Schaden (js/kampf.js).
+      const bonus = arenaIniBonus(arenaSnap.initiative || null, angreiferId, tokens);
+      const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null, null, bonus);
       if (!erg.ok) return;
 
-      const aenderungen = { ['tokens/' + angreiferId + '/hatAngegriffen']: true };
-      if (erg.entlaedt) {
-        aenderungen['tokens/' + angreiferId + '/geladen'] = false;
-        aenderungen['tokens/' + angreiferId + '/entladenSeitRunde'] = arenaSnap.runde || 1;
-      }
-      if (erg.endgueltig) {
-        aenderungen['tokens/' + zielId] = null; // verschwindet ganz
-      } else if (erg.trifft) {
-        // Kein HP-Abzug mehr: angeschlagen und Wunden sind der Zustand.
-        aenderungen['tokens/' + zielId + '/angeschlagen'] = erg.angeschlagenNeu ? true : null;
-        aenderungen['tokens/' + zielId + '/wunden'] = erg.wundenNeu > 0 ? erg.wundenNeu : null;
-        if (erg.toetet) {
-          aenderungen['tokens/' + zielId + '/tot'] = true;
-          aenderungen['tokens/' + zielId + '/totSeitRunde'] = arenaSnap.runde || 1;
-        }
-      }
-
-      /* Die Logzeile kommt aus js/arena.js und wird NICHT hier gebaut: Alle
-         drei Ansichten schreiben dieselbe, und die Regel "der Saebel wird
-         nirgends benannt" (Hendriks Vorgabe) ist damit an genau einer Stelle
-         einzuhalten statt an drei. */
-      let text = arenaLogZeile(a, z, erg);
-      if (erg.gangUp > 0) text += ' (gemeinsam, +' + erg.gangUp + ')';
-      if (erg.endgueltig) text += ' — zerfällt zu Staub.';
-      else if (erg.toetet) text += ' — geht zu Boden.';
-      arenaSchreibe(aenderungen, text);
+      /* Aenderungen UND Logzeile kommen aus js/arena.js und werden NICHT hier
+         gebaut: Alle drei Ansichten schreiben dieselben, und die Regel "der
+         Saebel wird nirgends benannt" (Hendriks Vorgabe) ist damit an genau
+         einer Stelle einzuhalten statt an drei. */
+      arenaSchreibe(arenaAngriffAenderungen(a, z, erg, arenaSnap.runde || 1),
+        arenaAngriffText(a, z, erg));
     }
 
     window.addEventListener('resize', function () { if (arenaScene) renderArena(); });

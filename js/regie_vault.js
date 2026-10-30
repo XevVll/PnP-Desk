@@ -504,12 +504,19 @@ function attachArenaListener(sceneId) {
 
 function arenaBasis(sceneId) { return 'arenaState/' + fbKey(sceneId) + '/'; }
 
+/* "logText" darf seit dem 30.10.2026 auch eine LISTE sein: Die
+   Diener-Automatik erzeugt in einem Zug mehrere Zeilen, und die sollen nicht
+   zu einem Klumpen zusammengezogen werden. */
 function arenaUpdate(sceneId, aenderungen, logText) {
   if (!db) return;
   const basis = arenaBasis(sceneId);
   const paket = {};
   Object.keys(aenderungen).forEach(function (p) { paket[basis + p] = aenderungen[p]; });
-  if (logText) paket[basis + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
+  const zeilen = Array.isArray(logText) ? logText : (logText ? [logText] : []);
+  zeilen.forEach(function (t, i) {
+    if (!t) return;
+    paket[basis + 'log/' + db.ref().push().key] = { text: t, zeit: Date.now() + i };
+  });
   db.ref().update(paket);
 }
 
@@ -554,9 +561,14 @@ function arenaAufbauen(sceneId) {
     setze(sz.vorlagen.diener, 'Diener ' + (i + 1), Math.min(r.breite - 1, dienerAbstand * (i + 1) - 1), 1);
   }
 
+  /* Karten gleich mit austeilen - eine Arena ohne Reihenfolge waere der
+     Zustand von vor dem 30.10.2026. Gelandet wird noch NICHT: In Runde 1 steht
+     die Aufstellung, und ein Dienerangriff vor dem ersten Wort der SL waere
+     ein Ueberfall. */
   db.ref(arenaBasis(sceneId).slice(0, -1)).set({
     runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
-    log: { start: { text: 'Der Kampf beginnt.', zeit: Date.now() } }
+    initiative: arenaAusteilen(tokens, null, null),
+    log: { start: { text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.', zeit: Date.now() } }
   });
 }
 
@@ -631,7 +643,62 @@ function arenaRundeWeiter(sceneId) {
   // und dann stimmte der Satz nicht (Regel vom 18.10.2026).
   if (erg.bossGebannt) text += ' Der Seelenlose ist gebannt — nichts steht mehr auf.';
   else if (!erg.bossLebt) text += ' Der Seelenlose liegt am Boden — es geht weiter.';
-  arenaUpdate(sceneId, aenderungen, text);
+
+  /* Neue Runde, neue Karten - ausgeteilt auf dem Stand NACH dem
+     Rundenwechsel, sonst bekommen Auferstandene und frischer Nachschub keine
+     Karte, obwohl sie stehen. Der Ablauf selbst liegt in js/arena.js, damit
+     dieses Panel und arena_admin.html nicht auseinanderlaufen. */
+  const nachher = arenaAnwenden(tokens, aenderungen);
+  const e = arenaIniNeueRunde(arenaStateSnap.initiative || null, nachher, sz.regeln,
+    arenaStateSnap.saebeltraeger || null, erg.runde);
+  arenaMischen(aenderungen, e.aenderungen);
+  arenaUpdate(sceneId, aenderungen, [text].concat(e.logs));
+}
+
+/* ---------- Initiative (30.10.2026) ----------
+   Dieselben drei Schalter wie im Schlachtfeld, damit die SL nicht die Seite
+   wechseln muss, nur um weiterzuschalten. Die Logik kommt aus js/arena.js. */
+function arenaAusteilenJetzt(sceneId) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const e = arenaIniNeueRunde(arenaStateSnap.initiative || null, arenaStateSnap.tokens || {},
+    sz.regeln, arenaStateSnap.saebeltraeger || null, arenaStateSnap.runde || 1);
+  arenaUpdate(sceneId, e.aenderungen, ['Die Karten sind ausgeteilt.'].concat(e.logs));
+}
+
+function arenaNaechsteFigur(sceneId) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const ini = arenaStateSnap.initiative || null;
+  if (!ini || !(ini.reihe || []).length) { arenaAusteilenJetzt(sceneId); return; }
+  const tokens = arenaStateSnap.tokens || {};
+  const w = arenaIniWeiter(ini, tokens);
+  // Reihe durch = Runde durch. "Wirklich reihum" heisst, dass die Runde nicht
+  // zusaetzlich von Hand weitergeschaltet werden muss.
+  if (w.rundeFertig) { arenaRundeWeiter(sceneId); return; }
+  const e = arenaIniLanden(ini, tokens, w.index, sz.regeln,
+    arenaStateSnap.saebeltraeger || null, arenaStateSnap.runde || 1);
+  arenaUpdate(sceneId, e.aenderungen, e.logs);
+}
+
+function arenaIniSprung(sceneId, index) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const ini = arenaStateSnap.initiative || null;
+  if (!ini || !((ini.reihe || [])[index])) return;
+  const e = arenaIniLanden(ini, arenaStateSnap.tokens || {}, index, sz.regeln,
+    arenaStateSnap.saebeltraeger || null, arenaStateSnap.runde || 1);
+  arenaUpdate(sceneId, e.aenderungen, e.logs);
+}
+
+function arenaDienerHandeln(sceneId) {
+  const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const reihe = ((arenaStateSnap.initiative || {}).reihe) || [];
+  const eintrag = reihe.filter(function (x) { return x.key === ARENA_DIENER_SCHLUESSEL; })[0] || null;
+  const erg = arenaDienerRunde(arenaStateSnap.tokens || {}, sz.regeln,
+    arenaStateSnap.saebeltraeger || null, arenaStateSnap.runde || 1, jokerBonus(eintrag));
+  const logs = [];
+  if (erg.gezogen) logs.push(erg.gezogen + ' Wiedergänger drängen vor.');
+  erg.log.forEach(function (l) { logs.push(l); });
+  if (!logs.length) logs.push('Die Wiedergänger rühren sich nicht.');
+  arenaUpdate(sceneId, erg.aenderungen, logs);
 }
 
 function arenaSaebel(sceneId, tokenId) {
@@ -689,6 +756,8 @@ function renderArenaPanelHTML(sceneId) {
   const saebel = arenaStateSnap.saebeltraeger || null;
 
   let html = '<div class="sh-graph"><div class="sh-graph-label">⚔ Arena — Runde ' + runde +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="arenaNaechsteFigur(\'' + sceneId + '\')">Nächste Figur ▸</button>' +
+    ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="arenaAusteilenJetzt(\'' + sceneId + '\')">🂠 Karten</button>' +
     ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="arenaRundeWeiter(\'' + sceneId + '\')">Runde weiter ▸</button>' +
     ' <button class="sh-graph-btn sh-graph-btn-reset" onclick="if(confirm(\'Kampf komplett neu aufsetzen? Alle Figuren werden ersetzt.\'))arenaAufbauen(\'' + sceneId + '\')">↺ Aufbauen</button>' +
     '</div>';
@@ -704,6 +773,28 @@ function renderArenaPanelHTML(sceneId) {
   if (!ids.length) {
     html += '<div class="sh-graph-ereignis-text">Noch keine Figuren auf dem Feld. „Aufbauen" setzt eine komplette Startaufstellung, oder du setzt die Figuren einzeln über die Knöpfe darüber.</div></div>';
     return html;
+  }
+
+  /* Die Reihenfolge der Runde. Jeder Eintrag ist anklickbar, damit die SL
+     mitten in der Runde zu einer Karte springen kann - etwa wenn sie einen
+     Zug vergessen hat. Ein Eintrag ohne stehende Figur bleibt durchgestrichen
+     stehen statt zu verschwinden: Man soll sehen, WER gefallen ist. */
+  const ini = arenaStateSnap.initiative || null;
+  const reihe = (ini && ini.reihe) || [];
+  if (reihe.length) {
+    const dran = arenaIniAmZug(ini, tokens);
+    html += '<div class="sh-graph-options" style="flex-direction:row;flex-wrap:wrap">' +
+      reihe.map(function (e, i) {
+        const leer = !arenaIniTokens(e, tokens).length;
+        const k = e.karte || null;
+        return '<button class="sh-graph-btn' + (dran && dran.index === i ? ' sh-graph-leader' : '') +
+          '" style="' + (leer ? 'opacity:.4;text-decoration:line-through' : '') +
+          '" onclick="arenaIniSprung(\'' + sceneId + '\', ' + i + ')">' +
+          '<b>' + kartenText(k) + '</b> ' + (e.name || e.key) + '</button>';
+      }).join('') +
+      ' <button class="sh-graph-btn" onclick="arenaDienerHandeln(\'' + sceneId + '\')" ' +
+      'title="Jeder Wiedergänger geht auf den nächstgelegenen Gegner los">☠ Wiedergänger handeln</button>' +
+      '</div>';
   }
 
   html += '<div class="sh-graph-ereignis-text">Für den eigentlichen Kampf gibt es das ' +

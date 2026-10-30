@@ -47,6 +47,13 @@ vollständig — das bessere Ergebnis zählt, wobei erst das Band zählt und dan
 
 **Schießen.** 1701 ist alles Vorderlader: **ein Schuss**, dann nachladen — das dauert (in der Arena: erst in der übernächsten Runde wieder bereit). Jeder Schuss verbraucht **eine Ladung**; der Vorrat steht an der Figur, nicht an der Waffe. Ohne Ladungen ist die Waffe ein teurer Knüppel. Abgezogen wird von Hand — nicht jede Schießen-Probe ist ein Schuss.
 
+**Initiative: Karten, nicht Würfel.** Zu Beginn jeder Runde eine Karte je Teilnehmer, gehandelt
+wird vom **Ass** abwärts bis zur **Zwei**; bei gleichem Wert zählt die Farbe
+**Pik · Herz · Karo · Kreuz**. Der **Joker** steht über dem Ass, handelt wann er will und gibt
+**+2 auf jede Probe und auf den Schaden** — danach wird neu gemischt. **Eine Karte je
+Heldenfigur, eine je Gegner-SORTE** (ein Dutzend Wiedergänger sind EINE Karte). Wer außer
+Gefecht ist, bekommt keine.
+
 **Im Kampf.** Der Angriff ist eine normale Probe. **Nahkampf** (Kämpfen) gegen die
 **Parade** des Ziels — als Modifikator, weil das Ziel immer 4 bleibt: Parade 6 heißt
 −2, Parade 8 heißt −4. **Fernkampf** (Schießen) geht **nicht** gegen die Parade,

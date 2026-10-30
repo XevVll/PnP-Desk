@@ -9,9 +9,11 @@ Aufgebaut wie das Schwesterdokument [RIFFINSEL-ERKUNDUNGSGRAPH.md](RIFFINSEL-ERK
 Technischer Kontext: [CLAUDE.md](CLAUDE.md). Regel- und Story-Kontext:
 [KAMPAGNEN-BIBEL.md](KAMPAGNEN-BIBEL.md), Abschnitte 4 (Regelwerk) und 12.1 (Das Finale).
 
-**Stand: 2026-10-30.** Am 30.10.2026 von W100 auf **Savage Worlds** umgestellt — die Arena
-war die letzte Stelle im Projekt, die noch nach dem alten System rechnete. Weiterhin **nicht am
-Tisch erprobt.**
+**Stand: 2026-10-30 (Fortsetzung).** Am 30.10.2026 zuerst von W100 auf **Savage Worlds**
+umgestellt — die Arena war die letzte Stelle im Projekt, die noch nach dem alten System
+rechnete. Am selben Tag dazu **Initiative über das Aktionsdeck** (3.6) und die
+**Diener-Automatik** (3.7): Die Reihe bestimmt, wer am Zug ist, und die Wiedergänger gehen von
+selbst auf den nächstgelegenen Gegner los. Weiterhin **nicht am Tisch erprobt.**
 
 ---
 
@@ -49,13 +51,13 @@ Dramaturgie aus der Hand nehmen.
 
 | Datei | Rolle |
 |---|---|
-| `js/arena.js` | **Das Brett.** Kein DOM, kein Firebase. Raster, Entfernung, Bewegung, Rundenwechsel, Wiederauferstehung, Nachschub, Jaguar-Säbel. **Rechnet die Regeln nicht selbst** (siehe 3). |
+| `js/arena.js` | **Das Brett.** Kein DOM, kein Firebase. Raster, Entfernung, Bewegung, Rundenwechsel, Wiederauferstehung, Nachschub, Jaguar-Säbel — dazu **Initiative** (3.6) und die **Diener-Automatik** (3.7). **Rechnet die Kampfregeln nicht selbst** (siehe 3). |
 | `js/regelwerk.js` | Die Probe selbst (`wurf()`), die Würfelstufen, `parade()`/`robustheit()`. |
-| `js/kampf.js` | Der Regelkern des Kampfes: `angriffsMod()`, `fernkampfMod()`, `wirkung()`, `schadensWuerfel()`. Dieselbe Datei, die den Kampfmodus in `regie_figuren.html` speist. |
+| `js/kampf.js` | Der Regelkern des Kampfes: `angriffsMod()`, `fernkampfMod()`, `wirkung()`, `schadensWuerfel()` — **und das Aktionsdeck** (`neuesDeck`, `austeilen`, `kartenVergleich`, `jokerBonus`). Dieselbe Datei, die den Kampfmodus in `regie_figuren.html` speist. |
 | `js/arena_scenes.js` | Szenen-Definition `15.1`: Feldgröße, Regelwerte, Figuren-Vorlagen. |
 | `karte.html` | Spieleransicht: Raster, Figuren, Bewegung/Angriff **nur für Spieler-Figuren nach Freigabe**, Kampf-Log. |
-| `arena_admin.html` | **SL-Schlachtfeld** (seit 2026-08-23): eigene Vollbild-Seite für den Kampf. Entität anklicken → auswählen → per Klick bewegen/angreifen, Freigabe, HP, Säbel, Nachsetzen, Versetzen-Modus, Runde. Zugriffsschutz wie `regie.html` (nur über die bekannte URL). |
-| `js/regie_vault.js` | Kompakt-Panel im Adminpanel: Überblick, Freigabe (nur Spieler-Figuren), Runde, Nachsetzen — verlinkt aufs Schlachtfeld. |
+| `arena_admin.html` | **SL-Schlachtfeld** (seit 2026-08-23): eigene Vollbild-Seite für den Kampf. Entität anklicken → auswählen → per Klick bewegen/angreifen, **Initiative-Leiste**, „Nächste Figur", Karten austeilen, Wunden, Säbel, Nachsetzen, Versetzen-Modus, Runde. Zugriffsschutz wie `regie.html` (nur über die bekannte URL). |
+| `js/regie_vault.js` | Kompakt-Panel im Adminpanel: Überblick, Initiative-Leiste, „Nächste Figur", Freigabe (nur Spieler-Figuren), Runde, Nachsetzen — verlinkt aufs Schlachtfeld. |
 | `regie.html` | Nur die `<script>`-Tags. |
 
 > **⚠ Jede Arena-Seite braucht DREI Script-Tags: `regelwerk.js`, `kampf.js`, `arena.js`.** Die
@@ -68,7 +70,7 @@ lassen sich so ohne Browser gegen die Bibel prüfen (siehe Abschnitt 7).
 
 ---
 
-## 3. Das Regelwerk (Bibel 4 und 4.4a)
+## 3. Das Regelwerk (Bibel 4, 4.4a und 4.4b)
 
 **Die tragende Entscheidung der Umstellung: `js/arena.js` rechnet die Regeln nicht selbst.**
 
@@ -156,6 +158,87 @@ Sie steht in Bibel 12.1 und hat in Savage Worlds kein Gegenstück.
 
 ---
 
+### 3.6 Initiative — das Aktionsdeck (30.10.2026)
+
+Hendriks Vorgabe: *„Initiative kann über Karten verteilt werden und dann sollte es wirklich
+reihum gehen."*
+
+**Das Deck ist DASSELBE wie im Kampfmodus** (`js/kampf.js`: `neuesDeck`, `austeilen`,
+`kartenVergleich`, `jokerBonus`). Ein zweites Aktionsdeck hier wäre derselbe Fehler wie ein
+zweiter Regelkern. Die Regel selbst steht in **Bibel 4.4b** — sie stand dort bis heute
+überhaupt nicht, obwohl das Deck seit dem 15.10.2026 benutzt wird; derselbe Befund wie bei 4.4a.
+
+**Wer eine Karte bekommt, ist die Savage-Worlds-Regel:** jede Wild Card eine eigene, jede
+Gegner-SORTE eine gemeinsame.
+
+| Auf dem Brett | Karten |
+|---|---|
+| `spieler`, `verbuendeter`, `seelenloser` | je **eine eigene** |
+| **alle `diener` zusammen** | **EINE** |
+| am Boden liegende Figuren | **keine** |
+
+Zwölf Wiedergänger sind damit **ein** Eintrag in der Reihe, nicht zwölf — und genau das ist der
+Grund, warum die Leiste am Tisch lesbar bleibt.
+
+**Die Diener-Gruppe hält keine feste Liste.** Welche Figuren auf ihrer Karte handeln, beantwortet
+`arenaIniTokens()` erst, wenn die Karte dran ist. Nur so handelt **Nachschub, der mitten in der
+Runde erscheint**, noch auf derselben Karte; eine beim Austeilen eingefrorene Liste würde ihn
+bis zur nächsten Runde stillstehen lassen.
+
+**„Wirklich reihum" heißt, dass die Runde sich selbst weiterschaltet.** „Nächste Figur ▸" geht
+einen Eintrag weiter; ist die Reihe durch, ist das der **Rundenwechsel** — Karten werden neu
+ausgeteilt (auf dem Stand **nach** dem Wechsel, sonst bekommen Auferstandene und frischer
+Nachschub keine Karte), und die Reihe beginnt von vorn. Ein Eintrag, dessen Figuren alle
+gefallen sind, wird **übersprungen**; in der Leiste bleibt er durchgestrichen stehen, damit man
+sieht, **wer** gefallen ist.
+
+**Der Joker wirkt wirklich** (+2 auf Wurf **und** Schaden, `arenaIniBonus()` →
+`arenaAngriff(..., bonus)`). Ohne diese Stelle wäre die Jokerkarte ein rotes Zeichen in der
+Leiste ohne Wirkung — dann könnte man das Deck auch weglassen. Ist er gefallen, wird nach der
+Runde neu gemischt; sonst wird das **Restdeck weitergereicht**.
+
+**Die Leiste sehen auch die Spieler** (`karte.html`, unter dem Rundenkopf, nicht anklickbar).
+Wer weiß, dass er nach dem Seelenlosen dran ist, kann sich seinen Zug überlegen, statt auf die
+Freigabe zu warten. Geschaltet wird ausschließlich auf der SL-Seite.
+
+### 3.7 Die Wiedergänger handeln von selbst (30.10.2026)
+
+Hendriks Vorgabe: *„Ich steuer den Seelenlosen, aber die kleinen Untoten sollten automatisch auf
+den nächstgelegenen gehen."*
+
+Landet die Reihe auf der **Diener-Karte**, handeln sie **sofort und alle** — ein Klick der SL,
+ein atomares Update, mehrere Logzeilen. Der Seelenlose bleibt davon **unberührt**; ihn zieht die
+SL wie bisher.
+
+**Die Regel ist bewusst dumm, und das ist der Punkt.** Ein Wiedergänger geht auf den
+**nächsten** — nicht auf den schwächsten, nicht auf den gefährlichsten, nicht auf den schon
+verwundeten. Er sucht sich kein Ziel aus, er geht los. Alles Klügere wäre Taktik, und Taktik
+gehört der SL und den Spielern, nicht dem Brett.
+
+| Frage | Antwort |
+|---|---|
+| Ziel | nächster lebender Gegner (Chebyshev), bei Gleichstand die kleinere Token-Kennung |
+| Weg | gieriger Schritt, kein A*: das angrenzende freie Feld, das dem Ziel näher liegt |
+| bei Gleichstand der Entfernung | die kürzere **Luftlinie** — sonst driftet die Reihe sichtbar zur Seite |
+| bringt kein Feld etwas | **stehen bleiben** statt hin und her wackeln |
+| Angriff | nach der Bewegung, wenn das Ziel angrenzt (Bewegung **und** Handlung, wie bei jeder Figur) |
+| angeschlagen | läuft trotzdem los, schlägt aber nicht zu (3.4) |
+| hat schon gehandelt | wird übersprungen — ein zweiter Klick wiederholt nichts |
+
+**Die Züge werden SEQUENZIELL gerechnet**, nicht gleichzeitig: `arenaDienerRunde()` schreibt die
+Tokenkarte zwischen den Zügen mit `arenaAnwenden()` fort. Ohne das rechnet jeder Diener auf dem
+alten Stand — zwei landen auf demselben Feld, und der zweite schlägt auf einen Toten ein. Dafür
+steht eine eigene Prüfung da (7).
+
+**Die Grenze ist ehrlich:** Der gierige Schritt kann vor einer geschlossenen Reihe hängen
+bleiben. Bewusst in Kauf genommen — die SL kann jede Figur jederzeit versetzen (4.1), und ein
+Wegfinder auf 16×16 wäre Aufwand für einen Fall, den man mit einem Klick löst.
+
+Daneben steht ein eigener Knopf **„☠ Wiedergänger handeln"** (Schlachtfeld und Kompakt-Panel)
+für den Fall, dass die SL sie außerhalb der Reihe braucht.
+
+---
+
 ## 4. Ablauf und Bedienung
 
 ### 4.1 Zugfolge und Steuerungshoheit
@@ -168,7 +251,13 @@ Sie steht in Bibel 12.1 und hat in Savage Worlds kein Gegenstück.
 | `verbuendeter` | Helden | **nur die SL** (`arena_admin.html`) |
 | `diener`, `seelenloser` | Gegner | **nur die SL** (`arena_admin.html`) |
 
-Die SL gibt **eine** Spieler-Figur frei. Solange sie freigegeben ist, darf **jeder** Spieler sie
+**Seit dem 30.10.2026 bestimmt die INITIATIVE, wer am Zug ist** (3.6), nicht mehr die Hand der
+SL: „Nächste Figur ▸" schaltet einen Eintrag weiter und gibt dessen Figur frei. Der
+Freigabe-Knopf je Figur bleibt daneben bestehen — als Rückfall und für den Fall, dass die SL
+bewusst von der Reihe abweichen will. Auf der **Diener-Karte** wird **niemand** freigegeben; dort
+handelt die Gruppe von selbst (3.7).
+
+Solange eine Figur freigegeben ist, darf **jeder** Spieler sie
 bewegen und mit ihr angreifen (es gibt keine Zuordnung Spieler↔Figur). Ohne freigegebene Figur
 ist in der Spieleransicht **nichts** anklickbar — und `karte.html` prüft zusätzlich den Typ:
 selbst wenn versehentlich ein Nicht-Spieler freigegeben würde, könnten die Spieler ihn nicht
@@ -190,7 +279,9 @@ auch für frisch nachgesetzte Spieler, die die SL erst einmal frei platzieren wi
 
 **Aufstellung bei „Aufbauen":** vier generische Spieler an der unteren Grundlinie, **Harwick
 (Verbündeter) in der Feldmitte** — er steht beim Ritual an der Anhöhe, nicht bei der Gruppe am
-Eingang (Hendriks Vorgabe) —, der Seelenlose oben mittig, vier Diener davor.
+Eingang (Hendriks Vorgabe) —, der Seelenlose oben mittig, vier Diener davor. **Karten werden
+dabei gleich mit ausgeteilt, aber NICHT gelandet:** In Runde 1 steht die Aufstellung, und ein
+Dienerangriff vor dem ersten Wort der SL wäre ein Überfall.
 
 **Namensschilder:** Die Helden-Seite (Spieler + Verbündete) ist in beiden Ansichten **immer**
 beschriftet — man muss sehen, wer wer ist. Gegner sind austauschbare „Diener" und tragen ihren
@@ -372,8 +463,14 @@ Waffe, Parade und Robustheit kommen aus `js/npcs.js`, gerechnet, nicht abgeschri
 ```
 arenaState/15-1/
   runde          Zahl
-  freigegeben    Token-ID oder null
+  freigegeben    Token-ID oder null   ← folgt seit 30.10. der Initiative
   saebeltraeger  Token-ID oder null   ← nur SL, nie an Spieler
+  initiative/
+    reihe[]/     { key, name, tokens[], karte: {wert, farbe, joker} }
+                 key: "t:{tokenId}" oder "diener" (die Gruppenkarte)
+    index        Position in der Reihe (null = Runde durch)
+    deck[]       Restdeck, wird in die naechste Runde weitergereicht
+    mischenNoetig  true, wenn der Joker gefallen ist
   tokens/{id}/
     typ            "spieler" | "verbuendeter" | "diener" | "seelenloser"
     name, symbol, farbe
@@ -457,6 +554,24 @@ gedacht, jede Regelverzweigung deterministisch zu testen.
 > auf, und unter Node ist jede Datei ihr eigener Modul-Scope. `tests/t_arena.js` lädt deshalb
 > alle drei in **einen** `vm`-Kontext, genau wie der Browser.
 
+**Initiative und Automatik (30.10.2026):**
+
+| Funktion | Zweck |
+|---|---|
+| `arenaIniEintraege(tokens)` | die Teilnehmer einer Runde (Wild Cards einzeln, Diener als eine Gruppe) |
+| `arenaIniTokens(eintrag, tokens)` | wer auf diesem Eintrag JETZT handelt (live, nicht eingefroren) |
+| `arenaAusteilen(tokens, deck, zufall)` | → `{ reihe, index, deck, mischenNoetig }` |
+| `arenaIniAmZug(ini, tokens)` / `arenaIniWeiter(...)` | aktueller bzw. nächster Eintrag, Gefallene übersprungen |
+| `arenaIniFreigabe(eintrag, tokens)` | welche Figur freigegeben wird (auf der Diener-Karte: niemand) |
+| `arenaIniBonus(ini, tokenId, tokens)` | der Joker-Zuschlag für diese Figur |
+| `arenaNaechstesZiel(figur, tokens)` | nächster lebender Gegner |
+| `arenaSchrittZu(figur, ziel, tokens, regeln)` | ein Zug Bewegung, oder null fürs Stehenbleiben |
+| `arenaDienerZug(id, ...)` / `arenaDienerRunde(...)` | ein Diener bzw. alle; liefert Änderungen, Logzeilen und den fortgeschriebenen Stand |
+| `arenaIniLanden(...)` / `arenaIniNeueRunde(...)` | der Ablauf („wir landen auf Karte i", „neue Runde, neue Karten") |
+| `arenaAngriffAenderungen(...)` / `arenaAngriffText(...)` | Firebase-Pfade und Logzeile eines Angriffs — **eine** Stelle für alle drei Ansichten |
+| `arenaAnwenden(tokens, aenderungen)` | flache Pfade auf eine lokale Tokenkarte ziehen |
+| `arenaMischen(ziel, quelle)` | zwei Änderungspakete **pfadsicher** zusammenlegen (siehe 8, Fehler 12) |
+
 ### 6.2 SL-Seite (`js/regie_vault.js`)
 
 `arenaAufbauen` · `arenaFigurHinzu` · `arenaFreigeben` · `arenaRundeWeiter` · `arenaSaebel` ·
@@ -473,14 +588,15 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-**`tests/t_arena.js`, 174 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
-Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System).
+**`tests/t_arena.js`, 262 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System) und am selben
+Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
 
 **Geladen wird wie im Browser**, nicht per `require()`: `js/regelwerk.js`, `js/kampf.js`,
 `js/arena.js`, `js/arena_scenes.js` und `js/npcs.js` laufen in **einem** `vm`-Kontext. Unter
 `require()` wäre jede Datei ihr eigener Scope, und `arena.js` sähe die anderen nicht.
 
-**Geprüft wird gegen die REGEL, nicht gegen den Code.** Die vier Prüffelder:
+**Geprüft wird gegen die REGEL, nicht gegen den Code.** Die sechs Prüffelder:
 
 1. **Der Angriffswurf** — `4 − Parade` im Nahkampf, und dass der Fernkampf die Parade **nicht**
    nimmt; die drei Entfernungsbänder; der flache Wundenabzug samt Deckel.
@@ -494,10 +610,26 @@ Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System)
    nicht, ohne Säbel nichts endgültig, gegen den Seelenlosen zählt der Schaden normal, und das
    **Log nennt den Säbel nirgends**.
 
+5. **Die Initiative** (3.6) — vier Wild Cards plus **eine** Dienerkarte sind fünf Einträge; die
+   Reihe ist nach Karte sortiert; das Deck wird kleiner; Gefallene bekommen keine Karte und
+   werden beim Weiterschalten übersprungen; frischer Nachschub handelt auf der Dienerkarte mit;
+   auf ihr wird **niemand** freigegeben, **auch nicht der letzte übrige Diener**; der Joker gibt
+   nachweislich +2 auf Wurf *und* Schaden.
+6. **Die Diener-Automatik** (3.7) — sie geht auf den **nächsten**, nicht auf den verwundeten und
+   nicht auf den mit der schwächeren Parade; eigene Leute und Gefallene sind keine Ziele; sie
+   läuft **geradeaus**, bleibt eingekesselt stehen, betritt kein besetztes Feld und verlässt das
+   Brett nicht; ein angeschlagener Diener läuft, schlägt aber nicht zu; wer schon gehandelt hat,
+   wird übersprungen; **kein Feld ist doppelt belegt**; der Seelenlose und die Spieler werden von
+   der Automatik nicht angefasst.
+
 Dazu: angeschlagen sperrt den Angriff und nicht die Bewegung · Nachladen erst die Runde darauf ·
 eine liegende Figur ist kein Ziel · die Vorlagen stimmen mit den NSC-Blättern überein · die alten
 W100-Funktionen existieren nachweislich **nicht mehr** · und die gemessenen Trefferchancen
 (24,7 % allein, 81,3 % mit vollem Gang Up).
+
+**Eine Prüfung auf die FORM der Pakete, nicht nur auf ihren Inhalt:** In keinem erzeugten
+Änderungspaket darf ein Pfad Vorfahre eines anderen sein. Firebase lehnt so ein `update()`
+**komplett** ab, und zwar erst am Tisch — siehe Fehler 12.
 
 **Zuletzt hundert ECHTE Angriffe** (Abschnitt 13 des Skripts). Alle Prüfungen davor geben das
 Band per `vorgabe` vor, damit sich jede Regelverzweigung einzeln festnageln lässt — damit liefe
@@ -513,6 +645,13 @@ Fehler wörtlich:
 |---|---|
 | alte „Bedrängnis"-Richtung eingesetzt | **7 Prüfungen** schlagen an, darunter *„Gegner am ANGREIFER verschlechtern seinen Angriff nicht mehr"* → `-2` |
 | Parade fälschlich auch im Fernkampf | **2 Prüfungen**, *„Fernkampf nimmt die Parade NICHT"* → `-4` |
+| Diener gehen auf den **entferntesten** | **3 Prüfungen**, *„geht auf den NAECHSTEN, nicht auf den verwundeten"* → `"p_fern"` |
+| jeder Diener bekommt eine **eigene** Karte | **11 Prüfungen**, die erste listet alle acht Einträge statt fünf |
+| die Dienerzüge rechnen auf dem **alten** Stand | **2 Prüfungen**, darunter *„kein Feld ist doppelt belegt"* → `["b_d2","c_d3","6:4"]` |
+| die Dienerkarte gibt doch jemanden frei | **2 Prüfungen**, *„auch der letzte übrige Diener wird nicht freigegeben"* |
+| Schritt ohne Luftlinien-Entscheid | **1 Prüfung**, *„und geradeaus, nicht schräg daneben"* |
+| Joker zählt nicht auf den Schaden | **1 Prüfung** → `[7,7]` |
+| `arenaMischen()` weist stumpf zu | **7 Prüfungen**, darunter *„Nachschub, der sofort losläuft: kein Pfadkonflikt"* → `["tokens/neu","tokens/neu/x"]` |
 
 **Ein Integrationstest über die Ansichten gehört nicht ins Repo** (Skill `pnp-safe-test`) und
 liegt im Scratchpad der jeweiligen Session: lokaler HTTP-Server, abgefangene
@@ -587,6 +726,39 @@ Drei Fehler beim Bau, alle vom Test gefunden:
     CRLF, meine Skript-Literale LF — der erste Lauf fand nichts und brach vor dem Schreiben ab.
     Die Ersetzungs-Helfer rechnen die Zeilenenden jetzt zentral um.
 
+### Aus der Initiative und der Diener-Automatik (30.10.2026, Fortsetzung)
+
+12. **Zwei Pfade, von denen einer Vorfahre des anderen war — und Firebase lehnt so ein `update()`
+    KOMPLETT ab.** Beim Austeilen schreibt die Arena `initiative` (das ganze Objekt), beim Landen
+    auf einer Karte `initiative/index`; beides landet im **selben** atomaren Paket. Derselbe Fall
+    noch unauffälliger bei den Tokens: Der Rundenwechsel setzt frischen Nachschub als ganzes
+    `tokens/t7`, und derselbe Diener läuft auf der Dienerkarte derselben Runde los →
+    `tokens/t7/x`. Es wäre **nicht halb** schiefgegangen, sondern ganz, und erst am Tisch.
+    Behoben mit **`arenaMischen()`**: Gibt es den Vorfahren schon als Objekt, wandert das Feld
+    hinein; ist er auf `null` gesetzt, wird das Feld verworfen. Dazu eine Prüfung auf die **Form**
+    jedes Pakets, nicht nur auf seinen Inhalt — gefunden habe ich es beim Gegenlesen der
+    Schreibpfade, nicht durch einen Test.
+13. **Die Dienerkarte gab den letzten übrigen Diener frei.** `arenaIniFreigabe()` hing allein an
+    „genau eine Figur auf diesem Eintrag" — bei einem einzigen verbliebenen Wiedergänger wurde er
+    damit an die Spieler durchgereicht. Praktisch hätte `karte.html` ihn wegen des Typs nicht
+    steuerbar gemacht, aber die Anzeige hätte gelogen und das Schlachtfeld ihn als freigegeben
+    markiert. **Die Dienerkarte ist die Karte der GRUPPE; wie viele darauf stehen, ändert daran
+    nichts.** Von meiner eigenen Prüfung gemeldet, bevor etwas falsch wurde.
+14. **Die Diener drifteten sichtbar zur Seite.** Chebyshev zählt diagonal wie gerade, also sind
+    „schräg weg in x, näher in y" und „geradeaus" **gleich weit**. Der Entscheid lief über die
+    Token-Kennung, und damit zog die ganze Reihe nach links, obwohl das Ziel genau vor ihr stand.
+    Jetzt entscheidet bei gleicher Entfernung die **Luftlinie**, die Kennung erst danach.
+    **Aufgefallen ist es an einer Gegenprobe, nicht beim Hinsehen** — die Prüfungen waren alle
+    grün, weil keine nach der Richtung gefragt hatte.
+15. **Zwei eigene Prüfungen waren nicht in der Lage, ihren Fehler zu sehen.** Die Kollisionsprüfung
+    las `erg.tokens` statt den Stand, den das `update()` erzeugt — in der kaputten Variante ist
+    das schlicht der unveränderte Ausgangsstand, also meldete sie OK. Und eine zweite prüfte
+    „x ist nicht mehr 2" und war damit auch auf dem kaputten Code grün. Beide prüfen jetzt das
+    Ergebnis des Pakets. **Eine Prüfung, die den Fehler nicht sehen KANN, prüft nichts.**
+16. **Eine falsche Erwartung, nicht der Code:** Ich hatte „drei Felder weg, Bewegung 2, also
+    kommt er nicht an" notiert — nach zwei Feldern steht er angrenzend und schlägt im **selben**
+    Zug zu. Bewegung und Handlung, wie bei jeder anderen Figur auch.
+
 ---
 
 ## 9. Was noch offen ist
@@ -614,12 +786,20 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 
 ### 9.2 Bekannte Lücken
 
-- **Gegner werden von der SL bewegt wie Spielerfiguren** — es gibt keine Gegner-KI und bewusst
-  auch keinen Auto-Zug. Ob das am Tisch angenehm ist, muss der erste Durchlauf zeigen.
-- **Keine Initiative.** Die Arena gibt reihum **eine** Figur frei; das Aktionsdeck aus
-  `js/kampf.js` (Karten, Joker) wird hier **nicht** benutzt. Das ist Absicht — die SL bestimmt
-  die Reihenfolge —, aber es ist ein Unterschied zum Kampfmodus, und wer beides am selben Abend
-  spielt, merkt ihn.
+- ~~Gegner werden von der SL bewegt wie Spielerfiguren, es gibt keine Gegner-KI~~ — **gilt seit
+  dem 30.10.2026 nur noch für den Seelenlosen** (Hendriks Vorgabe: er steuert ihn selbst). Die
+  **Wiedergänger handeln von selbst** (3.7). Ob sich das am Tisch gut anfühlt, muss der erste
+  Durchlauf zeigen.
+- ~~Keine Initiative~~ — **behoben am 30.10.2026** (3.6, Bibel 4.4b): Dasselbe Aktionsdeck wie
+  der Kampfmodus, eine Karte je Wild Card, eine für alle Diener, und die Reihe schaltet die Runde
+  selbst weiter.
+- **Der Weg der Diener ist ein gieriger Schritt, kein Wegfinder.** Vor einer geschlossenen Reihe
+  können sie hängen bleiben; die SL versetzt sie dann (4.1). Ein A* auf 16×16 wäre Aufwand für
+  einen Fall, den ein Klick löst — falls es am Tisch doch stört, ist es eine abgegrenzte Stelle
+  (`arenaSchrittZu`).
+- **Der Joker wirkt nur auf Wurf und Schaden**, nicht auf „handelt, wann er will": Die Reihe steht
+  fest, sobald sie ausgeteilt ist. Die SL kann aber jeden Eintrag anklicken und damit von Hand
+  vorziehen — das ist der Joker in der Praxis.
 - **Talente wirken nicht.** Das Brett kennt nur die Zahlen am Token (siehe 9.1).
 - **Kein Rückgängig.** Ein Fehlklick beim Bewegen lässt sich nur über „HP setzen" bzw. erneutes
   Freigeben grob korrigieren.
@@ -639,7 +819,8 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 
 ### 9.3 Sinnvolle nächste Schritte
 
-1. Einen Probekampf durchspielen und die Werte justieren.
+1. Einen Probekampf durchspielen und die Werte justieren (9.1) — jetzt mit Initiative und
+   handelnden Wiedergängern, also erstmals ein Ablauf, der sich von selbst trägt.
 2. Entscheiden, ob der Seelenlose eine Sonderfähigkeit bekommt.
-3. Erst danach über Komfort nachdenken (Rückgängig, Deckung, Gegner-Automatik) — vorher weiß
+3. Erst danach über Komfort nachdenken (Rückgängig, Deckung, Wegfinder) — vorher weiß
    niemand, ob es das überhaupt braucht.

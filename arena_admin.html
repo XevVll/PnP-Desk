@@ -102,6 +102,19 @@
   aside .zeile b { color: var(--gold); font-weight: normal; }
   .hinweis { font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
 
+  /* Initiative-Leiste. Die Karte steht als Zeichen am Namen; der Eintrag,
+     der am Zug ist, ist hervorgehoben - alles andere gedimmt, damit am Tisch
+     mit einem Blick klar ist, wer handelt. */
+  #iniLeiste { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 7px 18px; border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.25); font-size: 12.5px; }
+  #iniLeiste .leer { color: var(--ink-faint); }
+  .ini-eintrag { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 12px; padding: 2px 9px; color: var(--ink-dim); cursor: pointer; }
+  .ini-eintrag:hover { border-color: var(--gold); }
+  .ini-eintrag.dran { border-color: var(--gold); color: var(--gold); background: rgba(201,162,75,0.16); }
+  .ini-eintrag.weg { opacity: .35; text-decoration: line-through; }
+  .ini-karte { font-family: 'Georgia', serif; letter-spacing: .5px; color: var(--ink); }
+  .ini-eintrag.dran .ini-karte { color: var(--gold); }
+  .ini-karte.joker { color: var(--accent); }
+
   #log { border-top: 1px solid var(--line); background: var(--panel); padding: 8px 18px; max-height: 15vh; overflow-y: auto; font-size: 12.5px; color: var(--ink-dim); line-height: 1.55; }
   #log div:first-child { color: var(--ink); }
 </style>
@@ -116,7 +129,9 @@
   <span id="sitzungBadge" style="font-size:13px;border:1px solid var(--gold);
     border-radius:10px;padding:.1rem .5rem" title="Sitzung dieser Ansicht">—</span>
   <span style="font-size:13px">Runde <b id="rundeAnzeige" style="color:var(--gold)">–</b></span>
-  <button class="btn primary" onclick="rundeWeiter()">Runde weiter ▸</button>
+  <button class="btn primary" onclick="naechsteFigur()" title="Zur nächsten Karte der Initiative. Landet sie auf den Wiedergängern, handeln die sofort von selbst.">Nächste Figur ▸</button>
+  <button class="btn" onclick="austeilenJetzt()" title="Initiative neu auswürfeln: eine Karte je Wild Card, eine für alle Wiedergänger zusammen">🂠 Karten austeilen</button>
+  <button class="btn" onclick="rundeWeiter()">Runde weiter ▸</button>
   <button class="btn" onclick="versetzenUmschalten()" id="versetzenBtn" title="Ausgewählte Figur frei auf ein beliebiges Feld setzen (ohne Bewegungsregel)">Versetzen: aus</button>
   <span class="spacer"></span>
   <button class="btn" onclick="figurHinzu('spieler')">+ Spieler</button>
@@ -127,11 +142,18 @@
   <a href="regie.html">→ Adminpanel</a>
 </header>
 
+<div id="iniLeiste"><span class="leer">Keine Reihenfolge — „Karten austeilen" verteilt sie.</span></div>
+
 <main>
   <div id="brettWrap"><div id="brett"></div></div>
   <aside>
     <h2>Auswahl</h2>
     <div id="auswahl" class="block"><span class="hinweis">Figur auf dem Feld anklicken, um sie zu steuern. Spieler-Figuren kannst du hier zusätzlich für die Spieler freigeben.</span></div>
+    <h2>Wiedergänger</h2>
+    <div class="block">
+      <button class="btn" onclick="dienerHandeln()" title="Jeder Wiedergänger geht auf den nächstgelegenen Gegner los und schlägt zu, wenn er ihn erreicht">☠ Wiedergänger handeln</button>
+      <span class="hinweis">Läuft von selbst, sobald die Initiative auf ihre Karte kommt — dieser Knopf ist nur für den Fall, dass du sie noch einmal brauchst. Wer in dieser Runde schon gehandelt hat, bleibt stehen.</span>
+    </div>
     <h2>Säbelträger</h2>
     <div class="block">
       <div id="saebelAnzeige" class="zeile">–</div>
@@ -169,12 +191,58 @@
   const BASIS = 'arenaState/' + fbKey(SZENE) + '/';
 
   // Ein einziges update() von der Wurzel - siehe ARENA-ENDKAMPF.md 5.3.
+  // "logText" darf seit dem 30.10.2026 auch eine LISTE sein: Die
+  // Diener-Automatik erzeugt in einem Zug mehrere Zeilen, und die sollen
+  // nicht zu einem Klumpen zusammengezogen werden.
   function schreibe(aenderungen, logText) {
     if (!db) return;
     const paket = {};
     Object.keys(aenderungen).forEach(function (p) { paket[BASIS + p] = aenderungen[p]; });
-    if (logText) paket[BASIS + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
+    const zeilen = Array.isArray(logText) ? logText : (logText ? [logText] : []);
+    zeilen.forEach(function (t, i) {
+      if (!t) return;
+      paket[BASIS + 'log/' + db.ref().push().key] = { text: t, zeit: Date.now() + i };
+    });
     db.ref().update(paket);
+  }
+
+  // ---------- Initiative ----------
+  /* Der Ablauf selbst (landen, austeilen, Diener-Automatik) steht in
+     js/arena.js und NICHT hier: Das Kompakt-Panel in js/regie_vault.js
+     braucht genau dasselbe, und zwei Fassungen liefen auseinander. Hier bleibt
+     nur das Reichen von Firebase-Zustand und das Schreiben. */
+  function austeilenJetzt() {
+    if (!db) return;
+    const e = arenaIniNeueRunde(snap.initiative || null, snap.tokens || {}, R,
+      snap.saebeltraeger || null, snap.runde || 1);
+    schreibe(e.aenderungen, ['Die Karten sind ausgeteilt.'].concat(e.logs));
+  }
+
+  /* Weiter in der Reihe. Ist die Reihe durch, ist das zugleich das Ende der
+     Runde - "wirklich reihum" heisst, dass die Runde nicht von Hand
+     weitergeschaltet werden muss. */
+  function naechsteFigur() {
+    if (!db) return;
+    const ini = snap.initiative || null;
+    if (!ini || !(ini.reihe || []).length) { austeilenJetzt(); return; }
+    const tokens = snap.tokens || {};
+    const w = arenaIniWeiter(ini, tokens);
+    if (w.rundeFertig) { rundeWeiter(); return; }
+    const e = arenaIniLanden(ini, tokens, w.index, R, snap.saebeltraeger || null, snap.runde || 1);
+    schreibe(e.aenderungen, e.logs);
+  }
+
+  function dienerHandeln() {
+    if (!db) return;
+    const reihe = ((snap.initiative || {}).reihe) || [];
+    const eintrag = reihe.filter(function (e) { return e.key === ARENA_DIENER_SCHLUESSEL; })[0] || null;
+    const erg = arenaDienerRunde(snap.tokens || {}, R, snap.saebeltraeger || null,
+      snap.runde || 1, jokerBonus(eintrag));
+    const logs = [];
+    if (erg.gezogen) logs.push(erg.gezogen + ' Wiedergänger drängen vor.');
+    erg.log.forEach(function (l) { logs.push(l); });
+    if (!logs.length) logs.push('Die Wiedergänger rühren sich nicht.');
+    schreibe(erg.aenderungen, logs);
   }
 
   // ---------- SL-Aktionen ----------
@@ -198,7 +266,15 @@
     // richtet er sich wieder auf.
     if (erg.bossGebannt) text += ' Der Seelenlose ist gebannt — nichts steht mehr auf.';
     else if (!erg.bossLebt) text += ' Der Seelenlose liegt am Boden — es geht weiter.';
-    schreibe(aenderungen, text);
+
+    /* Neue Runde, neue Karten. Ausgeteilt wird auf dem Stand NACH dem
+       Rundenwechsel (arenaAnwenden) - Auferstandene und frischer Nachschub
+       bekommen sonst keine Karte, obwohl sie stehen. */
+    const nachher = arenaAnwenden(snap.tokens || {}, aenderungen);
+    const e = arenaIniNeueRunde(snap.initiative || null, nachher, R,
+      snap.saebeltraeger || null, erg.runde);
+    arenaMischen(aenderungen, e.aenderungen);
+    schreibe(aenderungen, [text].concat(e.logs));
   }
 
   function aufbauen() {
@@ -220,9 +296,17 @@
     const ab = Math.max(2, Math.floor(R.breite / 5));
     for (let i = 0; i < 4; i++) setze(SZ.vorlagen.diener, 'Diener ' + (i + 1), Math.min(R.breite - 1, ab * (i + 1) - 1), 1);
     auswahlId = null;
+    /* Beim Aufbauen werden gleich Karten ausgeteilt - eine Arena ohne
+       Reihenfolge waere der Zustand von vor dem 30.10.2026, und niemand
+       muesste auf den Knopf kommen. Landet die erste Karte auf den
+       Wiedergaengern, handeln die noch nicht: In Runde 1 steht die
+       Aufstellung, und ein Angriff vor dem ersten Wort der SL waere ein
+       Ueberfall. Deshalb nur austeilen, nicht landen. */
+    const ini = arenaAusteilen(tokens, null, null);
     db.ref(BASIS.slice(0, -1)).set({
       runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
-      log: { start: { text: 'Der Kampf beginnt.', zeit: Date.now() } }
+      initiative: ini,
+      log: { start: { text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.', zeit: Date.now() } }
     });
   }
 
@@ -281,33 +365,16 @@
     const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
     const z = Object.assign({ id: zielId }, tokens[zielId] || {});
     if (!a.typ || !z.typ) return;
-    const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null);
+    const bonus = arenaIniBonus(snap.initiative || null, angreiferId, tokens);
+    const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null, null, bonus);
     if (!erg.ok) return;
-    const aenderungen = { ['tokens/' + angreiferId + '/hatAngegriffen']: true };
-    if (erg.entlaedt) {
-      aenderungen['tokens/' + angreiferId + '/geladen'] = false;
-      aenderungen['tokens/' + angreiferId + '/entladenSeitRunde'] = snap.runde || 1;
-    }
-    if (erg.endgueltig) {
-      aenderungen['tokens/' + zielId] = null;
-      if (auswahlId === zielId) auswahlId = null;
-    } else if (erg.trifft) {
-      // Kein HP-Abzug mehr: angeschlagen und Wunden sind der Zustand.
-      aenderungen['tokens/' + zielId + '/angeschlagen'] = erg.angeschlagenNeu ? true : null;
-      aenderungen['tokens/' + zielId + '/wunden'] = erg.wundenNeu > 0 ? erg.wundenNeu : null;
-      if (erg.toetet) {
-        aenderungen['tokens/' + zielId + '/tot'] = true;
-        aenderungen['tokens/' + zielId + '/totSeitRunde'] = snap.runde || 1;
-      }
-    }
-    /* Die Logzeile kommt aus js/arena.js - das Log ist fuer ALLE sichtbar,
-       und die Regel "der Saebel wird nirgends benannt" ist damit an einer
-       Stelle einzuhalten statt an drei. */
-    let text = arenaLogZeile(a, z, erg);
-    if (erg.gangUp > 0) text += ' (gemeinsam, +' + erg.gangUp + ')';
-    if (erg.endgueltig) text += ' — zerfällt zu Staub.';
-    else if (erg.toetet) text += ' — geht zu Boden.';
-    schreibe(aenderungen, text);
+    /* Aenderungen UND Logzeile kommen aus js/arena.js - beides stand bis zum
+       30.10.2026 wortgleich hier und in karte.html, und die Diener-Automatik
+       waere die dritte Kopie geworden. Dort haengt auch die Regel "der Saebel
+       wird nirgends benannt" an genau einer Stelle. */
+    const aenderungen = arenaAngriffAenderungen(a, z, erg, snap.runde || 1);
+    if (erg.endgueltig && auswahlId === zielId) auswahlId = null;
+    schreibe(aenderungen, arenaAngriffText(a, z, erg));
   }
 
   function freigeben(id) { schreibe({ freigegeben: id || null }); }
@@ -481,11 +548,51 @@
 
     renderAuswahl(sel, tokens);
     renderSaebel(tokens);
+    renderInitiative(tokens);
 
     const log = snap.log || {};
     const zeilen = Object.keys(log).map(function (k) { return log[k]; })
       .sort(function (a, b) { return (b.zeit || 0) - (a.zeit || 0); }).slice(0, 8);
     logEl.innerHTML = zeilen.map(function (z) { return '<div>' + z.text + '</div>'; }).join('');
+  }
+
+  /* Die Reihenfolge als Leiste unter dem Kopf. Jeder Eintrag ist
+     anklickbar - die SL kann damit mitten in der Runde zu einer Karte
+     springen, etwa wenn sie einen Zug vergessen hat. Ein Eintrag, dessen
+     Figuren alle am Boden liegen, steht durchgestrichen da statt zu
+     verschwinden: Man soll sehen, WER gefallen ist, nicht nur, dass die
+     Reihe kuerzer wurde. */
+  function renderInitiative(tokens) {
+    const box = document.getElementById('iniLeiste');
+    const ini = snap.initiative || null;
+    const reihe = (ini && ini.reihe) || [];
+    if (!reihe.length) {
+      box.innerHTML = '<span class="leer">Keine Reihenfolge — „Karten austeilen" verteilt sie.</span>';
+      return;
+    }
+    const dran = arenaIniAmZug(ini, tokens);
+    const teile = reihe.map(function (e, i) {
+      const ids = arenaIniTokens(e, tokens);
+      const k = e.karte || null;
+      const cls = 'ini-eintrag' + (dran && dran.index === i ? ' dran' : '') + (ids.length ? '' : ' weg');
+      return '<span class="' + cls + '" onclick="iniSprung(' + i + ')" title="Zu dieser Karte springen">' +
+        '<span class="ini-karte' + (k && k.joker ? ' joker' : '') + '">' + kartenText(k) + '</span>' +
+        '<span>' + (e.name || e.key) + '</span></span>';
+    });
+    if (ini.mischenNoetig) teile.push('<span class="leer">· Joker gefallen, nächste Runde wird neu gemischt</span>');
+    box.innerHTML = teile.join('');
+  }
+
+  /* Von Hand auf eine Karte springen. Laeuft ueber denselben arenaIniLanden()-Weg
+     wie das Weiterschalten, damit auch hier die Wiedergaenger von selbst
+     handeln - zwei Wege mit zwei Verhalten waeren der Fehler. */
+  function iniSprung(index) {
+    if (!db) return;
+    const ini = snap.initiative || null;
+    if (!ini || !(ini.reihe || [])[index]) return;
+    const e = arenaIniLanden(ini, snap.tokens || {}, index, R,
+      snap.saebeltraeger || null, snap.runde || 1);
+    schreibe(e.aenderungen, e.logs);
   }
 
   function tokenEl(id, t, angreifbar) {

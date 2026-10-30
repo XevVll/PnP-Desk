@@ -339,6 +339,45 @@ bewegen, aber nicht angreifen. Ein **Bennie** nimmt den Haken sofort weg.
 (das Brett des Endkampfs, siehe [ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md)). **Beide rechnen seit
 dem 30.10.2026 nach denselben Funktionen** — vorher rechnete die Arena nach 4.7.
 
+### 4.4b Die Initiative — das Aktionsdeck
+
+> **Nachgetragen am 30.10.2026 (Fortsetzung), und es ist derselbe Befund wie bei 4.4a.** Das
+> Aktionsdeck steht seit dem 15.10.2026 in `js/kampf.js` und wird im Kampfmodus benutzt — in
+> diesem Abschnitt kam es **nicht ein einziges Mal** vor. Aufgefallen beim Einbau der
+> Initiative in die Arena.
+
+Savage Worlds würfelt die Reihenfolge nicht aus, es **teilt Karten**. Ein Pokerdeck mit beiden
+Jokern, zu Beginn jeder Runde eine Karte je Teilnehmer, gehandelt wird von der höchsten zur
+niedrigsten.
+
+- **Ass zuerst**, dann abwärts bis zur Zwei. Bei gleichem Wert entscheidet die Farbe:
+  **Pik · Herz · Karo · Kreuz**.
+- **Der Joker steht über dem Ass.** Er handelt, wann er will, und gibt **+2 auf jede Probe und
+  auf den Schaden** dieser Runde. Ist er gefallen, wird nach der Runde **neu gemischt**.
+- Das Deck wird **weitergereicht**, nicht jede Runde neu gemischt — sonst wäre es kein Deck.
+  Läuft es leer, wird nachgemischt.
+
+#### Wer eine Karte bekommt
+
+**Jede Heldenfigur (Wild Card) eine eigene — jede Gegner-SORTE eine gemeinsame.** Vier Spieler,
+ein Dutzend Wiedergänger und der Seelenlose sind damit **sechs** Karten, nicht siebzehn.
+
+Das ist nicht nur Bequemlichkeit: Ein Dutzend Einzelkarten wäre am Tisch nicht mehr lesbar, und
+die Regel sagt es ohnehin so. **Wer außer Gefecht ist, bekommt keine Karte.**
+
+#### In der Arena
+
+Die Arena (`15.1`) teilt dieselben Karten aus und schaltet die Reihe durch; die Spielleitung
+drückt „Nächste Figur", und ist die Reihe durch, ist die **Runde** durch. Wer auf seiner Karte
+dran ist, ist freigegeben. Auf der Karte der **Wiedergänger** handeln sie alle zusammen, und
+zwar **von selbst** — siehe [ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md) 3.6.
+
+> **Abgelöst (30.10.2026):** Bis dahin gab die Spielleitung in der Arena reihum **eine** Figur
+> frei, und die Reihenfolge war allein ihre Entscheidung; das Aktionsdeck wurde dort **nicht**
+> benutzt. In `ARENA-ENDKAMPF.md` 9.2 stand das als Lücke („Keine Initiative"). Hendriks
+> Vorgabe: *„Initiative kann über Karten verteilt werden und dann sollte es wirklich reihum
+> gehen."*
+
 ### 4.5 Schusswaffen und Ladungen
 
 Savage Worlds führt je Fernwaffe eine Zahl **Shots**: so viele Schuss, dann muss nachgeladen

@@ -35,6 +35,18 @@
    Worlds nicht kennt: Wiederauferstehung, Nachschub und der
    Jaguar-Saebel (Bibel 12.1).
 
+   Dazu seit dem 30.10.2026 (Fortsetzung) zwei Dinge, die das
+   Brett selbst betreffen und nirgends sonst hingehoeren - beide
+   weiter unten mit eigener Begruendung:
+     INITIATIVE  Das Aktionsdeck aus js/kampf.js wird hier
+                 ausgeteilt; eine Karte je Wild Card, EINE fuer
+                 alle Diener zusammen (Savage Worlds). Die Reihe
+                 bestimmt, wer am Zug ist - nicht mehr die Hand
+                 der SL.
+     DIENER-KI   Die Wiedergaenger gehen von selbst auf den
+                 naechstgelegenen Gegner los (Hendriks Vorgabe);
+                 den Seelenlosen steuert weiter die SL.
+
    DESHALB BRAUCHT JEDE SEITE DREI SCRIPT-TAGS:
      js/regelwerk.js, js/kampf.js, js/arena.js
    Die Reihenfolge ist beliebig (alle Aufrufe stehen in
@@ -285,9 +297,15 @@ function arenaSchadenWerfen(wuerfel, vorgabe) {
    saebeltraegerId: von der SL gesetzt, den Spielern NICHT angezeigt.
 
    vorgabe (nur fuer Tests): { probeBand, steigerungen, schaden } -
-   setzt den Ausgang des Angriffswurfs und/oder die Schadenssumme fest. */
-function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorgabe) {
+   setzt den Ausgang des Angriffswurfs und/oder die Schadenssumme fest.
+
+   bonus: ein flacher Zuschlag auf Wurf UND Schaden. In der Praxis ist
+   das genau der JOKER aus dem Aktionsdeck (+2 auf beides, js/kampf.js);
+   er steht als Zahl und nicht als Jokerflagge hier, weil diese Funktion
+   die Initiative nicht kennen muss. */
+function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorgabe, bonus) {
   const v = vorgabe || {};
+  const zuschlag = Math.max(0, bonus || 0);
   if (ziel && ziel.tot) return { ok: false, grund: 'ziel_liegt' };
   if (angreifer && angreifer.angeschlagen) return { ok: false, grund: 'angeschlagen' };
 
@@ -295,8 +313,9 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorg
   if (!art) return { ok: false, grund: 'ausser_reichweite' };
   if (art === 'fern' && !angreifer.geladen) return { ok: false, grund: 'nicht_geladen' };
 
-  const mod = arenaAngriffMod(angreifer, ziel, art, alleTokens, regeln);
+  let mod = arenaAngriffMod(angreifer, ziel, art, alleTokens, regeln);
   if (mod === null) return { ok: false, grund: 'ausser_reichweite' };
+  mod += zuschlag;
 
   const stufe = art === 'nah' ? (angreifer.kaempfen || 0) : (angreifer.schiessen || 0);
   const gangUp = art === 'nah' ? arenaGangUp(angreifer, ziel, alleTokens, regeln) : 0;
@@ -313,7 +332,7 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorg
   const trifft = probe.band === 'erfolg' || probe.band === 'steigerung';
 
   const erg = {
-    ok: true, art: art, mod: mod, gangUp: gangUp, stufe: stufe,
+    ok: true, art: art, mod: mod, gangUp: gangUp, bonus: zuschlag, stufe: stufe,
     probe: probe, band: probe.band, trifft: trifft,
     schadensWuerfel: [], schaden: 0, schadenWurf: null,
     wirkung: null, angeschlagenNeu: !!ziel.angeschlagen,
@@ -341,7 +360,9 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorg
   const wurfS = arenaSchadenWerfen(wuerfel, v.schaden);
   erg.schadensWuerfel = wuerfel;
   erg.schadenWurf = wurfS;
-  erg.schaden = wurfS.summe;
+  // Der Joker zaehlt auch auf den Schaden (js/kampf.js, JOKER_BONUS) -
+  // beides zusammen, nicht wahlweise.
+  erg.schaden = wurfS.summe + zuschlag;
 
   const max = arenaWundenMax(ziel);
   const w = wirkung(erg.schaden, ziel.robustheit != null ? ziel.robustheit : 4, {
@@ -529,6 +550,452 @@ function arenaLogZeile(angreifer, ziel, erg) {
   return kopf + ': ' + bn + ', Schaden ' + erg.schaden + ' — ' + folge;
 }
 
+/* ==========================================================
+   INITIATIVE — das Aktionsdeck auf dem Brett (30.10.2026)
+   ----------------------------------------------------------
+   Bis heute gab die SL reihum EINE Figur frei, und die
+   Reihenfolge war allein ihre Entscheidung. Jetzt teilt das
+   Brett Karten aus - mit DEMSELBEN Deck wie der Kampfmodus
+   (js/kampf.js: neuesDeck/austeilen/kartenVergleich/jokerBonus).
+   Ein zweites Aktionsdeck hier waere derselbe Fehler wie ein
+   zweiter Regelkern: zwei Fassungen derselben Sache, die
+   auseinanderlaufen.
+
+   WER EINE KARTE BEKOMMT, ist die Savage-Worlds-Regel und nicht
+   gegriffen: Jede Wild Card bekommt eine eigene Karte, jede
+   Gegner-SORTE teilt sich eine. Auf diesem Brett heisst das:
+   Spieler, Verbuendete und der Seelenlose je eine - ALLE DIENER
+   ZUSAMMEN EINE. Zwoelf Diener sind damit ein Eintrag in der
+   Reihe und nicht zwoelf, und genau das ist der Grund, warum
+   die Reihe am Tisch lesbar bleibt.
+
+   Wer AM BODEN liegt, bekommt keine Karte (dieselbe Regel wie
+   im Kampfmodus). Ein Eintrag, dessen Figuren im Laufe der
+   Runde alle fallen, wird beim Weiterschalten UEBERSPRUNGEN
+   statt leer durchlaufen - sonst wartete der Tisch auf einen
+   Toten.
+
+   DIE DIENER-GRUPPE HAELT KEINE FESTE LISTE: Welche Figuren auf
+   ihrer Karte handeln, wird erst beantwortet, wenn die Karte
+   dran ist (arenaIniTokens). Nur so handelt der Nachschub, der
+   mitten in der Runde erscheint, noch auf derselben Karte -
+   eine beim Austeilen eingefrorene Liste wuerde ihn bis zur
+   naechsten Runde stillstehen lassen.
+   ========================================================== */
+const ARENA_DIENER_SCHLUESSEL = 'diener';
+
+/* Die Teilnehmer einer Runde, in der Form, die austeilen() erwartet.
+   Sortiert nach Token-Kennung, damit die Reihenfolge VOR dem Mischen
+   reproduzierbar ist - sonst waere ein Test auf ein gezinktes Deck
+   wertlos. */
+function arenaIniEintraege(tokens) {
+  const eintraege = [];
+  const diener = [];
+  Object.keys(tokens || {}).sort().forEach(function (id) {
+    const t = tokens[id];
+    if (!t || t.tot) return;
+    if (t.typ === 'diener') { diener.push(id); return; }
+    eintraege.push({ key: 't:' + id, name: t.name || id, tokens: [id] });
+  });
+  if (diener.length) {
+    eintraege.push({
+      key: ARENA_DIENER_SCHLUESSEL,
+      name: diener.length > 1 ? 'Die Wiedergänger (' + diener.length + ')' : 'Ein Wiedergänger',
+      tokens: diener
+    });
+  }
+  return eintraege;
+}
+
+/* Welche Figuren handeln JETZT auf diesem Eintrag? Fuer die
+   Diener-Karte live aus dem Feld, fuer alle anderen die eine Figur -
+   und nur, solange sie steht. */
+function arenaIniTokens(eintrag, tokens) {
+  if (!eintrag) return [];
+  if (eintrag.key === ARENA_DIENER_SCHLUESSEL) {
+    return Object.keys(tokens || {}).sort().filter(function (id) {
+      const t = tokens[id];
+      return t && !t.tot && t.typ === 'diener';
+    });
+  }
+  return (eintrag.tokens || []).filter(function (id) {
+    const t = (tokens || {})[id];
+    return t && !t.tot;
+  });
+}
+
+/* Austeilen. "deck" ist der Rest der Vorrunde; ist er leer, nimmt
+   austeilen() von selbst ein frisches, frisch gemischtes Deck. */
+function arenaAusteilen(tokens, deck, zufall) {
+  const erg = austeilen(arenaIniEintraege(tokens), deck, zufall);
+  return {
+    reihe: erg.reihe.map(function (e) {
+      return { key: e.key, name: e.name, tokens: e.tokens, karte: e.karte };
+    }),
+    index: 0,
+    deck: erg.deck,
+    mischenNoetig: erg.mischenNoetig
+  };
+}
+
+/* Der naechste Index ab "von", dessen Eintrag ueberhaupt noch jemanden
+   hat. -1 heisst: die Runde ist durch. */
+function arenaIniIndex(ini, tokens, von) {
+  const reihe = (ini && ini.reihe) || [];
+  for (let i = Math.max(0, von || 0); i < reihe.length; i++) {
+    if (arenaIniTokens(reihe[i], tokens).length) return i;
+  }
+  return -1;
+}
+
+function arenaIniAmZug(ini, tokens) {
+  const i = arenaIniIndex(ini, tokens, (ini && ini.index) || 0);
+  if (i < 0) return null;
+  return Object.assign({ index: i }, ini.reihe[i]);
+}
+
+function arenaIniWeiter(ini, tokens) {
+  const i = arenaIniIndex(ini, tokens, ((ini && ini.index) || 0) + 1);
+  return { index: i < 0 ? null : i, rundeFertig: i < 0 };
+}
+
+/* Welche Figur wird freigegeben, wenn dieser Eintrag dran ist? Bei
+   einem Einzeleintrag die Figur selbst - auch wenn es ein Gegner ist:
+   karte.html laesst Spieler ohnehin nur Figuren vom Typ "spieler"
+   steuern und zeigt alles andere als "handelt ...", und so steht dort
+   immer, WER am Zug ist. Auf der Diener-Karte handelt niemand einzeln,
+   also niemand. */
+function arenaIniFreigabe(eintrag, tokens) {
+  if (!eintrag || eintrag.key === ARENA_DIENER_SCHLUESSEL) return null;
+  const ids = arenaIniTokens(eintrag, tokens);
+  return ids.length === 1 ? ids[0] : null;
+}
+
+/* Der Joker gibt +2 auf jede Probe UND auf den Schaden (js/kampf.js).
+   Ohne diese Stelle waere die Jokerkarte auf dem Brett eine Karte ohne
+   Wirkung - dann koennte man das Deck auch weglassen. */
+function arenaIniBonus(ini, tokenId, tokens) {
+  const reihe = (ini && ini.reihe) || [];
+  for (let i = 0; i < reihe.length; i++) {
+    if (arenaIniTokens(reihe[i], tokens).indexOf(tokenId) >= 0) return jokerBonus(reihe[i]);
+  }
+  return 0;
+}
+
+/* ==========================================================
+   DIE DIENER HANDELN VON SELBST (30.10.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Ich steuer den Seelenlosen, aber die
+   kleinen Untoten sollten automatisch auf den naechstgelegenen
+   gehen."
+
+   DIE REGEL IST BEWUSST DUMM, und das ist der Punkt: Ein
+   Wiedergaenger geht auf den NAECHSTEN - nicht auf den
+   schwaechsten, nicht auf den gefaehrlichsten, nicht auf den
+   schon verwundeten. Er sucht sich kein Ziel aus, er geht
+   einfach los. Alles Kluegere waere Taktik, und Taktik gehoert
+   der SL und den Spielern, nicht dem Brett.
+
+   Bei gleicher Entfernung entscheidet die Token-Kennung. Das
+   ist willkuerlich, aber REPRODUZIERBAR - eine Zufallswahl
+   waere am Tisch nicht nachvollziehbar und im Test nicht
+   pruefbar.
+
+   Der Weg ist ein gieriger Schritt, kein A*: Von den
+   angrenzenden freien Feldern wird genommen, welches dem Ziel
+   naeher liegt als das eigene. Bringt keines eine echte
+   Annaeherung, bleibt die Figur STEHEN, statt sinnlos hin und
+   her zu wackeln. Das kann vor einer geschlossenen Reihe haengen
+   bleiben - bewusst in Kauf genommen, die SL kann jede Figur
+   jederzeit versetzen (Versetzen-Modus im Schlachtfeld).
+
+   Angeschlagen hindert nicht am Gehen, nur am Zuschlagen
+   (arenaKannAngreifen) - ein angeschlagener Diener laeuft also
+   trotzdem los und steht in der naechsten Runde schon da.
+   ========================================================== */
+function arenaFeldFrei(f, tokens, ausserId) {
+  return !Object.keys(tokens || {}).some(function (id) {
+    const t = tokens[id];
+    return t && id !== ausserId && !t.tot && t.x === f.x && t.y === f.y;
+  });
+}
+
+function arenaNaechstesZiel(figur, tokens) {
+  let best = null;
+  Object.keys(tokens || {}).sort().forEach(function (id) {
+    const t = tokens[id];
+    if (!t || t.tot || !arenaIstFeind(figur, t)) return;
+    const dist = arenaDistanz(figur, t);
+    if (!best || dist < best.dist) best = { id: id, dist: dist, token: t };
+  });
+  return best;
+}
+
+/* Wohin die Figur in diesem Zug laeuft, oder null fuer "bleibt stehen". */
+function arenaSchrittZu(figur, ziel, tokens, regeln) {
+  const weite = Math.max(1, figur.bewegung || regeln.bewegung);
+  let x = figur.x, y = figur.y, gelaufen = 0;
+  for (let s = 0; s < weite; s++) {
+    const hier = { x: x, y: y };
+    if (arenaDistanz(hier, ziel) <= regeln.nahkampfReichweite) break;
+    let best = null;
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (!dx && !dy) continue;
+        const f = { x: x + dx, y: y + dy };
+        if (f.x < 0 || f.y < 0 || f.x >= regeln.breite || f.y >= regeln.hoehe) continue;
+        if (!arenaFeldFrei(f, tokens, figur.id)) continue;
+        const dist = arenaDistanz(f, ziel);
+        if (dist >= arenaDistanz(hier, ziel)) continue;   // nur echte Annaeherung
+        /* Bei gleicher Entfernung entscheidet die LUFTLINIE, und das ist keine
+           Feinheit: Chebyshev zaehlt diagonal wie gerade, also sind "schraeg
+           weg in x, naeher in y" und "geradeaus" gleich weit. Nach reiner
+           Kennung driftete die ganze Reihe sichtbar zur Seite, statt auf das
+           Ziel zuzulaufen. Die Kennung bleibt als letzter Entscheid, damit das
+           Ergebnis reproduzierbar ist. */
+        const luft = (f.x - ziel.x) * (f.x - ziel.x) + (f.y - ziel.y) * (f.y - ziel.y);
+        const schl = f.x * 10000 + f.y;
+        if (!best || dist < best.dist
+          || (dist === best.dist && luft < best.luft)
+          || (dist === best.dist && luft === best.luft && schl < best.schl)) {
+          best = { f: f, dist: dist, luft: luft, schl: schl };
+        }
+      }
+    }
+    if (!best) break;
+    x = best.f.x; y = best.f.y; gelaufen++;
+  }
+  return gelaufen ? { x: x, y: y } : null;
+}
+
+/* ---------- Die Aenderungen eines Angriffs ----------
+   Bis heute stand diese Rechnung WORTGLEICH in karte.html und in
+   arena_admin.html. Die Diener-Automatik waere die dritte Kopie
+   geworden - also liegt sie jetzt hier, wie die Logzeile. */
+function arenaAngriffAenderungen(a, z, erg, runde) {
+  const aenderungen = {};
+  aenderungen['tokens/' + a.id + '/hatAngegriffen'] = true;
+  if (erg.entlaedt) {
+    aenderungen['tokens/' + a.id + '/geladen'] = false;
+    aenderungen['tokens/' + a.id + '/entladenSeitRunde'] = runde || 1;
+  }
+  if (erg.endgueltig) {
+    aenderungen['tokens/' + z.id] = null;              // verschwindet ganz
+  } else if (erg.trifft) {
+    aenderungen['tokens/' + z.id + '/angeschlagen'] = erg.angeschlagenNeu ? true : null;
+    aenderungen['tokens/' + z.id + '/wunden'] = erg.wundenNeu > 0 ? erg.wundenNeu : null;
+    if (erg.toetet) {
+      aenderungen['tokens/' + z.id + '/tot'] = true;
+      aenderungen['tokens/' + z.id + '/totSeitRunde'] = runde || 1;
+    }
+  }
+  return aenderungen;
+}
+
+/* Die volle Logzeile samt Zusaetzen - arenaLogZeile() bleibt der Kern,
+   damit die Regel "der Saebel wird nirgends benannt" eine Stelle hat. */
+function arenaAngriffText(a, z, erg) {
+  let text = arenaLogZeile(a, z, erg);
+  if (erg.bonus > 0) text += ' (Joker, +' + erg.bonus + ')';
+  if (erg.gangUp > 0) text += ' (gemeinsam, +' + erg.gangUp + ')';
+  if (erg.endgueltig) text += ' — zerfällt zu Staub.';
+  else if (erg.toetet) text += ' — geht zu Boden.';
+  return text;
+}
+
+/* Flache Firebase-Pfade auf eine LOKALE Tokenkarte anwenden. Gebraucht,
+   damit mehrere Diener hintereinander einen konsistenten Stand sehen:
+   Ohne das liefen zwei auf dasselbe Feld, und der zweite schluege auf
+   einen Toten ein. Versteht genau die Pfade, die diese Datei schreibt. */
+function arenaAnwenden(tokens, aenderungen) {
+  const neu = {};
+  Object.keys(tokens || {}).forEach(function (id) {
+    neu[id] = Object.assign({}, tokens[id]);
+  });
+  Object.keys(aenderungen || {}).forEach(function (pfad) {
+    const teile = pfad.split('/');
+    if (teile[0] !== 'tokens' || !teile[1]) return;
+    const id = teile[1], wert = aenderungen[pfad];
+    if (teile.length === 2) {
+      if (wert == null) delete neu[id]; else neu[id] = Object.assign({}, wert);
+      return;
+    }
+    if (!neu[id]) return;
+    if (wert == null) delete neu[id][teile[2]]; else neu[id][teile[2]] = wert;
+  });
+  return neu;
+}
+
+/* Ein Diener handelt: hingehen, und wenn er dann dran ist, zuschlagen.
+   Liefert zusaetzlich die FORTGESCHRIEBENE Tokenkarte, damit der naechste
+   Diener auf dem neuen Stand rechnet. */
+function arenaDienerZug(dienerId, tokens, regeln, saebeltraegerId, runde, bonus) {
+  const roh = (tokens || {})[dienerId];
+  const leer = { ok: false, aenderungen: {}, log: [], tokens: tokens, gezogen: false, angriff: null };
+  if (!roh || roh.tot || roh.typ !== 'diener') return Object.assign(leer, { grund: 'kein_diener' });
+  if (roh.hatGezogen || roh.hatAngegriffen) return Object.assign(leer, { grund: 'schon_gehandelt' });
+
+  const d = Object.assign({ id: dienerId }, roh);
+  const ziel = arenaNaechstesZiel(d, tokens);
+  if (!ziel) return Object.assign(leer, { grund: 'kein_ziel' });
+
+  const aenderungen = {};
+  const log = [];
+  let stand = tokens;
+  let gezogen = false;
+
+  const schritt = arenaSchrittZu(d, ziel.token, tokens, regeln);
+  if (schritt) {
+    aenderungen['tokens/' + dienerId + '/x'] = schritt.x;
+    aenderungen['tokens/' + dienerId + '/y'] = schritt.y;
+    aenderungen['tokens/' + dienerId + '/hatGezogen'] = true;
+    stand = arenaAnwenden(stand, aenderungen);
+    gezogen = true;
+  }
+
+  const jetzt = Object.assign({ id: dienerId }, stand[dienerId]);
+  let erg = null;
+  if (arenaKannAngreifen(jetzt)) {
+    const z = Object.assign({ id: ziel.id }, stand[ziel.id] || {});
+    if (z.typ) {
+      const a = arenaAngriff(jetzt, z, stand, regeln, saebeltraegerId, null, bonus);
+      if (a.ok) {
+        erg = a;
+        const na = arenaAngriffAenderungen(jetzt, z, a, runde);
+        Object.keys(na).forEach(function (p) { aenderungen[p] = na[p]; });
+        stand = arenaAnwenden(stand, na);
+        log.push(arenaAngriffText(jetzt, z, a));
+      }
+    }
+  }
+
+  return {
+    ok: gezogen || !!erg, aenderungen: aenderungen, log: log,
+    tokens: stand, gezogen: gezogen, angriff: erg, zielId: ziel.id
+  };
+}
+
+/* Alle Diener der Reihe nach - EIN Paket Aenderungen fuer EIN atomares
+   update(). Die Reihenfolge ist die Token-Kennung, also dieselbe wie
+   ueberall sonst; wer schon gehandelt hat, wird uebersprungen, ein
+   zweiter Klick wiederholt also nichts. */
+function arenaDienerRunde(tokens, regeln, saebeltraegerId, runde, bonus) {
+  let stand = tokens || {};
+  const aenderungen = {};
+  const log = [];
+  let gezogen = 0, angriffe = 0, treffer = 0;
+  Object.keys(stand).sort().filter(function (id) {
+    const t = stand[id];
+    return t && !t.tot && t.typ === 'diener';
+  }).forEach(function (id) {
+    const z = arenaDienerZug(id, stand, regeln, saebeltraegerId, runde, bonus);
+    if (!z.ok) return;
+    Object.keys(z.aenderungen).forEach(function (p) { aenderungen[p] = z.aenderungen[p]; });
+    z.log.forEach(function (l) { log.push(l); });
+    stand = z.tokens;
+    if (z.gezogen) gezogen++;
+    if (z.angriff) { angriffe++; if (z.angriff.trifft) treffer++; }
+  });
+  return {
+    aenderungen: aenderungen, log: log, tokens: stand,
+    gezogen: gezogen, angriffe: angriffe, treffer: treffer
+  };
+}
+
+/* ---------- Zwei Aenderungspakete pfadsicher zusammenlegen ----------
+   DAS IST KEINE BEQUEMLICHKEIT, SONDERN EINE FIREBASE-REGEL: Ein update()
+   lehnt es ab, wenn ein Pfad Vorfahre eines anderen ist ("contains an
+   ancestor of another path"). Genau das entsteht hier an zwei Stellen von
+   selbst:
+
+     initiative        (das ganze Objekt beim Austeilen)
+     initiative/index  (das Landen auf einer Karte)
+
+     tokens/t7         (frisch beschworener Nachschub, ganzes Objekt)
+     tokens/t7/x       (derselbe Diener laeuft in derselben Runde los)
+
+   Beides faellt erst am Tisch auf, weil das update() dann KOMPLETT
+   scheitert - also wird hier gemischt statt stumpf zugewiesen: Gibt es
+   schon den Vorfahren als Objekt, wandert das Feld HINEIN. Ist der
+   Vorfahre auf null gesetzt (Token geloescht), wird das Feld verworfen -
+   ein Feld an einer geloeschten Figur hat keinen Sinn. */
+function arenaMischen(ziel, quelle) {
+  Object.keys(quelle || {}).forEach(function (pfad) {
+    const teile = pfad.split('/');
+    let eingebaut = false;
+    for (let i = teile.length - 1; i > 0 && !eingebaut; i--) {
+      const vorfahr = teile.slice(0, i).join('/');
+      if (!(vorfahr in ziel)) continue;
+      const wert = ziel[vorfahr];
+      if (wert == null) { eingebaut = true; break; }   // Figur ist weg
+      let knoten = wert;
+      const rest = teile.slice(i);
+      for (let k = 0; k < rest.length - 1; k++) {
+        if (knoten[rest[k]] == null || typeof knoten[rest[k]] !== 'object') knoten[rest[k]] = {};
+        knoten = knoten[rest[k]];
+      }
+      knoten[rest[rest.length - 1]] = quelle[pfad];
+      eingebaut = true;
+    }
+    if (eingebaut) return;
+    // Umgekehrt: Dieser Pfad ist Vorfahre schon vorhandener - die fallen weg.
+    Object.keys(ziel).forEach(function (vorhanden) {
+      if (vorhanden.indexOf(pfad + '/') === 0) delete ziel[vorhanden];
+    });
+    ziel[pfad] = quelle[pfad];
+  });
+  return ziel;
+}
+
+/* ---------- Der Ablauf einer Runde, als reine Funktionen ----------
+   "Wir landen jetzt auf Karte i" und "neue Runde, neue Karten" standen beim
+   ersten Anlauf in arena_admin.html. Das Kompakt-Panel in js/regie_vault.js
+   braucht genau dasselbe - also liegt es hier, statt zweimal dort. Beide
+   liefern ein flaches { aenderungen, logs }, aus dem der Aufrufer EIN
+   atomares update() baut. */
+
+/* Landen auf einem Eintrag: Index setzen, die Figur freigeben - und wenn es
+   die Diener-Karte ist, handeln sie SOFORT. Das ist Hendriks "automatisch":
+   Die SL schaltet weiter, die Wiedergaenger laufen von selbst. */
+function arenaIniLanden(ini, tokens, index, regeln, saebeltraegerId, runde) {
+  const aenderungen = {};
+  const logs = [];
+  aenderungen['initiative/index'] = (index == null) ? null : index;
+  const eintrag = (index == null) ? null : (((ini && ini.reihe) || [])[index] || null);
+  aenderungen['freigegeben'] = eintrag ? (arenaIniFreigabe(eintrag, tokens) || null) : null;
+  if (!eintrag || eintrag.key !== ARENA_DIENER_SCHLUESSEL) {
+    return { aenderungen: aenderungen, logs: logs, tokens: tokens, eintrag: eintrag };
+  }
+  const erg = arenaDienerRunde(tokens, regeln, saebeltraegerId, runde, jokerBonus(eintrag));
+  arenaMischen(aenderungen, erg.aenderungen);
+  if (erg.gezogen) {
+    logs.push(erg.gezogen > 1
+      ? erg.gezogen + ' Wiedergänger drängen vor.'
+      : 'Ein Wiedergänger drängt vor.');
+  }
+  erg.log.forEach(function (l) { logs.push(l); });
+  if (!erg.gezogen && !erg.angriffe) logs.push('Die Wiedergänger kommen nicht weiter.');
+  return { aenderungen: aenderungen, logs: logs, tokens: erg.tokens, eintrag: eintrag };
+}
+
+/* Austeilen und auf die erste Karte landen. Das RESTDECK der Vorrunde wird
+   weitergereicht - ein Deck, das nie kleiner wird, waere kein Deck
+   (js/kampf.js). Nur wenn der Joker gefallen ist, wird neu gemischt. */
+function arenaIniNeueRunde(altIni, tokens, regeln, saebeltraegerId, runde, zufall, ohneLanden) {
+  const alt = altIni || {};
+  const deck = alt.mischenNoetig ? null : (alt.deck || null);
+  const ini = arenaAusteilen(tokens, deck, zufall);
+  const aenderungen = { initiative: ini };
+  const logs = [];
+  if (ini.mischenNoetig) logs.push('Der Joker ist gefallen — danach wird neu gemischt.');
+  if (ohneLanden) return { ini: ini, aenderungen: aenderungen, logs: logs, tokens: tokens };
+  const i = arenaIniIndex(ini, tokens, 0);
+  const gelandet = arenaIniLanden(ini, tokens, i < 0 ? null : i, regeln, saebeltraegerId, runde);
+  arenaMischen(aenderungen, gelandet.aenderungen);
+  gelandet.logs.forEach(function (l) { logs.push(l); });
+  return { ini: ini, aenderungen: aenderungen, logs: logs, tokens: gelandet.tokens };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     GANG_UP_MAX,
@@ -538,6 +1005,12 @@ if (typeof module !== 'undefined' && module.exports) {
     arenaSchadensWuerfel, arenaSchadenWerfen,
     arenaAngriff, arenaBewegungErlaubt,
     arenaBossLebt, arenaBossGebannt, arenaRundenwechsel, arenaFreieRandfelder,
-    arenaLogZeile
+    arenaLogZeile, arenaAngriffAenderungen, arenaAngriffText, arenaAnwenden,
+    ARENA_DIENER_SCHLUESSEL,
+    arenaIniEintraege, arenaIniTokens, arenaAusteilen, arenaIniIndex,
+    arenaIniAmZug, arenaIniWeiter, arenaIniFreigabe, arenaIniBonus,
+    arenaFeldFrei, arenaNaechstesZiel, arenaSchrittZu,
+    arenaDienerZug, arenaDienerRunde,
+    arenaIniLanden, arenaIniNeueRunde, arenaMischen
   };
 }

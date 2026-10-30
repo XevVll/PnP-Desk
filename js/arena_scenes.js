@@ -35,6 +35,12 @@
 // HP SIND ERSATZLOS WEG. Eine Figur traegt "angeschlagen" und "wunden" - ein
 // Statist (Diener) faellt bei der ersten Wunde, eine Wild Card traegt drei.
 //
+// INITIATIVE ueber das Aktionsdeck (seit 30.10.2026, Bibel 4.4b): Zu Beginn jeder
+// Runde Karten - eine je Wild Card, EINE fuer alle Diener zusammen. Die Reihe
+// bestimmt, wer am Zug ist; ist sie durch, ist die Runde durch. Landet sie auf der
+// Dienerkarte, handeln die WIEDERGAENGER VON SELBST und gehen auf den
+// naechstgelegenen Gegner los (Hendriks Vorgabe) - den Seelenlosen steuert die SL.
+//
 // Ablauf pro Figur: Bewegung, dann Angriff. Die Angriffsart ergibt sich aus der
 // Entfernung. Nach einem Schuss ist die Waffe leer und erst in der
 // uebernaechsten Runde wieder bereit (Bibel 4.5: ein Schuss, 1701 ist alles

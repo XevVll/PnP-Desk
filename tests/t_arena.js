@@ -52,7 +52,13 @@ vm.runInContext('this.X = {' + [
   'arenaAngriff', 'arenaBewegungErlaubt', 'arenaBossLebt', 'arenaBossGebannt',
   'arenaRundenwechsel', 'arenaFreieRandfelder', 'arenaLogZeile',
   'angriffsMod', 'fernkampfMod', 'wirkung', 'chancen', 'parade', 'robustheit',
-  'nscAlsFigur', 'NSC', 'ARENA_SCENES', 'KAMPF_REGELN', 'DLBL'
+  'nscAlsFigur', 'NSC', 'ARENA_SCENES', 'KAMPF_REGELN', 'DLBL',
+  'ARENA_DIENER_SCHLUESSEL', 'arenaIniEintraege', 'arenaIniTokens', 'arenaAusteilen',
+  'arenaIniIndex', 'arenaIniAmZug', 'arenaIniWeiter', 'arenaIniFreigabe', 'arenaIniBonus',
+  'arenaFeldFrei', 'arenaNaechstesZiel', 'arenaSchrittZu', 'arenaDienerZug', 'arenaDienerRunde',
+  'arenaAngriffAenderungen', 'arenaAngriffText', 'arenaAnwenden',
+  'arenaIniLanden', 'arenaIniNeueRunde', 'arenaMischen',
+  'kartenText', 'kartenVergleich', 'jokerBonus'
 ].join(',') + '};', ctx);
 const A = ctx.X;
 
@@ -681,6 +687,489 @@ function held(id, opts) {
     chk('"' + bn + '" ist ein gueltiges Band des neuen Systems',
       ['steigerung', 'erfolg', 'miss', 'patzer'].indexOf(bn) >= 0, bn);
   });
+})();
+
+/* ==========================================================
+   INITIATIVE UND DIE DIENER-AUTOMATIK (30.10.2026, Fortsetzung)
+   ----------------------------------------------------------
+   Zwei Dinge sind neu, und beide koennen LAUTLOS falsch sein:
+
+   1. WER EINE KARTE BEKOMMT. Savage Worlds gibt jeder Wild Card
+      eine eigene Karte und jeder Gegner-SORTE eine gemeinsame.
+      Bekaeme jeder Diener eine eigene, waere die Reihe bei einem
+      Dutzend Figuren unbenutzbar - und es waere nicht die Regel.
+   2. WORAUF DIE DIENER LOSGEHEN. Hendriks Vorgabe ist "der
+      naechstgelegene". Eine Automatik, die den schon verwundeten
+      oder den schwaechsten nimmt, faellt niemandem am Tisch auf -
+      sie fuehlt sich nur anders an, und zwar klueger, als
+      Wiedergaenger sein sollen.
+   ========================================================== */
+(function () {
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+  function tk(vorlage, zusatz) {
+    return Object.assign({}, vorlagen[vorlage], { geladen: true }, zusatz || {});
+  }
+  // Ein festes Deck statt eines gemischten: Nur so ist pruefbar, WER welche
+  // Karte bekommt. austeilen() nimmt es von vorn.
+  const DECK = [
+    { wert: 14, farbe: 'pik', joker: false },   // Ass
+    { wert: 10, farbe: 'herz', joker: false },
+    { wert: 5, farbe: 'karo', joker: false },
+    { wert: 3, farbe: 'kreuz', joker: false },
+    { wert: 2, farbe: 'pik', joker: false },
+    { wert: 13, farbe: 'pik', joker: false }
+  ];
+
+  // -------------------------------------------------- Teilnehmer
+  const feld = {
+    a_spieler1: tk('spieler', { name: 'Anna', x: 2, y: 15 }),
+    b_spieler2: tk('spieler', { name: 'Bert', x: 4, y: 15 }),
+    c_harwick: tk('verbuendeter', { name: 'Harwick', x: 8, y: 8 }),
+    d_boss: tk('seelenloser', { name: 'Der Seelenlose', x: 8, y: 0 }),
+    e_d1: tk('diener', { name: 'Diener 1', x: 3, y: 2 }),
+    f_d2: tk('diener', { name: 'Diener 2', x: 5, y: 2 }),
+    g_d3: tk('diener', { name: 'Diener 3', x: 7, y: 2 }),
+    h_d4: tk('diener', { name: 'Diener 4', x: 9, y: 2 })
+  };
+
+  const eintraege = A.arenaIniEintraege(feld);
+  chk('vier Wild Cards plus EINE Karte fuer alle Diener = 5 Eintraege',
+    eintraege.length === 5, eintraege.map(function (e) { return e.key; }));
+  chk('die vier Diener stecken in genau einem Eintrag',
+    eintraege.filter(function (e) { return e.key === A.ARENA_DIENER_SCHLUESSEL; }).length === 1
+    && A.arenaIniTokens(eintraege[4], feld).length === 4,
+    eintraege[4]);
+  chk('der Diener-Eintrag nennt ihre Zahl im Namen',
+    /4/.test(eintraege[4].name), eintraege[4].name);
+
+  const mitToten = Object.assign({}, feld, {
+    b_spieler2: tk('spieler', { name: 'Bert', x: 4, y: 15, tot: true })
+  });
+  chk('wer am Boden liegt, bekommt keine Karte',
+    A.arenaIniEintraege(mitToten).length === 4,
+    A.arenaIniEintraege(mitToten).map(function (e) { return e.key; }));
+
+  const ohneDiener = { a_spieler1: feld.a_spieler1, d_boss: feld.d_boss };
+  chk('ohne Diener gibt es auch keine Diener-Karte',
+    A.arenaIniEintraege(ohneDiener).filter(function (e) {
+      return e.key === A.ARENA_DIENER_SCHLUESSEL;
+    }).length === 0, A.arenaIniEintraege(ohneDiener));
+
+  // -------------------------------------------------- Austeilen
+  const ini = A.arenaAusteilen(feld, DECK.slice(), null);
+  chk('ausgeteilt wird an alle fuenf', (ini.reihe || []).length === 5, ini.reihe.length);
+  chk('die Reihe ist nach Karte sortiert, hoechste zuerst',
+    (function () {
+      for (let i = 1; i < ini.reihe.length; i++) {
+        if (A.kartenVergleich(ini.reihe[i - 1].karte, ini.reihe[i].karte) > 0) return false;
+      }
+      return true;
+    })(), ini.reihe.map(function (e) { return A.kartenText(e.karte); }));
+  chk('das Deck wird kleiner - ein Deck, das nie schrumpft, waere kein Deck',
+    ini.deck.length === DECK.length - 5, ini.deck.length);
+  chk('der Index beginnt bei 0', ini.index === 0, ini.index);
+
+  // Die Diener-Gruppe haelt KEINE eingefrorene Liste: Nachschub, der mitten in
+  // der Runde erscheint, handelt noch auf derselben Karte.
+  const dienerEintrag = ini.reihe.filter(function (e) {
+    return e.key === A.ARENA_DIENER_SCHLUESSEL;
+  })[0];
+  const mitNachschub = Object.assign({}, feld, {
+    z_neu: tk('diener', { name: 'Diener 5', x: 1, y: 0 })
+  });
+  chk('frischer Nachschub handelt auf der Diener-Karte mit',
+    A.arenaIniTokens(dienerEintrag, mitNachschub).length === 5,
+    A.arenaIniTokens(dienerEintrag, mitNachschub));
+  chk('ein gefallener Diener handelt dort nicht mehr mit',
+    A.arenaIniTokens(dienerEintrag, Object.assign({}, feld, {
+      e_d1: tk('diener', { x: 3, y: 2, tot: true })
+    })).length === 3);
+
+  // -------------------------------------------------- Freigabe
+  const spielerEintrag = ini.reihe.filter(function (e) { return e.key === 't:a_spieler1'; })[0];
+  chk('ein Einzeleintrag gibt seine Figur frei',
+    A.arenaIniFreigabe(spielerEintrag, feld) === 'a_spieler1',
+    A.arenaIniFreigabe(spielerEintrag, feld));
+  chk('auf der Diener-Karte wird NIEMAND einzeln freigegeben',
+    A.arenaIniFreigabe(dienerEintrag, feld) === null,
+    A.arenaIniFreigabe(dienerEintrag, feld));
+  /* Und auch dann nicht, wenn nur EINER uebrig ist. Genau das war der erste
+     Fehler dieser Runde, und meine eigene Pruefung hat ihn gemeldet: Die
+     Freigabe haengte allein an "genau eine Figur", also wurde der letzte
+     Diener an die Spieler durchgereicht. Die Diener-Karte ist die Karte der
+     GRUPPE - wie viele darauf stehen, aendert daran nichts. */
+  chk('auch der letzte uebrige Diener wird nicht freigegeben',
+    A.arenaIniFreigabe(dienerEintrag, {
+      a_spieler1: feld.a_spieler1, e_d1: feld.e_d1
+    }) === null,
+    A.arenaIniFreigabe(dienerEintrag, { a_spieler1: feld.a_spieler1, e_d1: feld.e_d1 }));
+
+  // -------------------------------------------------- Weiterschalten
+  chk('weiter geht auf den naechsten Index',
+    A.arenaIniWeiter({ reihe: ini.reihe, index: 0 }, feld).index === 1);
+  chk('am Ende der Reihe ist die Runde durch',
+    A.arenaIniWeiter({ reihe: ini.reihe, index: 4 }, feld).rundeFertig === true);
+  // Ein Eintrag, dessen Figuren alle gefallen sind, wird uebersprungen - sonst
+  // wartete der Tisch auf einen Toten.
+  (function () {
+    const reihe = [
+      { key: 't:a_spieler1', name: 'Anna', tokens: ['a_spieler1'], karte: DECK[0] },
+      { key: 't:b_spieler2', name: 'Bert', tokens: ['b_spieler2'], karte: DECK[1] },
+      { key: 't:c_harwick', name: 'Harwick', tokens: ['c_harwick'], karte: DECK[2] }
+    ];
+    const gefallen = Object.assign({}, feld, {
+      b_spieler2: tk('spieler', { name: 'Bert', x: 4, y: 15, tot: true })
+    });
+    const w = A.arenaIniWeiter({ reihe: reihe, index: 0 }, gefallen);
+    chk('ein Eintrag ohne stehende Figur wird uebersprungen', w.index === 2, w);
+    chk('und arenaIniAmZug springt ebenso',
+      A.arenaIniAmZug({ reihe: reihe, index: 1 }, gefallen).index === 2);
+  })();
+
+  // -------------------------------------------------- Joker
+  (function () {
+    const jokerDeck = [{ wert: 99, farbe: 'rot', joker: true }].concat(DECK.slice());
+    const ji = A.arenaAusteilen({ a: feld.a_spieler1, b: feld.b_spieler2 }, jokerDeck, null);
+    chk('ein gefallener Joker verlangt neu zu mischen', ji.mischenNoetig === true);
+    chk('der Jokertraeger bekommt +2 auf alles',
+      A.arenaIniBonus(ji, 'a', { a: feld.a_spieler1, b: feld.b_spieler2 }) === 2,
+      A.arenaIniBonus(ji, 'a', { a: feld.a_spieler1, b: feld.b_spieler2 }));
+    chk('der andere bekommt nichts',
+      A.arenaIniBonus(ji, 'b', { a: feld.a_spieler1, b: feld.b_spieler2 }) === 0);
+    chk('ohne Initiative gibt es keinen Bonus', A.arenaIniBonus(null, 'a', {}) === 0);
+  })();
+
+  /* Der Joker muss im ANGRIFF wirklich ankommen - sonst waere die Karte nur
+     ein rotes Zeichen in der Leiste. */
+  (function () {
+    const a = Object.assign({ id: 'a' }, tk('spieler', { x: 5, y: 5 }));
+    const z = Object.assign({ id: 'z' }, tk('diener', { x: 5, y: 6 }));
+    const tokens = { a: a, z: z };
+    const ohne = A.arenaAngriff(a, z, tokens, REGELN, null, { probeBand: 'erfolg', schaden: 7 });
+    const mit = A.arenaAngriff(a, z, tokens, REGELN, null, { probeBand: 'erfolg', schaden: 7 }, 2);
+    chk('der Joker hebt den Angriffsmodifikator um 2', mit.mod === ohne.mod + 2, [ohne.mod, mit.mod]);
+    chk('und den Schaden ebenso um 2', mit.schaden === ohne.schaden + 2, [ohne.schaden, mit.schaden]);
+    chk('ohne Joker aendert sich nichts', ohne.bonus === 0 && mit.bonus === 2);
+  })();
+
+  // -------------------------------------------------- Zielwahl der Diener
+  (function () {
+    const d = { id: 'd', typ: 'diener', x: 5, y: 5 };
+    const nah = { typ: 'spieler', x: 7, y: 5, wunden: 0, parade: 6 };
+    const fern = { typ: 'spieler', x: 12, y: 5, wunden: 2, parade: 4 };
+    const tokens = { d: d, p_nah: nah, p_fern: fern };
+    const ziel = A.arenaNaechstesZiel(d, tokens);
+    chk('der Diener geht auf den NAECHSTEN, nicht auf den verwundeten',
+      ziel.id === 'p_nah', ziel && ziel.id);
+    chk('und auch nicht auf den mit der niedrigeren Parade',
+      ziel.id !== 'p_fern', ziel && ziel.id);
+    chk('die Entfernung stimmt', ziel.dist === 2, ziel.dist);
+
+    chk('ein gefallener Gegner ist kein Ziel',
+      A.arenaNaechstesZiel(d, { d: d, p_nah: Object.assign({}, nah, { tot: true }), p_fern: fern }).id === 'p_fern');
+    chk('der eigene Seelenlose ist kein Ziel',
+      A.arenaNaechstesZiel(d, { d: d, boss: { typ: 'seelenloser', x: 6, y: 5 }, p_fern: fern }).id === 'p_fern');
+    chk('ein anderer Diener ist kein Ziel',
+      A.arenaNaechstesZiel(d, { d: d, d2: { typ: 'diener', x: 6, y: 5 }, p_fern: fern }).id === 'p_fern');
+    chk('ohne Gegner gibt es kein Ziel', A.arenaNaechstesZiel(d, { d: d }) === null);
+    // Gleich weit weg: die Kennung entscheidet. Willkuerlich, aber
+    // reproduzierbar - eine Zufallswahl waere im Test nicht pruefbar und am
+    // Tisch nicht nachvollziehbar.
+    chk('bei gleicher Entfernung entscheidet die Kennung',
+      A.arenaNaechstesZiel(d, {
+        d: d, z_spaet: { typ: 'spieler', x: 5, y: 7 }, a_frueh: { typ: 'spieler', x: 5, y: 3 }
+      }).id === 'a_frueh');
+  })();
+
+  // -------------------------------------------------- Der Weg
+  (function () {
+    const d = { id: 'd', typ: 'diener', x: 5, y: 2 };
+    const ziel = { x: 5, y: 10 };
+    const schritt = A.arenaSchrittZu(d, ziel, { d: d }, REGELN);
+    chk('der Diener laeuft genau seine Bewegung weit',
+      A.arenaDistanz({ x: 5, y: 2 }, schritt) === REGELN.bewegung, schritt);
+    chk('und zwar auf das Ziel zu',
+      A.arenaDistanz(schritt, ziel) < A.arenaDistanz(d, ziel), schritt);
+    /* GERADEAUS, nicht schraeg. Chebyshev zaehlt diagonal wie gerade - ohne
+       einen Entscheid nach Luftlinie driftete die ganze Reihe sichtbar zur
+       Seite, obwohl das Ziel genau vor ihr stand. Aufgefallen erst an einer
+       Gegenprobe, nicht beim Hinsehen. */
+    chk('und geradeaus, nicht schraeg daneben', schritt.x === 5, schritt);
+
+    chk('steht er schon daneben, bleibt er stehen',
+      A.arenaSchrittZu({ id: 'd', x: 5, y: 9 }, ziel, {}, REGELN) === null);
+
+    // Eingekesselt: kein Feld bringt eine Annaeherung, also kein Gewackel.
+    const kessel = { d: { id: 'd', x: 5, y: 5 } };
+    [[4, 4], [5, 4], [6, 4], [4, 5], [6, 5], [4, 6], [5, 6], [6, 6]].forEach(function (p, i) {
+      kessel['w' + i] = { typ: 'diener', x: p[0], y: p[1] };
+    });
+    chk('eingekesselt bleibt er stehen statt zu wackeln',
+      A.arenaSchrittZu({ id: 'd', x: 5, y: 5 }, { x: 5, y: 12 }, kessel, REGELN) === null);
+
+    // Besetzte Felder werden nicht betreten.
+    const belegt = {
+      d: { id: 'd', x: 5, y: 2 },
+      b1: { typ: 'diener', x: 4, y: 3 }, b2: { typ: 'diener', x: 5, y: 3 }, b3: { typ: 'diener', x: 6, y: 3 }
+    };
+    const aus = A.arenaSchrittZu({ id: 'd', x: 5, y: 2 }, ziel, belegt, REGELN);
+    chk('besetzte Felder werden nicht betreten',
+      aus === null || !(aus.y === 3 && aus.x >= 4 && aus.x <= 6), aus);
+
+    // Am Rand nicht hinauslaufen.
+    chk('das Brett wird nicht verlassen',
+      (function () {
+        const s = A.arenaSchrittZu({ id: 'd', x: 0, y: 0 }, { x: -5, y: -5 }, {}, REGELN);
+        return s === null || (s.x >= 0 && s.y >= 0);
+      })());
+  })();
+
+  // -------------------------------------------------- Ein Dienerzug
+  (function () {
+    const tokens = {
+      d1: tk('diener', { name: 'Diener 1', x: 5, y: 2 }),
+      p1: tk('spieler', { name: 'Anna', x: 5, y: 5 })
+    };
+    const z = A.arenaDienerZug('d1', tokens, REGELN, null, 3);
+    chk('er laeuft los', z.gezogen === true && z.aenderungen['tokens/d1/hatGezogen'] === true, z.aenderungen);
+    /* Drei Felder weg, Bewegung 2: Er laeuft bis auf einen Schritt heran und
+       schlaegt im SELBEN Zug zu - Bewegung und Handlung, wie bei jeder anderen
+       Figur auch. Meine erste Erwartung hier war "kommt noch nicht an", und sie
+       war schlicht falsch gerechnet. */
+    chk('und steht danach einen Schritt vor dem Spieler',
+      A.arenaDistanz(z.tokens.d1, tokens.p1) === 1, z.tokens.d1);
+    chk('und schlaegt im selben Zug zu', !!z.angriff, z.grund || z.angriff);
+
+    // Jetzt steht er daneben: kein Lauf, aber ein Angriff.
+    const nah = {
+      d1: tk('diener', { name: 'Diener 1', x: 5, y: 4 }),
+      p1: tk('spieler', { name: 'Anna', x: 5, y: 5 })
+    };
+    const z2 = A.arenaDienerZug('d1', nah, REGELN, null, 3);
+    chk('steht er daneben, schlaegt er zu', z2.gezogen === false && !!z2.angriff, z2.grund || z2.angriff);
+    chk('der Angriff gilt dem naechsten Spieler', z2.zielId === 'p1', z2.zielId);
+    chk('und er ist als angegriffen vermerkt',
+      z2.aenderungen['tokens/d1/hatAngegriffen'] === true, z2.aenderungen);
+
+    chk('wer schon gehandelt hat, handelt nicht noch einmal',
+      A.arenaDienerZug('d1', {
+        d1: tk('diener', { x: 5, y: 4, hatAngegriffen: true }),
+        p1: tk('spieler', { x: 5, y: 5 })
+      }, REGELN, null, 3).grund === 'schon_gehandelt');
+
+    // Angeschlagen hindert am Zuschlagen, nicht am Gehen (Bibel 4.4a).
+    const wankend = A.arenaDienerZug('d1', {
+      d1: tk('diener', { x: 5, y: 2, angeschlagen: true }),
+      p1: tk('spieler', { x: 5, y: 5 })
+    }, REGELN, null, 3);
+    chk('ein angeschlagener Diener laeuft trotzdem los', wankend.gezogen === true);
+    const wankendNah = A.arenaDienerZug('d1', {
+      d1: tk('diener', { x: 5, y: 4, angeschlagen: true }),
+      p1: tk('spieler', { x: 5, y: 5 })
+    }, REGELN, null, 3);
+    chk('schlaegt aber nicht zu', wankendNah.angriff === null, wankendNah.angriff);
+
+    chk('ohne Gegner im Feld tut er nichts',
+      A.arenaDienerZug('d1', { d1: tk('diener', { x: 5, y: 2 }) }, REGELN, null, 3).grund === 'kein_ziel');
+    chk('ein Spieler ist kein Diener und wird nicht automatisch gezogen',
+      A.arenaDienerZug('p1', nah, REGELN, null, 3).grund === 'kein_diener');
+  })();
+
+  // -------------------------------------------------- Die ganze Dienerrunde
+  (function () {
+    const tokens = {
+      a_d1: tk('diener', { name: 'Diener 1', x: 5, y: 2 }),
+      b_d2: tk('diener', { name: 'Diener 2', x: 6, y: 2 }),
+      c_d3: tk('diener', { name: 'Diener 3', x: 7, y: 2 }),
+      p1: tk('spieler', { name: 'Anna', x: 6, y: 9 }),
+      boss: tk('seelenloser', { name: 'Der Seelenlose', x: 1, y: 1 })
+    };
+    const erg = A.arenaDienerRunde(tokens, REGELN, null, 3);
+    chk('alle drei Diener handeln', erg.gezogen === 3, erg);
+    /* Die wichtigste Pruefung dieses Blocks: Zwei Diener duerfen nicht auf
+       demselben Feld landen. Das passiert genau dann, wenn jeder auf dem
+       ALTEN Stand rechnet - deshalb schreibt arenaDienerRunde() die Tokenkarte
+       zwischen den Zuegen fort. */
+    /* Geprueft wird auf dem Stand, den das EINE atomare update() erzeugt -
+       also auf den Aenderungen, nicht auf erg.tokens. Die erste Fassung las
+       erg.tokens, und in der kaputten Variante ist das schlicht der
+       unveraenderte Ausgangsstand: Die Pruefung sah dann gar keine Kollision
+       und meldete OK. Eine Pruefung, die den Fehler nicht sehen KANN, prueft
+       nichts. */
+    const gespeichert = A.arenaAnwenden(tokens, erg.aenderungen);
+    const felder = {};
+    let doppelt = null;
+    Object.keys(gespeichert).forEach(function (id) {
+      const t = gespeichert[id];
+      if (!t || t.tot) return;
+      const k = t.x + ':' + t.y;
+      if (felder[k]) doppelt = [felder[k], id, k];
+      felder[k] = id;
+    });
+    chk('kein Feld ist doppelt belegt', doppelt === null, doppelt);
+    chk('und jeder ist dem Ziel naeher als vorher',
+      ['a_d1', 'b_d2', 'c_d3'].every(function (id) {
+        return A.arenaDistanz(gespeichert[id], tokens.p1) < A.arenaDistanz(tokens[id], tokens.p1);
+      }), ['a_d1', 'b_d2', 'c_d3'].map(function (id) { return gespeichert[id]; }));
+    chk('der Seelenlose wird von der Automatik nicht angefasst - die SL steuert ihn',
+      Object.keys(erg.aenderungen).every(function (p) { return p.indexOf('tokens/boss') !== 0; }),
+      Object.keys(erg.aenderungen).filter(function (p) { return p.indexOf('tokens/boss') === 0; }));
+    chk('und der Spieler wird nicht bewegt',
+      erg.aenderungen['tokens/p1/x'] === undefined);
+
+    // Zweiter Durchgang auf demselben Stand: niemand handelt noch einmal.
+    const nochmal = A.arenaDienerRunde(erg.tokens, REGELN, null, 3);
+    chk('ein zweiter Durchgang wiederholt nichts',
+      nochmal.gezogen === 0 && nochmal.angriffe === 0, nochmal);
+  })();
+
+  /* Ein Diener schlaegt wirklich zu, wenn er ankommt - und die Angriffe
+     laufen durch den echten Wurf, nicht durch eine Vorgabe. */
+  (function () {
+    const tokens = {
+      a_d1: tk('diener', { name: 'Diener 1', x: 5, y: 4 }),
+      b_d2: tk('diener', { name: 'Diener 2', x: 7, y: 4 }),
+      p1: tk('spieler', { name: 'Anna', x: 5, y: 5 }),
+      p2: tk('spieler', { name: 'Bert', x: 7, y: 5 })
+    };
+    const erg = A.arenaDienerRunde(tokens, REGELN, null, 3);
+    chk('zwei angrenzende Diener greifen beide an', erg.angriffe === 2, erg);
+    chk('jeder Angriff erzeugt eine Logzeile', erg.log.length === 2, erg.log);
+    chk('und keine verraet den Saebel',
+      erg.log.every(function (l) { return !/[Ss]äbel|[Jj]aguar/.test(l); }), erg.log);
+    chk('die Logzeilen sind brauchbar',
+      erg.log.every(function (l) { return l && !/undefined|NaN/.test(l); }), erg.log);
+  })();
+
+  // -------------------------------------------------- Landen auf einer Karte
+  (function () {
+    const tokens = {
+      a_d1: tk('diener', { name: 'Diener 1', x: 5, y: 4 }),
+      p1: tk('spieler', { name: 'Anna', x: 5, y: 5 })
+    };
+    const i2 = A.arenaAusteilen(tokens, DECK.slice(), null);
+    const dIdx = i2.reihe.findIndex(function (e) { return e.key === A.ARENA_DIENER_SCHLUESSEL; });
+    const pIdx = i2.reihe.findIndex(function (e) { return e.key === 't:p1'; });
+
+    const aufSpieler = A.arenaIniLanden(i2, tokens, pIdx, REGELN, null, 3);
+    chk('auf einer Spielerkarte wird die Figur freigegeben',
+      aufSpieler.aenderungen['freigegeben'] === 'p1', aufSpieler.aenderungen);
+    chk('und KEIN Diener bewegt sich dabei',
+      Object.keys(aufSpieler.aenderungen).every(function (p) {
+        return p.indexOf('tokens/a_d1') !== 0;
+      }), Object.keys(aufSpieler.aenderungen));
+
+    const aufDiener = A.arenaIniLanden(i2, tokens, dIdx, REGELN, null, 3);
+    chk('auf der Diener-Karte handeln sie von selbst',
+      aufDiener.aenderungen['tokens/a_d1/hatAngegriffen'] === true, aufDiener.aenderungen);
+    chk('und niemand wird dafuer freigegeben',
+      aufDiener.aenderungen['freigegeben'] === null, aufDiener.aenderungen);
+    chk('der Index wandert mit', aufDiener.aenderungen['initiative/index'] === dIdx);
+    chk('es gibt eine Logzeile dazu', aufDiener.logs.length > 0, aufDiener.logs);
+
+    // Neue Runde: Karten neu, Index auf die erste Karte.
+    const neu = A.arenaIniNeueRunde(i2, tokens, REGELN, null, 4);
+    chk('eine neue Runde teilt neu aus', !!neu.aenderungen['initiative'], Object.keys(neu.aenderungen));
+    /* Der Index steht IM Objekt und nicht als eigener Pfad "initiative/index"
+       daneben. Das ist keine Formfrage: Firebase lehnt ein update() ab, in dem
+       ein Pfad Vorfahre eines anderen ist, und das ganze Paket scheitert dann
+       - also arenaMischen(). Siehe die Pruefung darunter. */
+    chk('und landet auf der ersten Karte',
+      neu.aenderungen['initiative'].index === 0, neu.aenderungen['initiative'].index);
+    chk('ohne einen zweiten Pfad daneben',
+      neu.aenderungen['initiative/index'] === undefined);
+    chk('das Restdeck wird weitergereicht',
+      neu.ini.deck.length < i2.deck.length + 2, [i2.deck.length, neu.ini.deck.length]);
+    chk('mit ohneLanden bleibt der Index unberuehrt',
+      A.arenaIniNeueRunde(i2, tokens, REGELN, null, 4, null, true)
+        .aenderungen['initiative/index'] === undefined);
+  })();
+
+  // -------------------------------------------------- Die geteilten Helfer
+  (function () {
+    const a = Object.assign({ id: 'a' }, tk('spieler', { name: 'Anna', x: 5, y: 5 }));
+    const z = Object.assign({ id: 'z' }, tk('diener', { name: 'Diener', x: 5, y: 6 }));
+    const tokens = { a: a, z: z };
+    const erg = A.arenaAngriff(a, z, tokens, REGELN, 'a', { probeBand: 'erfolg', schaden: 3 });
+    const ae = A.arenaAngriffAenderungen(a, z, erg, 7);
+    chk('ein endgueltig Getoeteter verschwindet ganz', ae['tokens/z'] === null, ae);
+    chk('der Angreifer ist als angegriffen vermerkt', ae['tokens/a/hatAngegriffen'] === true);
+    const txt = A.arenaAngriffText(a, z, erg);
+    chk('der Text nennt den Saebel nicht', !/[Ss]äbel|[Jj]aguar/.test(txt), txt);
+    chk('aber das Zerfallen', /Staub/.test(txt), txt);
+
+    // arenaAnwenden: dieselben Pfade lokal nachziehen.
+    const nach = A.arenaAnwenden(tokens, ae);
+    chk('arenaAnwenden entfernt ein geloeschtes Token', nach.z === undefined, Object.keys(nach));
+    chk('und setzt ein einzelnes Feld',
+      A.arenaAnwenden(tokens, { 'tokens/a/wunden': 2 }).a.wunden === 2);
+    chk('null loescht ein einzelnes Feld',
+      A.arenaAnwenden({ a: { wunden: 2 } }, { 'tokens/a/wunden': null }).a.wunden === undefined);
+    chk('die Vorlage wird dabei nicht verbogen', tokens.a.wunden === undefined);
+  })();
+
+  /* ---------- KEIN PFAD IST VORFAHRE EINES ANDEREN ----------
+     Firebase lehnt ein update() KOMPLETT ab, wenn darin ein Pfad Vorfahre
+     eines anderen ist. Die Arena baut genau solche Pakete von selbst:
+     "initiative" + "initiative/index" beim Austeilen, und "tokens/t7"
+     (frischer Nachschub) + "tokens/t7/x" (derselbe Diener laeuft los). Es
+     scheitert nicht halb, sondern ganz - und erst am Tisch. Deshalb steht hier
+     eine Pruefung auf die FORM jedes Pakets, nicht nur auf seinen Inhalt. */
+  (function () {
+    function konflikt(paket) {
+      const pfade = Object.keys(paket || {});
+      for (let i = 0; i < pfade.length; i++) {
+        for (let j = 0; j < pfade.length; j++) {
+          if (i !== j && pfade[j].indexOf(pfade[i] + '/') === 0) return [pfade[i], pfade[j]];
+        }
+      }
+      return null;
+    }
+    const tokens = {
+      a_d1: tk('diener', { name: 'Diener 1', x: 5, y: 4 }),
+      p1: tk('spieler', { name: 'Anna', x: 5, y: 5 })
+    };
+    const i3 = A.arenaAusteilen(tokens, DECK.slice(), null);
+    const dIdx = i3.reihe.findIndex(function (e) { return e.key === A.ARENA_DIENER_SCHLUESSEL; });
+    chk('Landen auf der Diener-Karte: kein Pfadkonflikt',
+      konflikt(A.arenaIniLanden(i3, tokens, dIdx, REGELN, null, 3).aenderungen) === null);
+    chk('neue Runde: kein Pfadkonflikt',
+      konflikt(A.arenaIniNeueRunde(i3, tokens, REGELN, null, 4).aenderungen) === null,
+      konflikt(A.arenaIniNeueRunde(i3, tokens, REGELN, null, 4).aenderungen));
+
+    /* Der zweite, unauffälligere Fall: Nachschub erscheint am Rundenwechsel
+       als GANZES Token und laeuft auf der Diener-Karte derselben Runde los -
+       dann stehen "tokens/neu" und "tokens/neu/x" im selben Paket.
+       Nachgestellt wird er hier direkt am Helfer, nicht ueber eine ausgeteilte
+       Runde: Ob die Diener-Karte zufaellig als erste liegt, haengt am Deck,
+       und ein Test, der von der Kartenverteilung abhaengt, prueft mal das eine
+       und mal nichts. */
+    const paket = { 'tokens/neu': tk('diener', { name: 'Nachschub', x: 5, y: 2 }) };
+    A.arenaMischen(paket, {
+      'tokens/neu/x': 5, 'tokens/neu/y': 4, 'tokens/neu/hatGezogen': true,
+      'tokens/p1/wunden': 1
+    });
+    chk('Nachschub, der sofort losläuft: kein Pfadkonflikt',
+      konflikt(paket) === null, konflikt(paket));
+    chk('seine Bewegung steckt IM Token statt daneben',
+      Object.keys(paket).every(function (p) { return p.indexOf('tokens/neu/') !== 0; }),
+      Object.keys(paket).filter(function (p) { return p.indexOf('tokens/neu/') === 0; }));
+    chk('und sie ist wirklich angekommen',
+      paket['tokens/neu'].y === 4 && paket['tokens/neu'].hatGezogen === true,
+      paket['tokens/neu']);
+    chk('fremde Pfade bleiben daneben stehen', paket['tokens/p1/wunden'] === 1);
+    // Ein geloeschtes Token nimmt seine Felder mit - ein Feld an einer Figur,
+    // die es nicht mehr gibt, waere ein Geist in der Datenbank.
+    const weg = { 'tokens/z': null };
+    A.arenaMischen(weg, { 'tokens/z/wunden': 3 });
+    chk('Felder einer geloeschten Figur werden verworfen',
+      weg['tokens/z'] === null && weg['tokens/z/wunden'] === undefined, weg);
+    // Umgekehrt: ein neuer Vorfahre raeumt vorhandene Kinder weg.
+    const umgekehrt = { 'tokens/z/wunden': 3 };
+    A.arenaMischen(umgekehrt, { 'tokens/z': null });
+    chk('ein Vorfahre raeumt vorhandene Kindpfade weg',
+      umgekehrt['tokens/z'] === null && umgekehrt['tokens/z/wunden'] === undefined, umgekehrt);
+  })();
 })();
 
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');
