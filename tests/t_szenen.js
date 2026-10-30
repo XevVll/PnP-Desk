@@ -254,6 +254,68 @@ chk('die Rede hat weiterhin drei redeTeile',
   (ORTE.hoehle.interaktionen.die_gegenrede.redeTeile || []).length === 3,
   (ORTE.hoehle.interaktionen.die_gegenrede.redeTeile || []).length);
 
+
+/* ===== DER ARTEFAKTHANDEL (9.1) UND DER WEG ZUR PFLICHTINSEL =====
+   Hendrik, 30.10.2026: Der Spieler mit Harwicks Abschriften soll die Insel mit
+   dem Jaguar-Saebel SELBST entdecken - "Diesen Hinweis soll er dann mit den
+   Artefakten zusammen bekommen." Damit haengt der Pflichtweg ins Finale an
+   dieser Kette, und drei Dinge koennen daran lautlos brechen. */
+const HANDEL = ORTE.handelstreffen.interaktionen || {};
+
+/* 1. Die Reihenfolge. Das Artefakt wird VOR dem Hoehepunkt gesichert - nur dann
+   kann der Spieler es mit seinen Abschriften vergleichen. Lag es wieder am Ende
+   der Szene (so stand es bis zum 30.10.), ist "die_lage_der_insel" unspielbar. */
+['das_fremde_schiff', 'verrat_gefangen', 'erster_kampf', 'kinder_entdeckt',
+  'harwicks_wahn', 'kinder_retten', 'artefakt_und_uebergabe',
+  'die_lage_der_insel'].forEach(k => {
+  chk('9.1 Kette: "' + k + '" vorhanden', !!HANDEL[k], Object.keys(HANDEL));
+});
+const REIHE = Object.keys(HANDEL);
+chk('das Artefakt ist gesichert, BEVOR die Lage der Insel gelesen wird',
+  REIHE.indexOf('artefakt_und_uebergabe') >= 0
+  && REIHE.indexOf('artefakt_und_uebergabe') < REIHE.indexOf('die_lage_der_insel'),
+  REIHE);
+
+/* 2. Der Buendel-Faden muss 9.1 ERREICHEN. Bis zum 30.10. trug er
+   nurSzenen: ["2.1","5.1","6.1"] - auf der Spanier-Route (7.1 -> 9.1) erschien
+   die Interaktion damit gar nicht im Panel, die drei Lesetage waren
+   unerreichbar. Geprueft wird die Erreichbarkeit, nicht der Wortlaut. */
+const BUENDEL = (ORTE.kapitaenskajuete.interaktionen || {}).das_buendel;
+chk('das_buendel existiert', !!BUENDEL, Object.keys(ORTE.kapitaenskajuete.interaktionen));
+['2.1', '5.1', '6.1', '7.1', '9.1'].forEach(sz => {
+  chk('das_buendel ist in "' + sz + '" erreichbar',
+    (BUENDEL.nurSzenen || []).indexOf(sz) >= 0, BUENDEL.nurSzenen);
+});
+
+/* 3. Der Notausgang. Der Weg zur Pflichtinsel darf an keinem Wurf scheitern
+   (dieselbe Regel wie in der Flaute, Bibel 7.4). Ohne diesen Trigger kann eine
+   Gruppe, die nicht darauf kommt, den Jaguar-Saebel nie erreichen - und das
+   Finale ist ohne ihn nicht zu gewinnen (12.1). */
+const LAGE = HANDEL.die_lage_der_insel;
+const LAGE_IDS = (LAGE.trigger || []).map(t => t.id);
+['artefakt_in_der_hand', 'zeichen_wiedererkannt', 'lage_erfolg', 'lage_misserfolg',
+  'harwick_bestaetigt', 'keine_begruendung',
+  'kurs_steht_dann_flucht'].forEach(id => {
+  chk('die_lage_der_insel traegt "' + id + '"', LAGE_IDS.indexOf(id) >= 0, LAGE_IDS);
+});
+chk('der Notausgang steht ausdruecklich da (Harwick nennt die Lage selbst)',
+  /harwick_bestaetigt/.test(LAGE_IDS.join(',')) && /nicht an einem Wurf|kein Wurf|darf nicht/i
+    .test(JSON.stringify(LAGE)), LAGE_IDS);
+
+/* 4. Tom ENTDECKT die Insel nicht mehr. Stand der Kurs schon, waere ein Tom,
+   der das Eiland findet, ein Widerspruch - nicht nur ein doppelter Beat.
+   Die ID bleibt (questDone/10.1/riffinsel_erkannt), die Bedeutung wechselt. */
+const KURS = (ORTE.achterdeck.interaktionen || {}).kurs_aufs_riff;
+chk('kurs_aufs_riff existiert weiterhin', !!KURS,
+  Object.keys(ORTE.achterdeck.interaktionen));
+chk('Trigger-ID "riffinsel_erkannt" unveraendert',
+  (KURS.trigger || []).map(t => t.id).indexOf('riffinsel_erkannt') >= 0,
+  (KURS.trigger || []).map(t => t.id));
+chk('Tom bestaetigt das Riff, er findet die Insel nicht',
+  /bestätigt|bestaetigt/i.test(KURS.title + ' '
+    + (KURS.trigger || []).map(t => t.label).join(' ')),
+  KURS.title);
+
 console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

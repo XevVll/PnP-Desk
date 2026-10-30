@@ -585,6 +585,67 @@ einlässt, verteilt Harwick — zunehmend verzweifelt — das **Ritual-Lesemater
 Crew** („helft mir, das zu entschlüsseln"). Das bringt die Wahrheit auch ohne soziales
 Engagement ans Licht und gibt dem Gelehrten seinen großen Moment.
 
+#### Der Ablauf, wie er gespielt wird (Hendrik, 30.10.2026)
+
+Der Handel geht schief, Gewalt bricht aus. Harwick, Cormac und Wat werden in der
+fremden Kajüte festgehalten; die Gruppe kämpft sich zu ihnen durch — der
+erste wirklich ernste Kampf der Kampagne. **Das Artefakt wird dabei gesichert.**
+
+**Und dann will Harwick das Schiff trotzdem versenken.** Nicht, weil er leer ausgeht
+— er hat bekommen, wofür er hergekommen ist. Sondern weil man ihn gelockt und
+gefangen gesetzt hat: Nach dem Kampf ist er blind vor Hass. Unter Deck liegen
+Kindersklaven, und als ihn die Nachricht erreicht, kippt es vollständig — er
+denkt an seine eigene, für immer verlorene Tochter und will jeden an Bord
+töten, ausnahmslos.
+
+**Wat gehorcht ohne Murren. Cormac zögert — und greift nicht selbst ein.**
+Sein Zögern ist die einzige Öffnung, die es gibt: Ein Spieler muss
+eintreten. Wer darauf wartet, dass Cormac es löst, wartet umsonst. Gelingt das
+Einschreiten nicht (SL-Ermessen), sterben die Kinder und **Harwick bleibt dauerhaft
+manisch** — bis zum Ende der Kampagne nicht mehr zu retten.
+
+Werden die Kinder befreit, **verlangen sie das Schiff** — kein Almosen, eine
+Forderung: Sie wollen es behalten und auf eigene Faust segeln. Harwick und die Crew
+lenken ein. Fest und unabhängig vom Spielerverhalten bleibt: alle Erwachsenen an
+Bord werden getötet.
+
+> **⚠ Abgelöst: das alte Motiv.** Bis zum 30.10.2026 stand in
+> `ORTE.handelstreffen.harwicks_wahn`, Harwick glaube **zuerst, das Artefakt sei gar
+> nicht an Bord**, der ganze Handel sei eine Falle gewesen — sein Wahn kam aus
+> dieser Enttäuschung, und das Artefakt war der **letzte** Trigger der Szene
+> („entgegen Harwicks anfänglicher Überzeugung").
+>
+> Hendriks gespielte Fassung ist härter und ersetzt sie: Ein enttäuschter
+> Mann, der um sich schlägt, ist verständlich. Ein Mann, der sein Ziel
+> erreicht hat und **trotzdem** ein Schiff voller Menschen versenken will, ist
+> gefährlich — und genau das soll diese Szene zeigen (siehe 12.1).
+>
+> Die Reihenfolge ist zugleich **mechanische Voraussetzung**: Nur wenn das Artefakt
+> vor dem Höhepunkt in der Hand liegt, kann der Spieler mit Harwicks Abschriften
+> es betrachten (siehe unten).
+
+#### Der Kurs zur Riffinsel gehört jetzt den Spielern
+
+**Neue Interaktion `ORTE.handelstreffen.die_lage_der_insel`** (7 Trigger) als
+Abschluss der Szene — und als Auszahlung des **Bündel-Fadens** (10.8, im Code
+seit dem 18.10.2026). Der Spieler, der Harwicks Abschriften führt, hält
+jetzt das Artefakt in der Hand, und die Zeichen darauf kehren in **Abschrift I**
+wieder (die sechs Zeichen der Steintafel). Zusammen mit Harwicks Karten:
+**Navigation ODER Allgemeinwissen → die Lage der Insel steht fest.**
+
+- **Der Spieler nennt den Kurs — nicht Tom, nicht Harwick.** Das ist der ganze
+  Zweck: Die drei Tage Lesen zahlen sich hier aus.
+- **Misserfolg kostet nur Zeit**, beliebig oft erneut versuchbar, auch von anderen.
+  **Notausgang:** Kommt niemand darauf, rechnet Harwick die Lage am Ende selbst laut
+  vor sich hin. Der Weg zur Pflichtinsel darf an keinem Wurf scheitern —
+  dieselbe Regel wie in der Flaute (7.4).
+- **Warum diese Insel, sagt er nicht.** Das bleibt der Einberufung (7.5/12.1), die
+  sonst ihr Gewicht verliert.
+- **`das_buendel` gilt jetzt auch in `7.1` und `9.1`.** Vorher trug es
+  `nurSzenen: ["2.1","5.1","6.1"]` — auf der Spanier-Route war der Faden ab
+  `7.1` **mechanisch abgeschnitten**, die Interaktion erschien im Panel gar nicht
+  mehr. Die drei Lese-Tage lassen sich damit auf der Überfahrt nachholen.
+
 ### 7.4 Verzweigung 2 — nach dem Handel
 
 **Keine freie Wahl**, sondern gekoppelt an Verzweigung 1. Ende von Session 2.
@@ -599,10 +660,20 @@ Engagement ans Licht und gibt dem Gelehrten seinen großen Moment.
 
 | Station | Freigeschaltet durch | Was sie liefert |
 |---|---|---|
-| **Spanischer Angriff → Riffinsel** | Vorheriger Kontakt mit den Spaniern | Bedrohung statt Entscheidung: Ein spanisches Kriegsschiff holt die Golden Lion ein. Flucht zu einer riffgeschützten Insel, an der das große spanische Schiff nicht anlegen kann. Szene bewusst an *Master and Commander* angelehnt — bei Nacht/Nebel Lichter-Finte mit falschem Mast und Laterne auf einem Beiboot. **Keine Ritual-Information**, dafür der **Jaguar-Säbel** in der versteckten Grotte (`11.1`) — den die Gruppe auf diesem Weg findet, ohne ihn gesucht zu haben |
+| **Spanischer Angriff → Riffinsel** | Vorheriger Kontakt mit den Spaniern | Bedrohung UND Entscheidung (geändert 30.10.2026 — der Kurs steht vorher, siehe 7.3): Ein spanisches Kriegsschiff holt die Golden Lion ein. Flucht zu einer riffgeschützten Insel, an der das große spanische Schiff nicht anlegen kann. Szene bewusst an *Master and Commander* angelehnt — bei Nacht/Nebel Lichter-Finte mit falschem Mast und Laterne auf einem Beiboot. **Keine Ritual-Information**, dafür der **Jaguar-Säbel** in der versteckten Grotte (`11.1`) — nach dem die Gruppe seit `9.1` gezielt sucht, auch auf dieser Route (früher: „den die Gruppe auf diesem Weg findet, ohne ihn gesucht zu haben“) |
 | **Riffinsel über den Hinweis** | Kontakte und Recherche aus dem Schmugglernest | Dieselbe Insel, anderer Grund: Die Gruppe fährt **gezielt** hin, weil ein Kontakt sie dorthin schickt. Wer Harwicks Schriften gelesen hat (`2.1`), erkennt die Bilder des Rätsels wieder und weiß, wonach er sucht — der Säbel wird zum **Auftrag** statt zum Zufallsfund |
 | **Schamanen-Insel** | Kontakte und Recherche aus dem Schmugglernest | Informant/Schamane. Kulturelle Variante: der zentraleuropäische Blick trifft auf eine fremde, ursprüngliche Tradition. Liefert **konkrete Ritual-Informationen**: Schwächen der Untoten, wie sich der Finalkampf entschärfen lässt — Grundlage für ein gutes Ende |
 | **Hafen zur Vorbereitung** | Weg über die Flaute | **Emergenter Ort** — die Spieler fordern ihn selbst ein, weil sie in Harwicks Unterlagen von der übernatürlichen Gefahr gelesen haben. Ausrüstung und Proviant, etwa Kanonen vom Schiff für das Ritual |
+
+> **Die Spanier treiben die Gruppe nicht mehr auf die richtige Insel (30.10.2026).**
+> Früher erkannte **Tom** das riffgeschützte Eiland auf der Flucht als
+> Rettung — die Gruppe landete also zufällig genau dort, wo der
+> Jaguar-Säbel liegt. Seit der Kurs in `9.1` aus Abschriften und Artefakt
+> gewonnen wird, gehört der Fund den Spielern: **Erst steht der Kurs, dann
+> kommen die Spanier.** Toms Moment bleibt, aber er bestätigt statt zu
+> entdecken — er ist der, der weiß, dass der Verfolger mit seinem Tiefgang
+> hinter dem Riff nicht anlegen kann. Die Flucht macht den Weg **teuer**, sie
+> bestimmt ihn nicht.
 
 **Die dritte Route: die Flaute (entschieden, 18.10.2026).** Bleibt `5.1` unbeachtet, treibt das
 Schiff in die **Flaute** (`6.1`) — auf diesem Weg gibt es weder Spanierkontakt noch
@@ -968,8 +1039,32 @@ fällt warmes Lampenlicht — drinnen sitzt Harwick über Papieren am Schreibtis
 gesenkt, konzentriert. Wer anklopft, bekommt keine Antwort.
 
 Bewusst ohne zusätzliches NPC-Element (kein Wachposten, keine Erklärung) — passt zur
-Design-Entscheidung, dass es hier keinen Zugang und keine Szene gibt, nur die
-Außenwahrnehmung. **Reiner Flavor-Ort**, keine eigene Szene.
+Design-Entscheidung, dass es in `2.1` keinen Zugang gibt, nur die
+Außenwahrnehmung.
+
+> **⚠ Abgelöst: „Reiner Flavor-Ort, keine eigene Szene“ (30.10.2026).** Das galt
+> bis zum August 2026 und steht seit dem im Widerspruch zum Code: An diesem Ort liegen
+> inzwischen **drei** Interaktionen, und sie tragen zwei tragende Fäden der Kampagne.
+> Die Außenwahrnehmung oben bleibt richtig — aber nur für `2.1`.
+
+**Was dort wirklich liegt** (je `nurSzenen`, der Ort sieht in jeder Szene anders aus):
+
+| Interaktion | Szenen | Was sie trägt |
+|---|---|---|
+| **`das_buendel`** | `2.1` `5.1` `6.1` `7.1` `9.1` | Harwicks Abschriften als **laufende Aufgabe**: eine Verstand-Probe je **Tag**, drei Tage in Folge → beim nächsten Erfolg das Blatt mit dem Rätsel. Erster Faden der Schiffsszene, der wirklich läuft. Zahlt in `9.1` aus (7.3) und in der Grotte (`11.1`) |
+| **`harwick_artefakt_dokumente`** | `5.1` | Harwick zeigt den Insel-Begleitern die Artefakt-Unterlagen — Einstieg in Verzweigung 1 (7.2) |
+| **`warnung_in_unterlagen`** | `6.1` | Erste Warnungen vor einem übernatürlichen Kampf (Aufmerksamkeit oder Allgemeinwissen) |
+| **`inselposition_aus_unterlagen`** | `6.1` | Die Lage der Riffinsel auf der Flaute-Route — **eine Position, keinen Grund** (7.4) |
+| **`harwick_nach_dem_verrat`** | `10.1` | Sein Zustand nach dem Handel, verzweigt nach dem Ausgang der Kinder-Rettung — die permanente Konsequenz aus 7.3 |
+| **`die_einberufung`** | `12.1` | Harwick macht reinen Tisch: Jessica, Schuld, das Artefakt als Ritual-Schlüssel, die freiwillige Frage, wer mitkommt (7.5) |
+
+**Die Tür sagt, in welcher Szene man steht** — fünf Zustände, je eigener
+`descOverrides`-Text in `js/golden_lion_scenes.js`: in `2.1` verriegelt (Flavortext oben),
+im Sturm (`3.1`) sitzt Harwick unbewegt über Karte und Kompass, in der Flaute (`6.1`)
+steht sie bei der Hitze einen Spalt offen mit sichtbarem Harwick über den Papieren, auf
+der Flucht (`10.1`) liegt sie dunkel wie das übrige Schiff, und in `12.1` steht sie offen,
+„zum ersten Mal seit langem“. Jeweils reine Beobachtung ohne Handlungsauftrag
+(Design-Regel 2.8).
 
 ### 10.9 Werkstatt — Schiffszimmermann & Handwerker ✅ ausgearbeitet
 

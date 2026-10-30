@@ -126,6 +126,88 @@ die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
 
 ## Changelog
 
+### 2026-10-30 — Der Kurs zur Riffinsel gehört jetzt den Spielern
+- **Hendriks Vorgabe:** „Ich möchte dem Spieler, der das Bündel vom Kapitän erhalten hat,
+  eigentlich die Chance geben, die Insel mit dem Jaguarsäbel selbst zu entdecken. Eventuell kann
+  er mit dem Artefakt dies tun und die Flucht kommt erst, wenn der Kurs zur Insel klar ist.“
+  Dazu: „Diesen Hinweis soll er dann mit den Artefakten zusammen bekommen.“
+- **Der Blocker war nicht inhaltlich, sondern mechanisch — und nur durch Messen zu finden:**
+  `das_buendel` trug `nurSzenen: ["2.1", "5.1", "6.1"]`. Auf der Spanier-Route (`7.1` → `9.1`)
+  **erschien die Interaktion gar nicht im Panel.** Der Faden, der seit dem 18.10. als „erster
+  laufender Faden der Schiffsszene“ gebaut ist, war ab dem spanischen Hafen abgeschnitten, und
+  die drei Lesetage waren dort unerreichbar. Jetzt `["2.1", "5.1", "6.1", "7.1", "9.1"]`.
+- **Hendriks gespielter Handel ist Kanon, und er dreht das Motiv.** Im Code stand bis heute,
+  Harwick glaube **zuerst, das Artefakt sei gar nicht an Bord** — sein Wahn kam aus dieser
+  Enttäuschung, und `artefakt_gefunden` war der **letzte** Trigger der Szene. Hendriks Fassung:
+  Das Artefakt ist **gesichert**, und er will das Schiff **trotzdem** versenken, blind vor Hass
+  aus Kampf und Betrug.
+  - **Das ist die härtere Szene, und sie zeigt, was 12.1 behauptet.** Ein enttäuschter Mann,
+    der um sich schlägt, ist verständlich. Ein Mann, der sein Ziel erreicht hat und trotzdem
+    ein Schiff voller Menschen versenken will, ist gefährlich.
+  - **Und sie ist die mechanische Voraussetzung:** Nur wenn das Artefakt **vor** dem Höhepunkt
+    in der Hand liegt, kann der Spieler es mit seinen Abschriften vergleichen. Die alte
+    Reihenfolge hätte Hendriks Wunsch unspielbar gemacht.
+  - **`cormac_haelt_inne` ist zugespitzt statt umbenannt:** Cormac zögert — und greift
+    **nicht selbst ein**. Sein Zögern ist das Fenster, in das ein Spieler treten muss. Wer
+    darauf wartet, dass Cormac es löst, wartet umsonst.
+  - **Trigger-IDs stehen alle unverändert**, auch `artefakt_bezweifelt`, dessen Bedeutung sich
+    umgedreht hat. Sie liegen als `questDone/9.1/{id}` in Firebase; ein umbenannter nimmt der
+    laufenden Kampagne lautlos ihre Haken. Dass die ID jetzt etwas anderes heißt als sie sagt,
+    steht am Trigger selbst.
+- **Neu `handelstreffen.die_lage_der_insel`** (7 Trigger, `9.1` damit 33): Der Spieler mit den
+  Abschriften hält das Artefakt in der Hand, die Zeichen darauf kehren in **Abschrift I**
+  wieder. **Navigation ODER Allgemeinwissen → der Kurs steht.**
+  - **Der Spieler nennt ihn, nicht Tom und nicht Harwick.** Das ist der ganze Zweck.
+  - **Misserfolg kostet nur Zeit**, beliebig oft erneut versuchbar. **Notausgang:** Kommt niemand
+    darauf, rechnet Harwick die Lage am Ende selbst laut vor sich hin. **Der Weg zur
+    Pflichtinsel darf an keinem Wurf scheitern** — dieselbe Regel wie in der Flaute (7.4),
+    und seit der Säbel Pflichtwaffe ist (12.1) hängt daran das Finale.
+  - **Warum diese Insel, sagt er nicht.** Das bleibt der Einberufung (`12.1`).
+  - Die Verbindung Artefakt ↔ Abschrift I ist **mein Aufschlag** auf Hendriks Vorgabe und am
+    Trigger als solcher gekennzeichnet.
+- **Ein Widerspruch, der daraus folgte — keine bloße Doppelung:** `achterdeck.kurs_aufs_riff`
+  ließ **Tom** das riffgeschützte Eiland auf der Flucht entdecken. Steht der Kurs schon, kann
+  er es nicht mehr finden. Jetzt **bestätigt** er statt zu entdecken: Er ist der, der diese
+  Gewässer kennt (Talent „Fühlt das Ruder“) und weiß, dass der Verfolger mit seinem
+  Tiefgang hinter dem Riff nicht anlegen kann. Aus dem Ziel der Spieler wird ein Fluchtweg.
+  `riffinsel_erkannt` heißt weiter so — erkannt wird jetzt der Vorteil, nicht die Insel.
+- **Bibel nachgezogen, nicht nachgelassen** — eine Fassung, die etwas anderes sagt als der
+  Code, ist genau der Fehler vom 14.10. (fünf Wochen falsche Auskunft):
+  - **7.3** hat den gespielten Ablauf, den neuen Beat und die abgelöste Fassung als
+    gekennzeichneten Kasten samt Begründung.
+  - **7.4** nennt die Spanier-Route nicht mehr „Bedrohung **statt** Entscheidung“, sondern
+    beides: **Erst steht der Kurs, dann kommen die Spanier.** Die Flucht macht den Weg **teuer**,
+    sie bestimmt ihn nicht. Dazu war die Tabellenzeile zu korrigieren — sie versprach den
+    Säbel als Fund „ohne ihn gesucht zu haben“.
+- **Zwei Funde beim Gegenlesen, beide älter als diese Änderung:**
+  1. **Der Bündel-Faden stand nirgends in der Bibel.** Ich hatte im ersten Anlauf auf „Bibel
+     10.8“ verwiesen — die Sektion gibt es, sie beschreibt aber nur die verriegelte Tür.
+  2. **10.8 sagte „Reiner Flavor-Ort, keine eigene Szene“**, und das gilt seit August 2026
+     nicht mehr. Dort liegen **sechs** Interaktionen und **fünf** Türzustände. Beides
+     nachgetragen, die alte Zeile als abgelöst gekennzeichnet.
+     - **Nachgemessen statt erinnert, und das war nötig:** Meine erste Tabelle nannte drei der
+       sechs. Eine Bibel, die die Hälfte nennt, ist schlimmer als keine.
+- **Getestet: 140 Prüfungen in `t_szenen.js`, 0 Fehler** (26 neue, 1753 über vierzehn Skripte,
+  ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - Geprüft wird, was lautlos brechen kann: die **Reihenfolge** der Kette (Artefakt vor
+    Lage), die **Erreichbarkeit** von `das_buendel` in allen fünf Szenen, alle sieben
+    Trigger-IDs des neuen Beats, der **Notausgang**, und dass Tom bestätigt statt zu entdecken.
+  - **Zweimal gegengeprüft, und beide Male nennt der Fehlertext den Fehler wörtlich:** Dreht
+    man `das_buendel` auf den Stand vom 18.10. zurück, schlagen zwei Prüfungen an
+    (`das_buendel ist in "9.1" erreichbar` → `["2.1","5.1","6.1"]`). Tauscht man die
+    Reihenfolge, schlägt die dritte an und gibt die ganze Kette mit `"die_lage_der_insel"` vor
+    `"artefakt_und_uebergabe"` aus.
+  - **Die Fehlerklasse ist bekannt:** eine Pflichtmechanik, die lautlos wirkungslos wird, statt
+    sichtbar zu brechen — wie `arenaBossLebt()` am 18.10. und meine Dorf-Marken am 25.10.
+- **Zwei eigene Fehler, beide vor dem Schreiben gefangen:** ein Blindgänger in meinem Skript
+  (`feld_ersetzen(...) if False else feld_ersetzen(...)` — gültiges Python, das halb nichts
+  tut), und die Gegenprobe zur Reihenfolge brach beim Tauschen der Blöcke an einem
+  verschluckten Komma — derselbe `},,`-Fall wie am 25.10., nur umgekehrt.
+- **[OFFEN] Ob `10.1` und `11.1` gekürzt werden, ist nicht entschieden.** Gemessen: `10.1` hat
+  20 Trigger, `11.1` 50; für den Säbel ist dort nur die Grotte Pflicht. Von `7.1` bis zum
+  Finale sind es **165 Trigger auf dem Weg der Gruppe**, also rund 3,1 Stunden ohne Arena —
+  die 3,5 Stunden reichen damit, ohne zu kürzen. Nicht eigenmächtig angefasst.
+
 ### 2026-10-25 (Fortsetzung 3) — Das Szenenziel lässt sich ein- und ausklappen
 - **Hendriks Wunsch:** „Ich würde das übergeordnete Ziel gerne ein und ausklappen können."
 - **Ein Klick auf die Überschrift klappt es zu**, ein zweiter wieder auf. Eingeklappt bleibt die
