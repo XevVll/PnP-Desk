@@ -205,11 +205,15 @@ const NSC = {
   },
 
   /* ---------- Der Antagonist ----------
-     Ohne Vorlage: Für ihn gab es nie ein Blatt, nur die
-     Arena-Vorlage (hpMax 18). Dies ist ein Aufschlag entlang
+     Ohne Vorlage: Für ihn gab es nie ein Blatt, nur eigene
+     Kampfwerte in der Arena. Dies ist ein Aufschlag entlang
      dessen, was in Bibel 12.1 über ihn steht — bewusst
      ausserhalb der Spielerskala, aber nicht beliebig.
-     Er ist KEIN Teil der Besatzung und erscheint erst in 13.1. */
+     Er ist KEIN Teil der Besatzung und erscheint erst in 13.1.
+     Seit dem 30.10.2026 ist DIESES Blatt auch sein Blatt in der
+     Arena: js/arena_scenes.js leitet seine Vorlage daraus ab
+     (Kämpfen d12, Stärke d12, Parade 8, Robustheit 8), und
+     tests/t_arena.js rechnet das nach. */
   seelenloser: {
     name: 'Der Seelenlose', rolle: 'Wächter der Grabesinsel',
     /* Er fuehrt die Toten und schlaegt selbst zu. Die Klinge ist das
@@ -224,8 +228,9 @@ const NSC = {
     tal: ['drohend', 'standhaft', 'totenstill', 'omen'],
     hnd: [],
     notiz: 'Spricht zum ersten Mal, wenn Wat fällt: „Kein Toter verlässt je diese Insel.“ ' +
-           'Seine Kampfwerte in der Arena stehen getrennt in js/arena_scenes.js — die rechnet ' +
-           'noch nach dem alten System.'
+           'Seine Werte in der Arena kommen seit dem 30.10.2026 aus diesem Blatt — Parade 8, ' +
+           'Robustheit 8, Kämpfen d12. Parade 8 kostet jeden Angriff -4; genau +4 holt die Gruppe ' +
+           'zurück, wenn sie ihn gemeinsam stellt (Gang Up).'
   }
 };
 

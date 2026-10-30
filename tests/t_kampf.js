@@ -178,6 +178,26 @@ const maxSchaden = 4 + 6;   // Säbel d6 + Stärke d6, ohne Ass
 chk('ein guter Treffer reicht gegen seine Robustheit',
   K.wirkung(maxSchaden, R.robustheit(anselm)).text !== 'keine Wirkung');
 
+/* ---------- wundenMax: Tragfaehigkeit je Figur ----------
+   Ergaenzt am 30.10.2026 fuer die Arena (js/arena.js), wo die SL sie je Token
+   stellen kann. OHNE das Feld muss sich nichts geaendert haben - das ist die
+   wichtigere Haelfte dieser Pruefung. */
+chk('ohne wundenMax gilt unveraendert die Regel fuer Wild Cards',
+  K.wirkung(9, 5, { wunden: 2 }).ausserGefecht === false
+  && K.wirkung(9, 5, { wunden: 3 }).ausserGefecht === true,
+  [K.wirkung(9, 5, { wunden: 2 }), K.wirkung(9, 5, { wunden: 3 })]);
+chk('ohne wundenMax faellt ein Statist unveraendert bei der ersten Wunde',
+  K.wirkung(9, 5, { extra: true }).ausserGefecht === true);
+chk('wundenMax hebt die Tragfaehigkeit',
+  K.wirkung(9, 5, { wunden: 3, wundenMax: 5 }).ausserGefecht === false,
+  K.wirkung(9, 5, { wunden: 3, wundenMax: 5 }));
+chk('wundenMax senkt sie auch',
+  K.wirkung(9, 5, { wunden: 0, wundenMax: 0 }).ausserGefecht === true,
+  K.wirkung(9, 5, { wunden: 0, wundenMax: 0 }));
+chk('und die getragenen Wunden werden auf wundenMax geklemmt',
+  K.wirkung(13, 5, { wunden: 0, wundenMax: 1 }).wunden === 1,
+  K.wirkung(13, 5, { wunden: 0, wundenMax: 1 }));
+
 console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);
 process.exit(f ? 1 : 0);

@@ -15,9 +15,10 @@ zentrale Design-Regel, dass die Arena nur bestimmt, *wie teuer* der Weg wird, ni
 Kernbeats des Finales geschehen. Vor jeder Arbeit an der Arena lesen.
 
 > **Würfelsystem fertig (14.10.2026):** Leiste beim Spieler, Anforderung und Protokoll in der
-> Regie, Würfe im Session-Export. Offen am Regelsystem bleibt der **Abenteuertext**
-> (311 alte Wertenamen in `js/regie.js`, 24 verwaiste „Schlechter Erfolg"-Passagen) und
-> **`js/arena.js`**, das weiter nach W100 rechnet.
+> Regie, Würfe im Session-Export. **Die Arena ist seit dem 30.10.2026 mit umgestellt** — damit
+> rechnet keine Stelle im Projekt mehr nach W100. Offen am Regelsystem bleibt nur noch der
+> **Abenteuertext** (311 alte Wertenamen in `js/regie.js`, 24 verwaiste
+> „Schlechter Erfolg"-Passagen).
 >
 > **Laufender Arbeitsstand (WIP):** Der **Codex** (`codex.html`) ist noch in Arbeit — Einstiegspunkt,
 > nächster Schritt und Arbeitsweise dafür stehen in **`ARBEITSSTAND.md`** (dort weiterlesen, bevor
@@ -121,10 +122,173 @@ Bei Story-Lücken lieber `[OFFEN]` in der Bibel vermerken als selbst etwas erfin
 Code ist nur die Ausführung — eine Messung an ihm zeigt, *was* er tut, nie *ob er recht hat*,
 und taugt deshalb nie als Beleg für eine Regel. Erst nachlesen, dann messen, ob die Umsetzung
 dazu passt. Steht eine Regel im Projekt nirgends, ist **das** der Befund: in Bibel §4
-nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen (etwa die Arena,
-die noch nach W100 rechnet) ausdrücklich als solche kennzeichnen.
+nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen ausdrücklich
+als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-10-30 (Fortsetzung 2) — Die Verfolgung endet erzählerisch, und die Gruppe sitzt fest
+- **Hendriks Entscheidung:** „Die Verfolgung wird nur erzählerisch anhalten und den Spielern
+  klar machen, dass sie auf dieser Insel erst mal festhängen."
+- **Die erste Hälfte stand schon da, die zweite nirgends.** `aussichtsklippe.wache_und_horizont`
+  (`11.1`) sagte, das Kriegsschiff drehe ab und die Golden Lion werde „fürs Erste nicht
+  verfolgt" — **das liest sich als Erleichterung.** Dass die Gruppe damit festsitzt, kam in dem
+  Beat nicht vor, und ohne diesen Satz ist der Session-Schluss ein Aufatmen statt einer Klemme.
+- **Neuer Trigger `festhaengen_auf_der_insel`** (der Beat damit 5 statt 4): Das Schiff ist aus
+  dem Blick, nicht aus diesen Gewässern — es kreuzt draußen und sucht. **Dieselbe Deckung, die
+  die Golden Lion hinter dem Riff schützt, hält sie dort.** Wer jetzt ausläuft, steht auf
+  offenem Wasser.
+  - **Kein Wurf**, und das steht als SL-Hinweis mit Hendriks Wortlaut dabei. Deckt sich mit
+    Bibel 7.5: Die Golden Lion ist einem königlichen Kriegsschiff nie gewachsen.
+  - **Dass das Riff beides tut — schützen und festhalten — ist mein Aufschlag** und am
+    Trigger als solcher gekennzeichnet; dass die Gruppe festsitzt, ist Hendriks Vorgabe.
+  - Bibel 7.4 trägt die Entscheidung jetzt im Wortlaut.
+- **Ein eigener Fehler, von meiner eigenen Prüfung gefangen:** Ich hatte „schuetzt" und
+  „fuers" in ASCII-Umschrift geschrieben — in einem Text, der am Tisch **vorgelesen** wird
+  (dieselbe Sorte wie am 18.10.). Beim Nachräumen war dann der **Guard zu breit**: Er verbot
+  „haeng" und meldete damit die **Trigger-ID** `festhaengen_auf_der_insel`, die ASCII bleiben
+  **muss** (Firebase-Schlüssel). Jetzt blendet er die IDs aus und prüft nur den Vorlese-Text —
+  die Prüfung war falsch, nicht die Datei.
+
+### 2026-10-30 (Fortsetzung) — Die Arena rechnet Savage Worlds, und zwar nicht selbst
+- **Hendriks Auftrag:** „Der Arena Kampf am Ende muss noch auf das neue Regelwerk umgebaut
+  werden." Damit ist der offene Punkt vom 07.09.2026 geschlossen: `js/arena.js` war die
+  **letzte Stelle im Projekt, die noch nach W100 rechnete** (Schwelle = Wert × 10, vier
+  Bänder, „Mastery"). Bibel 4.7 führte sie ausdrücklich als offene Baustelle.
+- **Die tragende Entscheidung: Die Arena rechnet die Regeln NICHT MEHR SELBST.** Ein dritter
+  Regelkern neben `js/regelwerk.js` und `js/kampf.js` wäre genau der Fehler, gegen den beide
+  Dateien geschrieben sind — und der Preis wäre, dass das Finale nach anderen Regeln läuft
+  als jeder Kampf davor.
+
+      Angriffswurf     -> wurf()            js/regelwerk.js
+      Zielwert Nahkampf-> angriffsMod()     js/kampf.js
+      Entfernungsabzug -> fernkampfMod()    js/kampf.js
+      Schadenswuerfel  -> schadensWuerfel() js/kampf.js
+      Schadenswurf     -> wuerfelWurf()     js/regelwerk.js
+      Wirkung am Ziel  -> wirkung()         js/kampf.js
+
+  In `js/arena.js` bleibt das **Brett**: Raster, Entfernung, Bewegung, Rundenwechsel — und die
+  drei Kampagnenregeln, die Savage Worlds nicht kennt (Wiederauferstehung, Nachschub, Jaguar-
+  Säbel). `js/kampf.js` hatte das sogar vorgesehen: Der Kommentar an `fernkampfMod()` sagt seit
+  dem 15.10. „fuer den Fall, dass doch einmal in Feldern gerechnet wird (etwa in der Arena)".
+- **DER EIGENTLICHE BEFUND: Die Bibel hatte überhaupt keine Kampfregeln.** In Abschnitt 4 kamen
+  „Parade" und „Robustheit" **nicht ein einziges Mal** vor, und Gang Up gar nicht — obwohl der
+  Kampfkern seit dem 15.10.2026 steht und am Tisch benutzt wird. Genau der Fehler vom 14.10.
+  („Fehlt eine Regel hier, ist **das** der Befund"). Neu: **Bibel 4.4a „Der Kampf"** mit
+  Angriff, Gang Up, Schadenswurf, Wirkung und Angeschlagen. Die Nummer mit Buchstaben folgt der
+  Hausform (7.1a gibt es schon) — ein echtes 4.5 hätte alles dahinter verschoben, und auf
+  „Bibel 4.5" verweisen acht Stellen im Code.
+  - **Der Spickzettel in `REGELREFERENZ.md` kannte den Kampf ebenso nicht** — kein Wort zu
+    Parade, Robustheit, angeschlagen oder Gang Up, also genau dem, was in der Arena gebraucht
+    wird. Nachgetragen (handgeschriebener Teil, außerhalb der `ERZEUGT:`-Marken).
+- **GANG UP ist die gedrehte Regel, und das ist die größte inhaltliche Änderung.** Savage
+  Worlds (nachgeschlagen, nicht erinnert): **+1 je zusätzlichem Angreifer AM ZIEL, höchstens
+  +4**, jeder Verbündete des Ziels beim Ziel hebt einen Punkt auf, nur im Nahkampf.
+  - Bis heute stand das **Gegenteil** da: „Bedrängnis" — zusätzliche Gegner **neben dem
+    Angreifer** verschoben **dessen** Ergebnis um ein Band nach unten. Es ist also ein **Bonus**
+    statt einer Strafe, und gezählt wird um das **Ziel** statt um den Angreifer.
+  - **Daraus folgt die Taktik des Finales, und zwar von selbst:** Der Seelenlose hat Parade 8,
+    das kostet jeden Angriff −4 — und genau +4 holt die Gruppe zurück, wenn sie ihn
+    gemeinsam stellt. **Gemessen: allein 24,7 %, zu fünft 81,3 %.** Das steht als Prüfung da,
+    denn stimmt es nicht, ist er entweder unangreifbar oder Gruppentaktik wertlos.
+- **HP sind ersatzlos weg.** Eine Figur trägt jetzt, was Savage Worlds kennt: den Haken
+  **angeschlagen** und eine Zahl **Wunden**. Ein **Statist (Diener) trägt KEINE** — die erste
+  nimmt ihn heraus —, eine Wild Card drei. Das alte Feld `mastery` ist in `wild` aufgegangen
+  (Wild Die **und** drei Wunden sind dasselbe Kennzeichen), `hpMax` in `wundenMax`.
+  - `wirkung()` in `js/kampf.js` nimmt dafür ein optionales **`wundenMax`**: Die SL kann die
+    Tragfähigkeit je Token stellen, ohne dass die Regel für alle anderen wandert. Rückwärts
+    verträglich, und `tests/t_kampf.js` prüft ausdrücklich, dass **ohne** das Feld alles
+    unverändert gilt — das ist die wichtigere Hälfte.
+- **Die Werte sind GEMESSEN statt gegriffen, und damit ist der offene Punkt vom 15.10.2026
+  geschlossen** („Die Arena kennt die Blätter nicht — ein Verbündeter im Endkampf hat andere
+  Werte als dieselbe Figur in `besatzung.html`"). Die Vorlagen kommen aus `js/npcs.js`,
+  gerechnet mit `parade()`/`robustheit()` und der besten getragenen Waffe:
+  **Spieler = Harwick** (d8/d8, Parade 6, Rob. 6) · **Verbündeter = Cormac** (d10, Parade 7,
+  Rob. 7) · **Diener** = Mannschaftsniveau als Statist · **Seelenloser = sein eigenes Blatt**
+  (d12, Parade 8, Rob. 8).
+  - `tests/t_arena.js` **rechnet diese Herkunft nach** statt sie zu behaupten — und dass
+    „Cormac kämpft besser als sein Kapitän" (Kanon) auch hier noch steht.
+  - Dazu im Schlachtfeld ein **„Blatt → übernehmen"**: Name, Werte, Waffe, Parade und
+    Robustheit eines echten NSC auf ein Token stempeln. `js/npcs.js` sagte bis heute an
+    Harwicks Gegner wörtlich, seine Arena-Werte stünden „getrennt … die rechnet noch nach
+    dem alten System" — nachgezogen.
+- **Drei bewusste Abweichungen, alle an EINER Stelle im Dateikopf** statt verstreut:
+  1. **Angeschlagen ohne Willenskraft-Probe.** Savage Worlds lässt dafür würfeln; auf diesem
+     Brett stehen bis zu einem Dutzend Diener, das wären ein Dutzend Würfe je Runde nur zur
+     Zustandsverwaltung. Der Rundenwechsel räumt den Haken ab — die Figur verliert **genau eine
+     Handlung**, und das ist, was Bibel 4.4 unter „Zeitstrafe" versteht. Ein **Bennie** bleibt
+     möglich: Der Spieler sagt es an, die SL klickt „Haken weg".
+  2. Beim **Gang Up** wird nicht geprüft, ob ein mithelfender Verbündeter selbst gebunden ist.
+  3. Der **Wundenabzug** ist bei 3 gedeckelt, auch wenn eine Figur mehr tragen kann.
+- **Zwei echte Funde VOR dem Umbau, beide nur durch Nachsehen zu finden:**
+  1. **`arena_admin.html` lud weder `js/regelwerk.js` noch `js/kampf.js`**, `karte.html` und
+     `regie.html` kein `kampf.js`. Solange die Arena selbst rechnete, brauchte sie nichts davon
+     — mit der Umstellung wäre sie **zur Laufzeit still gebrochen**. Genau die hängende
+     Referenz, die dieses Projekt schon einmal gekostet hat.
+  2. **Namenskollision:** `karte.html` hatte eine globale `mischen()` (der Abspann-Mischer), und
+     `js/kampf.js` bringt eine für das Aktionsdeck mit. Zwei Funktionsdeklarationen gleichen
+     Namens im globalen Scope überschreiben sich **still** — die später geladene gewinnt. Vor
+     dem Einbau per `grep` über **alle** Exporte von `kampf.js` gesucht; die Abspann-Funktion
+     heißt jetzt `abspannMischen()`.
+- **Ein echter Fehler im KAMPFMODUS, älter als diese Änderung** (`regie_figuren.html`, seit dem
+  15.10.): Er warf **Fernkampf gegen die Parade des Ziels**. Die Parade ist in Savage Worlds die
+  Zielzahl für den **Nahkampf** („Roll a **Fighting** skill roll and compare it to the
+  opponent's Parry"); geschossen wird gegen die 4, modifiziert allein durch die Entfernung. Ein
+  Schuss auf einen guten Fechter war damit zusätzlich erschwert. Aufgefallen beim Nachlesen
+  derselben Regel für die Arena.
+  - **Die Prüfung, die das hätte finden sollen, war zufällig blind:** Sie erwartete
+    `ZIELZAHL - 4 + bandMod(2)`, und die −4 war die Parade des Ziels — bei **Parade 4**
+    liefert 4−4 genau 0, also dasselbe, als hätte man die Parade gar nicht mitgerechnet. Jetzt
+    steht dort die Regel (`bandMod(dist)` allein), dazu zwei neue Prüfungen mit einem Ziel der
+    **Parade 7**, wo sich die Formeln um 3 unterscheiden — und eine dritte, die sicherstellt,
+    dass sich die beiden Fälle wirklich unterscheiden. **Eine Prüfung, deren beide Seiten
+    zusammenfallen, prüft nichts.**
+- **Getestet: `tests/t_arena.js` komplett neu, 174 Prüfungen, 0 Fehler** (vorher 30 gegen W100;
+  **1906 über vierzehn Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert
+  seit dem 13.10.).
+  - **Eine Lücke in meinen eigenen Prüfungen, erst beim Gegenlesen gesehen:** Jeder
+    `arenaAngriff()`-Aufruf gab das Band per `vorgabe` vor — damit lief der Pfad durch `wurf()`
+    **nie**, und genau der läuft am Tisch. Jetzt laufen am Ende **hundert echte Angriffe**
+    durch (Nah, Fern, gegen den Boss, mit und ohne Säbel): nichts wirft, ein Treffer hat immer
+    einen Schadenswurf und ein Misserfolg keinen, alle 200 Logzeilen sind brauchbar und keine
+    verrät den Säbel — und es kommen nachweislich Treffer **und** Misserfolge vor, sonst
+    prüfte der Block zu wenig.
+  - **Geladen wird wie im Browser**, nicht per `require()`: Alle Dateien liegen in **einem**
+    `vm`-Kontext, denn unter `require()` wäre jede ihr eigener Scope und `arena.js` sähe die
+    anderen nicht. Das steht auch am `module.exports` dran — es ist nur noch für Tests da.
+  - **Drei Gegenproben, und jede nennt den Fehler wörtlich:** die alte Bedrängnis-Richtung
+    lässt **7** Prüfungen anschlagen (`Gegner am ANGREIFER verschlechtern seinen Angriff nicht
+    mehr` → `-2`), die Parade im Fernkampf **2** (`-4` erwartet, `-7` gemessen), und im
+    Kampfmodus **1** (`mod: -7` statt `-4`).
+- **Dokumente nachgezogen, nicht nachgelassen** — eine Doku, die etwas anderes sagt als der
+  Code, ist der Fehler vom 14.10. (fünf Wochen falsche Auskunft): **Bibel 4.4a** neu, **4.7**
+  vom „gilt noch in der Arena" zum gekennzeichneten Beleg samt Übersetzungstabelle
+  (Mastery → Wild Card, Bedrängnis → Gang Up, HP → Wunden), **`ARENA-ENDKAMPF.md`** in den
+  Abschnitten 2, 3, 4.2, 4.5, 5.1, 5.2, 6.1, 7, 8 und 9, dazu die Dateiköpfe von `js/kampf.js`
+  und `regie_figuren.html`, die beide noch behaupteten, die Arena rechne nach W100.
+- **Vier eigene Fehler, alle vor dem Schreiben gefangen:**
+  1. **Zwei falsche Erwartungen in meinen eigenen Prüfungen:** −4 statt −3 gegen einen Diener
+     mit Parade 5 (schlicht falsch gerechnet), und eine Prüfung, die das Wort „mastery" in
+     `js/arena.js` verbot und damit **meinen eigenen Kommentar** meldete, der erklärt, wohin
+     das Feld gewandert ist. Sie ist **geschärft statt gelockert** (verboten ist jetzt die
+     *Verwendung*) — eine Prüfung, die man für den eigenen Text aufweicht, lässt beim
+     nächsten Mal eine echte Verwendung durch (Lehre vom 23.10.).
+  2. **Ein Einschub hat dem nachfolgenden Testblock den Zustand umgeworfen** — `setKampf()`
+     mitten in einer laufenden Kette, worauf drei spätere Prüfungen anschlugen. Jetzt in
+     **eigener Umgebung am Dateiende**. Dieselbe Sorte wie am 17.10.
+  3. Bei `angriffAnsagen(art, von, ziel)` hatte ich **Angreifer und Ziel getauscht**.
+  4. **Die CRLF/LF-Falle, wieder** — `karte.html`, `arena_admin.html` und `js/regie_vault.js`
+     haben CRLF, meine Literale LF. Der Helfer rechnet die Zeilenenden jetzt zentral um, statt
+     dass ich sie in jedes Literal schreibe.
+- **[OFFEN] Ob der Kampf sich gut anfühlt, zeigt erst ein Durchlauf** — die Zahlen sind jetzt
+  hergeleitet, aber nicht erprobt. Die Rechnung zum Mitdenken: Der Seelenlose hat Robustheit 8,
+  eine Wunde braucht also **12 Schaden**, und Waffe + Stärke (d6 + d8) liegt im Mittel bei 8 —
+  **ohne Ass wird er nicht verwundet.** Stellschrauben der Reihe nach in `ARENA-ENDKAMPF.md` 9.1.
+- **[OFFEN] Drei Dinge, die ich bewusst NICHT gebaut habe**, weil sie Spielentscheidungen sind:
+  ob der Säbelträger einen **liegenden** Diener nachstoßen darf (damit er nicht wieder
+  aufsteht), ob der Seelenlose eine **Sonderfähigkeit** bekommt (seine vier Talente wirken auf
+  dem Brett nicht — es kennt nur Zahlen), und ob die Arena eine **Initiative** bekommt (das
+  Aktionsdeck aus `js/kampf.js` wird dort nicht benutzt; die SL gibt reihum eine Figur frei).
 
 ### 2026-10-30 — Der Kurs zur Riffinsel gehört jetzt den Spielern
 - **Hendriks Vorgabe:** „Ich möchte dem Spieler, der das Bündel vom Kapitän erhalten hat,

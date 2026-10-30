@@ -47,6 +47,27 @@ vollständig — das bessere Ergebnis zählt, wobei erst das Band zählt und dan
 
 **Schießen.** 1701 ist alles Vorderlader: **ein Schuss**, dann nachladen — das dauert (in der Arena: erst in der übernächsten Runde wieder bereit). Jeder Schuss verbraucht **eine Ladung**; der Vorrat steht an der Figur, nicht an der Waffe. Ohne Ladungen ist die Waffe ein teurer Knüppel. Abgezogen wird von Hand — nicht jede Schießen-Probe ist ein Schuss.
 
+**Im Kampf.** Der Angriff ist eine normale Probe. **Nahkampf** (Kämpfen) gegen die
+**Parade** des Ziels — als Modifikator, weil das Ziel immer 4 bleibt: Parade 6 heißt
+−2, Parade 8 heißt −4. **Fernkampf** (Schießen) geht **nicht** gegen die Parade,
+sondern gegen die 4 mit dem Abzug der **Entfernung** (Reichweite 0, doppelt −2, vierfach
+−4, darüber kein Schuss).
+
+**Gemeinsam angreifen (Gang Up).** Jeder **zusätzliche** Angreifer, der im Nahkampf **am
+Ziel** steht, gibt **+1**, höchstens **+4**. Jeder Verbündete des Ziels beim Ziel hebt
+einen Punkt auf. Nur im Nahkampf.
+
+**Schaden.** Nahkampf **Waffe + Stärke**, Fernkampf **nur die Waffe**; eine Steigerung am
+Angriff gibt **+1W6**. Alle Schadenswürfel explodieren, **kein Wild Die** darauf.
+
+**Wirkung gegen die Robustheit.** Darunter nichts · gleich oder darüber
+**angeschlagen** · je volle 4 darüber **eine Wunde**. Wer **schon angeschlagen** ist und
+wieder getroffen wird, nimmt statt des zweiten Hakens **eine Wunde**. Ein **Statist** fällt
+bei der **ersten** Wunde, eine Heldenfigur trägt **drei**.
+
+**Angeschlagen** kostet die **Handlung**: bewegen ja, angreifen nein. Ein **Bennie** nimmt den
+Haken sofort weg.
+
 **Kritischer Patzer.** Beide Würfel zeigen eine natürliche 1.
 
 **Ungelernt** ist d4 mit **−2** — nicht „gar kein Würfel". Gelingt also, nur selten.

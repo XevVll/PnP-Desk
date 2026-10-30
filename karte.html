@@ -138,13 +138,25 @@
   .arena-token.frei { animation: markPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(201,162,75,0.35); }
   .arena-token.tot { opacity: 0.32; filter: grayscale(1); }
   .arena-token.angreifbar { cursor: pointer; outline: 2px dashed var(--accent); outline-offset: 3px; }
-  .arena-hp {
+  /* Zeigt seit dem 30.10.2026 die noch freie WUNDENKAPAZITAET, nicht HP -
+     die gibt es nicht mehr. Ein Statist (Diener) traegt keine Wunde und hat
+     deshalb gar keine Leiste; dort steht stattdessen der Haken. */
+  .arena-wunden {
     position: absolute; left: 6%; right: 6%; bottom: -9px; height: 5px;
     background: rgba(0,0,0,0.75); border: 1px solid rgba(0,0,0,0.9); border-radius: 3px;
     overflow: hidden;
   }
-  .arena-hp i { display: block; height: 100%; background: #7fa87f; }
-  .arena-hp i.wenig { background: #c76a5a; }
+  .arena-wunden i { display: block; height: 100%; background: #7fa87f; }
+  .arena-wunden i.wenig { background: #c76a5a; }
+  /* "Angeschlagen" kostet die Handlung, nicht den Wuerfel (Bibel 4.4) - und
+     weil genau das am Tisch die Frage ist ("darf der noch?"), steht es am
+     Token und nicht nur im Tooltip. */
+  .arena-shaken {
+    position: absolute; top: -8px; left: -6px;
+    font-size: 11px; line-height: 1;
+    background: rgba(12,9,6,0.9); border: 1px solid #d8c47a;
+    color: #e8d79a; border-radius: 8px; padding: 1px 4px;
+  }
   .arena-leer {
     position: absolute; top: -8px; right: -6px;
     font-size: 11px; line-height: 1;
@@ -1018,6 +1030,7 @@
   <script src="js/characters.js"></script>
   <script src="js/identitaet.js"></script>
   <script src="js/regelwerk.js"></script>
+  <script src="js/kampf.js"></script>
   <script src="js/dice.js"></script>
   <!-- Die Wuerfelkoerper: nur die Karte zeichnet sie, die Regie nicht. -->
   <script src="js/dice3d.js"></script>
@@ -1717,7 +1730,7 @@
     // nicht innerhalb der Szenen - Hendriks Vorgabe "vor allem
     // szenenuebergreifend". Ist die Liste durch, wird neu gemischt, damit
     // jedes Bild garantiert vorkommt, bevor sich etwas wiederholt.
-    function mischen(arr) {
+    function abspannMischen(arr) {
       const a = arr.slice();
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -1733,7 +1746,7 @@
           const kandidat = abspannQueue.shift();
           if (!abspannSichtbar[kandidat]) return kandidat;
         }
-        abspannQueue = mischen(bilder);
+        abspannQueue = abspannMischen(bilder);
       }
       return bilder[Math.floor(Math.random() * bilder.length)];
     }
@@ -1752,7 +1765,7 @@
       abspannEl.style.setProperty('--abspann-blend', blend + 'ms');
       abspannEl.classList.add('on');
       abspannEl.setAttribute('aria-hidden', 'false');
-      abspannQueue = mischen(bilder);
+      abspannQueue = abspannMischen(bilder);
 
       // Mehr Ebenen = etwas kleinere Bilder, sonst decken sie einander zu.
       // 4 Ebenen sind die Referenzgroesse.
@@ -1994,20 +2007,31 @@
         name.textContent = t.name;
         el.appendChild(name);
       } else if (t.name) {
-        el.title = t.name; // bei kleinen Feldern nur als Tooltip
+        el.title = t.name + ' — ' + arenaZustandText(t); // bei kleinen Feldern nur als Tooltip
       }
 
       if (!t.tot) {
-        const bar = document.createElement('div');
-        bar.className = 'arena-hp';
-        const i = document.createElement('i');
-        const anteil = Math.max(0, Math.min(1, (t.hp || 0) / (t.hpMax || 1)));
-        i.style.width = (anteil * 100) + '%';
-        if (anteil <= 0.34) i.className = 'wenig';
-        bar.appendChild(i);
-        el.appendChild(bar);
-        // Nur bei Figuren mit Fernkampf ist "leer" ueberhaupt eine Aussage.
-        if (!t.geladen && (t.fernWert || 0) > 0) {
+        // Wundenleiste statt HP. Ein Statist traegt keine Wunde - dort gibt es
+        // nichts zu fuellen, und arenaWundenAnteil() gibt dafuer null zurueck.
+        const anteil = arenaWundenAnteil(t);
+        if (anteil !== null) {
+          const bar = document.createElement('div');
+          bar.className = 'arena-wunden';
+          const i = document.createElement('i');
+          i.style.width = (anteil * 100) + '%';
+          if (anteil <= 0.34) i.className = 'wenig';
+          bar.appendChild(i);
+          el.appendChild(bar);
+        }
+        if (t.angeschlagen) {
+          const sh = document.createElement('span');
+          sh.className = 'arena-shaken';
+          sh.textContent = '!';
+          sh.title = 'angeschlagen — darf sich bewegen, aber nicht angreifen';
+          el.appendChild(sh);
+        }
+        // Nur bei Figuren mit Schusswaffe ist "leer" ueberhaupt eine Aussage.
+        if (!t.geladen && (t.fernwaffe || 0) > 0) {
           const leer = document.createElement('span');
           leer.className = 'arena-leer';
           leer.textContent = 'leer';
@@ -2065,28 +2089,25 @@
       }
       if (erg.endgueltig) {
         aenderungen['tokens/' + zielId] = null; // verschwindet ganz
-      } else {
-        aenderungen['tokens/' + zielId + '/hp'] = erg.zielHpNeu;
+      } else if (erg.trifft) {
+        // Kein HP-Abzug mehr: angeschlagen und Wunden sind der Zustand.
+        aenderungen['tokens/' + zielId + '/angeschlagen'] = erg.angeschlagenNeu ? true : null;
+        aenderungen['tokens/' + zielId + '/wunden'] = erg.wundenNeu > 0 ? erg.wundenNeu : null;
         if (erg.toetet) {
           aenderungen['tokens/' + zielId + '/tot'] = true;
           aenderungen['tokens/' + zielId + '/totSeitRunde'] = arenaSnap.runde || 1;
         }
       }
 
-      // Der Saebel wird im Text bewusst nie erwaehnt - die Spieler sollen
-      // nicht am Log ablesen koennen, wer ihn traegt (Hendriks Vorgabe).
-      let text = (a.name || angreiferId) + (erg.art === 'nah' ? ' greift an' : ' schießt') +
-        ' auf ' + (z.name || zielId) + ': ' + erg.wurf + ' → ' + arenaBandName(erg.band);
-      if (erg.bedraengnis > 0) text += ' (bedrängt, −' + erg.bedraengnis + ')';
-      text += erg.schaden > 0 ? ', ' + erg.schaden + ' Schaden' : ', kein Schaden';
+      /* Die Logzeile kommt aus js/arena.js und wird NICHT hier gebaut: Alle
+         drei Ansichten schreiben dieselbe, und die Regel "der Saebel wird
+         nirgends benannt" (Hendriks Vorgabe) ist damit an genau einer Stelle
+         einzuhalten statt an drei. */
+      let text = arenaLogZeile(a, z, erg);
+      if (erg.gangUp > 0) text += ' (gemeinsam, +' + erg.gangUp + ')';
       if (erg.endgueltig) text += ' — zerfällt zu Staub.';
       else if (erg.toetet) text += ' — geht zu Boden.';
       arenaSchreibe(aenderungen, text);
-    }
-
-    function arenaBandName(b) {
-      return b === 'gut' ? 'guter Erfolg' : b === 'normal' ? 'Erfolg'
-        : b === 'schlecht' ? 'schlechter Erfolg' : 'Misserfolg';
     }
 
     window.addEventListener('resize', function () { if (arenaScene) renderArena(); });

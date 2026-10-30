@@ -8,10 +8,19 @@
    etwas anderes ausrechnet als die Probe des Spielers ergibt.
 
    NICHT die Arena. Die (`js/arena.js`, Szene 15.1) ist ein
-   Brett mit Positionen für EINEN Kampf, das Finale, und rechnet
-   bewusst weiter nach W100 (Bibel 4.7). Das hier ist die Liste
-   für alle anderen Kämpfe: keine Felder, keine Bewegung, keine
-   Reichweiten — nur Reihenfolge, Treffer und Wirkung.
+   Brett mit Positionen für EINEN Kampf, das Finale. Das hier ist
+   die Liste für alle anderen Kämpfe: keine Felder, keine
+   Bewegung, keine Reichweiten — nur Reihenfolge, Treffer und
+   Wirkung.
+
+   SEIT DEM 30.10.2026 BENUTZT DIE ARENA DIESE DATEI. Sie rechnete
+   bis dahin nach dem alten W100-System (Bibel 4.7) und hat jetzt
+   denselben Regelkern: angriffsMod(), fernkampfMod(), wirkung()
+   und schadensWuerfel() werden von js/arena.js aufgerufen. Wer
+   hier etwas ändert, ändert damit auch das Finale — und das
+   ist der Zweck: Zwei Fassungen derselben Rechnung liefen sonst
+   auseinander. tests/t_kampf.js UND tests/t_arena.js laufen
+   lassen.
 
    Quelle der Regeln: Savage Worlds (Pinnacle), nachgelesen im
    frei veröffentlichten Test Drive. Reihenfolge der Quellen wie
@@ -258,7 +267,15 @@ function fernkampfMod(reichweite, entfernung) {
 function wirkung(schaden, robustheit, zustand) {
   const z = zustand || {};
   const vorher = { angeschlagen: !!z.angeschlagen, wunden: Math.max(0, z.wunden || 0) };
-  const max = z.extra ? KAMPF_REGELN.wundenStatist : KAMPF_REGELN.wundenWildCard;
+  /* z.wundenMax ueberschreibt die Tragfaehigkeit fuer DIESE Figur.
+     Gebraucht fuer die Arena (js/arena.js), wo die SL sie je Token
+     stellen kann: Ein Endboss, der nach drei Wunden faellt, ist in
+     Savage Worlds richtig, aber die Arena muss ihn stellen koennen,
+     ohne dass dafuer die Regel fuer alle anderen wandert. Ohne das
+     Feld gilt unveraendert die Regel aus KAMPF_REGELN. */
+  const max = (z.wundenMax != null)
+    ? Math.max(0, z.wundenMax | 0)
+    : (z.extra ? KAMPF_REGELN.wundenStatist : KAMPF_REGELN.wundenWildCard);
   const s = Math.round(Number(schaden) || 0);
   const r = Math.max(1, Math.round(Number(robustheit) || 1));
 

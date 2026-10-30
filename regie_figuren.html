@@ -812,8 +812,10 @@ function renderWaren() {
    die es seit dem 14.10. gibt.
 
    NICHT die Arena: kein Brett, keine Bewegung, keine Felder.
-   Die bleibt das Werkzeug fuer den Endkampf und rechnet weiter
-   nach W100 (Bibel 4.7).
+   Die bleibt das Werkzeug fuer den Endkampf - rechnet aber seit
+   dem 30.10.2026 mit DEMSELBEN Regelkern (js/kampf.js), nicht
+   mehr nach W100. Der sichtbare Unterschied zum Kampfmodus sind
+   nur noch Brett und Initiative.
 
    DREI REGELN, die den Zuschnitt bestimmen:
 
@@ -1094,7 +1096,14 @@ function angriffAnsagen(art, vonId, zielId) {
   }
   const kann = fern ? fernMoeglich(a) : { ok: true, wert: 'Kämpfen' };
   if (!kann.ok) { warnung(kann.grund + '.'); return; }
-  const mod = angriffsMod(z.parade, fern ? bandMod(dist) : 0);
+  /* Die PARADE gilt nur im Nahkampf. Savage Worlds: "Roll a Fighting skill
+     roll and compare it to the opponent's Parry" - Fighting, nicht Shooting.
+     Geschossen wird gegen die 4, modifiziert allein durch die Entfernung.
+     Korrigiert am 30.10.2026: Bis dahin stand hier
+     angriffsMod(z.parade, fern ? bandMod(dist) : 0), ein Schuss wurde also
+     zusaetzlich mit der Parade des Ziels erschwert. Aufgefallen beim
+     Nachlesen derselben Regel fuer die Arena. */
+  const mod = fern ? bandMod(dist) : angriffsMod(z.parade);
   const ansage = {
     wer: a.id, werName: a.name, ziel: z.id, zielName: z.name,
     parade: z.parade, robustheit: z.robustheit, mod: mod,
@@ -1130,7 +1139,8 @@ function angriffAnsagen(art, vonId, zielId) {
     ansage.roh = r.roh;
     kampfRef('ansage').set(ansage);
     const traf = (r.band === 'erfolg' || r.band === 'steigerung');
-    kampfLog(a.name + ' greift ' + z.name + ' an (nötig ' + z.parade + '): ' + r.roh +
+    kampfLog(a.name + (fern ? ' schießt auf ' : ' greift ') + z.name + (fern ? '' : ' an') +
+      ' (nötig ' + (ZIELZAHL - mod) + '): ' + r.roh +
       ' — ' + (traf ? (r.band === 'steigerung' ? 'Treffer mit Steigerung' : 'Treffer') : 'daneben') + '.',
       traf ? 'treffer' : 'daneben');
   }

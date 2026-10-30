@@ -9,7 +9,9 @@ Aufgebaut wie das Schwesterdokument [RIFFINSEL-ERKUNDUNGSGRAPH.md](RIFFINSEL-ERK
 Technischer Kontext: [CLAUDE.md](CLAUDE.md). Regel- und Story-Kontext:
 [KAMPAGNEN-BIBEL.md](KAMPAGNEN-BIBEL.md), Abschnitte 4 (Regelwerk) und 12.1 (Das Finale).
 
-**Stand: 2026-08-23.** Erste lauffähige Fassung, noch nicht am Tisch erprobt.
+**Stand: 2026-10-30.** Am 30.10.2026 von W100 auf **Savage Worlds** umgestellt — die Arena
+war die letzte Stelle im Projekt, die noch nach dem alten System rechnete. Weiterhin **nicht am
+Tisch erprobt.**
 
 ---
 
@@ -47,59 +49,110 @@ Dramaturgie aus der Hand nehmen.
 
 | Datei | Rolle |
 |---|---|
-| `js/arena.js` | **Regel-Engine.** Kein DOM, kein Firebase. Wird von allen Seiten benutzt und ist mit Node testbar. |
+| `js/arena.js` | **Das Brett.** Kein DOM, kein Firebase. Raster, Entfernung, Bewegung, Rundenwechsel, Wiederauferstehung, Nachschub, Jaguar-Säbel. **Rechnet die Regeln nicht selbst** (siehe 3). |
+| `js/regelwerk.js` | Die Probe selbst (`wurf()`), die Würfelstufen, `parade()`/`robustheit()`. |
+| `js/kampf.js` | Der Regelkern des Kampfes: `angriffsMod()`, `fernkampfMod()`, `wirkung()`, `schadensWuerfel()`. Dieselbe Datei, die den Kampfmodus in `regie_figuren.html` speist. |
 | `js/arena_scenes.js` | Szenen-Definition `15.1`: Feldgröße, Regelwerte, Figuren-Vorlagen. |
 | `karte.html` | Spieleransicht: Raster, Figuren, Bewegung/Angriff **nur für Spieler-Figuren nach Freigabe**, Kampf-Log. |
 | `arena_admin.html` | **SL-Schlachtfeld** (seit 2026-08-23): eigene Vollbild-Seite für den Kampf. Entität anklicken → auswählen → per Klick bewegen/angreifen, Freigabe, HP, Säbel, Nachsetzen, Versetzen-Modus, Runde. Zugriffsschutz wie `regie.html` (nur über die bekannte URL). |
 | `js/regie_vault.js` | Kompakt-Panel im Adminpanel: Überblick, Freigabe (nur Spieler-Figuren), Runde, Nachsetzen — verlinkt aufs Schlachtfeld. |
 | `regie.html` | Nur die `<script>`-Tags. |
 
+> **⚠ Jede Arena-Seite braucht DREI Script-Tags: `regelwerk.js`, `kampf.js`, `arena.js`.** Die
+> Reihenfolge ist beliebig (alle Aufrufe stehen in Funktionen), aber fehlt eines, bricht die
+> Arena erst zur **Laufzeit** und still. `arena_admin.html` lud bis zum 30.10.2026 **keines von
+> beiden** — das war die erste Baustelle der Umstellung.
+
 Die Trennung der Engine ist Absicht: Die Regeln sind der Teil, der **stimmen muss**, und sie
 lassen sich so ohne Browser gegen die Bibel prüfen (siehe Abschnitt 7).
 
 ---
 
-## 3. Das Regelwerk (Bibel 4)
+## 3. Das Regelwerk (Bibel 4 und 4.4a)
 
-Alles rechnet nach dem Probensystem der Bibel. `js/arena.js` bildet es 1:1 ab:
+**Die tragende Entscheidung der Umstellung: `js/arena.js` rechnet die Regeln nicht selbst.**
 
-### 3.1 Probe (Bibel 4.1)
+Ein dritter Regelkern neben `js/regelwerk.js` und `js/kampf.js` wäre genau der Fehler, gegen den
+beide Dateien geschrieben sind — zwei Fassungen derselben Rechnung laufen auseinander, und hier
+wäre der Preis, dass das Finale nach anderen Regeln läuft als jeder Kampf davor.
 
-```
-Schwelle = Wert × 10
-
-Guter Erfolg       1 .. Schwelle/2
-Normaler Erfolg    Schwelle/2+1 .. Schwelle
-Schlechter Erfolg  Schwelle+1 .. Schwelle + (100−Schwelle)/2
-Misserfolg         Rest
-```
-
-Beispiel aus der Bibel (Wert 5, Schwelle 50): `1–25 gut · 26–50 normal · 51–75 schlecht ·
-76–100 Miss`. Der Test in Abschnitt 7 gleicht **alle 100 Würfe** dagegen ab.
-
-### 3.2 Mastery (Bibel 4.2)
-
-Ohne Mastery entfällt das Band „schlechter Erfolg" und fällt in den Misserfolg — **die
-Zahlenschwellen verschieben sich dabei nicht.** In `arenaBand()` genau so umgesetzt: die
-Grenzen kommen aus `arenaSchwellen()`, Mastery entscheidet nur, ob das dritte Band zugeteilt wird.
-
-### 3.3 Bedrängnis (Bibel 4.4)
-
-Jeder **zusätzliche** Angreifer im Nahkampf verschiebt das Ergebnis um ein Band nach unten.
-`arenaBedraengnis()` zählt die angrenzenden Feinde des Angreifers und zieht 1 ab (der erste
-Gegner zählt nicht als Bedrängnis). `arenaVerschiebe()` schiebt dann entsprechend.
-
-### 3.4 Schaden
-
-Die Bibel kennt **keine Kampfwerte** — nur „Schadenspunkte" als kleine ganze Zahlen (z. B.
-„Misserfolg → 1 Schadenspunkt", Bibel 10.11). Die Schadenstabelle ist deshalb ein Aufschlag:
-
-| Band | Schaden |
+| gebraucht | kommt aus |
 |---|---|
-| gut | Grundschaden × 2 (an „Guter Erfolg zählt doppelt" angelehnt) |
-| normal | Grundschaden |
-| schlecht | Grundschaden ÷ 2, mindestens 1 |
-| Misserfolg | 0 |
+| Probe / Angriffswurf | `wurf()` — `js/regelwerk.js` |
+| Zielwert Nahkampf | `angriffsMod()` — `js/kampf.js` |
+| Entfernungsabzug | `fernkampfMod()` — `js/kampf.js` |
+| Schadenswürfel | `schadensWuerfel()` — `js/kampf.js` |
+| Schadenswurf (explodierend) | `wuerfelWurf()` — `js/regelwerk.js` |
+| Wirkung am Ziel | `wirkung()` — `js/kampf.js` |
+
+In `js/arena.js` bleibt das Brett: Raster, Entfernung, Bewegung, Rundenwechsel — und die drei
+Kampagnenregeln, die Savage Worlds nicht kennt: **Wiederauferstehung, Nachschub und der
+Jaguar-Säbel** (Bibel 12.1).
+
+### 3.1 Der Angriff
+
+Eine ganz normale Probe (Bibel 4.1): ein Würfel, Ziel 4, explodierend, Wild Die bei Wild Cards.
+
+- **Nahkampf gegen die PARADE des Ziels**, als Modifikator (`4 − Parade`). Gewürfelt wird
+  `kaempfen`.
+- **Fernkampf NICHT gegen die Parade** — die ist eine Nahkampfgröße. Geschossen wird gegen die
+  4, modifiziert allein durch die Entfernung (`fernkampfMod`: Waffenreichweite 0, das Doppelte
+  −2, das Vierfache −4, darüber kein Schuss). Gewürfelt wird `schiessen`.
+- **Jede Wunde zieht flach 1 ab**, gedeckelt bei 3.
+
+### 3.2 Gang Up — und was aus „Bedrängnis" wurde
+
+**Jeder zusätzliche Angreifer im Nahkampf AM ZIEL gibt +1, höchstens +4.** Jeder Verbündete des
+Ziels, der beim Ziel steht, hebt einen Punkt auf. Nur im Nahkampf.
+
+> **⚠ Das ist die GEGENRICHTUNG der alten Hausregel.** Bis zum 30.10.2026 stand hier
+> „Bedrängnis": zusätzliche Gegner **neben dem Angreifer** verschoben **dessen** Ergebnis um ein
+> Band nach unten — umgeben zu sein machte den eigenen Angriff schlechter. Savage Worlds dreht
+> beides um: Es ist ein **Bonus** für den Angreifer, und gezählt wird um das **Ziel**.
+>
+> In Bibel 4 stand die Regel überhaupt nicht (4.4 kannte nur Erschwernisse, Wunden, Bennies) —
+> das war der eigentliche Befund der Umstellung. Sie ist dort als **4.4a** nachgetragen.
+
+**Praktisch ist Gang Up die taktische Antwort auf den Seelenlosen.** Seine Parade 8 kostet jeden
+Angriff −4, und genau +4 holt die Gruppe zurück, wenn sie ihn gemeinsam stellt. Gemessen an
+einer Figur mit Kämpfen d8 (`tests/t_arena.js` rechnet es nach):
+
+| | Trefferchance |
+|---|---|
+| allein gegen Parade 8 | **24,7 %** |
+| zu fünft um ihn herum (+4) | **81,3 %** |
+
+### 3.3 Schaden und Wirkung
+
+- **Nahkampf: Waffe + Stärke**, Fernkampf **nur die Waffe**; eine Steigerung gibt **+1W6**.
+  Alle Würfel explodieren, **kein Wild Die** darauf (Bibel 4.3).
+- **Gegen die Robustheit:** darunter nichts · gleich oder darüber **angeschlagen** · je volle 4
+  darüber **eine Wunde**. Wer schon angeschlagen ist, nimmt statt des zweiten Hakens eine Wunde.
+- **Ein Statist (Diener) trägt KEINE Wunde** — die erste nimmt ihn heraus. Eine Wild Card trägt
+  drei.
+
+**HP sind ersatzlos entfallen.** Eine Figur trägt `angeschlagen` und `wunden`; wie viele sie
+trägt, entscheidet `wild` bzw. das optionale `wundenMax` am Token.
+
+### 3.4 Angeschlagen
+
+**Angeschlagen kostet die Handlung, nicht den Würfel:** bewegen ja, angreifen nein. Der
+Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
+
+> **Bewusste Abweichung.** Savage Worlds würfelt dafür **Willenskraft** zu Beginn des Zuges. Auf
+> diesem Brett stehen bis zu einem Dutzend Diener — das wären ein Dutzend Würfe je Runde, nur um
+> einen Zustand zu verwalten. Ein **Bennie**, der den Haken sofort wegnimmt, bleibt möglich: Der
+> Spieler sagt es an, die SL klickt „Haken weg".
+
+### 3.5 Die drei bewussten Abweichungen, zusammengefasst
+
+1. **Angeschlagen** ohne Willenskraft-Probe (siehe 3.4).
+2. Beim **Gang Up** wird nicht geprüft, ob ein mithelfender Verbündeter selbst gebunden ist —
+   die Art Buchhaltung, die das Projekt weglässt (vgl. Bibel 4.5).
+3. Der **Wunden-Abzug** ist bei 3 gedeckelt, auch wenn eine Figur mehr tragen kann.
+
+Alles Weitere — Wiederauferstehung, Nachschub, Säbel — ist **Kampagnenregel**, nicht Abweichung:
+Sie steht in Bibel 12.1 und hat in Savage Worlds kein Gegenstück.
 
 ---
 
@@ -123,10 +176,12 @@ steuern (Hinweis „… handelt …", Züge der SL kommen nur als Live-Update an
 
 Der Unterschied zwischen `spieler` und `verbuendeter` ist **nicht die Seite, sondern die
 Steuerung**: Verbündete (Harwick, Cormac, …) kämpfen mit den Spielern und zählen für
-Freund/Feind-Logik und Bedrängnis zur Helden-Seite (`arenaSeite()`), werden aber ausschließlich
+Freund/Feind-Logik und Gang Up zur Helden-Seite (`arenaSeite()`), werden aber ausschließlich
 von der SL gezogen.
 
 Pro Figur und Runde: **eine** Bewegung (`hatGezogen`) und **ein** Angriff (`hatAngegriffen`).
+Wer **angeschlagen** ist, darf sich bewegen, aber nicht angreifen (3.4) — der Rundenwechsel
+räumt den Haken ab.
 Beide Marker setzt der Rundenwechsel zurück. Das gilt auch für SL-gesteuerte Figuren — die SL
 spielt nach denselben Regeln, kann aber im **Versetzen-Modus** (Schlachtfeld-Kopfleiste) jede
 Figur frei auf ein beliebiges Feld setzen, ohne Bewegungsregel und ohne den Zug zu verbrauchen.
@@ -147,11 +202,26 @@ würden bei 16×16 nur übereinanderliegen.
 Die Entfernung entscheidet, es gibt keine Wahl:
 
 - Distanz ≤ `nahkampfReichweite` (1, also angrenzend inkl. diagonal) → **Nahkampf**
-- Distanz ≤ `fernkampfReichweite` (6) → **Fernkampf**
-- darüber → kein Angriff möglich
+- darüber, mit einer Schusswaffe (`fernwaffe > 0`) → **Fernkampf**, solange die Waffe trägt
+- sonst → kein Angriff möglich
 
 Entfernungen sind **Chebyshev-Distanz**: diagonal zählt wie gerade. Das ist am Tisch die
 unstrittigste Variante — „angrenzend" heißt genau Distanz 1, egal ob schräg oder gerade.
+
+**Die Grenze setzt seit dem 30.10.2026 die WAFFE, nicht das Brett.** `fernkampfMod()` gibt
+jenseits der vierfachen Waffenreichweite `null` zurück, und `arenaAngriffsart()` prüft das
+**mit** — sonst zeigte die Oberfläche einen Schuss an, der beim Klick abgelehnt wird. Diese
+Funktion ist die **eine** Stelle, die „kann der den überhaupt angreifen" beantwortet.
+
+`regeln.fernkampfReichweite` ist dadurch nur noch eine Bremse fürs Brett (16; auf 16×16 liegen
+nie mehr als 15 Felder zwischen zwei Figuren, sie bindet also nicht). Vorher stand sie auf 6,
+weil es **überhaupt keinen** Entfernungsabzug gab und unbegrenzte Reichweite ohne Abzug kaputt
+wäre.
+
+Eine **liegende** Figur ist kein Ziel (`grund: 'ziel_liegt'`). Vorher lief ein solcher Angriff
+stillschweigend ins Leere; jetzt sagt er, warum. **[OFFEN]** Ob der Säbelträger einen bereits
+niedergeschlagenen Diener *nachstoßen* darf, damit er nicht wieder aufsteht, ist bewusst **nicht**
+eingebaut — das wäre eine echte neue Taktik und Hendriks Entscheidung, nicht meine.
 
 ### 4.3 Nachladen
 
@@ -165,11 +235,12 @@ Diener wäre „leer" keine Aussage).
 Er schlägt selbst zu und ist zugleich der Grund, warum die Toten nicht liegen bleiben. **Solange
 er lebt:**
 
-- normal getötete Diener stehen nach `wiederauferstehenNach` (2) Runden wieder auf
+- normal getötete Diener stehen nach `wiederauferstehenNach` (2) Runden wieder auf, und zwar
+  **unversehrt** (Wunden und Haken fallen weg)
 - alle `nachschubAlle` (3) Runden erscheinen `nachschubAnzahl` (2) neue Diener auf freien
   Randfeldern
 
-Der Seelenlose ist eine reine Nahkampf-Figur (`fernWert 0`) — auf Distanz kann er nicht
+Der Seelenlose ist eine reine Nahkampf-Figur (`fernwaffe 0`) — auf Distanz kann er nicht
 angreifen, nur heranrücken (siehe Fehlergeschichte Nr. 6).
 
 **Fällt er, hört beides sofort auf** (`arenaBossLebt()`). Damit ist er das eigentliche Ziel des
@@ -192,13 +263,18 @@ auf, und die Toten kommen weiter.
 
 | | ohne Säbel | mit Säbel |
 |---|---|---|
-| **Diener** | fällt, steht wieder auf | **jeder Treffer** tötet sofort, endgültig |
-| **Seelenloser** | fällt, **richtet sich wieder auf** | Schaden zählt normal, bei 0 HP **endgültig** |
+| **Diener** | fällt bei der ersten Wunde, steht wieder auf | **jeder Treffer** zerfällt ihn sofort, endgültig |
+| **Seelenloser** | fällt außer Gefecht, **richtet sich wieder auf** | Schaden zählt normal, **außer Gefecht = endgültig** |
+
+**Gezählt wird beim Diener der TREFFER, nicht die Wirkung:** Auch ein Schlag, der die Robustheit
+gar nicht erreicht hätte, lässt ihn zu Staub fallen. Das ist dieselbe Regel wie am 23.08., nur
+in der neuen Währung — „sobald das Band kein Misserfolg ist".
 
 **Der Säbel ist die Bedingung, nicht die Abkürzung.** Gegen den Seelenlosen zählt der Schaden
 weiter ganz normal — eine Berührung legt ihn *nicht* nieder, sonst wäre das Finale mit einem
-einzigen Treffer vorbei. Beim **Diener** bleibt die Regel vom 23.08. unverändert: sobald das Band
-kein Misserfolg ist, fällt er, unabhängig von Schadenswert und Rest-HP.
+einzigen Treffer vorbei. Er trägt drei Wunden wie jede Wild Card, und bei Robustheit 8 braucht
+eine Wunde **12 Schaden** — das kommt mit Waffe + Stärke nur mit einem Ass zustande. Wird er
+damit zu zäh oder zu weich, ist `wundenMax` am Token der erste Hebel.
 
 **`arenaBossGebannt()` statt `arenaBossLebt()` — daran hängt alles.** Wiederauferstehung und
 Nachschub laufen, solange der Seelenlose **nicht gebannt** ist; „gebannt" heißt endgültig tot und
@@ -250,30 +326,46 @@ regeln: {
   breite: 16, hoehe: 16,        // Feldgröße
   bewegung: 2,                  // Felder pro Runde
   nahkampfReichweite: 1,
-  fernkampfReichweite: 6,
+  fernkampfReichweite: 16,      // nur eine Bremse fürs Brett, siehe 4.2
   wiederauferstehenNach: 2,     // Runden
   nachschubAlle: 3,             // Runden
   nachschubAnzahl: 2
 }
 ```
 
-Figuren-Vorlagen (`vorlagen.spieler` / `.verbuendeter` / `.diener` / `.seelenloser`):
+Die Felder einer Figuren-Vorlage sind **Würfelstufen** wie in `js/regelwerk.js`
+(1 = d4 · 2 = d6 · 3 = d8 · 4 = d10 · 5 = d12 · 0 = ungelernt, d4−2):
 
 | | Spieler | Verbündeter | Diener | Seelenloser |
 |---|---|---|---|---|
 | Symbol / Farbe | ☘ gold | ⚓ blaugrau | ☠ grün | ✦ rot |
-| `hpMax` | 6 | 6 | 3 | 18 |
-| `nahWert` / `nahSchaden` | 5 / 2 | 6 / 2 | 4 / 1 | 7 / 3 |
-| `fernWert` / `fernSchaden` | 5 / 3 | 5 / 3 | 0 / 0 | 0 / 0 |
-| `mastery` | ja | ja | nein | ja |
+| `kaempfen` | d8 | **d10** | d6 | **d12** |
+| `schiessen` | d8 | d6 | — | — |
+| `staerke` | d8 | d10 | d6 | d12 |
+| `waffe` / `fernwaffe` | d6 / d6 | d6 / — | d4 / — | d6 / — |
+| `reichweite` | 5 | — | — | — |
+| `parade` / `robustheit` | 6 / 6 | **7 / 7** | 5 / 5 | **8 / 8** |
+| `wild` (Wild Card) | ja | ja | **nein** | ja |
+| `wundenMax` | 3 | 3 | **0** | 3 |
 
-**Diese Zahlen sind ein Aufschlag, kein Kanon.** Die Vorlage liefert nur den **Startwert** beim
-Erzeugen einer Figur — danach sind die Kampfwerte **je Figur** im Schlachtfeld-Auswahlpanel
-editierbar (`nahWert`/`nahSchaden`/`fernWert`/`fernSchaden`/`hpMax`/`mastery`, mit
-Grenzwert-Klemmung). Das ist der vorgesehene Weg für die unterschiedlichen Werte der
-Spielercharaktere: ihre Bögen liegen nur im `localStorage` der jeweiligen Spieler-Browser, die SL
-trägt die Werte deshalb einmal pro Figur von Hand ein. Das Panel zeigt zur Kontrolle die
-Trefferchance (`Wert × 10 %`) an.
+**Diese Zahlen sind seit dem 30.10.2026 NICHT mehr gegriffen, sondern GEMESSEN.** Vorher trug
+die Arena eigene W100-Kampfwerte, und derselbe Mann hatte im Endkampf andere Werte als in
+`besatzung.html` — das war der offene Punkt vom 15.10.2026. Jetzt stammen sie aus den Blättern in
+`js/npcs.js`, gerechnet mit `parade()`/`robustheit()` und der besten getragenen Waffe:
+
+| Vorlage | Blatt | warum dieses |
+|---|---|---|
+| `spieler` | **Harwick** | Die Spielerbögen liegen nur im `localStorage` der Spieler. Harwick ist der Maßstab einer erfahrenen Figur — im Finale angemessen. |
+| `verbuendeter` | **Cormac** | Bester Kämpfer an Bord; „Kampf 7 gegen Harwicks 6" ist Kanon und steht damit auch hier. |
+| `diener` | wie ein Mannschaftsmitglied | Ein Statist: kein Wild Die, die erste Wunde nimmt ihn raus. Gefährlich in der Menge (Gang Up). |
+| `seelenloser` | **sein eigenes Blatt** | Legendär, der einzige d12 der Kampagne. Parade 8 kostet −4 — genau das, was Gang Up zurückholt. |
+
+`tests/t_arena.js` **rechnet diese Herkunft nach** statt sie zu behaupten: Parade, Robustheit und
+Kämpfen-Wert der Vorlagen müssen mit den Blättern übereinstimmen.
+
+Je Figur sind die Werte im Schlachtfeld weiter **einzeln editierbar** — und dort lässt sich
+zusätzlich **ein echtes NSC-Blatt auf ein Token stempeln** („Blatt → übernehmen"): Name, Werte,
+Waffe, Parade und Robustheit kommen aus `js/npcs.js`, gerechnet, nicht abgeschrieben.
 
 ### 5.2 Firebase (`arenaState/{sceneId}`)
 
@@ -286,8 +378,11 @@ arenaState/15-1/
     typ            "spieler" | "verbuendeter" | "diener" | "seelenloser"
     name, symbol, farbe
     x, y           Feldkoordinaten
-    hp, hpMax
-    nahWert, fernWert, nahSchaden, fernSchaden, mastery
+    wunden         Zahl (fehlt = unversehrt)
+    angeschlagen   true/fehlt  - kostet die Handlung, nicht den Wuerfel
+    wundenMax      Tragfaehigkeit (0 Statist, 3 Wild Card)
+    kaempfen, schiessen, staerke, waffe, fernwaffe, reichweite
+    parade, robustheit, wild
     geladen        bool
     entladenSeitRunde  Runde des Schusses (fürs Nachladen)
     hatGezogen, hatAngegriffen   je Runde
@@ -297,6 +392,11 @@ arenaState/15-1/
 
 Der Pfad folgt der Konvention aus Bibel 13.3 (Punkte in Szenen-IDs werden per `fbKey()` zu
 Bindestrichen: `15.1` → `15-1`).
+
+> **⚠ Ein `arenaState` von VOR dem 30.10.2026 trägt die alten Felder** (`hp`, `hpMax`,
+> `nahWert`, `mastery`). Die Engine ist tolerant und fällt auf Vorgaben zurück, aber die Werte
+> stimmen dann nicht. Es gibt bewusst **keine Migration**: Ein Gefecht ist zu Ende, wenn es zu
+> Ende ist, und „Aufbauen" setzt alle Tokens neu. Die Arena war ohnehin nie am Tisch.
 
 ### 5.3 Wer schreibt was
 
@@ -329,25 +429,33 @@ Flackern zeigt.
 
 ## 6. API-Überblick
 
-### 6.1 Engine (`js/arena.js`)
+### 6.1 Das Brett (`js/arena.js`)
 
 | Funktion | Zweck |
 |---|---|
-| `arenaSchwellen(wert)` | Bandgrenzen zu einem Wert |
-| `arenaBand(wurf, wert, mastery)` | Wurf → Band |
-| `arenaVerschiebe(band, stufen)` | Bedrängnis anwenden |
-| `arenaSchaden(band, grundschaden)` | Schadenstabelle |
 | `arenaDistanz(a, b)` | Chebyshev-Distanz |
-| `arenaAngriffsart(a, ziel, regeln)` | `'nah'` \| `'fern'` \| `null` |
-| `arenaBedraengnis(a, tokens, regeln)` | Zahl der zusätzlichen Nahkampfgegner |
-| `arenaAngriff(a, ziel, tokens, regeln, saebeltraegerId, wurfVorgabe?)` | **Kernfunktion.** Reines Ergebnisobjekt, verändert nichts. |
-| `arenaBewegungErlaubt(token, ziel, regeln, tokens)` | Prüft Reichweite, Rand, Besetzung, „schon gezogen" |
-| `arenaBossLebt(tokens)` | Lebt der Seelenlose? |
-| `arenaRundenwechsel(tokens, regeln, alteRunde)` | Liefert flaches Änderungsobjekt + Nachschubzahl |
-| `arenaFreieRandfelder(tokens, regeln, anzahl)` | Zufällige freie Randfelder für Nachschub |
+| `arenaAngriffsart(a, ziel, regeln)` | `'nah'` \| `'fern'` \| `null` — **die eine Stelle**, die „geht das überhaupt" beantwortet (inkl. Waffenreichweite) |
+| `arenaGangUp(a, ziel, tokens, regeln)` | +0 bis +4, um das **Ziel** gezählt |
+| `arenaAngriffMod(a, ziel, art, tokens, regeln)` | der komplette Modifikator des Angriffswurfs; eigene Funktion, damit er **einzeln prüfbar** ist |
+| `arenaWundenMax(t)` / `arenaWundenAbzug(t)` | Tragfähigkeit · flacher Abzug (gedeckelt bei 3) |
+| `arenaWundenAnteil(t)` | Füllung der Leiste am Token; **`null` bei einem Statisten** (dort gibt es nichts zu füllen) |
+| `arenaKannAngreifen(t)` / `arenaZustandText(t)` | angeschlagen-Sperre · Anzeigetext |
+| `arenaSchadensWuerfel(a, art, steigerung)` | Adapter auf `schadensWuerfel()` — ein Token ist keine Figur |
+| `arenaSchadenWerfen(wuerfel, vorgabe?)` | wirft sie explodierend; `vorgabe` setzt die Summe fest |
+| `arenaAngriff(a, ziel, tokens, regeln, saebeltraegerId, vorgabe?)` | **Kernfunktion.** Reines Ergebnisobjekt, verändert nichts. |
+| `arenaBewegungErlaubt(t, ziel, regeln, tokens)` | Reichweite, Rand, Besetzung, „schon gezogen" |
+| `arenaBossLebt(tokens)` / `arenaBossGebannt(tokens)` | steht er noch · ist er **endgültig** tot |
+| `arenaRundenwechsel(tokens, regeln, alteRunde)` | flaches Änderungsobjekt + Nachschubzahl + wer sich erholt hat |
+| `arenaFreieRandfelder(tokens, regeln, anzahl)` | zufällige freie Randfelder für Nachschub |
+| `arenaLogZeile(a, ziel, erg)` | **die** Logzeile für alle drei Ansichten — damit die Regel „der Säbel wird nirgends benannt" an einer Stelle einzuhalten ist |
 
-`arenaAngriff()` nimmt optional einen festen Wurf (`wurfVorgabe`) — dafür gedacht, die Regeln
-deterministisch zu testen.
+`arenaAngriff()` nimmt optional eine `vorgabe` (`{ probeBand, steigerungen, schaden }}`) — dafür
+gedacht, jede Regelverzweigung deterministisch zu testen.
+
+> **Das `module.exports` am Dateiende ist nur für Tests und `t_syntax.js`.** Per `require()`
+> allein ist `js/arena.js` **nicht funktionsfähig**: Es ruft `js/regelwerk.js` und `js/kampf.js`
+> auf, und unter Node ist jede Datei ihr eigener Modul-Scope. `tests/t_arena.js` lädt deshalb
+> alle drei in **einen** `vm`-Kontext, genau wie der Browser.
 
 ### 6.2 SL-Seite (`js/regie_vault.js`)
 
@@ -365,23 +473,51 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-Testskripte gehören **nicht ins Repo** (Skill `pnp-safe-test`) — sie liegen im Scratchpad der
-jeweiligen Session. In dieser Session existierten zwei:
+**`tests/t_arena.js`, 174 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System).
 
-**a) Regel-Engine, reines Node, ohne Browser.** Lädt `js/arena.js` per `require()` und prüft:
-Bandgrenzen gegen das Bibel-Beispiel über alle 100 Würfe, Mastery-Verhalten, Bedrängnis,
-Schadenstabelle, Reichweiten, Nachladesperre, Säbel-Sonderregel (inkl. „gilt nicht für den
-Seelenlosen"), Bewegungsgrenzen, Rundenwechsel mit und ohne lebenden Boss, Randfeldsuche.
+**Geladen wird wie im Browser**, nicht per `require()`: `js/regelwerk.js`, `js/kampf.js`,
+`js/arena.js`, `js/arena_scenes.js` und `js/npcs.js` laufen in **einem** `vm`-Kontext. Unter
+`require()` wäre jede Datei ihr eigener Scope, und `arena.js` sähe die anderen nicht.
 
-**b) Integrationstest über beide Ansichten** mit lokalem HTTP-Server, abgefangener
-`firebase-config.js` und einem **Fake-Firebase im Speicher** (`ref().on/off/update/set/push`,
-Multi-Path-`update()` von der Wurzel). Prüft: Registrierung der Szene, Aufbau, Panel-Inhalt,
-Rasterrendering (256 Felder), keine Marker in der Arena, Freigabe → erreichbare Felder, Bewegung
-inkl. Sperre danach, Angriff mit Log (und dass das Log den Säbel **nicht** verrät),
-Figur-Hinzufügen inkl. Prüfung auf doppelt belegte Felder, Rundenwechsel, Aufräumen beim
-Szenenwechsel.
+**Geprüft wird gegen die REGEL, nicht gegen den Code.** Die vier Prüffelder:
 
-**Vor jeder Interaktion `db === null` prüfen** — die echte Firebase-Datenbank ist produktiv.
+1. **Der Angriffswurf** — `4 − Parade` im Nahkampf, und dass der Fernkampf die Parade **nicht**
+   nimmt; die drei Entfernungsbänder; der flache Wundenabzug samt Deckel.
+2. **Gang Up** — allein 0, einer dazu +1, gedeckelt bei +4, ein Verbündeter des Ziels hebt einen
+   Punkt auf, Tote zählen nicht, im Fernkampf gar nichts. Dazu die **Gegenprobe zur alten
+   Hausregel**: Gegner, die am *Angreifer* stehen, dürfen seinen Angriff nicht mehr
+   verschlechtern.
+3. **Die Wirkung** — angeschlagen/Wunde/zweiter Haken wird zur Wunde, Statist fällt bei der
+   ersten, Wild Card trägt drei, `wundenMax` überschreibt.
+4. **Der Jaguar-Säbel** — jeder Treffer zerfällt einen Diener (auch ohne Wirkung), ein Misserfolg
+   nicht, ohne Säbel nichts endgültig, gegen den Seelenlosen zählt der Schaden normal, und das
+   **Log nennt den Säbel nirgends**.
+
+Dazu: angeschlagen sperrt den Angriff und nicht die Bewegung · Nachladen erst die Runde darauf ·
+eine liegende Figur ist kein Ziel · die Vorlagen stimmen mit den NSC-Blättern überein · die alten
+W100-Funktionen existieren nachweislich **nicht mehr** · und die gemessenen Trefferchancen
+(24,7 % allein, 81,3 % mit vollem Gang Up).
+
+**Zuletzt hundert ECHTE Angriffe** (Abschnitt 13 des Skripts). Alle Prüfungen davor geben das
+Band per `vorgabe` vor, damit sich jede Regelverzweigung einzeln festnageln lässt — damit liefe
+der Pfad durch `wurf()` aber **nie**, und genau der läuft am Tisch. Geprüft wird, dass nichts
+wirft, dass ein Treffer immer einen Schadenswurf hat und ein Misserfolg keinen, dass alle 200
+Logzeilen brauchbar sind und **keine den Säbel verrät** — und dass dabei wirklich Treffer *und*
+Misserfolge vorkommen, sonst prüft der Block zu wenig.
+
+**Zwei Gegenproben belegen, dass die Prüfungen greifen** — beide Male nennt der Fehlertext den
+Fehler wörtlich:
+
+| Gegenprobe | Ergebnis |
+|---|---|
+| alte „Bedrängnis"-Richtung eingesetzt | **7 Prüfungen** schlagen an, darunter *„Gegner am ANGREIFER verschlechtern seinen Angriff nicht mehr"* → `-2` |
+| Parade fälschlich auch im Fernkampf | **2 Prüfungen**, *„Fernkampf nimmt die Parade NICHT"* → `-4` |
+
+**Ein Integrationstest über die Ansichten gehört nicht ins Repo** (Skill `pnp-safe-test`) und
+liegt im Scratchpad der jeweiligen Session: lokaler HTTP-Server, abgefangene
+`firebase-config.js`, **Fake-Firebase im Speicher**. **Vor jeder Interaktion `db === null`
+prüfen** — die echte Firebase-Datenbank ist produktiv.
 
 ---
 
@@ -417,8 +553,39 @@ Drei Fehler beim Bau, alle vom Test gefunden:
    die Entfernung; bei `fernWert 0` ist die Schwelle zwar 0 (nie gut/normal), aber **mit Mastery
    blieb das Band „schlechter Erfolg" (1–50) offen** — der Seelenlose schoss mit Mindestschaden,
    obwohl er keine Fernwaffe hat. Im Test an der Logzeile „Der Seelenlose schießt auf Harwick"
-   aufgefallen. Fix: Fernkampf setzt `fernWert > 0` voraus (in `arenaAngriffsart()`, wirkt damit
-   auf alle drei Ansichten gleichzeitig).
+   aufgefallen. Fix: Fernkampf setzt eine Schusswaffe voraus (in `arenaAngriffsart()`, wirkt damit
+   auf alle drei Ansichten gleichzeitig). **Bleibt nach der Umstellung nötig und ist dort schärfer
+   begründet:** „Schießen" ist auch ungelernt eine gültige Probe (d4−2), ein fehlender
+   Fertigkeitswert hindert also niemanden am Abdrücken — nur die fehlende **Waffe** tut das.
+
+### Aus der Umstellung auf Savage Worlds (30.10.2026)
+
+7. **`arena_admin.html` lud weder `js/regelwerk.js` noch `js/kampf.js`**, und `karte.html` kein
+   `kampf.js`. Solange die Arena ihre Regeln selbst rechnete, brauchte sie nichts davon; mit der
+   Umstellung wäre sie **zur Laufzeit still gebrochen**. Gefunden, weil ich vor dem Umbau die
+   Script-Tags aller drei Seiten nachgesehen habe — genau die hängende Referenz, die dieses
+   Projekt schon einmal gekostet hat.
+8. **Namenskollision mit `js/kampf.js`.** `karte.html` hatte eine eigene globale Funktion
+   `mischen()` (der Abspann-Mischer), und `kampf.js` bringt eine für das Aktionsdeck mit. Zwei
+   Funktionsdeklarationen gleichen Namens im globalen Scope überschreiben sich **still** — die
+   später geladene gewinnt. Vor dem Einbau per `grep` über alle Exporte von `kampf.js` gesucht;
+   die Abspann-Funktion heißt jetzt `abspannMischen()`. **Bei jeder neuen gemeinsam genutzten
+   Datei auf Kollisionen prüfen, nicht hoffen.**
+9. **Zwei meiner eigenen Prüfungen waren falsch, nicht der Code.** Ich erwartete gegen einen
+   Diener (Parade 5) einen Modifikator von −4 statt −3 — schlicht falsch gerechnet. Und eine
+   Prüfung verbot das Wort „mastery" in `js/arena.js` und meldete damit meinen **eigenen
+   Kommentar**, der erklärt, wohin das Feld gewandert ist. Sie ist **geschärft statt gelockert**
+   (verboten ist jetzt die *Verwendung*: `.mastery`, `mastery:`) — eine Prüfung, die man für den
+   eigenen Text aufweicht, lässt beim nächsten Mal eine echte Verwendung durch (Lehre vom
+   23.10.).
+10. **Eine neue Prüfung hat dem nachfolgenden Block den Zustand umgeworfen.** Mein erster Einschub
+    in `tests/t_regie_wuerfel.js` rief `setKampf()` mitten in einer laufenden Kette, worauf drei
+    spätere Prüfungen anschlugen. Sie steht jetzt in **eigener Umgebung am Dateiende**. Dazu hatte
+    ich bei `angriffAnsagen(art, von, ziel)` Angreifer und Ziel getauscht. Dieselbe Sorte Fehler
+    wie am 17.10.
+11. **Die CRLF/LF-Falle, wieder.** `karte.html`, `arena_admin.html` und `js/regie_vault.js` haben
+    CRLF, meine Skript-Literale LF — der erste Lauf fand nichts und brach vor dem Schreiben ab.
+    Die Ersetzungs-Helfer rechnen die Zeilenenden jetzt zentral um.
 
 ---
 
@@ -426,19 +593,34 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 
 ### 9.1 Von Hendrik zu entscheiden
 
-- **Werte.** HP, Schaden und Reichweiten sind ein Aufschlag ohne Kanon-Grundlage. Erst ein
-  Testlauf zeigt, ob der Kampf zu leicht oder zu zäh ist. Stellschrauben in dieser Reihenfolge:
-  `nachschubAlle` / `nachschubAnzahl` (Druck), `hpMax` des Seelenlosen (Länge),
-  `nahSchaden` der Diener (Gefahr).
-- **Fernkampfreichweite 6.** Bei der Vergrößerung auf 16×16 von 4 angehoben, weil die Fläche sich
-  vervierfacht hat, die Bewegung aber bei 2 blieb. **Vorschlag, keine Vorgabe.**
-- **Hat der Seelenlose eigene Fähigkeiten** jenseits von Zuschlagen und Beschwören? Aktuell ist er
-  mechanisch nur ein starker Nahkämpfer.
+- **Werte.** Sie stammen jetzt aus den Blättern (5.1) und sind damit nicht mehr frei gegriffen —
+  aber **ob der Kampf sich gut anfühlt, zeigt erst ein Durchlauf.** Die Rechnung, die man dabei
+  im Kopf haben sollte: Der Seelenlose hat Robustheit 8, eine Wunde braucht also **12 Schaden**,
+  und Waffe + Stärke (d6 + d8) kommt im Mittel auf 8 — ohne Ass wird er **nicht** verwundet.
+  Mit drei Wunden fällt er; realistisch sind das viele Treffer. Stellschrauben in dieser
+  Reihenfolge:
+  1. `wundenMax` des Seelenlosen (Länge des Kampfes — der ehrlichste Hebel),
+  2. `nachschubAlle` / `nachschubAnzahl` (Druck),
+  3. seine `robustheit` (ob er überhaupt verwundbar ist),
+  4. `waffe`/`staerke` der Spieler (ihre Durchschlagskraft).
+- **Hat der Seelenlose eigene Fähigkeiten** jenseits von Zuschlagen und Beschwören? Mechanisch
+  ist er ein sehr starker Nahkämpfer mit Parade 8. Savage Worlds hätte dafür Talente (er trägt
+  in `js/npcs.js` bereits *Drohende Gegenwart*, *Standhaft*, *Totenstill*, *Vorahnung*) — die
+  wirken in der Arena **nicht**, weil das Brett nur die Zahlen kennt.
+- **Darf der Säbelträger einen liegenden Diener nachstoßen**, damit er nicht wieder aufsteht
+  (siehe 4.2)? Das wäre eine echte neue Taktik. Bewusst nicht eingebaut.
+- **Angeschlagen ohne Willenskraft-Probe** (3.4) — die bewusste Abweichung. Falls es am Tisch
+  fehlt, ist es ein Wurf je angeschlagener Figur beim Rundenwechsel.
 
 ### 9.2 Bekannte Lücken
 
 - **Gegner werden von der SL bewegt wie Spielerfiguren** — es gibt keine Gegner-KI und bewusst
   auch keinen Auto-Zug. Ob das am Tisch angenehm ist, muss der erste Durchlauf zeigen.
+- **Keine Initiative.** Die Arena gibt reihum **eine** Figur frei; das Aktionsdeck aus
+  `js/kampf.js` (Karten, Joker) wird hier **nicht** benutzt. Das ist Absicht — die SL bestimmt
+  die Reihenfolge —, aber es ist ein Unterschied zum Kampfmodus, und wer beides am selben Abend
+  spielt, merkt ihn.
+- **Talente wirken nicht.** Das Brett kennt nur die Zahlen am Token (siehe 9.1).
 - **Kein Rückgängig.** Ein Fehlklick beim Bewegen lässt sich nur über „HP setzen" bzw. erneutes
   Freigeben grob korrigieren.
 - **Keine Sichtlinien, keine Deckung, keine Zonen** — die Ritualkammer ist als offene Fläche

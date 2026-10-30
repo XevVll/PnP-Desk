@@ -524,7 +524,7 @@ function arenaAufbauen(sceneId) {
   function setze(vorlage, name, x, y) {
     const id = 't' + (++nr);
     tokens[id] = Object.assign({}, vorlage, {
-      name: name, x: x, y: y, hp: vorlage.hpMax, geladen: true
+      name: name, x: x, y: y, geladen: true
     });
   }
 
@@ -597,7 +597,7 @@ function arenaFigurHinzu(sceneId, vorlageName, name) {
 
   arenaUpdate(sceneId, {
     ['tokens/' + id]: Object.assign({}, vorlage, {
-      name: anzeigename, x: platz.x, y: platz.y, hp: vorlage.hpMax, geladen: true
+      name: anzeigename, x: platz.x, y: platz.y, geladen: true
     })
   }, anzeigename + ' betritt das Feld.');
 }
@@ -619,7 +619,7 @@ function arenaRundeWeiter(sceneId) {
     felder.forEach(function (f) {
       const id = 't' + (++n) + '_' + erg.runde;
       aenderungen['tokens/' + id] = Object.assign({}, sz.vorlagen.diener, {
-        name: 'Diener', x: f.x, y: f.y, hp: sz.vorlagen.diener.hpMax, geladen: true
+        name: 'Diener', x: f.x, y: f.y, geladen: true
       });
     });
   }
@@ -644,21 +644,39 @@ function arenaEntferne(sceneId, tokenId) {
     (t ? (t.name || tokenId) : tokenId) + ' verlässt das Feld.');
 }
 
-// Schaden von Hand setzen - fuer die festen Beats des Finales (Wat und
-// Josiah fallen zu einem gesetzten Zeitpunkt, nicht wenn die Wuerfel wollen).
-function arenaSetzeHp(sceneId, tokenId, wert) {
+/* Wunden von Hand setzen - der Hebel fuer die festen Beats des Finales (Wat
+   und Josiah fallen zu einem gesetzten Zeitpunkt, nicht wenn die Wuerfel
+   wollen). Er hiess bis zum 30.10.2026 arenaSetzeHp(); HP gibt es nicht mehr.
+
+   Eine Wunde ueber der Tragfaehigkeit nimmt die Figur aus dem Gefecht, ein
+   Wert darunter holt eine Gefallene zurueck. Bei einem Statisten (Diener,
+   Tragfaehigkeit 0) ist deshalb 1 der Wert, der ihn faellt. */
+function arenaSetzeWunden(sceneId, tokenId, wert) {
   const t = (arenaStateSnap.tokens || {})[tokenId]; if (!t) return;
-  const hp = Math.max(0, Math.min(t.hpMax || 1, parseInt(wert, 10) || 0));
-  const aenderungen = { ['tokens/' + tokenId + '/hp']: hp };
-  if (hp === 0 && !t.tot) {
+  const max = arenaWundenMax(t);
+  const w = Math.max(0, Math.min(max + 1, parseInt(wert, 10) || 0));
+  const aenderungen = { ['tokens/' + tokenId + '/wunden']: w > 0 ? w : null };
+  const ausser = w > max;
+  if (ausser && !t.tot) {
     aenderungen['tokens/' + tokenId + '/tot'] = true;
     aenderungen['tokens/' + tokenId + '/totSeitRunde'] = arenaStateSnap.runde || 1;
   }
-  if (hp > 0 && t.tot) {
+  if (!ausser && t.tot) {
     aenderungen['tokens/' + tokenId + '/tot'] = null;
     aenderungen['tokens/' + tokenId + '/totSeitRunde'] = null;
+    aenderungen['tokens/' + tokenId + '/endgueltig'] = null;
   }
   arenaUpdate(sceneId, aenderungen);
+}
+
+/* "Angeschlagen" von Hand umschalten. Das ist zugleich die Bruecke zu den
+   Bennies: Savage Worlds erlaubt, den Haken mit einem Bennie sofort
+   loszuwerden - der Spieler sagt es an, die SL klickt es weg. Ein eigener
+   Willenskraft-Wurf je Figur und Runde waere auf diesem Brett zu viel
+   Buchhaltung (siehe Kopf von js/arena.js). */
+function arenaAngeschlagen(sceneId, tokenId) {
+  const t = (arenaStateSnap.tokens || {})[tokenId]; if (!t) return;
+  arenaUpdate(sceneId, { ['tokens/' + tokenId + '/angeschlagen']: t.angeschlagen ? null : true });
 }
 
 function renderArenaPanelHTML(sceneId) {
@@ -697,10 +715,10 @@ function renderArenaPanelHTML(sceneId) {
     const t = tokens[id];
     const istFrei = id === frei;
     const istSpieler = t.typ === 'spieler';
-    const zustand = [];
-    zustand.push('HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?'));
-    if (t.tot) zustand.push(t.endgueltig ? 'endgültig' : 'am Boden');
-    if (!t.geladen && (t.fernWert || 0) > 0) zustand.push('leer');
+    // arenaZustandText() deckt tot/am Boden/Wunden/angeschlagen ab - eine
+    // Stelle fuer alle drei Ansichten.
+    const zustand = [arenaZustandText(t)];
+    if (!t.geladen && (t.fernwaffe || 0) > 0) zustand.push('leer');
     if (t.hatGezogen) zustand.push('gezogen');
     if (t.hatAngegriffen) zustand.push('angegriffen');
     if (id === saebel) zustand.push('SÄBEL');
@@ -732,11 +750,23 @@ function renderArenaPanelHTML(sceneId) {
   });
   html += '</div></div>';
 
-  html += '<div class="sh-graph-total">Schaden von Hand setzen (für die festen Beats des Finales): ' +
+  html += '<div class="sh-graph-total">Wunden von Hand setzen (für die festen Beats des Finales) — ' +
+    'über der Tragfähigkeit heißt außer Gefecht: ' +
     ids.map(function (id) {
-      return '<button class="sh-graph-btn" style="padding:2px 6px;margin:2px" onclick="arenaSetzeHp(\'' + sceneId +
-        '\', \'' + id + '\', prompt(\'Neue HP für ' + (tokens[id].name || id).replace(/'/g, '') + '\', \'' + (tokens[id].hp || 0) + '\'))">' +
-        (tokens[id].name || id) + '</button>';
+      const t = tokens[id];
+      const max = arenaWundenMax(t);
+      return '<button class="sh-graph-btn" style="padding:2px 6px;margin:2px" onclick="arenaSetzeWunden(\'' + sceneId +
+        '\', \'' + id + '\', prompt(\'Wunden für ' + (t.name || id).replace(/'/g, '') +
+        ' (0 bis ' + (max + 1) + ', ' + (max + 1) + ' = außer Gefecht)\', \'' + (t.wunden || 0) + '\'))">' +
+        (t.name || id) + '</button>';
+    }).join('') + '</div>';
+
+  html += '<div class="sh-graph-total">Angeschlagen umschalten (ein Bennie nimmt den Haken sofort weg): ' +
+    ids.map(function (id) {
+      const t = tokens[id];
+      return '<button class="sh-graph-btn' + (t.angeschlagen ? ' sh-graph-leader' : '') +
+        '" style="padding:2px 6px;margin:2px" onclick="arenaAngeschlagen(\'' + sceneId +
+        '\', \'' + id + '\')">' + (t.name || id) + (t.angeschlagen ? ' !' : '') + '</button>';
     }).join('') + '</div>';
 
   html += '</div>';

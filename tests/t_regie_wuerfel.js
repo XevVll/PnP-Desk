@@ -1132,10 +1132,17 @@ F.ctx.module.exports.tokenKlick('g:f1');
 const schuss = F.schreib.filter(x => x.p === 'figuren/dora/anfrage')[0];
 chk('mit Pulver wird geschossen', !!schuss, F.schreib.map(x => x.p));
 chk('auf Schießen', schuss && schuss.v.wert === 'Schießen', schuss && schuss.v);
-/* Fern-Mann steht im dritten Band: -4 obendrauf. */
-chk('mit dem Abzug des Bandes',
-  schuss && schuss.v.mod === RW.ZIELZAHL - 4 + K.bandMod(2),
-  { mod: schuss && schuss.v.mod, erwartet: RW.ZIELZAHL - 4 + K.bandMod(2) });
+/* Fern-Mann steht im dritten Band: -4, und NUR das.
+
+   Diese Pruefung stand bis zum 30.10.2026 als
+   "RW.ZIELZAHL - 4 + K.bandMod(2)" da und war damit zufaellig blind: Die
+   -4 war die Parade des Ziels, und bei Parade 4 liefert 4-4 genau 0 - also
+   dasselbe, als haette man die Parade gar nicht mitgerechnet. Der Fehler
+   (Schuss zusaetzlich gegen die Parade erschwert) fiel deshalb nie auf.
+   Jetzt steht hier die REGEL: beim Schuss zaehlt allein die Entfernung. */
+chk('mit dem Abzug des Bandes - und nur damit',
+  schuss && schuss.v.mod === K.bandMod(2),
+  { mod: schuss && schuss.v.mod, erwartet: K.bandMod(2) });
 chk('und das Band steht in der Bitte', schuss && schuss.v.grund.indexOf('Fern') > 0,
   schuss && schuss.v.grund);
 
@@ -1210,7 +1217,7 @@ F.ctx.module.exports.angriffAnsagen('fern', 'g:n1', 'p:dora');
 const fernAnsage = F.schreib.filter(x => x.p === 'kampf/ansage')[0];
 chk('geschossen wird mit dem Abzug des weiteren Bandes',
   fernAnsage && fernAnsage.v.dist === 2 &&
-  fernAnsage.v.mod === RW.ZIELZAHL - 4 + K.bandMod(2),
+  fernAnsage.v.mod === K.bandMod(2),
   fernAnsage && fernAnsage.v);
 
 /* ---- Verbündete ---- */
@@ -1610,6 +1617,52 @@ Promise.resolve().then(function () {
   chk('und das Namensfeld ist wieder leer', W.nachId['wstName'].value === '');
   schluss();
 });
+
+/* ==========================================================
+   DIE PARADE GILT NUR IM NAHKAMPF
+   ----------------------------------------------------------
+   Savage Worlds: "Roll a Fighting skill roll and compare it to the
+   opponent's Parry" - Fighting, nicht Shooting. Geschossen wird gegen die 4,
+   modifiziert allein durch Entfernung und Deckung.
+
+   Bis zum 30.10.2026 rechnete regie_figuren.html die Parade des Ziels AUCH
+   beim Schuss mit. Gefunden beim Nachlesen derselben Regel fuer die Arena -
+   und die bestehende Pruefung dazu war ZUFAELLIG BLIND: Ihr Ziel hat Parade 4,
+   und bei Parade 4 liefert 4-4 genau 0, also dasselbe, als haette man die
+   Parade gar nicht mitgerechnet.
+
+   Deshalb steht diese Pruefung in EIGENER Umgebung am Dateiende: Ihr Ziel
+   traegt Parade 7, wo sich die beiden Formeln um 3 unterscheiden. */
+const PR = bau();
+const PR_FIG = JSON.parse(JSON.stringify(FIGUREN));
+PR_FIG.dora.ladungen = 5;          // ohne Pulver gibt es keinen Schuss (Bibel 4.5)
+PR.ctx.module.exports.setFiguren(PR_FIG);
+PR.ctx.module.exports.setzeAnsicht('kampf');
+const ZAEH = function (bandNr) {
+  return { runde: 1, gegner: {
+    zaeh: { name: 'Zäher Kerl', parade: 7, robustheit: 7, kaempfen: 3, schiessen: 2,
+            extra: true, band: bandNr, angeschlagen: false, wunden: 0 }
+  }, baender: { dora: bandNr } };
+};
+
+PR.ctx.module.exports.setKampf(ZAEH(2));
+PR.schreib.length = 0;
+PR.ctx.module.exports.angriffAnsagen('fern', 'p:dora', 'g:zaeh');
+const fernGegen7 = PR.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('ein Schuss wird NICHT durch die Parade des Ziels erschwert',
+  fernGegen7 && fernGegen7.v.mod === K.bandMod(2),
+  fernGegen7 ? { mod: fernGegen7.v.mod, erwartet: K.bandMod(2) } : PR.schreib.map(x => x.p));
+
+PR.ctx.module.exports.setKampf(ZAEH(0));
+PR.schreib.length = 0;
+PR.ctx.module.exports.angriffAnsagen('nah', 'p:dora', 'g:zaeh');
+const nahGegen7 = PR.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('im Nahkampf kostet dieselbe Parade 7 aber -3',
+  nahGegen7 && nahGegen7.v.mod === K.angriffsMod(7),
+  nahGegen7 ? { mod: nahGegen7.v.mod, erwartet: K.angriffsMod(7) } : PR.schreib.map(x => x.p));
+chk('und die beiden unterscheiden sich wirklich - sonst prueft das hier nichts',
+  fernGegen7 && nahGegen7 && fernGegen7.v.mod !== nahGegen7.v.mod,
+  [fernGegen7 && fernGegen7.v.mod, nahGegen7 && nahGegen7.v.mod]);
 
 function schluss() {
 console.log('');

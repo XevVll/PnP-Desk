@@ -79,12 +79,16 @@
   @keyframes puls { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }
   .token.tot { opacity: 0.32; filter: grayscale(1); }
   .token.angreifbar { outline: 2px dashed var(--accent); outline-offset: 2px; }
-  .hp { position: absolute; left: 6%; right: 6%; bottom: -8px; height: 4px; background: rgba(0,0,0,0.75); border-radius: 3px; overflow: hidden; }
-  .hp i { display: block; height: 100%; background: var(--live); }
-  .hp i.wenig { background: #c76a5a; }
+  /* Zeigt die noch freie WUNDENKAPAZITAET, nicht HP - die gibt es seit dem
+     30.10.2026 nicht mehr. Ein Statist (Diener) traegt keine Wunde und hat
+     deshalb gar keine Leiste. */
+  .wunden { position: absolute; left: 6%; right: 6%; bottom: -8px; height: 4px; background: rgba(0,0,0,0.75); border-radius: 3px; overflow: hidden; }
+  .wunden i { display: block; height: 100%; background: var(--live); }
+  .wunden i.wenig { background: #c76a5a; }
   .mark { position: absolute; top: -8px; right: -6px; font-size: 10px; line-height: 1; background: rgba(12,9,6,0.9); border: 1px solid var(--line); border-radius: 8px; padding: 1px 4px; color: var(--ink-dim); }
   .mark.saebel { border-color: var(--gold); color: var(--gold); }
   .mark.leer { border-color: var(--accent); color: #e0a08e; }
+  .mark.shaken { left: -6px; right: auto; border-color: #d8c47a; color: #e8d79a; }
   .name {
     position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
     font-size: 10px; white-space: nowrap; color: var(--ink-dim);
@@ -142,6 +146,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/sitzung.js"></script>
+<script src="js/regelwerk.js"></script>
+<script src="js/kampf.js"></script>
+<script src="js/npcs.js"></script>
 <script src="js/arena.js"></script>
 <script src="js/arena_scenes.js"></script>
 <script>
@@ -180,7 +187,7 @@
       felder.forEach(function (f) {
         const id = 't' + (++n) + '_' + erg.runde;
         aenderungen['tokens/' + id] = Object.assign({}, SZ.vorlagen.diener, {
-          name: 'Diener', x: f.x, y: f.y, hp: SZ.vorlagen.diener.hpMax, geladen: true
+          name: 'Diener', x: f.x, y: f.y, geladen: true
         });
       });
     }
@@ -199,7 +206,7 @@
     const tokens = {};
     let nr = 0;
     function setze(vorlage, name, x, y) {
-      tokens['t' + (++nr)] = Object.assign({}, vorlage, { name: name, x: x, y: y, hp: vorlage.hpMax, geladen: true });
+      tokens['t' + (++nr)] = Object.assign({}, vorlage, { name: name, x: x, y: y, geladen: true });
     }
     // Generische Spielernamen - die echten Namen vergibt die SL selbst
     // (js/characters.js enthaelt die NSC, nicht die Spielercharaktere).
@@ -242,7 +249,7 @@
     }
     if (!platz) return;
     const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
-    schreibe({ ['tokens/' + id]: Object.assign({}, vorlage, { name: name, x: platz.x, y: platz.y, hp: vorlage.hpMax, geladen: true }) },
+    schreibe({ ['tokens/' + id]: Object.assign({}, vorlage, { name: name, x: platz.x, y: platz.y, geladen: true }) },
       name + ' betritt das Feld.');
   }
 
@@ -284,26 +291,23 @@
     if (erg.endgueltig) {
       aenderungen['tokens/' + zielId] = null;
       if (auswahlId === zielId) auswahlId = null;
-    } else {
-      aenderungen['tokens/' + zielId + '/hp'] = erg.zielHpNeu;
+    } else if (erg.trifft) {
+      // Kein HP-Abzug mehr: angeschlagen und Wunden sind der Zustand.
+      aenderungen['tokens/' + zielId + '/angeschlagen'] = erg.angeschlagenNeu ? true : null;
+      aenderungen['tokens/' + zielId + '/wunden'] = erg.wundenNeu > 0 ? erg.wundenNeu : null;
       if (erg.toetet) {
         aenderungen['tokens/' + zielId + '/tot'] = true;
         aenderungen['tokens/' + zielId + '/totSeitRunde'] = snap.runde || 1;
       }
     }
-    // Saebel auch hier NICHT im Log erwaehnen - das Log ist fuer alle sichtbar.
-    let text = (a.name || angreiferId) + (erg.art === 'nah' ? ' greift an' : ' schießt') +
-      ' auf ' + (z.name || zielId) + ': ' + erg.wurf + ' → ' + bandName(erg.band);
-    if (erg.bedraengnis > 0) text += ' (bedrängt, −' + erg.bedraengnis + ')';
-    text += erg.schaden > 0 ? ', ' + erg.schaden + ' Schaden' : ', kein Schaden';
+    /* Die Logzeile kommt aus js/arena.js - das Log ist fuer ALLE sichtbar,
+       und die Regel "der Saebel wird nirgends benannt" ist damit an einer
+       Stelle einzuhalten statt an drei. */
+    let text = arenaLogZeile(a, z, erg);
+    if (erg.gangUp > 0) text += ' (gemeinsam, +' + erg.gangUp + ')';
     if (erg.endgueltig) text += ' — zerfällt zu Staub.';
     else if (erg.toetet) text += ' — geht zu Boden.';
     schreibe(aenderungen, text);
-  }
-
-  function bandName(b) {
-    return b === 'gut' ? 'guter Erfolg' : b === 'normal' ? 'Erfolg'
-      : b === 'schlecht' ? 'schlechter Erfolg' : 'Misserfolg';
   }
 
   function freigeben(id) { schreibe({ freigegeben: id || null }); }
@@ -315,49 +319,105 @@
     schreibe({ ['tokens/' + id]: null, freigegeben: (snap.freigegeben === id ? null : snap.freigegeben || null) },
       (t && t.name || id) + ' verlässt das Feld.');
   }
-  function hpAendern(id, delta) {
+  function wundenAendern(id, delta) {
     const t = (snap.tokens || {})[id]; if (!t) return;
-    hpSetzen(id, (t.hp || 0) + delta);
+    wundenSetzen(id, (t.wunden || 0) + delta);
   }
-  function hpSetzen(id, wert) {
+  /* Der Hebel fuer die festen Beats des Finales: Wat und Josiah fallen zu
+     einem gesetzten Zeitpunkt, nicht wenn die Wuerfel wollen. Eine Wunde
+     UEBER der Tragfaehigkeit nimmt die Figur heraus - bei einem Statisten
+     (Tragfaehigkeit 0) ist das die erste. */
+  function wundenSetzen(id, wert) {
     const t = (snap.tokens || {})[id]; if (!t) return;
-    const hp = Math.max(0, Math.min(t.hpMax || 1, parseInt(wert, 10) || 0));
-    const aenderungen = { ['tokens/' + id + '/hp']: hp };
-    if (hp === 0 && !t.tot) {
+    const max = arenaWundenMax(t);
+    const w = Math.max(0, Math.min(max + 1, parseInt(wert, 10) || 0));
+    const aenderungen = { ['tokens/' + id + '/wunden']: w > 0 ? w : null };
+    const ausser = w > max;
+    if (ausser && !t.tot) {
       aenderungen['tokens/' + id + '/tot'] = true;
       aenderungen['tokens/' + id + '/totSeitRunde'] = snap.runde || 1;
     }
-    if (hp > 0 && t.tot) {
+    if (!ausser && t.tot) {
       aenderungen['tokens/' + id + '/tot'] = null;
       aenderungen['tokens/' + id + '/totSeitRunde'] = null;
       aenderungen['tokens/' + id + '/endgueltig'] = null;
     }
     schreibe(aenderungen);
   }
+  /* "Angeschlagen" umschalten - zugleich die Bruecke zu den Bennies: Savage
+     Worlds erlaubt, den Haken damit sofort loszuwerden. Der Spieler sagt es
+     an, du klickst es weg. */
+  function angeschlagenUmschalten(id) {
+    const t = (snap.tokens || {})[id]; if (!t) return;
+    schreibe({ ['tokens/' + id + '/angeschlagen']: t.angeschlagen ? null : true });
+  }
   function ladungUmschalten(id) {
     const t = (snap.tokens || {})[id]; if (!t) return;
     schreibe({ ['tokens/' + id + '/geladen']: !t.geladen, ['tokens/' + id + '/entladenSeitRunde']: t.geladen ? (snap.runde || 1) : null });
   }
 
-  // Kampfwerte je Figur setzen. Noetig, weil die Spielercharaktere
-  // unterschiedliche Werte haben und ihre Boegen nur im localStorage des
-  // jeweiligen Spieler-Browsers liegen - die SL traegt die Werte hier einmal
-  // pro Figur ein (Vorlage liefert nur den Startwert).
+  /* Kampfwerte je Figur setzen. Noetig, weil die Spielercharaktere
+     unterschiedliche Werte haben und ihre Boegen nur im localStorage des
+     jeweiligen Spieler-Browsers liegen - die SL traegt sie hier einmal pro
+     Figur ein (die Vorlage liefert nur den Startwert).
+
+     Die Grenzen sind jetzt WUERFELSTUFEN (0 ungelernt bis 5 = d12), nicht
+     mehr Prozentwerte. Parade und Robustheit sind feste Zahlen. */
+  const WERT_GRENZEN = {
+    kaempfen: [0, 5], schiessen: [0, 5], staerke: [1, 5],
+    waffe: [0, 5], fernwaffe: [0, 5], reichweite: [0, 99],
+    parade: [1, 20], robustheit: [1, 20], wundenMax: [0, 9]
+  };
   function wertSetzen(id, feld, wert) {
     const t = (snap.tokens || {})[id]; if (!t) return;
-    const erlaubt = { nahWert: [0, 10], fernWert: [0, 10], nahSchaden: [0, 20], fernSchaden: [0, 20], hpMax: [1, 99] };
-    if (!erlaubt[feld]) return;
+    if (!WERT_GRENZEN[feld]) return;
     let v = parseInt(wert, 10);
     if (isNaN(v)) { render(); return; } // Eingabe verworfen -> Feld zuruecksetzen
-    v = Math.max(erlaubt[feld][0], Math.min(erlaubt[feld][1], v));
+    v = Math.max(WERT_GRENZEN[feld][0], Math.min(WERT_GRENZEN[feld][1], v));
     const aenderungen = { ['tokens/' + id + '/' + feld]: v };
-    // hpMax runter -> aktuelle HP nicht darueber stehen lassen
-    if (feld === 'hpMax' && (t.hp || 0) > v) aenderungen['tokens/' + id + '/hp'] = v;
+    // Tragfaehigkeit runter -> schon gesetzte Wunden nicht darueber stehen lassen
+    if (feld === 'wundenMax' && (t.wunden || 0) > v) aenderungen['tokens/' + id + '/wunden'] = v > 0 ? v : null;
     schreibe(aenderungen);
   }
-  function masteryUmschalten(id) {
+  function wildUmschalten(id) {
     const t = (snap.tokens || {})[id]; if (!t) return;
-    schreibe({ ['tokens/' + id + '/mastery']: !t.mastery });
+    schreibe({ ['tokens/' + id + '/wild']: !t.wild });
+  }
+
+  /* Ein echtes NSC-Blatt auf ein Token stempeln. Damit ist der offene Punkt
+     vom 15.10.2026 geschlossen: Vorher trug die Arena eigene Kampfwerte, und
+     derselbe Mann hatte im Endkampf andere Werte als in besatzung.html.
+     Gerechnet wird mit parade()/robustheit() aus js/regelwerk.js - hier wird
+     nichts abgeschrieben. */
+  function blattListe() {
+    if (typeof NSC !== 'object') return [];
+    return Object.keys(NSC).map(function (k) { return { id: k, name: NSC[k].name }; });
+  }
+  function blattUebernehmen(id, nscId) {
+    const t = (snap.tokens || {})[id];
+    if (!t || !nscId || typeof NSC !== 'object' || !NSC[nscId]) { render(); return; }
+    const e = NSC[nscId];
+    const fig = nscAlsFigur(e);
+    if (!fig) { render(); return; }
+    const waffen = (e.ausr || []).map(function (w) { return AUSR_BY_ID[w]; }).filter(Boolean);
+    const beste = function (art) {
+      return waffen.filter(function (w) { return w.art === art; })
+        .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); })[0] || null;
+    };
+    const nah = beste('Nahkampf'), fern = beste('Fernkampf');
+    schreibe({
+      ['tokens/' + id + '/name']: e.name,
+      ['tokens/' + id + '/kaempfen']: e.fert['Kämpfen'] || 0,
+      ['tokens/' + id + '/schiessen']: e.fert['Schießen'] || 0,
+      ['tokens/' + id + '/staerke']: e.attr['Stärke'] || 1,
+      ['tokens/' + id + '/waffe']: nah ? nah.schaden : 0,
+      ['tokens/' + id + '/fernwaffe']: fern ? fern.schaden : 0,
+      ['tokens/' + id + '/reichweite']: fern ? (fern.reichweite || 1) : 0,
+      ['tokens/' + id + '/parade']: parade(fig),
+      ['tokens/' + id + '/robustheit']: robustheit(fig),
+      ['tokens/' + id + '/wild']: e.wild !== false,
+      ['tokens/' + id + '/wundenMax']: null   // zurueck auf die Regel
+    }, e.name + ' tritt mit den eigenen Werten an.');
   }
 
   function auswaehlen(id) {
@@ -446,7 +506,7 @@
     } else {
       el.textContent = t.symbol || '?';
     }
-    el.title = (t.name || id) + ' — ' + t.typ + ', HP ' + (t.hp != null ? t.hp : '?') + '/' + (t.hpMax || '?');
+    el.title = (t.name || id) + ' — ' + t.typ + ', ' + arenaZustandText(t);
 
     // Helden-Seite (Spieler + Verbuendete) immer beschriften - Gegner sind
     // austauschbare "Diener", deren Schilder wuerden nur uebereinanderliegen.
@@ -458,20 +518,29 @@
     }
 
     if (!t.tot) {
-      const bar = document.createElement('div');
-      bar.className = 'hp';
-      const i = document.createElement('i');
-      const anteil = Math.max(0, Math.min(1, (t.hp || 0) / (t.hpMax || 1)));
-      i.style.width = (anteil * 100) + '%';
-      if (anteil <= 0.34) i.className = 'wenig';
-      bar.appendChild(i);
-      el.appendChild(bar);
+      // Ein Statist traegt keine Wunde - dort gibt es nichts zu fuellen.
+      const anteil = arenaWundenAnteil(t);
+      if (anteil !== null) {
+        const bar = document.createElement('div');
+        bar.className = 'wunden';
+        const i = document.createElement('i');
+        i.style.width = (anteil * 100) + '%';
+        if (anteil <= 0.34) i.className = 'wenig';
+        bar.appendChild(i);
+        el.appendChild(bar);
+      }
+      if (t.angeschlagen) {
+        const sh = document.createElement('span');
+        sh.className = 'mark shaken'; sh.textContent = '!';
+        sh.title = 'angeschlagen — bewegt sich, greift aber nicht an';
+        el.appendChild(sh);
+      }
     }
     if (id === (snap.saebeltraeger || null)) {
       const m = document.createElement('span');
       m.className = 'mark saebel'; m.textContent = '⚔';
       el.appendChild(m);
-    } else if (!t.geladen && (t.fernWert || 0) > 0 && !t.tot) {
+    } else if (!t.geladen && (t.fernwaffe || 0) > 0 && !t.tot) {
       const m = document.createElement('span');
       m.className = 'mark leer'; m.textContent = 'leer';
       el.appendChild(m);
@@ -498,33 +567,64 @@
     if (sel.tot) zustand.push(sel.endgueltig ? 'endgültig tot' : 'am Boden');
     if (sel.hatGezogen) zustand.push('gezogen');
     if (sel.hatAngegriffen) zustand.push('angegriffen');
-    if (!sel.geladen && (sel.fernWert || 0) > 0) zustand.push('Waffe leer');
+    if (!sel.geladen && (sel.fernwaffe || 0) > 0) zustand.push('Waffe leer');
 
     let html = '<div class="zeile"><b>' + (sel.symbol || '') + ' ' + (sel.name || id) + '</b> <span style="color:var(--ink-faint)">(' + sel.typ + ')</span></div>';
     if (zustand.length) html += '<div class="zeile" style="color:var(--ink-faint)">' + zustand.join(' · ') + '</div>';
-    html += '<div class="zeile">HP ' + (sel.hp != null ? sel.hp : '?') + '/' + (sel.hpMax || '?') +
-      ' <button class="btn" onclick="hpAendern(\'' + id + '\', -1)">−1</button>' +
-      ' <button class="btn" onclick="hpAendern(\'' + id + '\', 1)">+1</button>' +
-      ' <button class="btn" onclick="hpSetzen(\'' + id + '\', prompt(\'HP setzen\', \'' + (sel.hp || 0) + '\'))">setzen</button></div>';
-    if ((sel.fernWert || 0) > 0) {
+    const maxW = arenaWundenMax(sel);
+    html += '<div class="zeile">' + arenaZustandText(sel) +
+      ' <button class="btn" onclick="wundenAendern(\'' + id + '\', -1)">−1</button>' +
+      ' <button class="btn" onclick="wundenAendern(\'' + id + '\', 1)">+1</button>' +
+      ' <button class="btn" onclick="wundenSetzen(\'' + id + '\', ' + (maxW + 1) + ')">außer Gefecht</button>' +
+      ' <button class="btn' + (sel.angeschlagen ? ' warn' : '') + '" onclick="angeschlagenUmschalten(\'' + id + '\')">' +
+      (sel.angeschlagen ? 'Haken weg' : 'angeschlagen') + '</button></div>';
+    if ((sel.fernwaffe || 0) > 0) {
       html += '<div class="zeile"><button class="btn" onclick="ladungUmschalten(\'' + id + '\')">' + (sel.geladen ? 'Waffe entladen' : 'Waffe laden') + '</button></div>';
     }
 
-    // Kampfwerte je Figur - Spielercharaktere haben unterschiedliche Werte,
-    // und die Boegen liegen nur bei den Spielern. Schwelle = Wert x 10.
-    function wertFeld(feld, label, wert) {
+    /* Kampfwerte je Figur. Die Fertigkeits- und Schadensfelder sind
+       WUERFELSTUFEN (0 = ungelernt, 1 = d4 ... 5 = d12) und tragen ihre
+       Beschriftung daneben - eine nackte 3 sagt am Tisch nichts, "d8" schon. */
+    function wertFeld(feld, label, wert, max) {
       return '<label style="display:flex;align-items:center;gap:4px">' + label +
-        ' <input type="number" value="' + (wert || 0) + '" min="0" max="99" ' +
-        'style="width:46px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font-family:inherit;padding:2px 4px;border-radius:3px" ' +
+        ' <input type="number" value="' + (wert == null ? 0 : wert) + '" min="0" max="' + (max || 5) + '" ' +
+        'style="width:42px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font-family:inherit;padding:2px 4px;border-radius:3px" ' +
         'onchange="wertSetzen(\'' + id + '\', \'' + feld + '\', this.value)"></label>';
     }
     html += '<div class="zeile" style="row-gap:6px">' +
-      wertFeld('nahWert', 'Nah', sel.nahWert) + wertFeld('nahSchaden', 'Schd', sel.nahSchaden) +
-      wertFeld('fernWert', 'Fern', sel.fernWert) + wertFeld('fernSchaden', 'Schd', sel.fernSchaden) +
-      wertFeld('hpMax', 'HPmax', sel.hpMax) +
-      '<label style="display:flex;align-items:center;gap:4px">Mastery <input type="checkbox" ' + (sel.mastery ? 'checked' : '') +
-      ' onchange="masteryUmschalten(\'' + id + '\')"></label></div>' +
-      '<div class="hinweis">Trefferchance = Wert × 10 (Nah ' + ((sel.nahWert || 0) * 10) + '%, Fern ' + ((sel.fernWert || 0) * 10) + '%). Fern 0 = kann nicht schießen.</div>';
+      wertFeld('kaempfen', 'Kämpfen ' + DLBL[sel.kaempfen || 0], sel.kaempfen) +
+      wertFeld('staerke', 'Stärke ' + DLBL[sel.staerke || 1], sel.staerke) +
+      wertFeld('waffe', 'Waffe ' + DLBL[sel.waffe || 0], sel.waffe) +
+      '</div><div class="zeile" style="row-gap:6px">' +
+      wertFeld('schiessen', 'Schießen ' + DLBL[sel.schiessen || 0], sel.schiessen) +
+      wertFeld('fernwaffe', 'Schusswaffe ' + DLBL[sel.fernwaffe || 0], sel.fernwaffe) +
+      wertFeld('reichweite', 'Reichw.', sel.reichweite, 99) +
+      '</div><div class="zeile" style="row-gap:6px">' +
+      wertFeld('parade', 'Parade', sel.parade, 20) +
+      wertFeld('robustheit', 'Robustheit', sel.robustheit, 20) +
+      wertFeld('wundenMax', 'Wunden', sel.wundenMax == null ? arenaWundenMax(sel) : sel.wundenMax, 9) +
+      '<label style="display:flex;align-items:center;gap:4px">Wild Card <input type="checkbox" ' + (sel.wild ? 'checked' : '') +
+      ' onchange="wildUmschalten(\'' + id + '\')"></label></div>';
+
+    /* Was die Zahlen bedeuten, ausgerechnet statt behauptet: chancen() ist
+       dieselbe Funktion, die auch den Heldenbrief speist. Gegen Parade 4
+       waere der Angriff unmodifiziert - das ist der Vergleichsmassstab. */
+    const chGrund = chancen(sel.kaempfen || 0, { wild: !!sel.wild });
+    html += '<div class="hinweis">Nahkampf gegen Parade 4: trifft zu ' +
+      Math.round(chGrund.gelingt * 100) + ' %. Jeder Punkt Parade darüber kostet 1, ' +
+      'jede Wunde 1, gemeinsames Angreifen gibt bis zu +4. ' +
+      'Schusswaffe d0 = kann nicht schießen.</div>';
+
+    // Ein echtes NSC-Blatt uebernehmen - Werte aus js/npcs.js, gerechnet.
+    const blaetter = blattListe();
+    if (blaetter.length) {
+      html += '<div class="zeile"><label style="display:flex;align-items:center;gap:4px">Blatt' +
+        ' <select style="background:var(--bg);border:1px solid var(--line);color:var(--ink);font-family:inherit;padding:2px 4px;border-radius:3px"' +
+        ' onchange="blattUebernehmen(\'' + id + '\', this.value)"><option value="">— übernehmen —</option>' +
+        blaetter.map(function (b) { return '<option value="' + b.id + '">' + b.name + '</option>'; }).join('') +
+        '</select></label></div>' +
+        '<div class="hinweis">Setzt Name, Werte, Waffe, Parade und Robustheit aus js/npcs.js — dieselben Zahlen wie in besatzung.html.</div>';
+    }
     if (sel.typ === 'spieler') {
       html += '<div class="zeile"><button class="btn ' + (istFrei ? 'warn' : 'primary') + '" onclick="freigeben(\'' + (istFrei ? '' : id) + '\')">' +
         (istFrei ? 'Freigabe entziehen' : 'Für Spieler freigeben') + '</button></div>';

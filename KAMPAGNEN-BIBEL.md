@@ -195,7 +195,7 @@ Ausstattungsdetails, die konsistent bleiben müssen:
 >
 > 1. **Savage Worlds selbst** — die Regel. Bei jeder Regelfrage zuerst dort nachsehen.
 > 2. **Dieser Abschnitt** — wie die Regel in dieser Kampagne gilt, samt der bewussten
->    Abweichungen (siehe 4.7). Bei Widerspruch zum Code gilt, was hier steht.
+>    Abweichungen (siehe 4.4a und 4.7). Bei Widerspruch zum Code gilt, was hier steht.
 > 3. **`js/regelwerk.js`** — nur die *Ausführung*. Eine Messung am Code zeigt, **was** er tut,
 >    nie **ob er recht hat**; als Beleg für eine Regel taugt sie nicht.
 >
@@ -253,6 +253,92 @@ niedrigen Werten am meisten: Auf W4 gelingt eine Probe mit ihm zu 62,5 % statt z
 - **Bennies:** 3 je Sitzung (mit dem Talent *Glückspilz* 4). Einer davon wiederholt eine
   misslungene Probe vollständig; das bessere Ergebnis zählt.
 
+### 4.4a Der Kampf — Treffer, Schaden, Wirkung
+
+> **Nachgetragen am 30.10.2026, und das ist der eigentliche Befund.** In diesem Abschnitt
+> kamen „Parade" und „Robustheit" bis dahin **nicht ein einziges Mal** vor, und Gang Up
+> überhaupt nicht — obwohl der Kampfkern (`js/kampf.js`) seit dem 15.10.2026 steht und der
+> Kampfmodus am Tisch benutzt wird. Aufgefallen beim Nachlesen derselben Regeln für den
+> Arena-Umbau. Genau der Fehler vom 14.10.: *Fehlt eine Regel hier, ist **das** der Befund.*
+
+#### Der Angriff
+
+Ein Angriff ist eine ganz normale Probe (4.1) — ein Würfel, Ziel 4, explodierend, Wild Die bei
+Heldenfiguren.
+
+- **Nahkampf wird gegen die PARADE des Ziels geworfen.** Weil der Zielwert immer 4 bleibt, wird
+  die Differenz zum Modifikator: gegen Parade 6 sind es **−2**, gegen Parade 8 **−4**.
+  Gewürfelt wird **Kämpfen**.
+- **Fernkampf geht NICHT gegen die Parade.** Die Parade ist eine Nahkampfgröße; geschossen wird
+  gegen die **4**, modifiziert allein durch die **Entfernung**. Gewürfelt wird **Schießen**.
+  Unsere Waffen tragen eine Reichweitenzahl: diese Zahl **0**, das Doppelte **−2**, das
+  Vierfache **−4**, darüber hinaus **kein Schuss**.
+- **Jede Wunde zieht flach 1 ab** (4.4), höchstens 3.
+
+> **Korrigiert am 30.10.2026:** `regie_figuren.html` rechnete die Parade des Ziels **auch beim
+> Schuss** mit — ein Schuss auf einen guten Fechter war damit zusätzlich erschwert. Die
+> Prüfung, die das hätte finden sollen, war zufällig blind: Ihr Ziel hatte Parade 4, und dort
+> liefern beide Rechnungen dasselbe.
+
+#### Gang Up — gemeinsam angreifen
+
+**Jeder zusätzliche Angreifer, der im Nahkampf am ZIEL steht, gibt +1 auf den Angriffswurf,
+höchstens +4.** Jeder Verbündete des Ziels, der beim Ziel steht, hebt einen Punkt davon wieder
+auf. **Nur im Nahkampf.**
+
+Gezählt wird also um das **Ziel**, nicht um den Angreifer, und es ist ein **Bonus**, keine
+Strafe. Das ist die taktische Antwort auf einen Gegner mit hoher Parade: Der Seelenlose hat
+Parade 8, was jeden Angriff −4 kostet — genau diese 4 holt die Gruppe zurück, wenn sie ihn
+gemeinsam stellt. Gemessen an einer Figur mit Kämpfen d8: **allein 24,7 %, zu fünft 81,3 %.**
+
+> **⚠ Abgelöst: „Bedrängnis".** Bis zum 30.10.2026 stand in `js/arena.js` die **umgekehrte**
+> Hausregel: Jeder zusätzliche Gegner **neben dem Angreifer** verschob **dessen** Ergebnis um
+> ein Band nach unten — umgeben zu sein machte den eigenen Angriff schlechter. In der Bibel
+> stand sie nie; sie kam aus dem alten W100-Abschnitt (4.7). Savage Worlds dreht beides um, und
+> das gilt jetzt.
+>
+> **Bewusst nicht abgebildet:** ob ein mithelfender Verbündeter selbst gerade von jemand
+> anderem gebunden ist. Das ist die Art Buchhaltung, die diese Kampagne weglässt (vgl. 4.5).
+
+#### Der Schadenswurf
+
+- **Nahkampf: Waffenwürfel + Stärkewürfel**, addiert.
+- **Fernkampf: nur die Waffe** — die Stärke zählt dort nicht mit.
+- **Eine Steigerung am Angriff gibt +1W6** Schaden, nur einmal, auch bei zwei Steigerungen.
+- Alle Schadenswürfel **explodieren**, aber es gibt **keinen Wild Die** darauf (4.3).
+
+#### Die Wirkung gegen die Robustheit
+
+| Schaden | Wirkung |
+|---|---|
+| unter der Robustheit | nichts |
+| gleich oder darüber | **angeschlagen** |
+| je volle 4 darüber | **eine Wunde** |
+
+- **Wer schon angeschlagen ist und erneut angeschlagen würde, bekommt stattdessen eine Wunde.**
+  Zwei schwache Treffer sind damit ein Plan gegen einen Zähen.
+- Eine Wunde macht immer auch angeschlagen.
+- **Ein Statist trägt KEINE Wunde** — die erste nimmt ihn heraus. Eine **Heldenfigur trägt
+  drei**, die vierte ist *außer Gefecht*.
+
+#### Angeschlagen
+
+**Angeschlagen kostet die Handlung, nicht den Würfel.** Wer angeschlagen ist, darf sich
+bewegen, aber nicht angreifen. Ein **Bennie** nimmt den Haken sofort weg.
+
+> **Bewusste Abweichung (30.10.2026).** Savage Worlds lässt eine angeschlagene Figur zu Beginn
+> ihres Zuges eine **Willenskraft**-Probe werfen, um den Haken abzuschütteln. In der Arena
+> stehen bis zu einem Dutzend Diener auf dem Brett — das wären ein Dutzend Würfe je Runde, nur
+> um einen Zustand zu verwalten. Dort räumt ihn deshalb der **Rundenwechsel** ab, die Figur
+> verliert also genau eine Handlung. Am Tisch außerhalb der Arena kann die Spielleitung die
+> Probe selbstverständlich werfen lassen.
+
+#### Wo das steht
+
+`js/kampf.js` (Regelkern, auch für den Kampfmodus in `regie_figuren.html`) und `js/arena.js`
+(das Brett des Endkampfs, siehe [ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md)). **Beide rechnen seit
+dem 30.10.2026 nach denselben Funktionen** — vorher rechnete die Arena nach 4.7.
+
 ### 4.5 Schusswaffen und Ladungen
 
 Savage Worlds führt je Fernwaffe eine Zahl **Shots**: so viele Schuss, dann muss nachgeladen
@@ -282,10 +368,23 @@ Novize → Erfahren → Veteran → Heroisch → Legendär, je vier Steigerungen
 hängen die Talente. Neue Figuren sind **Novize**, sofern die Spielleitung je Sitzung nichts
 anderes freigibt; erspielte Steigerungen können den Rang nur **heben**, nie senken.
 
-### 4.7 ⚠ Das alte W100-System — nur noch in der Arena
+### 4.7 ⚠ Das alte W100-System — abgelöst, nur noch als Beleg
 
-Die **Kampf-Arena des Endkampfs** (`js/arena.js`, Szene `15.1`) rechnet weiterhin nach diesem
-System. Es gilt **nicht** mehr für Figuren­proben, und die Umstellung steht aus.
+**Dieses System wird nirgends mehr gespielt.** Die Kampf-Arena des Endkampfs (`js/arena.js`,
+Szene `15.1`) war die letzte Stelle, die danach rechnete; sie ist am **30.10.2026** auf Savage
+Worlds umgestellt (siehe 4.4a und [ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md)). Der Abschnitt bleibt
+stehen, nicht weil er noch gilt, sondern weil er erklärt, was in älteren Notizen, Changelog-
+Einträgen und Kommentaren gemeint ist — und weil „Mastery" und „Bedrängnis" dort herkommen.
+
+Was aus den Begriffen geworden ist:
+
+| alt (W100) | jetzt |
+|---|---|
+| Wert × 10 als Schwelle | Würfelstufe, Zielwert immer 4 (4.1) |
+| vier Bänder (gut/normal/schlecht/Miss) | Steigerung · Erfolg · Misserfolg · Patzer |
+| **Mastery** | **Wild Card** — Wild Die und drei Wunden (4.3) |
+| **Bedrängnis** (Abzug, um den Angreifer gezählt) | **Gang Up** (Bonus, um das Ziel gezählt, 4.4a) |
+| HP | angeschlagen + Wunden (4.4a) |
 
 `Schwelle = Wert × 10`
 
@@ -664,6 +763,20 @@ wieder (die sechs Zeichen der Steintafel). Zusammen mit Harwicks Karten:
 | **Riffinsel über den Hinweis** | Kontakte und Recherche aus dem Schmugglernest | Dieselbe Insel, anderer Grund: Die Gruppe fährt **gezielt** hin, weil ein Kontakt sie dorthin schickt. Wer Harwicks Schriften gelesen hat (`2.1`), erkennt die Bilder des Rätsels wieder und weiß, wonach er sucht — der Säbel wird zum **Auftrag** statt zum Zufallsfund |
 | **Schamanen-Insel** | Kontakte und Recherche aus dem Schmugglernest | Informant/Schamane. Kulturelle Variante: der zentraleuropäische Blick trifft auf eine fremde, ursprüngliche Tradition. Liefert **konkrete Ritual-Informationen**: Schwächen der Untoten, wie sich der Finalkampf entschärfen lässt — Grundlage für ein gutes Ende |
 | **Hafen zur Vorbereitung** | Weg über die Flaute | **Emergenter Ort** — die Spieler fordern ihn selbst ein, weil sie in Harwicks Unterlagen von der übernatürlichen Gefahr gelesen haben. Ausrüstung und Proviant, etwa Kanonen vom Schiff für das Ritual |
+
+> **Wie die Verfolgung endet (Hendrik, 30.10.2026):** *„Die Verfolgung wird nur
+> erzählerisch anhalten und den Spielern klar machen, dass sie auf dieser Insel erst mal
+> festhängen."* Also **kein Wurf, kein Seegefecht, keine Verfolgungsmechanik** — die
+> Spielleitung sagt es an, und damit ist es so. Das deckt sich mit 7.5: Die Golden Lion ist
+> einem königlichen Kriegsschiff nie gewachsen, eine Begegnung ist immer Flucht.
+>
+> **Die zweite Hälfte ist die wichtigere und stand bisher nirgends.** Der Beat auf der
+> Aussichtsklippe (`11.1`) sagte nur, dass das Kriegsschiff abdreht — das liest sich als
+> Erleichterung. Jetzt sagt dieselbe Beobachtung auch, dass die Gruppe damit **festsitzt**: Das
+> Schiff ist aus dem Blick, nicht aus diesen Gewässern, und dieselbe Deckung, die die Golden
+> Lion hinter dem Riff schützt, hält sie dort. Wer ausläuft, steht auf offenem Wasser. (Dass
+> das Riff beides tut, ist Claudes Aufschlag auf Hendriks Vorgabe; dass die Gruppe festsitzt,
+> ist seine.)
 
 > **Die Spanier treiben die Gruppe nicht mehr auf die richtige Insel (30.10.2026).**
 > Früher erkannte **Tom** das riffgeschützte Eiland auf der Flucht als
