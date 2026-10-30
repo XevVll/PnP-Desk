@@ -129,6 +129,62 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-10-30 (Fortsetzung 5) — Die Arena kennt die echten Spieler der Sitzung
+- **Hendriks Frage:** „Kann man die Spieler direkt mit den wirklich vorhandenen Spielern in
+  dieser Session verknüpfen?"
+- **Ja — und zwar erst seit dem 15.10.2026.** Bis dahin lagen die Charakterbögen nur im
+  `localStorage` der jeweiligen Spieler, die SL kam an die Werte nicht heran, und die Arena
+  stellte deshalb „Spieler 1–4" mit **Harwicks** Werten als Maßstab auf. Seitdem liegt jede Figur
+  unter `sitzungen/{sid}/stand/figuren/{kennung}` — also genau dort, wo das Schlachtfeld ohnehin
+  liest. **In `ARENA-ENDKAMPF.md` 9.2 stand bis heute wörtlich, die Namen der echten
+  Spielercharaktere stünden „nirgends im Repo". Das war sechs Wochen lang falsch.**
+- **Neu im Schlachtfeld:** ein Auswahlfeld **„+ Spieler aus der Sitzung …"**, und **„↺ Aufbauen"**
+  nimmt die Figuren der Sitzung, wenn es welche gibt (sonst weiter die Platzhalter). Das Token
+  trägt danach `pid`; im Auswahlpanel steht **🔗 Name** mit **„↻ Werte nachziehen"** und
+  „Verknüpfung lösen". Dieselbe Übernahme auch im Kompakt-Panel der Regie, damit beide „Aufbauen"
+  dasselbe tun.
+- **Die Verknüpfung ist bewusst EINE RICHTUNG: gelesen wird aus dem Bogen, geschrieben nie
+  hinein.** `heldenbrief.html` liest die Figur genau einmal und schreibt danach seine eigene
+  Fassung hoch — ein direkter Zugriff der Arena wäre beim nächsten Klick des Spielers lautlos weg
+  (Lehre vom 14.10.). Wunden auf dem Brett bleiben deshalb **auf dem Brett**; was in den Bogen
+  soll, geht über das **Postfach** im Figuren-Panel, das `wunde` und `angeschlagen` seit dem
+  15.10. kennt.
+- **Die Ableitung Blatt → Token liegt in `js/arena.js`** (`arenaWerteAusFigur()`) und gilt für
+  **Spielerbögen UND NSC-Blätter**. Vorher stand sie nur für die NSC in `arena_admin.html`; der
+  Spieler-Weg wäre die zweite Kopie geworden. Übernommen werden Kämpfen, Schießen, Stärke, die
+  **beste getragene** Waffe je Art, und Parade/Robustheit **gerechnet** statt abgeschrieben.
+  `arenaZustandAusFigur()` bringt Wunden und „angeschlagen" mit, geklemmt auf die Tragfähigkeit.
+- **DIE STILLE FALLE SIND DIE ERFUNDENEN WAREN, und der Jaguar-Säbel ist genau so eine.** Trägt
+  eine Figur eine Ware aus `eigeneWaren`, findet `AUSR_BY_ID` sie nur, wenn die Seite vorher
+  `eigeneWarenSetzen()` gerufen hat — sonst fällt die Waffe **weg, ohne dass es auffällt**: Die
+  Figur steht mit der Faust auf dem Brett und niemand sieht den Grund. Beide Seiten lesen
+  `eigeneWaren` jetzt, **bevor** sie ein Blatt übernehmen, und es steht als eigene Prüfung da
+  (vorher unbekannt → Waffe 0, nach `eigeneWarenSetzen()` → zählt, nach dem Aufräumen → wieder 0).
+- **Die tragende Prüfung vergleicht die von Hand gerechneten Vorlagen mit der Mechanik:** Harwick
+  muss die `spieler`-Vorlage treffen, Cormac die `verbuendeter`-, der Seelenlose seine eigene.
+  Die drei Vorlagen wurden am 30.10. früh von Hand aus den Blättern gerechnet — driftet eine
+  Seite, ist sie falsch, und am Tisch fällt es nicht auf. Treffen alle drei auf den Punkt.
+- **Getestet: 306 Prüfungen in `t_arena.js`, 0 Fehler** (27 neue; **2037 über vierzehn
+  Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **Drei Gegenproben:** erste statt beste Waffe (2 Prüfungen) · Parade abgeschrieben statt
+    gerechnet (4, darunter alle drei Vorlagen: `["parade: 4 statt 6"]`) · Spielerfigur keine
+    Wild Card (1).
+- **Zwei eigene Fehler, und beide sind dieselbe Sorte:**
+  1. **Zweimal eine Waren-ID erfunden** (`dolch` statt `messer`, `steinschlosspistole` statt
+     `pistole`). Die Funktion ignoriert eine unbekannte Ware korrekt — **deshalb war das
+     gefährlich:** Die Prüfung „die bessere Waffe gewinnt" hätte bestanden, ohne dass überhaupt
+     zwei Waffen im Spiel waren. Jetzt prüft eine Zeile vorher, dass es alle drei wirklich gibt.
+  2. **Und eine Ebene tiefer:** Im Testbogen stand der **Säbel zuerst**. Damit war „die erste
+     Waffe" dasselbe wie „die beste", und die Gegenprobe schlug **nicht** an. Das Messer steht
+     jetzt absichtlich vorn. **Eine Prüfung, deren beide Seiten zusammenfallen, prüft nichts** —
+     dieselbe Lehre wie bei der blinden Parade-Prüfung von heute Mittag.
+- **[OFFEN] Gestempelt, nicht gespiegelt.** Steigert ein Spieler mitten im Gefecht oder rüstet
+  um, braucht es „↻ Werte nachziehen". Eine Live-Spiegelung wäre machbar, würde aber bedeuten,
+  dass sich die Werte auf dem Brett unter der Hand ändern — am Tisch eher Ärgernis als Gewinn.
+- **[OFFEN] Wunden fließen nicht in die Bögen zurück**, und das ist eine Spielentscheidung, keine
+  technische: Der Weg wäre das Postfach, das `wunde` und `angeschlagen` schon kennt. Ob eine
+  Wunde auf dem Brett eine Wunde im Bogen sein soll, entscheidet Hendrik.
+
 ### 2026-10-30 (Fortsetzung 4) — Die Wiedergänger finden ihren Weg
 - **Nachgelegt am selben Tag**, und zwar an der Stelle, die ich im Eintrag darunter selbst als
   Grenze der Automatik benannt hatte: dem Weg.

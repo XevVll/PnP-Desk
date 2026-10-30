@@ -134,7 +134,11 @@
   <button class="btn" onclick="rundeWeiter()">Runde weiter ▸</button>
   <button class="btn" onclick="versetzenUmschalten()" id="versetzenBtn" title="Ausgewählte Figur frei auf ein beliebiges Feld setzen (ohne Bewegungsregel)">Versetzen: aus</button>
   <span class="spacer"></span>
-  <button class="btn" onclick="figurHinzu('spieler')">+ Spieler</button>
+  <select class="btn" id="spielerWahl" onchange="spielerSetzen(this.value); this.value='';"
+    title="Eine echte Spielerfigur dieser Sitzung aufs Brett stellen — mit ihren eigenen Werten">
+    <option value="">+ Spieler aus der Sitzung …</option>
+  </select>
+  <button class="btn" onclick="figurHinzu('spieler')" title="Platzhalter-Figur ohne Bogen">+ Spieler (leer)</button>
   <button class="btn" onclick="figurHinzu('verbuendeter')">+ Verbündeter</button>
   <button class="btn" onclick="figurHinzu('diener')">+ Diener</button>
   <button class="btn" onclick="figurHinzu('seelenloser')">+ Seelenloser</button>
@@ -182,6 +186,10 @@
   let snap = {};
   let auswahlId = null;
   let versetzen = false;
+  /* Die echten Charakterboegen dieser Sitzung (sitzungen/{sid}/stand/figuren).
+     Erst seit dem 15.10.2026 ueberhaupt erreichbar - vorher lagen sie nur im
+     localStorage der Spieler, und die Arena musste mit "Spieler 1-4" leben. */
+  let figuren = {};
 
   const statusEl = document.getElementById('status');
   const brettEl = document.getElementById('brett');
@@ -284,10 +292,30 @@
     function setze(vorlage, name, x, y) {
       tokens['t' + (++nr)] = Object.assign({}, vorlage, { name: name, x: x, y: y, geladen: true });
     }
-    // Generische Spielernamen - die echten Namen vergibt die SL selbst
-    // (js/characters.js enthaelt die NSC, nicht die Spielercharaktere).
-    ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'].forEach(function (n, i) {
-      setze(SZ.vorlagen.spieler, n, Math.max(1, Math.floor(R.breite / 5)) * (i + 1), R.hoehe - 1);
+    /* DIE ECHTEN SPIELERFIGUREN DIESER SITZUNG, wenn es welche gibt - mit
+       ihren eigenen Werten und ihrem eigenen Namen (seit 30.10.2026). Nur wenn
+       in dieser Sitzung noch kein Bogen liegt, bleiben es generische
+       Platzhalter: js/characters.js enthaelt die NSC, nicht die
+       Spielercharaktere, und ein frueher Entwurf stellte damit versehentlich
+       Harwick als Spielerfigur auf. */
+    const echte = spielerListe();
+    const reihe = echte.length
+      ? echte.map(function (e) { return { name: e.name, pid: e.pid, figur: e.figur }; })
+      : ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'].map(function (n) {
+          return { name: n, pid: null, figur: null };
+        });
+    const abstand = Math.max(1, Math.floor(R.breite / (reihe.length + 1)));
+    reihe.forEach(function (e, i) {
+      const x = Math.min(R.breite - 1, abstand * (i + 1));
+      setze(SZ.vorlagen.spieler, e.name, x, R.hoehe - 1);
+      if (!e.figur) return;
+      const id = 't' + nr;                       // setze() hat gerade nr erhoeht
+      const werte = arenaWerteAusFigur(e.figur, e.name);
+      const zustand = arenaZustandAusFigur(e.figur, 3);
+      Object.assign(tokens[id], werte, { pid: e.pid });
+      delete tokens[id].wundenMax;
+      if (zustand.wunden > 0) tokens[id].wunden = zustand.wunden;
+      if (zustand.angeschlagen) tokens[id].angeschlagen = true;
     });
     // Harwick startet in der Feldmitte (Hendriks Vorgabe) - er steht beim
     // Ritual an der Anhoehe, nicht bei der Gruppe am Eingang.
@@ -306,7 +334,10 @@
     db.ref(BASIS.slice(0, -1)).set({
       runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
       initiative: ini,
-      log: { start: { text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.', zeit: Date.now() } }
+      log: { start: {
+        text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.' +
+          (echte.length ? ' ' + echte.length + ' Spielerfigur(en) aus der Sitzung übernommen.' : ''),
+        zeit: Date.now() } }
     });
   }
 
@@ -322,19 +353,28 @@
       if (name === null) return;
       name = String(name).trim() || standard;
     }
-    const tokens = snap.tokens || {};
-    const belegt = {};
-    Object.keys(tokens).forEach(function (id) { const t = tokens[id]; if (t && !t.tot) belegt[t.x + ':' + t.y] = true; });
-    const heldenSeite = arenaSeite(vorlage) === 'helden';
-    let platz = null;
-    for (let ring = 0; ring < R.hoehe && !platz; ring++) {
-      const y = heldenSeite ? (R.hoehe - 1 - ring) : ring;
-      for (let x = 0; x < R.breite; x++) if (!belegt[x + ':' + y]) { platz = { x: x, y: y }; break; }
-    }
+    const platz = freierPlatz(arenaSeite(vorlage) === 'helden');
     if (!platz) return;
     const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
     schreibe({ ['tokens/' + id]: Object.assign({}, vorlage, { name: name, x: platz.x, y: platz.y, geladen: true }) },
       name + ' betritt das Feld.');
+  }
+
+  /* Ein freies Feld auf der eigenen Grundlinie, von dort nach innen. Stand
+     bis zum 30.10.2026 nur in figurHinzu(); die Spieler-Verknuepfung braucht
+     dasselbe, und zwei Fassungen liefen auseinander. */
+  function freierPlatz(heldenSeite) {
+    const tokens = snap.tokens || {};
+    const belegt = {};
+    Object.keys(tokens).forEach(function (id) {
+      const t = tokens[id];
+      if (t && !t.tot) belegt[t.x + ':' + t.y] = true;
+    });
+    for (let ring = 0; ring < R.hoehe; ring++) {
+      const y = heldenSeite ? (R.hoehe - 1 - ring) : ring;
+      for (let x = 0; x < R.breite; x++) if (!belegt[x + ':' + y]) return { x: x, y: y };
+    }
+    return null;
   }
 
   function versetzenUmschalten() {
@@ -460,31 +500,109 @@
     if (typeof NSC !== 'object') return [];
     return Object.keys(NSC).map(function (k) { return { id: k, name: NSC[k].name }; });
   }
+  /* Die Ableitung Blatt -> Token liegt in js/arena.js (arenaWerteAusFigur) und
+     NICHT hier: Sie gilt fuer NSC-Blaetter und fuer Spielerboegen gleich, und
+     eine zweite Fassung lief sonst auseinander. */
+  function werteSchreiben(id, werte, pid, zustand, logText) {
+    const a = {};
+    Object.keys(werte).forEach(function (k) { a['tokens/' + id + '/' + k] = werte[k]; });
+    a['tokens/' + id + '/wundenMax'] = null;        // zurueck auf die Regel
+    a['tokens/' + id + '/pid'] = pid || null;       // Verknuepfung zum Bogen
+    if (zustand) {
+      a['tokens/' + id + '/wunden'] = zustand.wunden > 0 ? zustand.wunden : null;
+      a['tokens/' + id + '/angeschlagen'] = zustand.angeschlagen ? true : null;
+    }
+    schreibe(a, logText);
+  }
+
   function blattUebernehmen(id, nscId) {
     const t = (snap.tokens || {})[id];
     if (!t || !nscId || typeof NSC !== 'object' || !NSC[nscId]) { render(); return; }
-    const e = NSC[nscId];
-    const fig = nscAlsFigur(e);
-    if (!fig) { render(); return; }
-    const waffen = (e.ausr || []).map(function (w) { return AUSR_BY_ID[w]; }).filter(Boolean);
-    const beste = function (art) {
-      return waffen.filter(function (w) { return w.art === art; })
-        .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); })[0] || null;
-    };
-    const nah = beste('Nahkampf'), fern = beste('Fernkampf');
-    schreibe({
-      ['tokens/' + id + '/name']: e.name,
-      ['tokens/' + id + '/kaempfen']: e.fert['Kämpfen'] || 0,
-      ['tokens/' + id + '/schiessen']: e.fert['Schießen'] || 0,
-      ['tokens/' + id + '/staerke']: e.attr['Stärke'] || 1,
-      ['tokens/' + id + '/waffe']: nah ? nah.schaden : 0,
-      ['tokens/' + id + '/fernwaffe']: fern ? fern.schaden : 0,
-      ['tokens/' + id + '/reichweite']: fern ? (fern.reichweite || 1) : 0,
-      ['tokens/' + id + '/parade']: parade(fig),
-      ['tokens/' + id + '/robustheit']: robustheit(fig),
-      ['tokens/' + id + '/wild']: e.wild !== false,
-      ['tokens/' + id + '/wundenMax']: null   // zurueck auf die Regel
-    }, e.name + ' tritt mit den eigenen Werten an.');
+    const fig = nscAlsFigur(NSC[nscId]);
+    const werte = fig ? arenaWerteAusFigur(fig, NSC[nscId].name) : null;
+    if (!werte) { render(); return; }
+    werteSchreiben(id, werte, null, null, werte.name + ' tritt mit den eigenen Werten an.');
+  }
+
+  /* ---------- Die echten Spieler dieser Sitzung ----------
+     Hendriks Frage: "Kann man die Spieler direkt mit den wirklich vorhandenen
+     Spielern in dieser Session verknuepfen?" - ja, seit die Boegen in der
+     Sitzung liegen.
+
+     Das Token traegt danach "pid", die Kennung des Spielers. Die Verknuepfung
+     ist bewusst EINE RICHTUNG: gelesen wird aus dem Bogen, geschrieben wird
+     NIE hinein. Der Heldenbrief ist der einzige Schreiber auf einer Figur -
+     ein direkter Zugriff waere beim naechsten Klick des Spielers lautlos weg
+     (Lehre vom 14.10.2026). Wunden auf dem Brett bleiben deshalb auf dem
+     Brett; was in den Bogen soll, geht ueber das Postfach in
+     regie_figuren.html. */
+  function spielerListe() {
+    return Object.keys(figuren).map(function (pid) {
+      const roh = figuren[pid] || {};
+      const fig = alsFigur(roh);
+      return {
+        pid: pid,
+        name: (roh.name && String(roh.name).trim()) || pid,
+        raus: ausserGefecht(fig),
+        figur: fig
+      };
+    }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+  }
+
+  // Welche Figuren stehen schon auf dem Brett? Zweimal dieselbe waere im
+  // Gefecht nicht auseinanderzuhalten.
+  function schonDa(pid) {
+    const tokens = snap.tokens || {};
+    return Object.keys(tokens).some(function (id) { return tokens[id] && tokens[id].pid === pid; });
+  }
+
+  function spielerSetzen(pid) {
+    if (!pid || !db) { render(); return; }
+    const eintrag = spielerListe().filter(function (e) { return e.pid === pid; })[0];
+    if (!eintrag) { render(); return; }
+    if (schonDa(pid)) {
+      alert(eintrag.name + ' steht schon auf dem Feld.');
+      render();
+      return;
+    }
+    const werte = arenaWerteAusFigur(eintrag.figur, eintrag.name);
+    const zustand = arenaZustandAusFigur(eintrag.figur, 3);
+    const platz = freierPlatz(true);
+    if (!platz) { render(); return; }
+    const id = 't' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+    const token = Object.assign({}, SZ.vorlagen.spieler, werte, {
+      x: platz.x, y: platz.y, geladen: true, pid: pid
+    });
+    delete token.wundenMax;
+    if (zustand.wunden > 0) token.wunden = zustand.wunden;
+    if (zustand.angeschlagen) token.angeschlagen = true;
+    let text = eintrag.name + ' betritt das Feld.';
+    if (zustand.wunden > 0 || zustand.angeschlagen) {
+      text += ' (Zustand aus dem Charakterbogen übernommen.)';
+    }
+    schreibe({ ['tokens/' + id]: token }, text);
+  }
+
+  // Werte neu aus dem Bogen holen - fuer den Fall, dass der Spieler zwischen
+  // zwei Gefechten gesteigert hat oder sich anders ausgeruestet hat.
+  function figurNachziehen(id) {
+    const t = (snap.tokens || {})[id];
+    if (!t || !t.pid) { render(); return; }
+    const eintrag = spielerListe().filter(function (e) { return e.pid === t.pid; })[0];
+    if (!eintrag) {
+      alert('Zu dieser Figur gibt es keinen Bogen mehr in der Sitzung.');
+      render();
+      return;
+    }
+    werteSchreiben(id, arenaWerteAusFigur(eintrag.figur, eintrag.name), t.pid, null,
+      eintrag.name + ': Werte aus dem Charakterbogen nachgezogen.');
+  }
+
+  function figurLoesen(id) {
+    const t = (snap.tokens || {})[id];
+    if (!t) return;
+    schreibe({ ['tokens/' + id + '/pid']: null },
+      (t.name || id) + ' ist nicht mehr mit einem Charakterbogen verknüpft.');
   }
 
   function auswaehlen(id) {
@@ -549,11 +667,35 @@
     renderAuswahl(sel, tokens);
     renderSaebel(tokens);
     renderInitiative(tokens);
+    renderSpielerWahl();
 
     const log = snap.log || {};
     const zeilen = Object.keys(log).map(function (k) { return log[k]; })
       .sort(function (a, b) { return (b.zeit || 0) - (a.zeit || 0); }).slice(0, 8);
     logEl.innerHTML = zeilen.map(function (z) { return '<div>' + z.text + '</div>'; }).join('');
+  }
+
+  /* Die echten Spielerfiguren der Sitzung als Auswahlfeld im Kopf. Wer schon
+     auf dem Brett steht, wird mitgenannt und gesperrt - zweimal dieselbe Figur
+     waere im Gefecht nicht auseinanderzuhalten. Gibt es in dieser Sitzung noch
+     keine Boegen, sagt das Feld das, statt leer zu bleiben. */
+  function renderSpielerWahl() {
+    const feld = document.getElementById('spielerWahl');
+    if (!feld) return;
+    const liste = spielerListe();
+    if (!liste.length) {
+      feld.innerHTML = '<option value="">keine Charakterbögen in dieser Sitzung</option>';
+      feld.disabled = true;
+      return;
+    }
+    feld.disabled = false;
+    feld.innerHTML = '<option value="">+ Spieler aus der Sitzung …</option>' +
+      liste.map(function (e) {
+        const da = schonDa(e.pid);
+        const zusatz = da ? ' (steht schon)' : (e.raus ? ' (außer Gefecht)' : '');
+        return '<option value="' + e.pid + '"' + (da ? ' disabled' : '') + '>' +
+          e.name + zusatz + '</option>';
+      }).join('');
   }
 
   /* Die Reihenfolge als Leiste unter dem Kopf. Jeder Eintrag ist
@@ -722,6 +864,21 @@
       'jede Wunde 1, gemeinsames Angreifen gibt bis zu +4. ' +
       'Schusswaffe d0 = kann nicht schießen.</div>';
 
+    /* Verknuepfung mit einem echten Charakterbogen. Steht VOR dem NSC-Blatt,
+       weil das bei einer Spielerfigur der haeufigere Fall ist. */
+    if (sel.pid) {
+      const bogen = spielerListe().filter(function (e) { return e.pid === sel.pid; })[0];
+      html += '<div class="zeile"><b>🔗 ' + (bogen ? bogen.name : sel.pid) + '</b>' +
+        '<button class="btn" onclick="figurNachziehen(\'' + id + '\')" ' +
+        'title="Werte neu aus dem Charakterbogen holen — für den Fall, dass gesteigert oder umgerüstet wurde">↻ Werte nachziehen</button>' +
+        '<button class="btn" onclick="figurLoesen(\'' + id + '\')">Verknüpfung lösen</button></div>' +
+        (bogen
+          ? '<div class="hinweis">Verknüpft mit dem Charakterbogen aus dieser Sitzung. Gelesen wird daraus, <b>geschrieben nie hinein</b> — Wunden auf dem Brett bleiben auf dem Brett. Was in den Bogen soll, geht über das Postfach im Figuren-Panel.</div>'
+          : '<div class="hinweis" style="color:#c76a5a">Zu dieser Verknüpfung gibt es keinen Bogen mehr in der Sitzung.</div>');
+    } else if (sel.typ === 'spieler') {
+      html += '<div class="hinweis">Nicht mit einem Charakterbogen verknüpft — über „+ Spieler aus der Sitzung" oben kommt eine echte Figur mit ihren eigenen Werten aufs Brett.</div>';
+    }
+
     // Ein echtes NSC-Blatt uebernehmen - Werte aus js/npcs.js, gerechnet.
     const blaetter = blattListe();
     if (blaetter.length) {
@@ -775,6 +932,24 @@
       if (auswahlId && !(snap.tokens || {})[auswahlId]) auswahlId = null;
       render();
     });
+    /* Die Charakterboegen dieser Sitzung. NUR LESEND: Geschrieben wird eine
+       Figur ausschliesslich von heldenbrief.html (sonst ist die Aenderung beim
+       naechsten Klick des Spielers lautlos weg, Lehre vom 14.10.2026) - was
+       die Arena braucht, stempelt sie auf ihr eigenes Token. */
+    db.ref('figuren').on('value', function (s) {
+      figuren = s.val() || {};
+      render();
+    }, function () { figuren = {}; });
+    /* Erfundene Waren der SL ins Regelwerk eintragen, BEVOR ein Blatt
+       uebernommen wird: Sonst findet AUSR_BY_ID den Jaguar-Saebel nicht und die
+       Waffe faellt STILL weg (dieselbe Reihenfolge wie in heldenbrief.html und
+       regie_figuren.html). */
+    if (typeof eigeneWarenSetzen === 'function') {
+      db.ref('eigeneWaren').on('value', function (s) {
+        eigeneWarenSetzen(s.val() || {});
+        render();
+      }, function () {});
+    }
   } catch (e) {
     statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft.';
     statusEl.className = 'error';

@@ -980,6 +980,82 @@ function arenaDienerRunde(tokens, regeln, saebeltraegerId, runde, bonus) {
   };
 }
 
+/* ==========================================================
+   EIN BLATT AUF EIN TOKEN (30.10.2026, Fortsetzung 5)
+   ----------------------------------------------------------
+   Hendriks Frage: "Kann man die Spieler direkt mit den wirklich
+   vorhandenen Spielern in dieser Session verknuepfen?"
+
+   Ja - und zwar erst seit dem 15.10.2026: Bis dahin lagen die
+   Charakterboegen nur im localStorage der jeweiligen Spieler, die
+   SL kam an die Werte nicht heran, und die Arena stellte deshalb
+   "Spieler 1-4" mit Harwicks Werten als Massstab auf. Seitdem
+   liegt jede Figur unter sitzungen/{sid}/stand/figuren/{kennung},
+   also genau dort, wo auch diese Seite liest.
+
+   DIESE FUNKTION IST DIE EINE ABLEITUNG Blatt -> Token. Sie nimmt
+   eine FIGUR im Sinne von js/regelwerk.js (alsFigur), egal ob sie
+   aus dem Bogen eines Spielers oder aus einem NSC-Blatt
+   (nscAlsFigur) kommt - vorher stand die Rechnung nur in
+   arena_admin.html an den NSC, und der Spieler-Weg waere die
+   zweite Kopie geworden.
+
+   Die Waffe ist die BESTE getragene ihrer Art. Das ist eine
+   Vereinfachung: Wer Saebel und Dolch traegt, schlaegt mit dem
+   Saebel - auf dem Brett gibt es keine Waffenwahl, und die
+   Alternative waere, bei jedem Angriff zu fragen.
+
+   WICHTIG: Traegt die Figur eine von der SL ERFUNDENE Ware
+   (eigeneWaren, z. B. den Jaguar-Saebel), muss die aufrufende
+   Seite sie vorher ueber eigeneWarenSetzen() ins Regelwerk
+   eingetragen haben - sonst findet AUSR_BY_ID sie nicht und die
+   Waffe faellt STILL weg. Genau dieselbe Reihenfolge wie in
+   heldenbrief.html und regie_figuren.html.
+   ========================================================== */
+function arenaBesteWaffe(figur, art) {
+  const liste = (figur && figur.ausr) || [];
+  let best = null;
+  liste.forEach(function (id) {
+    const a = (typeof AUSR_BY_ID !== 'undefined') ? AUSR_BY_ID[id] : null;
+    if (!a || a.art !== art) return;
+    if (!best || (a.schaden || 0) > (best.schaden || 0)) best = a;
+  });
+  return best;
+}
+
+function arenaWerteAusFigur(figur, name) {
+  if (!figur) return null;
+  const nah = arenaBesteWaffe(figur, 'Nahkampf');
+  const fern = arenaBesteWaffe(figur, 'Fernkampf');
+  return {
+    name: name || figur.name || '',
+    kaempfen: (figur.fert && figur.fert['Kämpfen']) || 0,
+    schiessen: (figur.fert && figur.fert['Schießen']) || 0,
+    staerke: (figur.attr && figur.attr['Stärke']) || 1,
+    waffe: nah ? (nah.schaden || 0) : 0,
+    fernwaffe: fern ? (fern.schaden || 0) : 0,
+    reichweite: fern ? (fern.reichweite || 1) : 0,
+    parade: parade(figur),
+    robustheit: robustheit(figur),
+    /* Wild Card: Spielerfiguren immer, NSC laut Blatt. nscAlsFigur() setzt
+       das Feld; ein Spielerbogen hat es nicht, und dort ist "true" richtig. */
+    wild: (figur.wild === undefined) ? true : !!figur.wild
+  };
+}
+
+/* Der ZUSTAND der Figur, getrennt von ihren Werten - damit die SL wahlweise
+   nur die Werte stempeln oder die Figur so aufs Brett stellen kann, wie sie
+   gerade dasteht. Geklemmt auf die Tragfaehigkeit: Eine Figur, die laut Bogen
+   ausser Gefecht ist, steht auf dem Brett mit voller Wundenzahl, aber nicht
+   schon gefallen - ob sie ueberhaupt mitkaempft, entscheidet die SL. */
+function arenaZustandAusFigur(figur, wundenMax) {
+  const max = (wundenMax == null) ? 3 : Math.max(0, wundenMax | 0);
+  return {
+    wunden: Math.min(max, Math.max(0, (figur && figur.wunden) || 0)),
+    angeschlagen: !!(figur && figur.angeschlagen)
+  };
+}
+
 /* ---------- Zwei Aenderungspakete pfadsicher zusammenlegen ----------
    DAS IST KEINE BEQUEMLICHKEIT, SONDERN EINE FIREBASE-REGEL: Ein update()
    lehnt es ab, wenn ein Pfad Vorfahre eines anderen ist ("contains an
@@ -1090,6 +1166,7 @@ if (typeof module !== 'undefined' && module.exports) {
     arenaFeldFrei, arenaNaechstesZiel, arenaWeg, arenaSchrittGierig, arenaSchrittZu,
     ARENA_NACHBARN,
     arenaDienerZug, arenaDienerRunde,
-    arenaIniLanden, arenaIniNeueRunde, arenaMischen
+    arenaIniLanden, arenaIniNeueRunde, arenaMischen,
+    arenaBesteWaffe, arenaWerteAusFigur, arenaZustandAusFigur
   };
 }

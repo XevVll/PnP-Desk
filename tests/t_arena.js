@@ -59,7 +59,9 @@ vm.runInContext('this.X = {' + [
   'arenaWeg', 'arenaSchrittGierig', 'ARENA_NACHBARN',
   'arenaAngriffAenderungen', 'arenaAngriffText', 'arenaAnwenden',
   'arenaIniLanden', 'arenaIniNeueRunde', 'arenaMischen',
-  'kartenText', 'kartenVergleich', 'jokerBonus'
+  'kartenText', 'kartenVergleich', 'jokerBonus',
+  'arenaBesteWaffe', 'arenaWerteAusFigur', 'arenaZustandAusFigur',
+  'alsFigur', 'AUSR_BY_ID', 'eigeneWarenSetzen'
 ].join(',') + '};', ctx);
 const A = ctx.X;
 
@@ -1264,6 +1266,148 @@ function held(id, opts) {
     A.arenaMischen(umgekehrt, { 'tokens/z': null });
     chk('ein Vorfahre raeumt vorhandene Kindpfade weg',
       umgekehrt['tokens/z'] === null && umgekehrt['tokens/z/wunden'] === undefined, umgekehrt);
+  })();
+})();
+
+/* ==========================================================
+   EIN BLATT AUF EIN TOKEN (30.10.2026, Fortsetzung 5)
+   ----------------------------------------------------------
+   Hendriks Frage: "Kann man die Spieler direkt mit den wirklich
+   vorhandenen Spielern in dieser Session verknuepfen?"
+
+   Der stille Fehlerfall, auf den es hier ankommt: Traegt eine
+   Figur eine von der SL ERFUNDENE Ware - und der Jaguar-Saebel
+   ist genau so eine -, findet AUSR_BY_ID sie nur, wenn die Seite
+   vorher eigeneWarenSetzen() gerufen hat. Sonst faellt die Waffe
+   weg, ohne dass es auffaellt: Die Figur steht mit der Faust auf
+   dem Brett und niemand sieht den Grund.
+   ========================================================== */
+(function () {
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+
+  /* DIE TRAGENDE PRUEFUNG: Die Vorlagen in js/arena_scenes.js wurden am
+     30.10.2026 von Hand aus den Blaettern gerechnet. Die gemeinsame Ableitung
+     muss genau dieselben Zahlen liefern - sonst ist eine von beiden falsch,
+     und am Tisch faellt es nicht auf. */
+  function vergleich(nscId, vorlage) {
+    const w = A.arenaWerteAusFigur(A.nscAlsFigur(A.NSC[nscId]), A.NSC[nscId].name);
+    const felder = ['kaempfen', 'schiessen', 'staerke', 'waffe', 'fernwaffe',
+                    'reichweite', 'parade', 'robustheit', 'wild'];
+    const abweichung = felder.filter(function (f) { return w[f] !== vorlage[f]; });
+    chk('die Ableitung trifft die Vorlage "' + vorlage.typ + '" (' + nscId + ')',
+      abweichung.length === 0,
+      abweichung.map(function (f) { return f + ': ' + w[f] + ' statt ' + vorlage[f]; }));
+  }
+  vergleich('harwick', vorlagen.spieler);
+  vergleich('cormac', vorlagen.verbuendeter);
+  vergleich('seelenloser', vorlagen.seelenloser);
+
+  /* Ein Spielerbogen, wie er in sitzungen/{sid}/stand/figuren liegt - also
+     rohes Firebase-Material durch alsFigur(). */
+  const bogen = {
+    name: 'Mara Quint',
+    attr: { 'Stärke': 3, 'Geschicklichkeit': 3, 'Konstitution': 2, 'Verstand': 2, 'Willenskraft': 2 },
+    fert: { 'Kämpfen': 4, 'Schießen': 2 },
+    /* Das Messer steht ABSICHTLICH VOR dem Säbel: Stünde die bessere Waffe
+       zuerst, wäre "die erste" dasselbe wie "die beste", und die Prüfung
+       darunter würde auch bei einem Code bestehen, der einfach die erste
+       nimmt. Gegengeprüft - mit dieser Reihenfolge schlägt sie an. */
+    ausr: ['messer', 'saebel', 'pistole']
+  };
+  const fig = A.alsFigur(bogen);
+  const w = A.arenaWerteAusFigur(fig, bogen.name);
+
+  chk('der Name kommt aus dem Bogen', w.name === 'Mara Quint', w.name);
+  chk('Kämpfen und Schießen kommen aus den Fertigkeiten',
+    w.kaempfen === 4 && w.schiessen === 2, [w.kaempfen, w.schiessen]);
+  chk('Stärke kommt aus den Attributen', w.staerke === 3, w.staerke);
+  chk('Parade und Robustheit werden GERECHNET, nicht abgeschrieben',
+    w.parade === A.parade(fig) && w.robustheit === A.robustheit(fig),
+    [w.parade, A.parade(fig), w.robustheit, A.robustheit(fig)]);
+  chk('eine Spielerfigur ist eine Wild Card', w.wild === true);
+
+  // Die BESTE getragene Waffe je Art - wer Saebel und Dolch traegt, schlaegt
+  // mit dem Saebel. Auf dem Brett gibt es keine Waffenwahl.
+  /* Erst die Voraussetzung pruefen, dann die Aussage: Mein erster Anlauf nahm
+     eine Ware "dolch" an, die es im Regelwerk nicht gibt (sie heisst "messer").
+     Die Funktion hat sie korrekt ignoriert - falsch war meine Erwartung, und
+     ohne diese Zeile haette der Test "die bessere Waffe gewinnt" bestanden,
+     ohne dass ueberhaupt zwei Waffen im Spiel waren. */
+  const saebel = A.AUSR_BY_ID['saebel'], messer = A.AUSR_BY_ID['messer'];
+  chk('die Vorlage ist brauchbar: der Säbel schlägt härter als das Messer',
+    !!saebel && !!messer && (saebel.schaden || 0) > (messer.schaden || 0),
+    [saebel && saebel.schaden, messer && messer.schaden]);
+  chk('die bessere Nahkampfwaffe gewinnt', w.waffe === saebel.schaden, w.waffe);
+  /* Erst pruefen, dass die Waren-IDs ueberhaupt existieren. Zweimal habe ich
+     hier eine erfunden ("dolch" statt "messer", "steinschlosspistole" statt
+     "pistole") - die Funktion ignoriert eine unbekannte Ware korrekt, und ohne
+     diese Zeile prueften die Waffen-Tests dann gar nichts. */
+  const pistole = A.AUSR_BY_ID['pistole'];
+  chk('alle drei Waren des Testbogens gibt es wirklich',
+    !!saebel && !!messer && !!pistole,
+    { saebel: !!saebel, messer: !!messer, pistole: !!pistole });
+  chk('die Schusswaffe bringt ihre Reichweite mit',
+    w.fernwaffe === pistole.schaden && w.reichweite === (pistole.reichweite || 1),
+    [w.fernwaffe, w.reichweite, pistole.schaden, pistole.reichweite]);
+
+  const barfuss = A.arenaWerteAusFigur(A.alsFigur({ name: 'Nackt', ausr: [] }), 'Nackt');
+  chk('ohne Waffe steht da eine Null, keine erfundene Waffe',
+    barfuss.waffe === 0 && barfuss.fernwaffe === 0 && barfuss.reichweite === 0, barfuss);
+  chk('und damit kann die Figur nicht schießen',
+    A.arenaAngriffsart(Object.assign({ id: 'a', x: 0, y: 0 }, barfuss),
+      { id: 'z', x: 0, y: 8 }, REGELN) === null);
+
+  /* Eine Ware, die es nicht (mehr) gibt, wird ignoriert statt zu brechen -
+     genau der Fall "die SL hat eine erfundene Ware geloescht". */
+  chk('eine unbekannte Ware bricht nichts',
+    A.arenaWerteAusFigur(A.alsFigur({ ausr: ['gibt_es_nicht'] }), 'X').waffe === 0);
+
+  /* DER STILLE FALL: der Jaguar-Säbel als erfundene Ware der SL. Vor
+     eigeneWarenSetzen() ist er unbekannt und fällt weg; danach zählt er. */
+  (function () {
+    const traeger = A.alsFigur({ name: 'Träger', attr: { 'Stärke': 3 }, ausr: ['sl_jaguarsaebel'] });
+    chk('vor eigeneWarenSetzen() fällt die erfundene Waffe weg',
+      A.arenaWerteAusFigur(traeger, 'Träger').waffe === 0);
+    A.eigeneWarenSetzen({
+      k1: { id: 'sl_jaguarsaebel', n: 'Jaguar-Säbel', art: 'Nahkampf', schaden: 3, gew: 3, preis: 0 }
+    });
+    chk('danach zählt sie', A.arenaWerteAusFigur(traeger, 'Träger').waffe === 3,
+      A.arenaWerteAusFigur(traeger, 'Träger'));
+    chk('und sie schlägt den Säbel aus dem Regelwerk',
+      A.arenaWerteAusFigur(
+        A.alsFigur({ ausr: ['saebel', 'sl_jaguarsaebel'] }), 'T').waffe === 3);
+    A.eigeneWarenSetzen({});   // wieder aufräumen, sonst wirkt sie weiter
+    chk('nach dem Aufräumen ist sie wieder unbekannt',
+      A.arenaWerteAusFigur(traeger, 'Träger').waffe === 0);
+  })();
+
+  // -------------------------------------------------- Der Zustand
+  chk('eine unversehrte Figur bringt keinen Zustand mit',
+    A.arenaZustandAusFigur(A.alsFigur({}), 3).wunden === 0);
+  chk('zwei Wunden kommen mit',
+    A.arenaZustandAusFigur(A.alsFigur({ wunden: 2 }), 3).wunden === 2);
+  chk('angeschlagen kommt mit',
+    A.arenaZustandAusFigur(A.alsFigur({ angeschlagen: true }), 3).angeschlagen === true);
+  /* Eine Figur, die laut Bogen AUSSER GEFECHT ist (vier Wunden), steht mit
+     voller Wundenzahl auf dem Brett, aber nicht schon gefallen - ob sie
+     ueberhaupt mitkaempft, entscheidet die SL und nicht die Buchhaltung. */
+  chk('außer Gefecht wird auf die Tragfähigkeit geklemmt',
+    A.arenaZustandAusFigur(A.alsFigur({ wunden: 4 }), 3).wunden === 3,
+    A.arenaZustandAusFigur(A.alsFigur({ wunden: 4 }), 3));
+  chk('ein Statist trägt keine, also bleibt es bei null',
+    A.arenaZustandAusFigur(A.alsFigur({ wunden: 2 }), 0).wunden === 0);
+
+  /* Und am Ende: Die gestempelten Werte tragen einen echten Angriff. Ohne das
+     waere nur geprueft, dass die Zahlen stimmen - nicht, dass die Arena mit
+     ihnen rechnen kann. */
+  (function () {
+    const a = Object.assign({ id: 'a', typ: 'spieler', x: 5, y: 5, geladen: true }, w);
+    const z = Object.assign({ id: 'z' }, vorlagen.diener, { x: 5, y: 6 });
+    const erg = A.arenaAngriff(a, z, { a: a, z: z }, REGELN, null);
+    chk('eine gestempelte Spielerfigur kann angreifen', erg.ok === true, erg.grund);
+    chk('und wirft mit ihrem eigenen Kämpfen-Wert', erg.stufe === 4, erg.stufe);
+    chk('gegen die Parade des Dieners',
+      erg.mod === A.angriffsMod(vorlagen.diener.parade), [erg.mod, A.angriffsMod(5)]);
   })();
 })();
 

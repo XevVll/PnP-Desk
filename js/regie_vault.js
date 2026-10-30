@@ -520,10 +520,29 @@ function arenaUpdate(sceneId, aenderungen, logText) {
   db.ref().update(paket);
 }
 
-// Setzt den Kampf komplett neu auf: Spielerfiguren aus der Charakterleiste,
-// der Seelenlose, und eine Handvoll Diener.
+/* Setzt den Kampf komplett neu auf: die Spielerfiguren der Sitzung, der
+   Seelenlose und eine Handvoll Diener.
+
+   Liest dafuer EINMAL die Charakterboegen (und die erfundenen Waren) statt
+   einen Lauscher zu halten: Gebraucht werden sie genau in diesem Augenblick,
+   und das Adminpanel haengt ohnehin an genug Lauschern. */
 function arenaAufbauen(sceneId) {
   const sz = arenaSzeneRegie(sceneId); if (!sz || !db) return;
+  const warenFertig = (typeof eigeneWarenSetzen === 'function')
+    ? db.ref('eigeneWaren').once('value').then(function (s) {
+        eigeneWarenSetzen(s.val() || {});
+      }).catch(function () {})
+    : Promise.resolve();
+  warenFertig.then(function () {
+    return db.ref('figuren').once('value');
+  }).then(function (s) {
+    arenaAufbauenMit(sceneId, sz, s.val() || {});
+  }).catch(function () {
+    arenaAufbauenMit(sceneId, sz, {});
+  });
+}
+
+function arenaAufbauenMit(sceneId, sz, figuren) {
   const r = sz.regeln;
   const tokens = {};
   let nr = 0;
@@ -533,23 +552,48 @@ function arenaAufbauen(sceneId) {
     tokens[id] = Object.assign({}, vorlage, {
       name: name, x: x, y: y, geladen: true
     });
+    return id;
   }
 
   // Spieler unten, Gegner oben - klassische Aufstellung, per Hand aenderbar.
   // Ueber die Grundlinie verteilt statt zusammengedraengt - auf 16 Feldern
   // Breite waere eine Viererkette am linken Rand unbrauchbar.
   //
-  // BEWUSST GENERISCHE NAMEN: js/characters.js (CHARACTERS) enthaelt die
-  // sieben NSC (Harwick, Cormac, Wat, ...), NICHT die Spielercharaktere -
-  // deren Namen stehen nirgends im Repo. Ein frueher Entwurf zog die
-  // CHARACTERS-Namen und stellte damit NSC als Spielerfiguren auf ("James
-  // Harwick schiesst auf Der Seelenlose"). Die SL benennt die Figuren beim
-  // Nachsetzen ueber "+ Spieler" selbst; NSC, die mitkaempfen (Harwick,
-  // Cormac), kommen auf demselben Weg dazu.
-  const spielerNamen = ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'];
-  const abstand = Math.max(1, Math.floor(r.breite / (spielerNamen.length + 1)));
-  spielerNamen.forEach(function (n, i) {
-    setze(sz.vorlagen.spieler, n, Math.min(r.breite - 1, abstand * (i + 1)), r.hoehe - 1);
+  /* DIE ECHTEN SPIELERFIGUREN DIESER SITZUNG (seit 30.10.2026), mit ihrem
+     eigenen Namen und ihren eigenen Werten. Moeglich erst, seit die Boegen in
+     der Sitzung liegen (15.10.2026) - vorher stand hier, die Namen der
+     Spielercharaktere stuenden "nirgends im Repo", und das stimmt nicht mehr.
+     Die Ableitung Blatt -> Token kommt aus js/arena.js, dieselbe wie im
+     Schlachtfeld.
+
+     Liegt in dieser Sitzung noch kein Bogen, bleiben es generische
+     Platzhalter. BEWUSST NICHT js/characters.js: Darin stehen die sieben NSC
+     (Harwick, Cormac, Wat, ...), nicht die Spielercharaktere - ein frueher
+     Entwurf zog diese Namen und stellte damit NSC als Spielerfiguren auf
+     ("James Harwick schiesst auf Der Seelenlose"). */
+  const echte = Object.keys(figuren || {}).map(function (pid) {
+    const roh = figuren[pid] || {};
+    return {
+      pid: pid,
+      name: (roh.name && String(roh.name).trim()) || pid,
+      figur: alsFigur(roh)
+    };
+  }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+  const reihe = echte.length ? echte
+    : ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4'].map(function (n) {
+        return { pid: null, name: n, figur: null };
+      });
+  const abstand = Math.max(1, Math.floor(r.breite / (reihe.length + 1)));
+  reihe.forEach(function (e, i) {
+    const id = setze(sz.vorlagen.spieler, e.name,
+      Math.min(r.breite - 1, abstand * (i + 1)), r.hoehe - 1);
+    if (!e.figur) return;
+    const zustand = arenaZustandAusFigur(e.figur, 3);
+    Object.assign(tokens[id], arenaWerteAusFigur(e.figur, e.name), { pid: e.pid });
+    delete tokens[id].wundenMax;
+    if (zustand.wunden > 0) tokens[id].wunden = zustand.wunden;
+    if (zustand.angeschlagen) tokens[id].angeschlagen = true;
   });
 
   // Harwick startet in der Feldmitte (Hendriks Vorgabe) - er steht beim
@@ -568,7 +612,10 @@ function arenaAufbauen(sceneId) {
   db.ref(arenaBasis(sceneId).slice(0, -1)).set({
     runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
     initiative: arenaAusteilen(tokens, null, null),
-    log: { start: { text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.', zeit: Date.now() } }
+    log: { start: {
+      text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.' +
+        (echte.length ? ' ' + echte.length + ' Spielerfigur(en) aus der Sitzung übernommen.' : ''),
+      zeit: Date.now() } }
   });
 }
 

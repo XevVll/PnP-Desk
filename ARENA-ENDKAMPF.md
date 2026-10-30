@@ -14,7 +14,8 @@ umgestellt — die Arena war die letzte Stelle im Projekt, die noch nach dem alt
 rechnete. Am selben Tag dazu **Initiative über das Aktionsdeck** (3.6) und die
 **Diener-Automatik** (3.7): Die Reihe bestimmt, wer am Zug ist, und die Wiedergänger gehen von
 selbst auf den nächstgelegenen Gegner los — ihr **Weg wird gesucht**, nicht geraten (3.7a).
-Weiterhin **nicht am Tisch erprobt.**
+Die Spielerfiguren kommen seit demselben Tag **aus der Sitzung** statt als
+„Spieler 1–4" (5.4). Weiterhin **nicht am Tisch erprobt.**
 
 ---
 
@@ -520,6 +521,61 @@ Bindestrichen: `15.1` → `15-1`).
 > stimmen dann nicht. Es gibt bewusst **keine Migration**: Ein Gefecht ist zu Ende, wenn es zu
 > Ende ist, und „Aufbauen" setzt alle Tokens neu. Die Arena war ohnehin nie am Tisch.
 
+### 5.4 Die echten Spielerfiguren der Sitzung (30.10.2026)
+
+Hendriks Frage: *„Kann man die Spieler direkt mit den wirklich vorhandenen Spielern in dieser
+Session verknüpfen?"*
+
+**Ja — und zwar erst seit dem 15.10.2026.** Bis dahin lagen die Charakterbögen nur im
+`localStorage` der jeweiligen Spieler, die Spielleitung kam an die Werte nicht heran, und die
+Arena stellte deshalb „Spieler 1–4" mit **Harwicks** Werten als Maßstab auf. Seitdem liegt jede
+Figur unter `sitzungen/{sid}/stand/figuren/{kennung}` — also genau dort, wo das Schlachtfeld
+ohnehin liest (`sitzungsDbJetzt()`).
+
+| Wo | Was |
+|---|---|
+| Kopfleiste des Schlachtfelds | Auswahlfeld **„+ Spieler aus der Sitzung …"** — eine echte Figur mit ihren eigenen Werten aufs Brett |
+| **„↺ Aufbauen"** | nimmt die Figuren der Sitzung, wenn es welche gibt; sonst die generischen Platzhalter |
+| Auswahlpanel | zeigt **🔗 Name**, dazu **„↻ Werte nachziehen"** und „Verknüpfung lösen" |
+| Token | trägt `pid`, die Spielerkennung |
+
+**Die Verknüpfung ist bewusst EINE RICHTUNG: gelesen wird aus dem Bogen, geschrieben wird nie
+hinein.** `heldenbrief.html` liest die Figur genau einmal und schreibt danach bei jeder Änderung
+**seine eigene Fassung** hoch — ein direkter Schreibzugriff der Arena wäre beim nächsten Klick
+des Spielers lautlos weg (Lehre vom 14.10.2026). Wunden auf dem Brett bleiben deshalb **auf dem
+Brett**; was in den Bogen soll, geht über das **Postfach** (`figuren/{pid}/zuteilung`) im
+Figuren-Panel, das `wunde` und `angeschlagen` seit dem 15.10.2026 kennt.
+
+**Was übernommen wird** (`arenaWerteAusFigur()` in `js/arena.js` — **eine** Ableitung für
+Spielerbögen *und* NSC-Blätter, vorher stand sie nur für die NSC in `arena_admin.html`):
+
+| Token | woraus |
+|---|---|
+| `kaempfen`, `schiessen` | `fert['Kämpfen']`, `fert['Schießen']` |
+| `staerke` | `attr['Stärke']` |
+| `waffe`, `fernwaffe`, `reichweite` | die **beste getragene** Waffe je Art |
+| `parade`, `robustheit` | **gerechnet** mit `parade()`/`robustheit()` |
+| `wild` | Spielerfigur immer, NSC laut Blatt |
+| `wunden`, `angeschlagen` | der Zustand aus dem Bogen, geklemmt auf die Tragfähigkeit |
+
+Die Waffe ist die **beste** getragene ihrer Art: Wer Säbel und Messer trägt, schlägt mit dem
+Säbel. Auf dem Brett gibt es keine Waffenwahl, und die Alternative wäre, bei jedem Angriff zu
+fragen.
+
+> **⚠ Die stille Falle: erfundene Waren.** Trägt eine Figur eine von der Spielleitung
+> **erfundene** Ware (`eigeneWaren`) — und der **Jaguar-Säbel** ist genau so eine —, findet
+> `AUSR_BY_ID` sie nur, wenn die Seite vorher `eigeneWarenSetzen()` gerufen hat. Sonst fällt die
+> Waffe **weg, ohne dass es auffällt**: Die Figur steht mit der Faust auf dem Brett und niemand
+> sieht den Grund. Beide Seiten lesen `eigeneWaren` deshalb, **bevor** sie ein Blatt übernehmen
+> — dieselbe Reihenfolge wie in `heldenbrief.html` und `regie_figuren.html`. Dafür steht eine
+> eigene Prüfung da (7).
+
+**Doppelt geht nicht:** Eine Figur, die schon auf dem Brett steht, ist im Auswahlfeld gesperrt
+(„steht schon") — zweimal dieselbe wäre im Gefecht nicht auseinanderzuhalten. Eine Figur, die
+laut Bogen **außer Gefecht** ist, wird genannt, lässt sich aber setzen: Sie steht dann mit voller
+Wundenzahl da, aber nicht schon gefallen — ob sie überhaupt mitkämpft, entscheidet die
+Spielleitung und nicht die Buchhaltung.
+
 ### 5.3 Wer schreibt was
 
 **Hier schreiben erstmals die Spieler echten Spielzustand.** Beim Erkundungs-Graphen der
@@ -598,6 +654,9 @@ gedacht, jede Regelverzweigung deterministisch zu testen.
 | `arenaAngriffAenderungen(...)` / `arenaAngriffText(...)` | Firebase-Pfade und Logzeile eines Angriffs — **eine** Stelle für alle drei Ansichten |
 | `arenaAnwenden(tokens, aenderungen)` | flache Pfade auf eine lokale Tokenkarte ziehen |
 | `arenaMischen(ziel, quelle)` | zwei Änderungspakete **pfadsicher** zusammenlegen (siehe 8, Fehler 12) |
+| `arenaWerteAusFigur(figur, name)` | Blatt → Token-Werte; **eine** Ableitung für Spielerbögen und NSC (5.4) |
+| `arenaZustandAusFigur(figur, wundenMax)` | Wunden und „angeschlagen" aus dem Bogen, geklemmt |
+| `arenaBesteWaffe(figur, art)` | die beste getragene Waffe dieser Art |
 
 ### 6.2 SL-Seite (`js/regie_vault.js`)
 
@@ -615,7 +674,7 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-**`tests/t_arena.js`, 279 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+**`tests/t_arena.js`, 306 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
 Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System) und am selben
 Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
 
@@ -648,7 +707,17 @@ Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
    Brett nicht; ein angeschlagener Diener läuft, schlägt aber nicht zu; wer schon gehandelt hat,
    wird übersprungen; **kein Feld ist doppelt belegt**; der Seelenlose und die Spieler werden von
    der Automatik nicht angefasst.
-7. **Der Wegfinder** (3.7a) — eine Mauer mit einer Lücke: Der Weg führt **durch die Lücke**,
+7. **Das Blatt auf dem Token** (5.4) — die tragende Prüfung hier vergleicht die **von Hand
+   gerechneten Vorlagen** in `js/arena_scenes.js` mit der mechanischen Ableitung: Harwick muss
+   die `spieler`-Vorlage treffen, Cormac die `verbuendeter`-, der Seelenlose seine eigene. Driftet
+   eines von beiden, ist eine Seite falsch, und am Tisch fällt es nicht auf. Dazu: Parade und
+   Robustheit werden **gerechnet** statt abgeschrieben, die **beste** Waffe je Art gewinnt (das
+   Messer steht im Testbogen absichtlich **vor** dem Säbel — sonst wäre „die erste" dasselbe wie
+   „die beste"), ohne Waffe steht eine Null da und die Figur kann nicht schießen, eine unbekannte
+   Ware bricht nichts, und eine **erfundene** Ware zählt **erst nach** `eigeneWarenSetzen()` —
+   davor fällt sie still weg. Am Ende trägt die gestempelte Figur einen **echten Angriff**, sonst
+   wäre nur geprüft, dass die Zahlen stimmen, nicht dass die Arena mit ihnen rechnen kann.
+8. **Der Wegfinder** (3.7a) — eine Mauer mit einer Lücke: Der Weg führt **durch die Lücke**,
    endet am Ziel angrenzend, besteht aus lauter freien und lauter angrenzenden Feldern, und
    derselbe Stand ergibt denselben Weg. Liegt die Lücke links, dreht er mit. Ohne Lücke gibt es
    keinen Weg, und dann greift der **Rückfall** — der geht wenigstens ein Feld näher, wenn noch
@@ -685,6 +754,9 @@ Fehler wörtlich:
 | Joker zählt nicht auf den Schaden | **1 Prüfung** → `[7,7]` |
 | `arenaMischen()` weist stumpf zu | **7 Prüfungen**, darunter *„Nachschub, der sofort losläuft: kein Pfadkonflikt"* → `["tokens/neu","tokens/neu/x"]` |
 | wieder nur der gierige Schritt statt des Wegfinders | **5 Prüfungen**, darunter *„die Figur läuft los, statt stehen zu bleiben"* → `null` |
+| erste statt beste Waffe | **2 Prüfungen**, *„die bessere Nahkampfwaffe gewinnt"* → `1` |
+| Parade abgeschrieben statt gerechnet | **4 Prüfungen**, darunter alle drei Vorlagen: *`["parade: 4 statt 6"]`* |
+| Spielerfigur ist keine Wild Card | **1 Prüfung** |
 
 **Ein Integrationstest über die Ansichten gehört nicht ins Repo** (Skill `pnp-safe-test`) und
 liegt im Scratchpad der jeweiligen Session: lokaler HTTP-Server, abgefangene
@@ -791,6 +863,16 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 16. **Eine falsche Erwartung, nicht der Code:** Ich hatte „drei Felder weg, Bewegung 2, also
     kommt er nicht an" notiert — nach zwei Feldern steht er angrenzend und schlägt im **selben**
     Zug zu. Bewegung und Handlung, wie bei jeder anderen Figur auch.
+17. **Zweimal eine Waren-ID erfunden** (`dolch` statt `messer`, `steinschlosspistole` statt
+    `pistole`). `arenaWerteAusFigur()` ignoriert eine unbekannte Ware korrekt — **deshalb war das
+    gefährlich**: Die Prüfung „die bessere Waffe gewinnt" hätte bestanden, ohne dass überhaupt
+    zwei Waffen im Spiel waren. Jetzt prüft eine eigene Zeile vorher, dass es alle drei Waren
+    wirklich gibt.
+18. **Und dieselbe Sorte noch einmal, eine Ebene tiefer:** Im Testbogen stand der **Säbel
+    zuerst**. Damit war „die erste Waffe" dasselbe wie „die beste", und die Gegenprobe (Code
+    nimmt die erste) schlug **nicht** an. Das Messer steht jetzt absichtlich vorn — danach schlägt
+    sie an. **Eine Prüfung, deren beide Seiten zusammenfallen, prüft nichts** (dieselbe Lehre wie
+    bei der blinden Parade-Prüfung vom 30.10. Mittag).
 
 ---
 
@@ -839,10 +921,17 @@ Drei Fehler beim Bau, alle vom Test gefunden:
   Freigeben grob korrigieren.
 - **Keine Sichtlinien, keine Deckung, keine Zonen** — die Ritualkammer ist als offene Fläche
   modelliert, obwohl das Bild Pfeiler zeigt.
-- ~~Spielerfiguren tragen die Namen aus `js/characters.js`~~ — **geklärt und behoben** (siehe
-  Fehlergeschichte Nr. 5): `CHARACTERS` sind die NSC, der Aufbau setzt jetzt generische
-  „Spieler 1–4". Die Namen der echten Spielercharaktere stehen nirgends im Repo; die SL vergibt
-  sie beim Nachsetzen über „+ Spieler".
+- ~~Spielerfiguren tragen die Namen aus `js/characters.js`~~ · ~~die Namen der echten
+  Spielercharaktere stehen nirgends im Repo~~ — **beides überholt.** `CHARACTERS` sind die NSC
+  (Fehlergeschichte Nr. 5), und seit dem 15.10.2026 liegen die Charakterbögen in der Sitzung:
+  Das Schlachtfeld holt die echten Figuren mit ihren eigenen Werten (5.4). **Was bleibt:** Die
+  Werte werden **gestempelt**, nicht live gespiegelt — steigert ein Spieler mitten im Gefecht,
+  braucht es „↻ Werte nachziehen".
+- **Wunden der Spieler fließen nicht in ihre Bögen zurück.** Das ist Absicht (der Heldenbrief ist
+  der einzige Schreiber auf einer Figur, 5.4), aber es heißt auch: Was im Finale passiert, steht
+  danach nicht im Bogen. Der Weg dafür wäre das **Postfach**, das `wunde` und `angeschlagen`
+  schon kennt — ob eine Wunde auf dem Brett eine Wunde im Bogen sein soll, ist eine
+  Spielentscheidung und keine technische.
 - **Firebase-Regeln** für `arenaState` müssen freigegeben werden, siehe 5.3
   ([firebase-rules.json](firebase-rules.json)).
 - **Kein Zugriffsschutz auf der Datenbank.** Die Regeln erlauben Lesen und Schreiben ohne
