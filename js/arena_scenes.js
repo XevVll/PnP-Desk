@@ -33,7 +33,10 @@
 // Steigerung +1W6; gegen die Robustheit ergibt das angeschlagen bzw. Wunden.
 //
 // HP SIND ERSATZLOS WEG. Eine Figur traegt "angeschlagen" und "wunden" - ein
-// Statist (Diener) faellt bei der ersten Wunde, eine Wild Card traegt drei.
+// Statist (Diener) faellt bei der ersten Wunde, eine Wild Card normalerweise
+// drei. AUSNAHME, und sie ist eine gekennzeichnete Abweichung: Der Seelenlose
+// traegt seit dem 31.10.2026 SECHS (Hendriks Vorgabe; Begruendung an der
+// Vorlage und in ARENA-ENDKAMPF.md 3.5).
 //
 // INITIATIVE ueber das Aktionsdeck (seit 30.10.2026, Bibel 4.4b): Zu Beginn jeder
 // Runde Karten - eine je Wild Card, EINE fuer alle Diener zusammen. Die Reihe
@@ -62,6 +65,17 @@
 // aus js/regelwerk.js, beste getragene Waffe aus AUSRUESTUNG). Woher jede Zahl
 // kommt, steht an der Vorlage. Je Figur im Schlachtfeld weiter aenderbar; dort
 // laesst sich auch ein echtes NSC-Blatt auf ein Token stempeln.
+//
+// ZWEI ZAHLEN SIND SEIT DEM 31.10.2026 BEWUSST NICHT GEMESSEN, und das steht
+// hier, damit sie niemand "zurueckrechnet" (Hendriks Vorgabe: "Wie koennen wir
+// die Gesundheit des Seelenlosen hoeher machen und die kleinen Zombies
+// schwaecher?"):
+//   - der Seelenlose traegt wundenMax 6 statt der drei der Regel,
+//   - die Diener sind abgeschwaecht (Kaempfen d4, Parade 4, Robustheit 4).
+// Die Diener liegen damit allerdings NICHT unter den Blaettern, sondern naeher
+// an ihnen: Nachgerechnet aus NSC_MANNSCHAFT hat die Mannschaft im Median
+// Parade 4 und ueberwiegend ungelerntes Kaempfen. Beides haelt
+// tests/t_arena.js fest.
 const ARENA_SCENES = {
   "15.1": {
     label: "Endkampf — Die Ritualkammer",
@@ -127,15 +141,33 @@ const ARENA_SCENES = {
       },
       /* Die Wiedergaenger sind STATISTEN: kein Wild Die, und die erste Wunde
          nimmt sie raus (KAMPF_REGELN.wundenStatist = 0). Gefaehrlich sind sie
-         in der Menge - vier um eine Figur herum geben dem Angreifer +3 Gang Up.
-         Werte wie ein Mannschaftsmitglied aus js/npcs.js: Kaempfen d6,
-         Staerke d6, Parade 5, Robustheit 5; die Waffe ist, was sie in der Hand
-         halten (d4). */
+         in der Menge - vier um eine Figur herum geben dem Angreifer +4 Gang Up,
+         und genau daran haengt der Sprung von 17 % auf 83 % Treffer.
+
+         ABGESCHWAECHT AM 31.10.2026 (Hendriks Vorgabe: "die kleinen Zombies
+         schwaecher"), und zwar NICHT gegen die Blaetter, sondern naeher an sie
+         heran. Nachgerechnet wurden alle 14 Mannschaftsblaetter aus
+         NSC_MANNSCHAFT (js/npcs.js): ZEHN von vierzehn haben Parade 4, und ELF
+         von vierzehn koennen ueberhaupt nicht kaempfen (Kaempfen ungelernt).
+         Mit d6/5/5 stand der Diener also am OBEREN Ende der Mannschaft - der
+         frueher hier stehende Satz "Werte wie ein Mannschaftsmitglied" war
+         grosszuegig gerundet.
+
+         Jetzt: Kaempfen d4 (ein Wiedergaenger schlaegt zu, ist aber kein
+         geschulter Fechter - immer noch mehr als die typischen 0), Parade 4
+         (genau der Median der Mannschaft), Robustheit 4 (einen Punkt unter dem
+         Median; der einzige Wert, der wirklich darunter liegt - Pip-Niveau).
+         Die Waffe bleibt d4, was sie in der Hand halten.
+
+         Gemessen (drei Diener um einen Spieler, ein Schlag): vorher 50,1 %
+         Treffer und 16,4 % Wunde, jetzt 25,1 % und 8,1 %. Umgekehrt raeumen
+         Spieler sie schneller weg: 66,3 % Treffer / 39,1 % gefallen wird zu
+         81,2 % / 54,8 %. */
       diener: {
         typ: "diener", symbol: "☠", farbe: "#7fa87f",
-        kaempfen: 2, schiessen: 0, staerke: 2,
+        kaempfen: 1, schiessen: 0, staerke: 2,
         waffe: 1, fernwaffe: 0, reichweite: 0,
-        parade: 5, robustheit: 5, wild: false, wundenMax: 0
+        parade: 4, robustheit: 4, wild: false, wundenMax: 0
       },
       /* "bild" (optional, jede Vorlage kann es haben): fuellt den runden
          Token anstelle des Symbols aus. Hier der Kopf-Ausschnitt aus dem
@@ -147,14 +179,32 @@ const ARENA_SCENES = {
          der Kampagne): Kaempfen d12, Staerke d12, Saebel d6, Parade 8,
          Robustheit 8, reine Nahkampffigur. Parade 8 kostet jeden Angriff -4 -
          genau die +4, die die Gruppe sich mit Gang Up zurueckholen kann, wenn
-         sie ihn gemeinsam stellt. Drei Wunden sind die Regel; wird er damit zu
-         weich oder zu zaeh, ist "wundenMax" der erste Hebel. */
+         sie ihn gemeinsam stellt.
+
+         "wundenMax: 6" IST EINE BEWUSSTE ABWEICHUNG von Savage Worlds
+         (31.10.2026, Hendriks Vorgabe) und steht als vierte in
+         ARENA-ENDKAMPF.md 3.5. Dort traegt eine Wild Card genau DREI Wunden,
+         die vierte ist ausser Gefecht; der Weg des Regelwerks fuer ein Monster,
+         das mehr wegsteckt, ist die Groessenklasse (Size) - und Groessen
+         bildet dieses Projekt nirgends ab.
+
+         Gemessen, warum es noetig war: Mit drei Wunden schlagen ihn fuenf
+         Spieler in 1,7 Runden nieder. Nicht weil er leicht zu treffen waere
+         (allein 24,5 %, zu fuenft 81,4 %), sondern weil ein Treffer, der die
+         Robustheit um 8 uebersteigt, nach "je volle 4 darueber" gleich ZWEI
+         Wunden macht. Mit sechs sind es 2,6 Runden, mit acht 3,2.
+
+         Die ROBUSTHEIT bleibt bewusst bei 8 und ist NICHT der Hebel: Eine
+         Wunde braucht dort schon 12 Schaden, und Waffe + Staerke (d6 + d8)
+         liegt im Mittel bei 8 - ohne Ass wird er gar nicht verwundet. Noch
+         einen Punkt hoeher, und er ist gegen eine normale Gruppe praktisch
+         unverwundbar. */
       seelenloser: {
         typ: "seelenloser", symbol: "✦", farbe: "#a8391e",
         bild: "images/token_seelenloser.webp",
         kaempfen: 5, schiessen: 0, staerke: 5,
         waffe: 2, fernwaffe: 0, reichweite: 0,
-        parade: 8, robustheit: 8, wild: true, wundenMax: 3
+        parade: 8, robustheit: 8, wild: true, wundenMax: 6
       }
     }
   }

@@ -321,6 +321,13 @@ gemeinsam stellt. Gemessen an einer Figur mit Kämpfen d8: **allein 24,7 %, zu f
 - **Ein Statist trägt KEINE Wunde** — die erste nimmt ihn heraus. Eine **Heldenfigur trägt
   drei**, die vierte ist *außer Gefecht*.
 
+> **Eine Figur darf ausnahmsweise mehr tragen** (Feld `wundenMax`, 31.10.2026). Savage Worlds
+> kennt dafür die **Größenklasse**, die dieses Projekt nirgends abbildet; die Ausnahme ist
+> deshalb eine **bewusste Abweichung** und gilt nur, wo sie ausdrücklich gesetzt ist. Derzeit
+> genau einmal: **Der Seelenlose** im Endkampf trägt **sechs** Wunden, weil er mit drei in
+> gemessenen 1,7 Runden fällt. Begründung und Messung in `ARENA-ENDKAMPF.md` 3.5. Überall sonst
+> gilt die Regel oben unverändert.
+
 #### Angeschlagen
 
 **Angeschlagen kostet die Handlung, nicht den Würfel.** Wer angeschlagen ist, darf sich

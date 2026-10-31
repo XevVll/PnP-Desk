@@ -149,12 +149,31 @@ Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
 > einen Zustand zu verwalten. Ein **Bennie**, der den Haken sofort wegnimmt, bleibt möglich: Der
 > Spieler sagt es an, die SL klickt „Haken weg".
 
-### 3.5 Die drei bewussten Abweichungen, zusammengefasst
+### 3.5 Die vier bewussten Abweichungen, zusammengefasst
 
 1. **Angeschlagen** ohne Willenskraft-Probe (siehe 3.4).
 2. Beim **Gang Up** wird nicht geprüft, ob ein mithelfender Verbündeter selbst gebunden ist —
    die Art Buchhaltung, die das Projekt weglässt (vgl. Bibel 4.5).
 3. Der **Wunden-Abzug** ist bei 3 gedeckelt, auch wenn eine Figur mehr tragen kann.
+4. **Der Seelenlose trägt sechs Wunden** statt der drei, die Savage Worlds einer Wild Card gibt
+   (31.10.2026, Hendriks Vorgabe). Siehe den Kasten darunter.
+
+> **Zu Nummer 4.** In Savage Worlds trägt eine Wild Card genau **drei** Wunden, die vierte ist
+> *außer Gefecht*; der Weg des Regelwerks für ein Monster, das mehr wegsteckt, ist die
+> **Größenklasse** — und Größen bildet dieses Projekt nirgends ab. Ein eigenes Feld
+> (`wundenMax` am Token, ausgewertet von `wirkung()` in `js/kampf.js`) war der kleinere Eingriff,
+> als eine Größen-Mechanik für genau eine Figur zu bauen.
+>
+> **Gemessen, warum es nötig war:** Mit drei Wunden schlagen ihn fünf Spieler in **1,7 Runden**
+> nieder. Nicht weil er leicht zu treffen wäre — allein 24,5 %, zu fünft 81,4 % —, sondern weil
+> ein Treffer, der die Robustheit um 8 übersteigt, nach „je volle 4 darüber" **gleich zwei
+> Wunden** macht. Mit sechs sind es 2,6 Runden, mit acht 3,2.
+>
+> **Die Robustheit ist bewusst NICHT der Hebel** und bleibt bei 8: Eine Wunde braucht dort schon
+> 12 Schaden, und Waffe + Stärke (d6 + d8) liegt im Mittel bei 8 — ohne Ass wird er gar nicht
+> verwundet. Einen Punkt höher, und er ist gegen eine normale Gruppe praktisch unverwundbar.
+> `tests/t_arena.js` hält beides fest, **samt der Gegenrichtung**: Ohne das Feld gilt die Regel
+> für alle anderen unverändert, die Abweichung läuft nicht aus.
 
 Alles Weitere — Wiederauferstehung, Nachschub, Säbel — ist **Kampagnenregel**, nicht Abweichung:
 Sie steht in Bibel 12.1 und hat in Savage Worlds kein Gegenstück.
@@ -513,14 +532,14 @@ Die Felder einer Figuren-Vorlage sind **Würfelstufen** wie in `js/regelwerk.js`
 | | Spieler | Verbündeter | Diener | Seelenloser |
 |---|---|---|---|---|
 | Symbol / Farbe | ☘ gold | ⚓ blaugrau | ☠ grün | ✦ rot |
-| `kaempfen` | d8 | **d10** | d6 | **d12** |
+| `kaempfen` | d8 | **d10** | **d4** | **d12** |
 | `schiessen` | d8 | d6 | — | — |
 | `staerke` | d8 | d10 | d6 | d12 |
 | `waffe` / `fernwaffe` | d6 / d6 | d6 / — | d4 / — | d6 / — |
 | `reichweite` | 5 | — | — | — |
-| `parade` / `robustheit` | 6 / 6 | **7 / 7** | 5 / 5 | **8 / 8** |
+| `parade` / `robustheit` | 6 / 6 | **7 / 7** | **4 / 4** | **8 / 8** |
 | `wild` (Wild Card) | ja | ja | **nein** | ja |
-| `wundenMax` | 3 | 3 | **0** | 3 |
+| `wundenMax` | 3 | 3 | **0** | **6** |
 
 **Diese Zahlen sind seit dem 30.10.2026 NICHT mehr gegriffen, sondern GEMESSEN.** Vorher trug
 die Arena eigene W100-Kampfwerte, und derselbe Mann hatte im Endkampf andere Werte als in
@@ -531,11 +550,33 @@ die Arena eigene W100-Kampfwerte, und derselbe Mann hatte im Endkampf andere Wer
 |---|---|---|
 | `spieler` | **Harwick** | Die Spielerbögen liegen nur im `localStorage` der Spieler. Harwick ist der Maßstab einer erfahrenen Figur — im Finale angemessen. |
 | `verbuendeter` | **Cormac** | Bester Kämpfer an Bord; „Kampf 7 gegen Harwicks 6" ist Kanon und steht damit auch hier. |
-| `diener` | wie ein Mannschaftsmitglied | Ein Statist: kein Wild Die, die erste Wunde nimmt ihn raus. Gefährlich in der Menge (Gang Up). |
+| `diener` | Mannschafts-Median, abgeschwächt | Ein Statist: kein Wild Die, die erste Wunde nimmt ihn raus. Gefährlich in der Menge (Gang Up). Seit dem 31.10.2026 abgeschwächt — siehe den Kasten darunter. |
 | `seelenloser` | **sein eigenes Blatt** | Legendär, der einzige d12 der Kampagne. Parade 8 kostet −4 — genau das, was Gang Up zurückholt. |
 
 `tests/t_arena.js` **rechnet diese Herkunft nach** statt sie zu behaupten: Parade, Robustheit und
 Kämpfen-Wert der Vorlagen müssen mit den Blättern übereinstimmen.
+
+> **Zwei Zahlen sind seit dem 31.10.2026 bewusst NICHT gemessen** (Hendriks Vorgabe: *„Wie können
+> wir die Gesundheit des Seelenlosen höher machen und die kleinen Zombies schwächer?"*) — der
+> `wundenMax` des Seelenlosen (6, siehe 3.5) und die Werte der Diener.
+>
+> **Bei den Dienern ist das aber keine Abweichung, sondern eine Korrektur.** Nachgerechnet wurden
+> alle 14 Blätter aus `NSC_MANNSCHAFT`: **zehn von vierzehn haben Parade 4**, und **elf von
+> vierzehn können überhaupt nicht kämpfen** (Kämpfen ungelernt). Mit d6 / 5 / 5 stand der Diener
+> damit am **oberen** Ende der Mannschaft; der vorher hier stehende Satz „wie ein
+> Mannschaftsmitglied" war großzügig gerundet. Jetzt: **Kämpfen d4** (schlägt zu, ist aber kein
+> geschulter Fechter — immer noch mehr als die typischen 0), **Parade 4** (genau der Median),
+> **Robustheit 4** (ein Punkt darunter, Pip-Niveau — der einzige Wert, der wirklich unter der
+> Mannschaft liegt).
+>
+> **Gemessen** (drei Diener um einen Spieler, ein Schlag): vorher 50,1 % Treffer und 16,4 % Wunde,
+> jetzt 25,1 % und 8,1 %. Umgekehrt räumen Spieler sie schneller weg: aus 66,3 % Treffer /
+> 39,1 % gefallen wird 81,2 % / 54,8 %.
+>
+> `tests/t_arena.js` **misst die 14 Blätter selbst** und vergleicht — eine Prüfung, die bloß die
+> Zahl in der Vorlage liest, bestätigt sich selbst. Gegengeprüft: Dreht man beide Änderungen
+> zurück, schlagen **9 Prüfungen** an, und die erste nennt den Fehler wörtlich
+> (`der Seelenlose traegt mehr als die drei Wunden der Regel` → `3`).
 
 Je Figur sind die Werte im Schlachtfeld weiter **einzeln editierbar** — und dort lässt sich
 zusätzlich **ein echtes NSC-Blatt auf ein Token stempeln** („Blatt → übernehmen"): Name, Werte,
@@ -952,16 +993,26 @@ Drei Fehler beim Bau, alle vom Test gefunden:
 
 ### 9.1 Von Hendrik zu entscheiden
 
-- **Werte.** Sie stammen jetzt aus den Blättern (5.1) und sind damit nicht mehr frei gegriffen —
-  aber **ob der Kampf sich gut anfühlt, zeigt erst ein Durchlauf.** Die Rechnung, die man dabei
-  im Kopf haben sollte: Der Seelenlose hat Robustheit 8, eine Wunde braucht also **12 Schaden**,
-  und Waffe + Stärke (d6 + d8) kommt im Mittel auf 8 — ohne Ass wird er **nicht** verwundet.
-  Mit drei Wunden fällt er; realistisch sind das viele Treffer. Stellschrauben in dieser
-  Reihenfolge:
-  1. `wundenMax` des Seelenlosen (Länge des Kampfes — der ehrlichste Hebel),
-  2. `nachschubAlle` / `nachschubAnzahl` (Druck),
-  3. seine `robustheit` (ob er überhaupt verwundbar ist),
-  4. `waffe`/`staerke` der Spieler (ihre Durchschlagskraft).
+- **Werte.** Sie stammen aus den Blättern (5.1), mit zwei bewusst gedrehten Zahlen seit dem
+  31.10.2026 — **aber ob der Kampf sich gut anfühlt, zeigt erst ein Durchlauf.**
+  - **Entschieden am 31.10.2026** (Hendrik, nach der Messung): Der Seelenlose trägt
+    **`wundenMax` 6** statt 3 → rund **2,6 statt 1,7 Runden**, bis fünf Spieler ihn niederschlagen.
+    Die Diener gehen auf **Kämpfen d4 · Parade 4 · Robustheit 4** → ein Schlag trifft noch zu
+    25,1 % statt 50,1 % und verwundet zu 8,1 % statt 16,4 %; umgekehrt fallen sie bei 54,8 %
+    statt 39,1 % der Spielertreffer.
+  - Die Rechnung, die man dabei im Kopf haben sollte: Der Seelenlose hat Robustheit 8, eine Wunde
+    braucht also **12 Schaden**, und Waffe + Stärke (d6 + d8) kommt im Mittel auf 8 — ohne Ass
+    wird er **nicht** verwundet.
+  - **Der eigentliche Hebel ist aber die Menge, nicht der Einzelwert:** Gang Up gibt +4, und daran
+    hängt der Sprung von 16,6 % auf 83,3 % Treffer gegen einen umstellten Spieler. Wird es am
+    Tisch zu hart oder zu lasch, dreht `nachschubAlle` / `nachschubAnzahl` mehr als jede
+    Würfelstufe.
+  - Stellschrauben in dieser Reihenfolge:
+  1. `nachschubAlle` / `nachschubAnzahl` (Druck — der stärkste Hebel),
+  2. `wundenMax` des Seelenlosen (Länge des Kampfes),
+  3. `waffe`/`staerke` der Spieler (ihre Durchschlagskraft),
+  4. seine `robustheit` — **zuletzt und mit Vorsicht:** ein Punkt mehr macht ihn gegen eine
+     normale Gruppe praktisch unverwundbar.
 - **Hat der Seelenlose eigene Fähigkeiten** jenseits von Zuschlagen und Beschwören? Mechanisch
   ist er ein sehr starker Nahkämpfer mit Parade 8. Savage Worlds hätte dafür Talente (er trägt
   in `js/npcs.js` bereits *Drohende Gegenwart*, *Standhaft*, *Totenstill*, *Vorahnung*) — die

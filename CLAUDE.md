@@ -129,6 +129,71 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-10-31 — Der Seelenlose steckt mehr weg, die Wiedergänger weniger
+- **Hendriks Frage:** „Wie können wir die Gesundheit des Seelenlosen höher machen und die
+  kleinen Zombies schwächer?"
+- **ERST GEMESSEN, DANN GEDREHT — und die Messung hat die Begründung umgedreht.** Mit drei
+  Wunden schlagen ihn fünf Spieler in **1,7 Runden** nieder. Nicht weil er leicht zu treffen
+  wäre (allein 24,5 %, zu fünft 81,4 %), sondern weil ein Treffer, der die Robustheit um 8
+  übersteigt, nach „je volle 4 darüber" **gleich zwei Wunden** macht. Drei sind damit schnell
+  weg.
+- **„Gesundheit" gibt es nicht** — HP sind seit dem 30.10. ersatzlos weg, eine Figur trägt
+  „angeschlagen" und eine Zahl Wunden. Zwei Hebel, und nur einer ist der richtige:
+  - **`wundenMax` 3 → 6** (gemessen 1,7 → **2,6 Runden**; 8 wären 3,2).
+  - **Die `robustheit` bleibt bei 8, und das ist der Punkt:** Eine Wunde braucht dort schon
+    **12 Schaden**, und Waffe + Stärke (d6 + d8) liegt im Mittel bei **8** — ohne Ass wird er
+    gar nicht verwundet. Einen Punkt höher, und er ist gegen eine normale Gruppe praktisch
+    **unverwundbar**. Der Hebel, der „zäher" heißt, hätte hier „unangreifbar" bedeutet.
+- **`wundenMax: 6` IST EINE ABWEICHUNG VON SAVAGE WORLDS, und sie steht als solche da.** Dort
+  trägt eine Wild Card genau **drei** Wunden, die vierte ist außer Gefecht; der Weg des
+  Regelwerks für ein Monster, das mehr wegsteckt, ist die **Größenklasse** — und Größen bildet
+  dieses Projekt nirgends ab. Eingetragen als **vierte** in `ARENA-ENDKAMPF.md` 3.5, dazu ein
+  Kasten in **Bibel 4.4a**, wo bis heute flach „eine Heldenfigur trägt drei" stand. Genau die
+  Regel vom 14.10.: *Steht eine Regel im Projekt nirgends, ist **das** der Befund.*
+- **DER EIGENTLICHE FUND LIEGT BEI DEN DIENERN, und er dreht die Begründung:** Ich habe alle
+  **14 Mannschaftsblätter** aus `NSC_MANNSCHAFT` einzeln durchgerechnet — **zehn von vierzehn
+  haben Parade 4**, und **elf von vierzehn können überhaupt nicht kämpfen** (Kämpfen
+  ungelernt). Mit d6 / 5 / 5 stand der Diener also am **oberen** Ende der Mannschaft; mein
+  eigener Dateikommentar „Werte wie ein Mannschaftsmitglied" war großzügig gerundet.
+  - **Die Abschwächung ist damit keine Abweichung, sondern eine Korrektur:** Kämpfen **d4**
+    (schlägt zu, ist aber kein geschulter Fechter — immer noch mehr als die typischen 0),
+    Parade **4** (genau der Median), Robustheit **4** (ein Punkt darunter, Pip-Niveau — der
+    einzige Wert, der wirklich unter der Mannschaft liegt).
+  - **Gemessen** (drei Diener um einen Spieler, ein Schlag): vorher 50,1 % Treffer und 16,4 %
+    Wunde, jetzt **25,1 % und 8,1 %**. Umgekehrt räumen Spieler sie schneller weg: aus 66,3 %
+    Treffer / 39,1 % gefallen wird **81,2 % / 54,8 %**.
+- **Der stärkste Hebel ist aber keiner an der Figur**, und das steht jetzt als erste
+  Stellschraube in `ARENA-ENDKAMPF.md` 9.1: Gefährlich sind die Diener durch die **Menge** —
+  Gang Up gibt +4, und daran hängt der Sprung von 16,6 % auf 83,3 % Treffer gegen einen
+  umstellten Spieler. `nachschubAlle` / `nachschubAnzahl` drehen mehr als jede Würfelstufe.
+- **Getestet: 345 Prüfungen in `t_arena.js`, 0 Fehler** (17 neue; **2077 über vierzehn
+  Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **Die Diener-Prüfung MISST die 14 Blätter selbst** und vergleicht Median gegen Vorlage.
+    Eine Prüfung, die bloß die Zahl in der Vorlage liest, bestätigt sich selbst.
+  - **Die wichtigere Hälfte ist die Gegenrichtung:** Ohne das Feld `wundenMax` fällt eine Wild
+    Card weiterhin bei der vierten Wunde. Eine Abweichung, die ausläuft, ist keine.
+  - Dazu: `arenaWundenMax` gibt die sechs wirklich weiter, ein übergroßer Treffer klemmt bei
+    sechs statt bei drei, bei drei Wunden ist er noch **nicht** außer Gefecht, und die
+    Abschwächung wirkt **am Brett** (kleinerer Angriffswürfel, kleinerer Abzug für den
+    Angreifer) statt nur in der Tabelle.
+  - **Gegengeprüft:** Dreht man beide Änderungen zurück, schlagen **9 Prüfungen** an, und die
+    erste nennt den Fehler wörtlich (`der Seelenlose traegt mehr als die drei Wunden der
+    Regel` → `3`).
+- **Zwei eigene Werkzeug-Fehler, beide dokumentiert und beide wieder gemacht:**
+  1. **Die Heredoc-Falle** — ein Python-Skript mit Backslashes per Bash-Heredoc kam nicht an
+     („here-document delimited by end-of-file"). Beim zweiten Anlauf den im Projekt vermerkten
+     Weg genommen (Write-Werkzeug, Zeilenenden über `chr(13)`/`chr(10)`).
+  2. **Eine Dublette, weil mein Ersetzungstext den Suchtext ENTHIELT.** Der Dateikopf-Block
+     wurde dadurch beim zweiten Lauf ein zweites Mal eingefügt; beim Herausschneiden per `sed`
+     habe ich dann eine Zeile zu viel erwischt und `const ARENA_SCENES = {` gelöscht — die
+     Datei war unparsebar. Vor dem `git checkout --` geprüft, dass nur meine eigene Arbeit
+     dranhing (`git status`, `git diff --stat`), und sie ist vollständig aus den Skripten
+     reproduzierbar. **Das Skript hat jetzt eine Marke und bricht bei einem zweiten Lauf ab** —
+     eine Ersetzung, die ihren eigenen Suchtext zurückschreibt, ist nicht idempotent.
+- **[OFFEN] Ob die Zahlen sich am Tisch gut anfühlen, zeigt erst der Probekampf.** Sie sind
+  jetzt gemessen statt gegriffen, aber nicht erprobt — Stellschrauben in der neuen Reihenfolge
+  in `ARENA-ENDKAMPF.md` 9.1.
+
 ### 2026-10-30 (Fortsetzung 6) — Jeder steuert seine eigene Figur und beendet seinen Zug
 - **Hendriks Vorgabe:** „Können wir einem Spieler direkt seine Figur zuteilen, dass dieser
   Spieler auch selbstständig seine Figur steuern kann und auch die Runde beenden kann?"

@@ -52,7 +52,7 @@ vm.runInContext('this.X = {' + [
   'arenaAngriff', 'arenaBewegungErlaubt', 'arenaBossLebt', 'arenaBossGebannt',
   'arenaRundenwechsel', 'arenaFreieRandfelder', 'arenaLogZeile',
   'angriffsMod', 'fernkampfMod', 'wirkung', 'chancen', 'parade', 'robustheit',
-  'nscAlsFigur', 'NSC', 'ARENA_SCENES', 'KAMPF_REGELN', 'DLBL',
+  'nscAlsFigur', 'NSC', 'NSC_MANNSCHAFT', 'ARENA_SCENES', 'KAMPF_REGELN', 'DLBL',
   'ARENA_DIENER_SCHLUESSEL', 'arenaIniEintraege', 'arenaIniTokens', 'arenaAusteilen',
   'arenaIniIndex', 'arenaIniAmZug', 'arenaIniWeiter', 'arenaIniFreigabe', 'arenaIniBonus',
   'arenaFeldFrei', 'arenaNaechstesZiel', 'arenaSchrittZu', 'arenaDienerZug', 'arenaDienerRunde',
@@ -1407,7 +1407,8 @@ function held(id, opts) {
     chk('eine gestempelte Spielerfigur kann angreifen', erg.ok === true, erg.grund);
     chk('und wirft mit ihrem eigenen Kämpfen-Wert', erg.stufe === 4, erg.stufe);
     chk('gegen die Parade des Dieners',
-      erg.mod === A.angriffsMod(vorlagen.diener.parade), [erg.mod, A.angriffsMod(5)]);
+      erg.mod === A.angriffsMod(vorlagen.diener.parade),
+      [erg.mod, A.angriffsMod(vorlagen.diener.parade), vorlagen.diener.parade]);
   })();
 })();
 
@@ -1596,6 +1597,116 @@ function held(id, opts) {
     u.lauf();
     chk('ohne ausgeteilte Karten beendet niemand einen Zug',
       u.geschrieben.length === 0, u.geschrieben);
+  })();
+})();
+
+/* ==========================================================
+   DIE GEDREHTEN WERTE (31.10.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Wie koennen wir die Gesundheit des
+   Seelenlosen hoeher machen und die kleinen Zombies
+   schwaecher?"
+
+   Zwei Dinge koennen hier LAUTLOS wieder verloren gehen, und
+   deshalb stehen sie als Pruefung da:
+
+   1. Der Seelenlose traegt SECHS Wunden statt der drei, die
+      Savage Worlds einer Wild Card gibt. Das ist eine bewusste
+      Abweichung (ARENA-ENDKAMPF.md 3.5). Zieht jemand die Werte
+      spaeter wieder "aus den Blaettern", faellt sie weg - und
+      der Boss ist zurueck bei 1,7 Runden, ohne dass es auffaellt.
+   2. Die Diener sind ABGESCHWAECHT. Auch das wuerde eine
+      Rueckrechnung aus den Blaettern stillschweigend aufheben.
+
+   WAS DIE DIENER-WERTE ABER NICHT SIND: gegen die Blaetter
+   gegriffen. Nachgerechnet aus NSC_MANNSCHAFT liegt die
+   Mannschaft bei Parade 4 und ueberwiegend ungelerntem Kaempfen -
+   mit d6/5/5 stand der Diener am OBEREN Ende. Genau das prueft
+   dieser Block mit: er misst die 14 Blaetter und vergleicht.
+   ========================================================== */
+(function () {
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+
+  // ---------- Der Seelenlose: die Abweichung ist gewollt und steht fest
+  chk('der Seelenlose traegt mehr als die drei Wunden der Regel',
+    vorlagen.seelenloser.wundenMax === 6, vorlagen.seelenloser.wundenMax);
+  chk('und das ist tatsaechlich MEHR als KAMPF_REGELN hergibt',
+    vorlagen.seelenloser.wundenMax > A.KAMPF_REGELN.wundenWildCard,
+    [vorlagen.seelenloser.wundenMax, A.KAMPF_REGELN.wundenWildCard]);
+  /* Die Mechanik muss das Feld auch wirklich durchlassen - ein wundenMax, das
+     irgendwo auf 3 geklemmt wird, waere eine Zahl ohne Wirkung. */
+  const boss = Object.assign({ id: 'b' }, vorlagen.seelenloser);
+  chk('arenaWundenMax gibt die sechs weiter', A.arenaWundenMax(boss) === 6,
+    A.arenaWundenMax(boss));
+  const wVoll = A.wirkung(100, boss.robustheit, { wunden: 0, extra: false, wundenMax: 6 });
+  chk('ein uebergrosser Treffer klemmt bei sechs, nicht bei drei',
+    wVoll.wunden === 6 && wVoll.ausserGefecht === true, wVoll);
+  const wDrei = A.wirkung(boss.robustheit + 4, boss.robustheit,
+    { wunden: 3, extra: false, wundenMax: 6 });
+  chk('bei drei Wunden ist er noch NICHT ausser Gefecht',
+    wDrei.wunden === 4 && wDrei.ausserGefecht === false, wDrei);
+  /* Und die Gegenrichtung, die wichtigere Haelfte: Ohne das Feld gilt die Regel
+     unveraendert fuer alle anderen. Die Abweichung darf nicht auslaufen. */
+  const ohneFeld = A.wirkung(boss.robustheit + 4, boss.robustheit, { wunden: 3, extra: false });
+  chk('ohne wundenMax faellt eine Wild Card weiterhin bei der vierten Wunde',
+    ohneFeld.ausserGefecht === true
+    && ohneFeld.wunden === A.KAMPF_REGELN.wundenWildCard, ohneFeld);
+  /* Robustheit bleibt bei 8: hoeher macht ihn praktisch unverwundbar - eine
+     Wunde braucht dort schon 12 Schaden, und Waffe + Staerke (d6 + d8) liegt
+     im Mittel bei 8. */
+  chk('seine Robustheit ist dabei NICHT mitgewandert',
+    vorlagen.seelenloser.robustheit === 8, vorlagen.seelenloser.robustheit);
+
+  // ---------- Die Diener: gemessen gegen die 14 Mannschaftsblaetter
+  const mannschaft = Object.keys(A.NSC_MANNSCHAFT).map(function (id) {
+    return A.arenaWerteAusFigur(A.nscAlsFigur(A.NSC_MANNSCHAFT[id]), id);
+  });
+  chk('es gibt ueberhaupt Mannschaftsblaetter zum Vergleichen',
+    mannschaft.length >= 10, mannschaft.length);
+  function median(feld) {
+    const v = mannschaft.map(function (m) { return m[feld]; })
+      .sort(function (a, b) { return a - b; });
+    return v[Math.floor(v.length / 2)];
+  }
+  const medP = median('parade'), medK = median('kaempfen'), medR = median('robustheit');
+  chk('die Mannschaft liegt im Median bei Parade 4', medP === 4, medP);
+  chk('und kann im Median gar nicht kaempfen', medK === 0, medK);
+  chk('der Diener trifft genau diesen Parade-Median',
+    vorlagen.diener.parade === medP, [vorlagen.diener.parade, medP]);
+  chk('er kaempft besser als der typische Matrose, aber schlecht',
+    vorlagen.diener.kaempfen === 1 && vorlagen.diener.kaempfen > medK,
+    [vorlagen.diener.kaempfen, medK]);
+  chk('seine Robustheit liegt bewusst unter dem Mannschafts-Median',
+    vorlagen.diener.robustheit === 4 && vorlagen.diener.robustheit < medR,
+    [vorlagen.diener.robustheit, medR]);
+  chk('ein Statist bleibt er, trotz allem',
+    vorlagen.diener.wild === false && vorlagen.diener.wundenMax === 0, vorlagen.diener);
+
+  /* DIE TRAGENDE PRUEFUNG DER ABSCHWAECHUNG: Sie muss sich am Brett auswirken,
+     nicht nur in der Tabelle stehen. Eine Pruefung, die bloss die Zahl in der
+     Vorlage liest, bestaetigt sich selbst. */
+  (function () {
+    function schlag(dienerWerte) {
+      const a = Object.assign({ id: 'a', x: 5, y: 4, geladen: true }, dienerWerte);
+      const z = Object.assign({ id: 'z', x: 5, y: 5, geladen: true }, vorlagen.spieler);
+      return A.arenaAngriff(a, z, { a: a, z: z }, REGELN, null, { probeBand: 'erfolg' });
+    }
+    const jetzt = schlag(vorlagen.diener);
+    const alt = schlag(Object.assign({}, vorlagen.diener,
+      { kaempfen: 2, parade: 5, robustheit: 5 }));
+    chk('der Diener wirft jetzt den kleineren Angriffswuerfel',
+      jetzt.stufe === 1 && alt.stufe === 2, [jetzt.stufe, alt.stufe]);
+    chk('und die beiden Faelle fallen nachweislich auseinander',
+      jetzt.stufe !== alt.stufe);
+    // Umgekehrt: ein Spieler trifft ihn leichter als vorher.
+    function abzugGegen(parade) {
+      const a = Object.assign({ id: 'a', x: 5, y: 4, geladen: true }, vorlagen.spieler);
+      const z = Object.assign({ id: 'z', x: 5, y: 5 }, vorlagen.diener, { parade: parade });
+      return A.arenaAngriff(a, z, { a: a, z: z }, REGELN, null).mod;
+    }
+    chk('ein Spieler schlaegt mit kleinerem Abzug auf ihn ein',
+      abzugGegen(vorlagen.diener.parade) > abzugGegen(5),
+      [abzugGegen(vorlagen.diener.parade), abzugGegen(5)]);
   })();
 })();
 
