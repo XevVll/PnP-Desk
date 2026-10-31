@@ -47,7 +47,7 @@ vm.createContext(ctx);
   });
 vm.runInContext('this.X = {' + [
   'arenaDistanz', 'arenaAngriffsart', 'arenaGangUp', 'arenaAngriffMod', 'GANG_UP_MAX',
-  'arenaSeite', 'arenaIstFeind', 'arenaWundenMax', 'arenaWundenAbzug', 'arenaWundenAnteil',
+  'arenaSeite', 'arenaIstFeind', 'arenaDarfSteuern', 'arenaFremdeFigur', 'arenaWundenMax', 'arenaWundenAbzug', 'arenaWundenAnteil',
   'arenaKannAngreifen', 'arenaZustandText', 'arenaSchadensWuerfel', 'arenaSchadenWerfen',
   'arenaAngriff', 'arenaBewegungErlaubt', 'arenaBossLebt', 'arenaBossGebannt',
   'arenaRundenwechsel', 'arenaFreieRandfelder', 'arenaLogZeile',
@@ -1408,6 +1408,194 @@ function held(id, opts) {
     chk('und wirft mit ihrem eigenen Kämpfen-Wert', erg.stufe === 4, erg.stufe);
     chk('gegen die Parade des Dieners',
       erg.mod === A.angriffsMod(vorlagen.diener.parade), [erg.mod, A.angriffsMod(5)]);
+  })();
+})();
+
+/* ==========================================================
+   WER STEUERT WELCHE FIGUR (30.10.2026, Fortsetzung 6)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: Ein Spieler bekommt seine Figur zugeteilt,
+   steuert sie selbst und beendet seinen Zug selbst.
+
+   Zwei Dinge koennen hier LAUTLOS falsch sein, und beide waeren
+   am Tisch unangenehm:
+
+   1. ZU STRENG. Verlangte arenaDarfSteuern() eine Zuordnung,
+      waere jede Platzhalter-Figur ("Spieler 1") unspielbar - und
+      zwar ohne sichtbaren Grund, mitten im Gefecht. Deshalb ist
+      die Fallback-Regel hier eine eigene Pruefung.
+   2. ZU LOCKER beim Zug-Ende. Schaltet ein Spieler die Reihe
+      weiter, waehrend eine fremde Figur handelt, oder schaltet
+      ein Doppelklick zwei Eintraege weiter, uebersprint das eine
+      Figur - und niemand merkt, wessen Zug gefehlt hat.
+   ========================================================== */
+(function () {
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+  function tk(vorlage, zusatz) {
+    return Object.assign({}, vorlagen[vorlage], { geladen: true }, zusatz || {});
+  }
+
+  // -------------------------------------------------- Die Regel selbst
+  chk('die eigene Figur darf man steuern',
+    A.arenaDarfSteuern(tk('spieler', { pid: 'anna' }), 'anna') === true);
+  chk('eine fremde Figur nicht',
+    A.arenaDarfSteuern(tk('spieler', { pid: 'bert' }), 'anna') === false);
+  /* DIE FALLBACK-REGEL: ohne Zuordnung darf jeder. Lieber eine Figur, die zu
+     viele bewegen koennen, als eine, die niemand bewegen kann. */
+  chk('eine Figur OHNE Zuordnung darf jeder steuern',
+    A.arenaDarfSteuern(tk('spieler'), 'anna') === true
+    && A.arenaDarfSteuern(tk('spieler'), '') === true
+    && A.arenaDarfSteuern(tk('spieler'), null) === true);
+  chk('ohne eigene Kennung kommt man an eine zugeteilte Figur nicht',
+    A.arenaDarfSteuern(tk('spieler', { pid: 'anna' }), '') === false);
+  // Verbuendete und Gegner gehoeren der SL - unabhaengig von jeder Zuordnung.
+  chk('ein Verbündeter ist für Spieler nicht steuerbar',
+    A.arenaDarfSteuern(tk('verbuendeter', { pid: 'anna' }), 'anna') === false);
+  chk('ein Diener auch nicht', A.arenaDarfSteuern(tk('diener'), 'anna') === false);
+  chk('der Seelenlose erst recht nicht',
+    A.arenaDarfSteuern(tk('seelenloser'), 'anna') === false);
+  chk('ohne Token gar nichts', A.arenaDarfSteuern(null, 'anna') === false);
+
+  chk('"fremde Figur" greift nur bei echter Zuordnung',
+    A.arenaFremdeFigur(tk('spieler', { pid: 'bert' }), 'anna') === true
+    && A.arenaFremdeFigur(tk('spieler'), 'anna') === false
+    && A.arenaFremdeFigur(tk('spieler', { pid: 'anna' }), 'anna') === false);
+
+  /* ---------- "Zug beenden" aus karte.html, wirklich ausgeführt ----------
+     Der Code wird AUS DER SEITE GESCHNITTEN und laufen gelassen, nicht
+     nachgebaut: Eine nachgebaute Kopie prüft genau die Wachen nicht, um die es
+     hier geht. */
+  (function () {
+    const quelle = fs.readFileSync(path.join(WURZEL, 'karte.html'), 'utf8');
+    const von = quelle.indexOf('function arenaZugBeenden()');
+    const bis = quelle.indexOf('if (arenaFertigEl) arenaFertigEl.addEventListener');
+    chk('der Schnitt findet arenaZugBeenden() in karte.html', von > 0 && bis > von,
+      [von, bis]);
+    if (von < 0 || bis < von) return;
+    const code = quelle.slice(von, bis);
+
+    function umgebung(stand, kennung, gesehenerIndex) {
+      const ctx2 = {};
+      vm.createContext(ctx2);
+      ['js/regelwerk.js', 'js/kampf.js', 'js/arena.js', 'js/arena_scenes.js'].forEach(function (p) {
+        vm.runInContext(fs.readFileSync(path.join(WURZEL, p), 'utf8'), ctx2, { filename: p });
+      });
+      /* Die vm-Falle, zum wiederholten Mal: `const ARENA_SCENES` liegt im
+         Skript-Scope und ist von AUSSEN nicht als Kontext-Eigenschaft sichtbar
+         (`ctx2.ARENA_SCENES` ist undefined). Also im Kontext selbst herausgeben. */
+      vm.runInContext('this.__SZENEN = ARENA_SCENES;', ctx2);
+      const geschrieben = [];
+      ctx2.arenaScene = '15.1';
+      ctx2.arenaSnap = stand;
+      ctx2.db = {};
+      ctx2.arenaSzene = function (id) { return ctx2.__SZENEN[id] || null; };
+      ctx2.figurSchluessel = function () { return kennung; };
+      ctx2.arenaFertigEl = { dataset: { index: gesehenerIndex == null ? '' : String(gesehenerIndex) } };
+      ctx2.arenaSchreibe = function (ae, log) { geschrieben.push({ ae: ae, log: log }); };
+      vm.runInContext(code + '\nthis.__fertig = arenaZugBeenden;', ctx2);
+      return { ctx: ctx2, geschrieben: geschrieben, lauf: ctx2.__fertig };
+    }
+
+    // Zwei Spielerfiguren, jede ihrem Spieler zugeteilt, dazu Diener.
+    function stand(index) {
+      const tokens = {
+        a_anna: tk('spieler', { name: 'Anna', pid: 'anna', x: 2, y: 15 }),
+        b_bert: tk('spieler', { name: 'Bert', pid: 'bert', x: 4, y: 15 }),
+        c_d1: tk('diener', { name: 'Diener 1', x: 2, y: 14 })
+      };
+      const reihe = [
+        { key: 't:a_anna', name: 'Anna', tokens: ['a_anna'], karte: { wert: 14, farbe: 'pik' } },
+        { key: 't:b_bert', name: 'Bert', tokens: ['b_bert'], karte: { wert: 10, farbe: 'herz' } },
+        { key: A.ARENA_DIENER_SCHLUESSEL, name: 'Die Wiedergänger (1)', tokens: ['c_d1'], karte: { wert: 5, farbe: 'karo' } }
+      ];
+      return {
+        runde: 3, tokens: tokens, saebeltraeger: null,
+        freigegeben: reihe[index].tokens[0],
+        initiative: { reihe: reihe, index: index, deck: [], mischenNoetig: false }
+      };
+    }
+
+    // Anna ist dran und beendet ihren Zug.
+    let u = umgebung(stand(0), 'anna', 0);
+    u.lauf();
+    chk('Anna beendet ihren Zug: genau ein Schreibvorgang', u.geschrieben.length === 1,
+      u.geschrieben.length);
+    chk('und die Reihe steht danach auf Bert',
+      u.geschrieben[0] && u.geschrieben[0].ae['initiative/index'] === 1,
+      u.geschrieben[0] && u.geschrieben[0].ae);
+    chk('Bert ist damit freigegeben',
+      u.geschrieben[0] && u.geschrieben[0].ae['freigegeben'] === 'b_bert');
+    chk('und das Log nennt den Namen',
+      u.geschrieben[0] && /Anna beendet den Zug/.test(String(u.geschrieben[0].log[0])),
+      u.geschrieben[0] && u.geschrieben[0].log);
+
+    /* DIE WICHTIGSTE WACHE: Bert darf Annas Zug nicht beenden. Ohne sie könnte
+       jeder am Tisch die Reihe weiterschalten, während jemand anderes
+       nachdenkt. */
+    u = umgebung(stand(0), 'bert', 0);
+    u.lauf();
+    chk('Bert kann Annas Zug NICHT beenden', u.geschrieben.length === 0, u.geschrieben);
+
+    // Freigegeben, aber die Reihe steht woanders - auch dann nicht.
+    const schief = stand(1);
+    schief.freigegeben = 'a_anna';          // Anna frei, am Zug ist aber Bert
+    u = umgebung(schief, 'anna', 1);
+    u.lauf();
+    chk('eine freigegebene Figur, die nicht am Zug ist, beendet nichts',
+      u.geschrieben.length === 0, u.geschrieben);
+
+    /* Doppelklick / die SL hat zwischendurch geschaltet: Der Knopf trägt den
+       Index, den der Spieler GESEHEN hat. Stimmt er nicht mehr, wird nichts
+       geschrieben - sonst überspringt der zweite Klick eine Figur. */
+    u = umgebung(stand(1), 'bert', 0);
+    u.lauf();
+    chk('ein veralteter Knopf schreibt nichts', u.geschrieben.length === 0, u.geschrieben);
+
+    /* Als Letzter in der Reihe schließt der Spieler die Runde NICHT ab - dort
+       stehen Auferstehung und Nachschub, und das ist ein Beat der SL. */
+    const letzter = {
+      runde: 3,
+      tokens: { a_anna: tk('spieler', { name: 'Anna', pid: 'anna', x: 2, y: 15 }) },
+      saebeltraeger: null,
+      freigegeben: 'a_anna',
+      initiative: {
+        reihe: [{ key: 't:a_anna', name: 'Anna', tokens: ['a_anna'], karte: { wert: 14, farbe: 'pik' } }],
+        index: 0, deck: [], mischenNoetig: false
+      }
+    };
+    u = umgebung(letzter, 'anna', 0);
+    u.lauf();
+    chk('der Letzte in der Reihe beendet die RUNDE nicht', u.geschrieben.length === 0,
+      u.geschrieben);
+
+    /* Landet die Reihe durch das Zug-Ende auf der Diener-Karte, handeln die
+       Wiedergänger sofort - derselbe Weg wie bei der SL. */
+    u = umgebung(stand(1), 'bert', 1);
+    u.lauf();
+    chk('endet Bert seinen Zug, handeln danach die Wiedergänger',
+      u.geschrieben.length === 1
+      && Object.keys(u.geschrieben[0].ae).some(function (p) {
+        return p.indexOf('tokens/c_d1/') === 0;
+      }),
+      u.geschrieben[0] && Object.keys(u.geschrieben[0].ae));
+    chk('und auf der Diener-Karte ist niemand freigegeben',
+      u.geschrieben[0] && u.geschrieben[0].ae['freigegeben'] === null);
+
+    // Eine Figur ohne Zuordnung: jeder darf, auch beim Zug-Ende.
+    const offen = stand(0);
+    delete offen.tokens.a_anna.pid;
+    u = umgebung(offen, 'wer_auch_immer', 0);
+    u.lauf();
+    chk('eine Figur ohne Zuordnung lässt jeden ihren Zug beenden',
+      u.geschrieben.length === 1, u.geschrieben);
+
+    // Ohne Initiative gar nichts (die SL hat noch nicht ausgeteilt).
+    const ohne = stand(0);
+    ohne.initiative = null;
+    u = umgebung(ohne, 'anna', null);
+    u.lauf();
+    chk('ohne ausgeteilte Karten beendet niemand einen Zug',
+      u.geschrieben.length === 0, u.geschrieben);
   })();
 })();
 

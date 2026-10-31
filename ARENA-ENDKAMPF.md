@@ -15,7 +15,8 @@ rechnete. Am selben Tag dazu **Initiative über das Aktionsdeck** (3.6) und die
 **Diener-Automatik** (3.7): Die Reihe bestimmt, wer am Zug ist, und die Wiedergänger gehen von
 selbst auf den nächstgelegenen Gegner los — ihr **Weg wird gesucht**, nicht geraten (3.7a).
 Die Spielerfiguren kommen seit demselben Tag **aus der Sitzung** statt als
-„Spieler 1–4" (5.4). Weiterhin **nicht am Tisch erprobt.**
+„Spieler 1–4" (5.4), und jeder Spieler steuert **seine eigene** Figur und beendet seinen Zug
+selbst (4.1a). Weiterhin **nicht am Tisch erprobt.**
 
 ---
 
@@ -273,7 +274,7 @@ gierige Schritt findet **keinen**. Liegt die Lücke links, dreht der Weg mit.
 
 | Typ | Seite | Steuerung |
 |---|---|---|
-| `spieler` | Helden | Spieler — aber nur nach Freigabe durch die SL |
+| `spieler` | Helden | Spieler — nach Freigabe, und **nur der zugeteilte** (4.1a) |
 | `verbuendeter` | Helden | **nur die SL** (`arena_admin.html`) |
 | `diener`, `seelenloser` | Gegner | **nur die SL** (`arena_admin.html`) |
 
@@ -313,6 +314,62 @@ Dienerangriff vor dem ersten Wort der SL wäre ein Überfall.
 beschriftet — man muss sehen, wer wer ist. Gegner sind austauschbare „Diener" und tragen ihren
 Namen nur als Tooltip (in der Spieleransicht zusätzlich ab großer Feldgröße); ihre Schilder
 würden bei 16×16 nur übereinanderliegen.
+
+### 4.1a Zuteilung: jeder steuert seine eigene Figur (30.10.2026)
+
+Hendriks Vorgabe: *„Können wir einem Spieler direkt seine Figur zuteilen, dass dieser Spieler
+auch selbstständig seine Figur steuern kann und auch die Runde beenden kann?"*
+
+**Bis dahin galt die Regel vom 23.08.2026:** Die Spielleitung gibt **eine** Figur frei, und
+solange sie frei ist, darf sie **jeder** Spieler bewegen — es gab nämlich keine Zuordnung
+Spieler↔Figur. Seit dem 30.10.2026 trägt ein Token die Spielerkennung `pid` (5.4), und damit
+ist sie da.
+
+| Token | wer steuert es in `karte.html` |
+|---|---|
+| `spieler` **mit** `pid` | **nur dieser Spieler** |
+| `spieler` **ohne** `pid` | jeder (die alte Regel) |
+| `verbuendeter`, `diener`, `seelenloser` | niemand — die Spielleitung |
+
+**Die Fallback-Regel ist die wichtigere Hälfte.** Stünde hier „ohne Zuordnung steuert niemand",
+wäre jede Platzhalter-Figur („Spieler 1") **lautlos unspielbar** — mitten im Gefecht, ohne dass
+am Tisch jemand den Grund sieht. Lieber eine Figur, die zu viele bewegen können, als eine, die
+niemand bewegen kann. Beides entscheidet `arenaDarfSteuern()` in `js/arena.js`, nicht die
+Oberfläche: Auch ein von Hand abgesetzter Aufruf kommt daran nicht vorbei.
+
+**Zuteilen tut die Spielleitung** im Auswahlpanel des Schlachtfelds über ein Feld **„Steuert"**.
+Das ist bewusst **getrennt** von „+ Spieler aus der Sitzung": Jenes stellt eine Figur **mit
+ihren Blattwerten** aufs Brett, dieses beantwortet nur die Frage, **wer sie zieht** — eine
+Platzhalter-Figur, eine von Hand eingetragene oder eine, die den Besitzer wechselt, soll
+zuteilbar sein, ohne dass ihre Werte dabei überschrieben werden. Sonst wäre „zuteilen" ein
+versteckter Werte-Reset. Zwei Figuren an denselben Spieler gehen nicht.
+
+**Die Spielleitung kann jede Figur weiterhin selbst ziehen** — die Zuteilung bindet nur die
+Spieleransicht.
+
+#### „Zug beenden ▸"
+
+Der einzige Knopf, den Spieler in der Arena haben. Er erscheint **nur**, wenn die eigene Figur
+wirklich **am Zug** ist — nicht schon, wenn sie bloß freigegeben ist. Geschaltet wird über
+genau dieselbe Glue wie bei der Spielleitung (`arenaIniWeiter` + `arenaIniLanden`); zwei
+Fassungen desselben Ablaufs liefen auseinander, und dann schaltete die Karte anders weiter als
+das Schlachtfeld. Landet die Reihe dadurch auf der **Diener-Karte**, handeln die Wiedergänger
+sofort (3.7) — wie bei jedem anderen Weiterschalten auch.
+
+Drei Wachen, und jede hat einen Grund:
+
+| Wache | ohne sie |
+|---|---|
+| nur die **eigene** Figur | jeder am Tisch könnte die Reihe weiterschalten, während ein anderer nachdenkt |
+| nur, wenn sie **am Zug** ist | eine freigegebene, aber nicht aktive Figur würde die Reihe verschieben |
+| der Knopf trägt den **gesehenen Index** | ein Doppelklick (oder ein Klick, nachdem die Spielleitung geschaltet hat) überspringt eine Figur |
+
+**Die RUNDE beendet der Spieler NICHT.** Als Letzter in der Reihe bleibt der Knopf aus, und der
+Hinweis sagt, warum („die Spielleitung schließt die Runde ab"). Zwei Gründe: Am Rundenwechsel
+stehen **Auferstehung und Nachschub** — ein Beat, den die Spielleitung ansagt und kein Spieler
+nebenbei auslöst. Und technisch: Ohne diese Wache würde der Klick `initiative/index` auf `null`
+setzen, **ohne** den Rundenwechsel auszuführen — das Brett stünde dann ohne Figur am Zug da, bis
+jemand „Runde weiter ▸" drückt. Dafür steht eine eigene Prüfung da (7).
 
 ### 4.2 Angriffsart
 
@@ -504,6 +561,7 @@ arenaState/15-1/
     wunden         Zahl (fehlt = unversehrt)
     angeschlagen   true/fehlt  - kostet die Handlung, nicht den Wuerfel
     wundenMax      Tragfaehigkeit (0 Statist, 3 Wild Card)
+    pid            Spielerkennung: wer diese Figur steuern darf (4.1a)
     kaempfen, schiessen, staerke, waffe, fernwaffe, reichweite
     parade, robustheit, wild
     geladen        bool
@@ -657,6 +715,8 @@ gedacht, jede Regelverzweigung deterministisch zu testen.
 | `arenaWerteAusFigur(figur, name)` | Blatt → Token-Werte; **eine** Ableitung für Spielerbögen und NSC (5.4) |
 | `arenaZustandAusFigur(figur, wundenMax)` | Wunden und „angeschlagen" aus dem Bogen, geklemmt |
 | `arenaBesteWaffe(figur, art)` | die beste getragene Waffe dieser Art |
+| `arenaDarfSteuern(token, meineKennung)` | darf **dieser** Spieler diese Figur ziehen? (4.1a) |
+| `arenaFremdeFigur(token, meineKennung)` | gehört sie ausdrücklich jemand anderem? (nur für den Hinweistext) |
 
 ### 6.2 SL-Seite (`js/regie_vault.js`)
 
@@ -674,7 +734,7 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-**`tests/t_arena.js`, 306 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+**`tests/t_arena.js`, 328 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
 Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System) und am selben
 Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
 
@@ -717,7 +777,14 @@ Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
    Ware bricht nichts, und eine **erfundene** Ware zählt **erst nach** `eigeneWarenSetzen()` —
    davor fällt sie still weg. Am Ende trägt die gestempelte Figur einen **echten Angriff**, sonst
    wäre nur geprüft, dass die Zahlen stimmen, nicht dass die Arena mit ihnen rechnen kann.
-8. **Der Wegfinder** (3.7a) — eine Mauer mit einer Lücke: Der Weg führt **durch die Lücke**,
+8. **Wer steuert welche Figur** (4.1a) — die eigene ja, eine fremde nein, eine **ohne
+   Zuordnung jeder** (die Fallback-Regel als eigene Prüfung), Verbündete und Gegner nie. Dazu
+   **„Zug beenden" aus `karte.html` geschnitten und wirklich ausgeführt**: Anna beendet ihren Zug
+   und die Reihe steht auf Bert · **Bert kann Annas Zug nicht beenden** · eine freigegebene, aber
+   nicht aktive Figur beendet nichts · ein veralteter Knopf schreibt nichts · der Letzte in der
+   Reihe beendet die **Runde** nicht · landet die Reihe auf der Diener-Karte, handeln die
+   Wiedergänger · ohne ausgeteilte Karten geht gar nichts.
+9. **Der Wegfinder** (3.7a) — eine Mauer mit einer Lücke: Der Weg führt **durch die Lücke**,
    endet am Ziel angrenzend, besteht aus lauter freien und lauter angrenzenden Feldern, und
    derselbe Stand ergibt denselben Weg. Liegt die Lücke links, dreht er mit. Ohne Lücke gibt es
    keinen Weg, und dann greift der **Rückfall** — der geht wenigstens ein Feld näher, wenn noch
@@ -757,6 +824,11 @@ Fehler wörtlich:
 | erste statt beste Waffe | **2 Prüfungen**, *„die bessere Nahkampfwaffe gewinnt"* → `1` |
 | Parade abgeschrieben statt gerechnet | **4 Prüfungen**, darunter alle drei Vorlagen: *`["parade: 4 statt 6"]`* |
 | Spielerfigur ist keine Wild Card | **1 Prüfung** |
+| jeder darf jede Spielerfigur ziehen | **3 Prüfungen**, darunter *„Bert kann Annas Zug NICHT beenden"* |
+| Fallback-Regel entfernt (ohne Zuordnung darf niemand) | **2 Prüfungen** |
+| Wettlauf-Schutz am Knopf entfernt | **1 Prüfung**, der veraltete Klick springt auf `index: 2` |
+| Spieler schließt die Runde selbst ab | **1 Prüfung** → `{"initiative/index":null}` **ohne** Rundenwechsel |
+| Prüfung „ist diese Figur am Zug" entfernt | **1 Prüfung** |
 
 **Ein Integrationstest über die Ansichten gehört nicht ins Repo** (Skill `pnp-safe-test`) und
 liegt im Scratchpad der jeweiligen Session: lokaler HTTP-Server, abgefangene
@@ -927,6 +999,9 @@ Drei Fehler beim Bau, alle vom Test gefunden:
   Das Schlachtfeld holt die echten Figuren mit ihren eigenen Werten (5.4). **Was bleibt:** Die
   Werte werden **gestempelt**, nicht live gespiegelt — steigert ein Spieler mitten im Gefecht,
   braucht es „↻ Werte nachziehen".
+- ~~Solange eine Figur freigegeben ist, darf sie JEDER Spieler bewegen~~ — **behoben am
+  30.10.2026** (4.1a): Mit Zuteilung steuert nur der eigene Spieler. **Was bleibt:** Eine Figur
+  **ohne** Zuteilung bleibt für jeden beweglich, und das ist Absicht (siehe die Fallback-Regel).
 - **Wunden der Spieler fließen nicht in ihre Bögen zurück.** Das ist Absicht (der Heldenbrief ist
   der einzige Schreiber auf einer Figur, 5.4), aber es heißt auch: Was im Finale passiert, steht
   danach nicht im Bogen. Der Weg dafür wäre das **Postfach**, das `wunde` und `angeschlagen`

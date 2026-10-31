@@ -192,6 +192,16 @@
   }
   #arenaLog div:first-child { color: var(--ink); }
   #arenaHinweis { font-size: 13px; color: var(--gold); min-height: 1.2em; text-align: center; }
+  /* "Zug beenden" - der einzige Knopf, den Spieler in der Arena haben. Steht
+     unter dem Hinweis, damit er dort auftaucht, wo der Spieler ohnehin
+     hinschaut, wenn er wissen will, was er tun kann. */
+  #arenaZugFertig {
+    font-family: inherit; font-size: 13.5px; background: rgba(201,162,75,0.14);
+    border: 1px solid var(--gold); color: var(--gold); border-radius: 5px;
+    padding: 6px 16px; cursor: pointer; display: none;
+  }
+  #arenaZugFertig.an { display: inline-block; }
+  #arenaZugFertig:hover { background: rgba(201,162,75,0.26); }
   #abspannDank span {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(30px, 4.6vw, 68px);
@@ -1005,6 +1015,7 @@
     <div id="arenaIni"></div>
     <div id="arenaBrett"></div>
     <div id="arenaHinweis"></div>
+    <button id="arenaZugFertig" type="button">Zug beenden ▸</button>
     <div id="arenaLog"></div>
   </div>
 
@@ -1874,6 +1885,7 @@
     const arenaKopfEl = document.getElementById('arenaKopf');
     const arenaIniEl = document.getElementById('arenaIni');
     const arenaHinweisEl = document.getElementById('arenaHinweis');
+    const arenaFertigEl = document.getElementById('arenaZugFertig');
     const arenaLogEl = document.getElementById('arenaLog');
     let arenaRef = null, arenaListener = null, arenaScene = null, arenaSnap = {};
 
@@ -1889,6 +1901,7 @@
       arenaEl.setAttribute('aria-hidden', 'true');
       arenaBrettEl.innerHTML = '';
       arenaIniEl.innerHTML = '';
+      if (arenaFertigEl) arenaFertigEl.classList.remove('an');
     }
 
     function startArena(sceneId) {
@@ -1946,11 +1959,18 @@
           '<span>' + escHtml(e.name || e.key) + '</span></span>';
       }).join('');
 
-      // Erreichbare Felder und angreifbare Ziele der freigegebenen Figur.
-      // NUR Figuren vom Typ "spieler" sind fuer Spieler steuerbar (Hendriks
-      // Vorgabe): Verbuendete und Gegner steuert ausschliesslich die SL ueber
-      // arena_admin.html - deren Zuege kommen hier nur als Live-Update an.
-      const spielerSteuerbar = frei && frei.typ === 'spieler';
+      /* Erreichbare Felder und angreifbare Ziele der freigegebenen Figur.
+         NUR Figuren vom Typ "spieler" sind fuer Spieler steuerbar (Hendriks
+         Vorgabe): Verbuendete und Gegner steuert ausschliesslich die SL ueber
+         arena_admin.html - deren Zuege kommen hier nur als Live-Update an.
+
+         Seit dem 30.10.2026 zusaetzlich: Traegt das Token eine
+         Spielerkennung (pid), darf es NUR dieser Spieler steuern
+         (arenaDarfSteuern in js/arena.js, dort steht auch die Fallback-Regel
+         fuer Figuren ohne Zuordnung). */
+      const meineKennung = figurSchluessel();
+      const spielerSteuerbar = frei && arenaDarfSteuern(frei, meineKennung);
+      const fremdeFigur = frei && arenaFremdeFigur(frei, meineKennung);
       const erreichbar = {};
       const angreifbar = {};
       if (spielerSteuerbar && !frei.tot) {
@@ -1998,7 +2018,17 @@
         }
       }
 
+      /* Der Knopf erscheint nur, wenn diese Figur WIRKLICH am Zug ist - nicht
+         schon, wenn sie bloss freigegeben ist. Sonst koennte ein Spieler die
+         Reihe weiterschalten, waehrend jemand anderes handelt. */
+      const amZugUndMein = !!(spielerSteuerbar && dran && !frei.tot
+        && arenaIniTokens(reihe[dran.index] || null, tokens).indexOf(freigegebenId) >= 0);
+      const reiheDurch = amZugUndMein && arenaIniWeiter(ini, tokens).rundeFertig;
+      arenaFertigEl.classList.toggle('an', !!amZugUndMein && !reiheDurch);
+      arenaFertigEl.dataset.index = dran ? String(dran.index) : '';
+
       if (!frei) arenaHinweisEl.textContent = 'Die Spielleitung gibt gleich die nächste Figur frei.';
+      else if (fremdeFigur) arenaHinweisEl.textContent = (frei.name || frei.id) + ' ist am Zug.';
       else if (!spielerSteuerbar) arenaHinweisEl.textContent = (frei.name || frei.id) + ' handelt …';
       else if (frei.tot) arenaHinweisEl.textContent = (frei.name || frei.id) + ' ist am Boden.';
       else {
@@ -2006,6 +2036,10 @@
         if (!frei.hatGezogen) teile.push('Feld anklicken zum Bewegen (' + (frei.bewegung || r.bewegung) + ')');
         if (!frei.hatAngegriffen && Object.keys(angreifbar).length) teile.push('Gegner anklicken zum Angreifen');
         if (!frei.geladen) teile.push('Waffe ist leer — lädt bis zur nächsten Runde');
+        /* Als Letzter in der Reihe schliesst der Spieler die Runde NICHT selbst
+           ab: Dort stehen Auferstehung und Nachschub, und das ist ein Beat, den
+           die Spielleitung ansagt und nicht ein Spieler nebenbei auslöst. */
+        if (reiheDurch) teile.push('Du bist der Letzte in der Reihe — die Spielleitung schließt die Runde ab');
         arenaHinweisEl.textContent = teile.length ? teile.join(' · ') : 'Nichts mehr zu tun in dieser Runde.';
       }
 
@@ -2089,9 +2123,13 @@
       const basis = 'arenaState/' + fbKey(arenaScene) + '/';
       const paket = {};
       Object.keys(aenderungen).forEach(function (p) { paket[basis + p] = aenderungen[p]; });
-      if (logText) {
-        paket[basis + 'log/' + db.ref().push().key] = { text: logText, zeit: Date.now() };
-      }
+      // "logText" darf auch eine LISTE sein: Beendet ein Spieler seinen Zug und
+      // die Reihe landet auf der Diener-Karte, entstehen mehrere Zeilen.
+      const zeilen = Array.isArray(logText) ? logText : (logText ? [logText] : []);
+      zeilen.forEach(function (t, i) {
+        if (!t) return;
+        paket[basis + 'log/' + db.ref().push().key] = { text: t, zeit: Date.now() + i };
+      });
       // Ein einziges update() - sonst feuert der Live-Listener mehrfach auf
       // halben Zwischenstaenden (gleiche Begruendung wie beim Erkundungs-Graphen).
       db.ref().update(paket);
@@ -2128,6 +2166,44 @@
       arenaSchreibe(arenaAngriffAenderungen(a, z, erg, arenaSnap.runde || 1),
         arenaAngriffText(a, z, erg));
     }
+
+    /* ---------- Zug beenden (30.10.2026) ----------
+       Hendriks Vorgabe: Der Spieler soll seine Figur selbst steuern UND seinen
+       Zug selbst beenden. Geschaltet wird ueber genau dieselbe Glue wie bei der
+       SL (arenaIniWeiter + arenaIniLanden in js/arena.js) - zwei Fassungen
+       desselben Ablaufs liefen auseinander, und dann schaltete die Karte anders
+       weiter als das Schlachtfeld.
+
+       Die Runde selbst beendet der Spieler NICHT: Ist die Reihe durch, bleibt
+       der Knopf aus (siehe renderArena). */
+    function arenaZugBeenden() {
+      const sz = arenaSzene(arenaScene); if (!sz || !db) return;
+      const tokens = arenaSnap.tokens || {};
+      const ini = arenaSnap.initiative || null;
+      const freigegebenId = arenaSnap.freigegeben || null;
+      const frei = freigegebenId ? tokens[freigegebenId] : null;
+      if (!frei || !arenaDarfSteuern(frei, figurSchluessel())) return;
+
+      const dran = arenaIniAmZug(ini, tokens);
+      if (!dran) return;
+      // Nur, wenn diese Figur wirklich die ist, die am Zug ist.
+      if (arenaIniTokens((ini.reihe || [])[dran.index] || null, tokens).indexOf(freigegebenId) < 0) return;
+
+      /* Wettlauf-Schutz: Der Knopf traegt den Index, den der Spieler gesehen
+         hat. Hat die Reihe sich seitdem bewegt (die SL hat geschaltet, ein
+         zweiter Klick), wird nichts geschrieben - sonst ueberspringt ein
+         Doppelklick eine Figur. */
+      const gesehen = parseInt(arenaFertigEl.dataset.index, 10);
+      if (!isNaN(gesehen) && gesehen !== dran.index) return;
+
+      const w = arenaIniWeiter(ini, tokens);
+      if (w.rundeFertig) return;              // die Runde schliesst die SL
+      const e = arenaIniLanden(ini, tokens, w.index, sz.regeln,
+        arenaSnap.saebeltraeger || null, arenaSnap.runde || 1);
+      arenaSchreibe(e.aenderungen,
+        [(frei.name || freigegebenId) + ' beendet den Zug.'].concat(e.logs));
+    }
+    if (arenaFertigEl) arenaFertigEl.addEventListener('click', arenaZugBeenden);
 
     window.addEventListener('resize', function () { if (arenaScene) renderArena(); });
 

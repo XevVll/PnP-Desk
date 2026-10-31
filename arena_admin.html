@@ -598,6 +598,37 @@
       eintrag.name + ': Werte aus dem Charakterbogen nachgezogen.');
   }
 
+  /* Einen Spieler einer Figur ZUTEILEN, ohne ihre Werte anzufassen.
+     Hendriks Vorgabe: "Koennen wir einem Spieler direkt seine Figur zuteilen,
+     dass dieser Spieler auch selbststaendig seine Figur steuern kann?"
+
+     Bewusst getrennt von "+ Spieler aus der Sitzung": Das stellt eine Figur MIT
+     ihren Blattwerten aufs Brett. Hier geht es nur um die Frage, WER sie
+     steuert - eine Platzhalter-Figur, eine von Hand eingetragene oder eine, die
+     den Besitzer wechselt, soll zuteilbar sein, ohne dass ihre Werte dabei
+     ueberschrieben werden. Sonst waere "zuteilen" ein versteckter
+     Werte-Reset. */
+  function spielerZuteilen(id, pid) {
+    const t = (snap.tokens || {})[id];
+    if (!t || !db) { render(); return; }
+    if (pid && schonDa(pid)) {
+      const belegt = Object.keys(snap.tokens || {}).filter(function (k) {
+        return (snap.tokens[k] || {}).pid === pid;
+      })[0];
+      if (belegt !== id) {
+        alert('Dieser Spieler steuert schon eine andere Figur auf dem Feld.');
+        render();
+        return;
+      }
+    }
+    const name = pid
+      ? ((spielerListe().filter(function (e) { return e.pid === pid; })[0] || {}).name || pid)
+      : null;
+    schreibe({ ['tokens/' + id + '/pid']: pid || null },
+      pid ? ((t.name || id) + ' wird von ' + name + ' gesteuert.')
+          : ((t.name || id) + ' ist keinem Spieler mehr zugeteilt.'));
+  }
+
   function figurLoesen(id) {
     const t = (snap.tokens || {})[id];
     if (!t) return;
@@ -877,6 +908,27 @@
           : '<div class="hinweis" style="color:#c76a5a">Zu dieser Verknüpfung gibt es keinen Bogen mehr in der Sitzung.</div>');
     } else if (sel.typ === 'spieler') {
       html += '<div class="hinweis">Nicht mit einem Charakterbogen verknüpft — über „+ Spieler aus der Sitzung" oben kommt eine echte Figur mit ihren eigenen Werten aufs Brett.</div>';
+    }
+
+    /* Wer steuert diese Figur? Nur bei Spieler-Figuren: Verbündete und Gegner
+       zieht ohnehin ausschließlich die SL (Hendriks Vorgabe vom 23.08.2026). */
+    if (sel.typ === 'spieler') {
+      const leute = spielerListe();
+      if (!leute.length) {
+        html += '<div class="hinweis">Keine Charakterbögen in dieser Sitzung — ohne Zuteilung darf <b>jeder</b> Spieler diese Figur bewegen, solange sie freigegeben ist.</div>';
+      } else {
+        html += '<div class="zeile"><label style="display:flex;align-items:center;gap:4px">Steuert' +
+          '<select class="btn" onchange="spielerZuteilen(\'' + id + '\', this.value)">' +
+          '<option value=""' + (sel.pid ? '' : ' selected') + '>— jeder —</option>' +
+          leute.map(function (e) {
+            return '<option value="' + e.pid + '"' + (sel.pid === e.pid ? ' selected' : '') + '>' +
+              e.name + '</option>';
+          }).join('') +
+          '</select></label></div>' +
+          (sel.pid
+            ? '<div class="hinweis">Nur dieser Spieler kann die Figur in der Spieleransicht bewegen, angreifen und <b>seinen Zug beenden</b>. Du kannst sie hier jederzeit selbst ziehen.</div>'
+            : '<div class="hinweis">Ohne Zuteilung darf <b>jeder</b> Spieler sie bewegen, solange sie freigegeben ist — so war es bis zum 30.10.2026 für alle Figuren.</div>');
+      }
     }
 
     // Ein echtes NSC-Blatt uebernehmen - Werte aus js/npcs.js, gerechnet.

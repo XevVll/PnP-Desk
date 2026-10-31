@@ -129,6 +129,44 @@ function arenaSeite(t) {
 function arenaIstSpieler(t) { return t && t.typ === 'spieler'; }
 function arenaIstFeind(a, b) { return arenaSeite(a) !== arenaSeite(b); }
 
+/* ==========================================================
+   WER DARF DIESE FIGUR STEUERN? (30.10.2026, Fortsetzung 6)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Koennen wir einem Spieler direkt seine Figur
+   zuteilen, dass dieser Spieler auch selbststaendig seine Figur
+   steuern kann und auch die Runde beenden kann?"
+
+   Bis dahin galt die Regel vom 23.08.2026: Die SL gibt EINE Figur
+   frei, und solange sie frei ist, darf sie JEDER Spieler bewegen -
+   es gab naemlich keine Zuordnung Spieler<->Figur. Seit dem
+   30.10.2026 traegt ein Token die Spielerkennung "pid" (die
+   Verknuepfung mit dem Charakterbogen der Sitzung), und damit ist
+   die Zuordnung da.
+
+   DIE FALLBACK-REGEL IST DIE WICHTIGE HAELFTE: Ein Token OHNE pid
+   bleibt fuer jeden steuerbar. Wuerde hier "ohne Zuordnung steuert
+   niemand" stehen, waere jede Platzhalter-Figur ("Spieler 1")
+   lautlos unspielbar - und zwar mitten im Gefecht, ohne dass am
+   Tisch jemand den Grund sieht. Lieber eine Figur, die zu viele
+   bewegen koennen, als eine, die niemand bewegen kann.
+
+   Gesteuert werden ohnehin nur Figuren vom Typ "spieler": Der
+   Seelenlose und die Verbuendeten gehoeren der SL (Hendriks
+   Vorgabe vom 23.08.2026), und das prueft diese Funktion mit. */
+function arenaDarfSteuern(token, meineKennung) {
+  if (!token || token.typ !== 'spieler') return false;
+  if (!token.pid) return true;                 // ohne Zuordnung: jeder
+  return !!meineKennung && token.pid === meineKennung;
+}
+
+/* Gehoert diese Figur AUSDRUECKLICH jemand anderem? Nur dafuer da, der
+   Anzeige einen ehrlichen Satz zu geben ("Anna ist am Zug") statt eines
+   stummen, nicht anklickbaren Bretts. */
+function arenaFremdeFigur(token, meineKennung) {
+  return !!(token && token.typ === 'spieler' && token.pid
+    && (!meineKennung || token.pid !== meineKennung));
+}
+
 /* ---------- Zustand einer Figur ----------
    HP sind mit der Umstellung ersatzlos entfallen. Eine Figur traegt
    jetzt, was Savage Worlds kennt: einen Haken "angeschlagen" und eine
@@ -1154,7 +1192,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     GANG_UP_MAX,
     arenaDistanz, arenaInReichweite, arenaAngriffsart, arenaGangUp, arenaAngriffMod,
-    arenaSeite, arenaIstSpieler, arenaIstFeind,
+    arenaSeite, arenaIstSpieler, arenaIstFeind, arenaDarfSteuern, arenaFremdeFigur,
     arenaWundenMax, arenaWundenAbzug, arenaWundenAnteil, arenaKannAngreifen, arenaZustandText,
     arenaSchadensWuerfel, arenaSchadenWerfen,
     arenaAngriff, arenaBewegungErlaubt,

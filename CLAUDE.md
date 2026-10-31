@@ -129,6 +129,65 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-10-30 (Fortsetzung 6) — Jeder steuert seine eigene Figur und beendet seinen Zug
+- **Hendriks Vorgabe:** „Können wir einem Spieler direkt seine Figur zuteilen, dass dieser
+  Spieler auch selbstständig seine Figur steuern kann und auch die Runde beenden kann?"
+- **Die Teile lagen seit heute Mittag da, nur unverbunden:** Das Token trägt seit der
+  Sitzungs-Verknüpfung die Spielerkennung `pid`, und `karte.html` kennt die eigene Kennung
+  längst — sie verbindet damit seit dem 16.10. den Würfelwurf mit dem richtigen Porträt. Es
+  fehlte nur, beides aneinanderzulegen.
+- **Bis heute galt die Regel vom 23.08.2026:** Die SL gibt **eine** Figur frei, und solange sie
+  frei ist, darf sie **jeder** Spieler bewegen — es gab nämlich keine Zuordnung Spieler↔Figur.
+- **DIE FALLBACK-REGEL IST DIE WICHTIGERE HÄLFTE**, und sie steht als eigene Prüfung da: Ein
+  Token **ohne** `pid` bleibt für jeden beweglich. Stünde dort „ohne Zuordnung steuert niemand",
+  wäre jede Platzhalter-Figur („Spieler 1") **lautlos unspielbar** — mitten im Gefecht, ohne dass
+  am Tisch jemand den Grund sieht. **Lieber eine Figur, die zu viele bewegen können, als eine,
+  die niemand bewegen kann.**
+  - Entschieden wird das in `arenaDarfSteuern()` (`js/arena.js`), nicht in der Oberfläche — auch
+    ein von Hand abgesetzter Aufruf kommt daran nicht vorbei. Verbündete und Gegner bleiben für
+    Spieler grundsätzlich tabu, unabhängig von jeder Zuordnung.
+- **Zugeteilt wird im Schlachtfeld** über ein Feld **„Steuert"** am ausgewählten Token, und das
+  ist **bewusst getrennt** von „+ Spieler aus der Sitzung": Jenes stellt eine Figur **mit ihren
+  Blattwerten** aufs Brett, dieses beantwortet nur die Frage, **wer sie zieht**. Eine
+  Platzhalter-Figur oder eine, die den Besitzer wechselt, soll zuteilbar sein, **ohne dass ihre
+  Werte dabei überschrieben werden** — sonst wäre „zuteilen" ein versteckter Werte-Reset. Zwei
+  Figuren an denselben Spieler lehnt es ab.
+- **Neu in der Spieleransicht: „Zug beenden ▸"** — der einzige Knopf, den Spieler in der Arena
+  haben. Geschaltet wird über **dieselbe Glue wie bei der SL** (`arenaIniWeiter` +
+  `arenaIniLanden`); zwei Fassungen desselben Ablaufs liefen auseinander, und dann schaltete die
+  Karte anders weiter als das Schlachtfeld. Landet die Reihe dadurch auf der Diener-Karte,
+  handeln die Wiedergänger sofort.
+- **Drei Wachen, und jede hat einen Grund** (alle drei gegengeprüft):
+  1. **Nur die eigene Figur.** Ohne das könnte jeder am Tisch die Reihe weiterschalten, während
+     ein anderer nachdenkt.
+  2. **Nur, wenn sie wirklich am Zug ist** — nicht schon, wenn sie bloß freigegeben ist.
+  3. **Der Knopf trägt den Index, den der Spieler GESEHEN hat.** Hat die Reihe sich seitdem
+     bewegt (Doppelklick, oder die SL hat geschaltet), wird nichts geschrieben — sonst
+     überspringt der zweite Klick eine Figur.
+- **Die RUNDE beendet der Spieler NICHT**, und die Gegenprobe zeigt genau, warum das keine
+  Geschmacksfrage ist: Ohne diese Wache setzt der Klick `initiative/index` auf **`null`**,
+  **ohne** den Rundenwechsel auszuführen — das Brett stünde dann ohne Figur am Zug da, bis jemand
+  „Runde weiter ▸" drückt. Dazu inhaltlich: Am Rundenwechsel stehen **Auferstehung und
+  Nachschub**, und das ist ein Beat, den die Spielleitung ansagt. Als Letzter in der Reihe bleibt
+  der Knopf deshalb aus, und der Hinweis sagt es.
+- **Der Hinweistext lügt nicht mehr.** Eine fremde Figur zeigte bisher „… handelt …" wie ein
+  SL-Zug; jetzt steht dort **„Anna ist am Zug."** — damit sieht man den Unterschied zwischen
+  „nicht mein Zug" und „die Spielleitung zieht gerade".
+- **Getestet: 328 Prüfungen in `t_arena.js`, 0 Fehler** (22 neue; **2059 über vierzehn
+  Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **„Zug beenden" wird AUS `karte.html` geschnitten und wirklich ausgeführt**, nicht
+    nachgebaut: Eine nachgebaute Kopie prüft genau die Wachen nicht, um die es hier geht.
+  - **Fünf Gegenproben, jede nennt den Fehler wörtlich:** jeder darf jede Spielerfigur
+    (3 Prüfungen, darunter `Bert kann Annas Zug NICHT beenden`) · Fallback-Regel entfernt (2) ·
+    ohne Wettlauf-Schutz springt der veraltete Klick auf `index: 2` (1) · Spieler schließt die
+    Runde selbst ab (1, `{"initiative/index":null}`) · Prüfung „ist am Zug" entfernt (1).
+- **Die vm-Falle, zum wiederholten Mal:** `const ARENA_SCENES` liegt im Skript-Scope und ist von
+  außen **nicht** als Kontext-Eigenschaft sichtbar (`ctx.ARENA_SCENES` ist `undefined`). Im
+  Kontext selbst herausgegeben.
+- **In `ARENA-ENDKAMPF.md` 9.2 ist „jeder darf die freigegebene Figur bewegen" als behoben
+  gekennzeichnet statt gelöscht**, samt dem, was bleibt: eine Figur ohne Zuteilung bleibt für
+  jeden beweglich, und das ist Absicht.
+
 ### 2026-10-30 (Fortsetzung 5) — Die Arena kennt die echten Spieler der Sitzung
 - **Hendriks Frage:** „Kann man die Spieler direkt mit den wirklich vorhandenen Spielern in
   dieser Session verknüpfen?"
