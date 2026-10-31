@@ -45,6 +45,10 @@ Zeitstrafe, keine Werteinbuße.
 **Bennie.** 3 je Sitzung (mit *Glückspilz* 4). Einer wiederholt eine misslungene Probe
 vollständig — das bessere Ergebnis zählt, wobei erst das Band zählt und dann die Zahl.
 
+**Schuss aus der Nähe.** Steht der Gegner direkt vor dir, darfst du trotzdem schießen — aber
+gegen **seine Parade** statt gegen die 4, und nur mit einer Waffe von höchstens Pistolengröße
+(bis 3 Pfund). Gang Up hilft dabei nicht, das ist ein Nahkampf-Bonus. Danach ist die Waffe leer.
+
 **Schießen.** 1701 ist alles Vorderlader: **ein Schuss**, dann nachladen — das dauert (in der Arena: erst in der übernächsten Runde wieder bereit). Jeder Schuss verbraucht **eine Ladung**; der Vorrat steht an der Figur, nicht an der Waffe. Ohne Ladungen ist die Waffe ein teurer Knüppel. Abgezogen wird von Hand — nicht jede Schießen-Probe ist ein Schuss.
 
 **Initiative: Karten, nicht Würfel.** Zu Beginn jeder Runde eine Karte je Teilnehmer, gehandelt

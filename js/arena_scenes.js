@@ -44,10 +44,20 @@
 // Dienerkarte, handeln die WIEDERGAENGER VON SELBST und gehen auf den
 // naechstgelegenen Gegner los (Hendriks Vorgabe) - den Seelenlosen steuert die SL.
 //
-// Ablauf pro Figur: Bewegung, dann Angriff. Die Angriffsart ergibt sich aus der
-// Entfernung. Nach einem Schuss ist die Waffe leer und erst in der
-// uebernaechsten Runde wieder bereit (Bibel 4.5: ein Schuss, 1701 ist alles
-// Vorderlader). Wer angeschlagen ist, darf sich bewegen, aber nicht angreifen.
+// Ablauf pro Figur: Bewegung und Angriff, in BELIEBIGER Folge (Savage Worlds) -
+// erst laufen und dann schlagen, oder erst schlagen und dann noch ein Feld
+// weiter. Beides genau EINMAL je Runde, und das prueft seit dem 31.10.2026
+// js/arena.js selbst statt nur die Oberflaeche.
+//
+// Die Angriffsart ergibt sich aus der Entfernung - mit EINER Ausnahme: Steht
+// der Gegner daneben, darf eine pistolengrosse Waffe trotzdem abgedrueckt
+// werden (NAHSCHUSS, Bibel 4.4a, nachgetragen am 31.10.2026). Die Zielzahl ist
+// dann seine PARADE, Gang Up hilft dabei nicht.
+//
+// Nach einem Schuss ist die Waffe leer und erst in der UEBERNAECHSTEN Runde
+// wieder bereit (Bibel 4.5: ein Schuss, 1701 ist alles Vorderlader). Bis zum
+// 31.10.2026 lud der Code schon in der naechsten - damit kostete Nachladen gar
+// nichts. Wer angeschlagen ist, darf sich bewegen, aber nicht angreifen.
 //
 // Der Seelenlose schlaegt selbst zu und ist zugleich die Quelle des
 // Nachschubs: solange er nicht GEBANNT ist, stehen normal getoetete Diener nach
@@ -125,6 +135,10 @@ const ARENA_SCENES = {
         typ: "spieler", symbol: "☘", farbe: "#c9a24b",
         kaempfen: 3, schiessen: 3, staerke: 3,
         waffe: 2, fernwaffe: 2, reichweite: 5,
+        // Steinschlosspistole: darf im Handgemenge abgedrueckt werden
+        // (Nahschuss gegen die Parade, Bibel 4.4a). Eine Muskete duerfte es
+        // nicht - arenaWerteAusFigur() leitet das Feld aus dem Gewicht ab.
+        fernHandlich: true,
         parade: 6, robustheit: 6, wild: true, wundenMax: 3
       },
       /* Mitkaempfende NSC (Harwick, Cormac, ...): gleiche Seite wie die

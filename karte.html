@@ -202,6 +202,18 @@
   }
   #arenaZugFertig.an { display: inline-block; }
   #arenaZugFertig:hover { background: rgba(201,162,75,0.26); }
+  /* Nahschuss: dem Gegner, der vor einem steht, die Pistole ins Gesicht
+     setzen (Savage Worlds, Zielzahl ist seine Parade). Eigener Knopf, weil es
+     die EINZIGE Stelle der Arena ist, an der die Angriffsart eine Wahl ist -
+     auf Distanz entscheidet weiter allein die Entfernung. */
+  #arenaSchuss {
+    font-family: inherit; font-size: 13.5px; background: rgba(168,57,30,0.14);
+    border: 1px solid #c2603f; color: #e0a083; border-radius: 5px;
+    padding: 6px 16px; cursor: pointer; display: none; margin-left: 8px;
+  }
+  #arenaSchuss.an { display: inline-block; }
+  #arenaSchuss.aktiv { background: rgba(168,57,30,0.42); color: #ffd9c6; }
+  #arenaSchuss:hover { background: rgba(168,57,30,0.3); }
   #abspannDank span {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: clamp(30px, 4.6vw, 68px);
@@ -1016,6 +1028,7 @@
     <div id="arenaBrett"></div>
     <div id="arenaHinweis"></div>
     <button id="arenaZugFertig" type="button">Zug beenden ▸</button>
+    <button id="arenaSchuss" type="button">Aus der Nähe schießen</button>
     <div id="arenaLog"></div>
   </div>
 
@@ -1886,6 +1899,12 @@
     const arenaIniEl = document.getElementById('arenaIni');
     const arenaHinweisEl = document.getElementById('arenaHinweis');
     const arenaFertigEl = document.getElementById('arenaZugFertig');
+    const arenaSchussEl = document.getElementById('arenaSchuss');
+    /* Der Wunsch gilt nur fuer DIESE Figur: Wechselt die Freigabe, fiele er
+       sonst dem Naechsten in den Schoss, und der schiesst, obwohl er
+       zuschlagen wollte. */
+    let arenaNahschuss = false;
+    let arenaNahschussFuer = null;
     const arenaLogEl = document.getElementById('arenaLog');
     let arenaRef = null, arenaListener = null, arenaScene = null, arenaSnap = {};
 
@@ -1902,6 +1921,9 @@
       arenaBrettEl.innerHTML = '';
       arenaIniEl.innerHTML = '';
       if (arenaFertigEl) arenaFertigEl.classList.remove('an');
+      if (arenaSchussEl) arenaSchussEl.classList.remove('an', 'aktiv');
+      arenaNahschuss = false;
+      arenaNahschussFuer = null;
     }
 
     function startArena(sceneId) {
@@ -1987,13 +2009,38 @@
           Object.keys(tokens).forEach(function (id) {
             const t = tokens[id];
             if (!t || t.tot || !arenaIstFeind(frei, t)) return;
-            const art = arenaAngriffsart(frei, t, r);
+            // Der Wunsch wirkt NUR angrenzend - auf Distanz entscheidet die
+            // Entfernung, arenaAngriffsart() ignoriert ihn dort.
+            const art = arenaAngriffsart(frei, t, r, arenaNahschuss ? 'fern' : null);
             if (!art) return;
             if (art === 'fern' && !frei.geladen) return;
             angreifbar[id] = art;
           });
         }
       }
+
+      /* Der Nahschuss-Knopf erscheint nur, wenn er auch etwas bewirken kann:
+         handliche Waffe, geladen, noch nicht angegriffen - und ein Gegner
+         steht wirklich daneben. Ein Knopf, der nichts tut, ist schlimmer als
+         keiner. */
+      if (arenaNahschussFuer !== freigegebenId) {
+        arenaNahschussFuer = freigegebenId;
+        arenaNahschuss = false;
+      }
+      const nahbei = !!frei && Object.keys(tokens).some(function (id) {
+        const t = tokens[id];
+        return t && !t.tot && arenaIstFeind(frei, t)
+          && arenaDistanz(frei, t) <= r.nahkampfReichweite;
+      });
+      const schussAngebot = !!(spielerSteuerbar && frei && !frei.tot && !frei.hatAngegriffen
+        && frei.geladen && arenaNahschussMoeglich(frei) && nahbei);
+      if (!schussAngebot && arenaNahschuss) arenaNahschuss = false;
+      arenaSchussEl.classList.toggle('an', schussAngebot);
+      arenaSchussEl.classList.toggle('aktiv', schussAngebot && arenaNahschuss);
+      arenaSchussEl.textContent = arenaNahschuss
+        ? 'Schuss aus der Nähe ✓' : 'Aus der Nähe schießen';
+      arenaSchussEl.title = 'Der Gegner weicht aus — gewürfelt wird gegen seine Parade, '
+        + 'nicht gegen die 4. Danach ist die Waffe leer.';
 
       arenaBrettEl.innerHTML = '';
       const belegung = {};
@@ -2034,8 +2081,13 @@
       else {
         const teile = [];
         if (!frei.hatGezogen) teile.push('Feld anklicken zum Bewegen (' + (frei.bewegung || r.bewegung) + ')');
-        if (!frei.hatAngegriffen && Object.keys(angreifbar).length) teile.push('Gegner anklicken zum Angreifen');
-        if (!frei.geladen) teile.push('Waffe ist leer — lädt bis zur nächsten Runde');
+        if (!frei.hatAngegriffen && Object.keys(angreifbar).length) {
+          teile.push(arenaNahschuss
+            ? 'Gegner anklicken — du schießt aus der Nähe'
+            : 'Gegner anklicken zum Angreifen');
+        }
+        // Vorderlader: erst in der UEBERNAECHSTEN Runde wieder bereit (Bibel 4.5).
+        if (!frei.geladen) teile.push('Waffe ist leer — lädt bis zur übernächsten Runde');
         /* Als Letzter in der Reihe schliesst der Spieler die Runde NICHT selbst
            ab: Dort stehen Auferstehung und Nachschub, und das ist ein Beat, den
            die Spielleitung ansagt und nicht ein Spieler nebenbei auslöst. */
@@ -2112,8 +2164,20 @@
 
       if (angreifbar[id]) {
         el.classList.add('angreifbar');
-        el.title = angreifbar[id] === 'nah' ? 'Nahkampf' : 'Fernkampf';
-        el.onclick = function (ev) { ev.stopPropagation(); arenaGreifeAn(freigegebenId, id); };
+        /* "tokens" gibt es in dieser Funktion NICHT - sie bekommt nur das eine
+           Token. Der Stand kommt deshalb aus arenaSnap; ein Griff auf eine
+           Variable der aufrufenden Funktion waere eine haengende Referenz und
+           haette beim ersten angreifbaren Ziel geworfen. */
+        const mein = (arenaSnap.tokens || {})[freigegebenId] || {};
+        const nahR = ((arenaSzene(arenaScene) || {}).regeln || {}).nahkampfReichweite || 1;
+        el.title = angreifbar[id] === 'nah' ? 'Nahkampf'
+          : (arenaDistanz(mein, t) <= nahR
+              ? 'Schuss aus der Nähe — gegen seine Parade' : 'Fernkampf');
+        const wunsch = angreifbar[id] === 'fern' ? 'fern' : null;
+        el.onclick = function (ev) {
+          ev.stopPropagation();
+          arenaGreifeAn(freigegebenId, id, wunsch);
+        };
       }
       return el;
     }
@@ -2148,7 +2212,7 @@
       }, (t.name || id) + ' bewegt sich.');
     }
 
-    function arenaGreifeAn(angreiferId, zielId) {
+    function arenaGreifeAn(angreiferId, zielId, wunsch) {
       const sz = arenaSzene(arenaScene); if (!sz) return;
       const tokens = arenaSnap.tokens || {};
       const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
@@ -2156,8 +2220,11 @@
       if (!a.typ || !z.typ) return;
       // Der Joker der Initiative gibt +2 auf Wurf UND Schaden (js/kampf.js).
       const bonus = arenaIniBonus(arenaSnap.initiative || null, angreiferId, tokens);
-      const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null, null, bonus);
+      const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null,
+        wunsch ? { art: wunsch } : null, bonus);
       if (!erg.ok) return;
+      // Der Wunsch ist mit dem Angriff verbraucht.
+      arenaNahschuss = false;
 
       /* Aenderungen UND Logzeile kommen aus js/arena.js und werden NICHT hier
          gebaut: Alle drei Ansichten schreiben dieselben, und die Regel "der
@@ -2204,6 +2271,10 @@
         [(frei.name || freigegebenId) + ' beendet den Zug.'].concat(e.logs));
     }
     if (arenaFertigEl) arenaFertigEl.addEventListener('click', arenaZugBeenden);
+    if (arenaSchussEl) arenaSchussEl.addEventListener('click', function () {
+      arenaNahschuss = !arenaNahschuss;
+      renderArena();
+    });
 
     window.addEventListener('resize', function () { if (arenaScene) renderArena(); });
 

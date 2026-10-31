@@ -186,6 +186,22 @@
   let snap = {};
   let auswahlId = null;
   let versetzen = false;
+  /* Die Auswahl FOLGT DER INITIATIVE (Hendriks Vorgabe vom 31.10.2026: "die
+     Figur, die gerade dran ist, sollte automatisch auch ausgewaehlt sein").
+
+     Gezogen wird sie nur, wenn die Reihe sich BEWEGT - nicht bei jedem
+     Neuzeichnen. Der Lauscher feuert nach jedem Schreibvorgang, und eine
+     Auswahl, die dabei jedes Mal zuruecksprang, waere unbenutzbar: Man koennte
+     keine andere Figur mehr ansehen, ohne dass sie sofort wieder wegspringt.
+     "iniZuletzt" merkt sich deshalb, auf welchen Eintrag die Auswahl zuletzt
+     gezogen wurde. */
+  let iniZuletzt = null;
+  /* Nahschuss: dem Gegner, der daneben steht, die Pistole ins Gesicht setzen
+     (Savage Worlds, Zielzahl ist seine Parade - Bibel 4.4a). Gilt nur fuer die
+     gerade ausgewaehlte Figur; wechselt die Auswahl, faellt der Wunsch weg,
+     sonst schiesst die naechste Figur, obwohl sie zuschlagen sollte. */
+  let nahschuss = false;
+  let nahschussFuer = null;
   /* Die echten Charakterboegen dieser Sitzung (sitzungen/{sid}/stand/figuren).
      Erst seit dem 15.10.2026 ueberhaupt erreichbar - vorher lagen sie nur im
      localStorage der Spieler, und die Arena musste mit "Spieler 1-4" leben. */
@@ -400,14 +416,16 @@
       (t.name || id) + ' bewegt sich.');
   }
 
-  function greifeAn(angreiferId, zielId) {
+  function greifeAn(angreiferId, zielId, wunsch) {
     const tokens = snap.tokens || {};
     const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
     const z = Object.assign({ id: zielId }, tokens[zielId] || {});
     if (!a.typ || !z.typ) return;
     const bonus = arenaIniBonus(snap.initiative || null, angreiferId, tokens);
-    const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null, null, bonus);
+    const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null,
+      wunsch ? { art: wunsch } : null, bonus);
     if (!erg.ok) return;
+    nahschuss = false;                       // der Wunsch ist verbraucht
     /* Aenderungen UND Logzeile kommen aus js/arena.js - beides stand bis zum
        30.10.2026 wortgleich hier und in karte.html, und die Diener-Automatik
        waere die dritte Kopie geworden. Dort haengt auch die Regel "der Saebel
@@ -668,13 +686,17 @@
         Object.keys(tokens).forEach(function (id) {
           const t = tokens[id];
           if (!t || t.tot || !arenaIstFeind(sel, t)) return;
-          const art = arenaAngriffsart(sel, t, R);
+          // Der Wunsch wirkt NUR angrenzend - auf Distanz entscheidet die
+          // Entfernung, arenaAngriffsart() ignoriert ihn dort.
+          const art = arenaAngriffsart(sel, t, R, nahschuss ? 'fern' : null);
           if (!art) return;
           if (art === 'fern' && !sel.geladen) return;
           angreifbar[id] = art;
         });
       }
     }
+    if (nahschussFuer !== auswahlId) { nahschussFuer = auswahlId; nahschuss = false; }
+    if (nahschuss && !nahschussAngebot(sel, tokens)) nahschuss = false;
 
     const belegung = {};
     Object.keys(tokens).forEach(function (id) { const t = tokens[id]; if (t) belegung[t.x + ':' + t.y] = id; });
@@ -829,10 +851,31 @@
     el.onclick = function (ev) {
       ev.stopPropagation();
       // Angriff hat Vorrang, wenn eine Auswahl besteht und das Ziel markiert ist.
-      if (auswahlId && angreifbar[id]) { greifeAn(auswahlId, id); return; }
+      if (auswahlId && angreifbar[id]) {
+        greifeAn(auswahlId, id, angreifbar[id] === 'fern' ? 'fern' : null);
+        return;
+      }
       auswaehlen(id);
     };
     return el;
+  }
+
+  /* Kann diese Figur ueberhaupt aus der Naehe schiessen? Handliche Waffe,
+     geladen, noch nicht angegriffen - und ein Gegner steht wirklich daneben.
+     Ein Knopf, der nichts tut, ist schlimmer als keiner. */
+  function nahschussAngebot(sel, tokens) {
+    if (!sel || sel.tot || sel.hatAngegriffen || !sel.geladen) return false;
+    if (!arenaNahschussMoeglich(sel)) return false;
+    return Object.keys(tokens || {}).some(function (id) {
+      const t = tokens[id];
+      return t && !t.tot && arenaIstFeind(sel, t)
+        && arenaDistanz(sel, t) <= R.nahkampfReichweite;
+    });
+  }
+
+  function nahschussUmschalten() {
+    nahschuss = !nahschuss;
+    render();
   }
 
   function renderAuswahl(sel, tokens) {
@@ -860,6 +903,16 @@
       (sel.angeschlagen ? 'Haken weg' : 'angeschlagen') + '</button></div>';
     if ((sel.fernwaffe || 0) > 0) {
       html += '<div class="zeile"><button class="btn" onclick="ladungUmschalten(\'' + id + '\')">' + (sel.geladen ? 'Waffe entladen' : 'Waffe laden') + '</button></div>';
+    }
+    /* Nahschuss. Der Knopf steht nur da, wenn er auch wirkt; kann die Figur es
+       grundsaetzlich nicht, sagt eine Zeile WARUM - sonst sucht man den Knopf. */
+    if (nahschussAngebot(sel, tokens)) {
+      html += '<div class="zeile"><button class="btn' + (nahschuss ? ' warn' : '') +
+        '" onclick="nahschussUmschalten()" title="Der Gegner weicht aus — gewürfelt wird gegen seine Parade, nicht gegen die 4. Danach ist die Waffe leer.">' +
+        (nahschuss ? 'Nahschuss ✓ — Gegner anklicken' : 'Aus der Nähe schießen') +
+        '</button></div>';
+    } else if ((sel.fernwaffe || 0) > 0 && !sel.fernHandlich) {
+      html += '<div class="hinweis">Die Waffe ist zu groß, um sie im Handgemenge abzudrücken (höchstens pistolengroß, Bibel 4.4a).</div>';
     }
 
     /* Kampfwerte je Figur. Die Fertigkeits- und Schadensfelder sind
@@ -972,6 +1025,23 @@
 
   window.addEventListener('resize', render);
 
+  /* Die Auswahl der Reihe nachziehen. Nur beim WECHSEL des Eintrags, damit
+     ein Blick auf eine andere Figur nicht beim naechsten Schreibvorgang
+     wegspringt (der Lauscher feuert nach jedem update()).
+
+     Auf der Diener-Karte handelt niemand einzeln - dort wird die Auswahl
+     geleert, statt eine beliebige der zwoelf Figuren auszuwaehlen. */
+  function auswahlDerReiheFolgen() {
+    const tokens = snap.tokens || {};
+    const amZug = arenaIniAmZug(snap.initiative || null, tokens);
+    const idx = amZug ? amZug.index : null;
+    if (idx === iniZuletzt) return;
+    iniZuletzt = idx;
+    const ids = amZug ? arenaIniTokens(amZug, tokens) : [];
+    auswahlId = (ids.length === 1) ? ids[0] : null;
+    versetzen = false;
+  }
+
   // ---------- Start ----------
   try {
     firebase.initializeApp(firebaseConfig);
@@ -982,6 +1052,7 @@
     db.ref(BASIS.slice(0, -1)).on('value', function (s) {
       snap = s.val() || {};
       if (auswahlId && !(snap.tokens || {})[auswahlId]) auswahlId = null;
+      auswahlDerReiheFolgen();
       render();
     });
     /* Die Charakterboegen dieser Sitzung. NUR LESEND: Geschrieben wird eine

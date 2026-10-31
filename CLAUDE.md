@@ -129,6 +129,97 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-10-31 (Fortsetzung) — Die Abfolge einer Runde, vollständig geprüft
+- **Hendriks Auftrag:** „Irgendwie stimmt die Abfolge davon noch nicht. Prüfe das bitte ein mal
+  vollständig. Wie verhält es sich mit schießen und schlagen, und die Figur, die gerade dran ist,
+  sollte automatisch auch ausgewählt sein."
+- **Sechs Befunde, fünf davon echte Fehler** — und vier konnten nur deshalb unbemerkt bleiben,
+  weil die **Oberfläche** sie verhinderte, nicht die Engine:
+
+      1. Angriff prüft hatAngegriffen NICHT   -> eine Figur schlägt zweimal zu
+      2. Angriff prüft angreifer.tot NICHT    -> eine gefallene Figur greift an
+      3. Nachladen wirkungslos                -> Schuss in Runde 3, geladen in Runde 4
+      4. Die Leiste läuft der Freigabe voraus -> Phantom-Zug, Figur übersprungen
+      5. Schießen neben einem Gegner gar nicht möglich
+      6. Die Figur am Zug war nicht ausgewählt
+
+- **Zu 1 und 2, und das ist die Pointe:** `arenaBewegungErlaubt()` prüft `tot` und `hatGezogen`
+  seit je **selbst**; `arenaAngriff()` sah nur `ziel.tot` und `angeschlagen`. Es gibt sogar eine
+  Funktion **`arenaKannAngreifen()`**, die genau diese Frage beantwortet — **sie wurde nirgends
+  gerufen.** Jetzt drei Wachen in der Engine, dieselbe Linie wie bei `arenaDarfSteuern()` gestern:
+  auch ein von Hand abgesetzter Aufruf kommt daran nicht vorbei.
+- **Zu 3, der gravierendste:** Gemessen — Schuss in Runde 3 setzt `entladenSeitRunde: 3`, beim
+  Rundenwechsel gilt `runde > entladenSeitRunde`, also 4 > 3 → **wieder geladen**. Damit feuerte
+  eine Steinschlosspistole **jede Runde**, das Nachladen kostete gar nichts. **Bibel 4.5, der
+  Spickzettel und der Dateikopf sagten alle drei „erst in der übernächsten Runde".** Der Code
+  widersprach der Bibel — und dann gilt die Bibel (Hendriks Entscheidung, bestätigt). Jetzt
+  `runde > entladenSeitRunde + 1`: Schuss in 3, Runde 4 leer, ab 5 wieder bereit.
+- **Zu 4 — und hier hat mein erster Fix es SCHLIMMER gemacht.** `arenaIniAmZug()` löste vorwärts
+  auf: Fiel die handelnde Figur, zeigte die Leiste sofort die **nächste** als „am Zug", während
+  `freigegeben` noch auf der Gefallenen stand — ein Zug, den niemand spielen konnte. Ich habe
+  zuerst `arenaIniWeiter()` auf den aufgelösten Index umgestellt und die Auflösung stehen
+  gelassen; **gemessen wurde Cord dann wirklich übersprungen** (`rundeFertig: true`, obwohl er
+  stand). Die Ursache lag nicht beim Weiterzählen, sondern bei der Auflösung selbst.
+  - Jetzt bleibt `arenaIniAmZug()` **auf dem Eintrag stehen**, auf dem die Reihe steht, und
+    `arenaIniLanden()` löst den Index **beim Schreiben** vorwärts auf — damit gibt es wieder
+    **eine** Quelle für „wer ist dran". Fällt eine Figur während ihres eigenen Zuges, steht sie
+    durchgestrichen als „am Zug" da, und das ist die Wahrheit.
+  - **Erst die Messung nach dem Fix hat das gezeigt**, nicht das Nachdenken davor.
+- **Zu 5 habe ich die Regel nachgelesen statt sie zu erinnern** (stehende Anweisung vom 14.10.):
+  **Savage Worlds erlaubt den Schuss neben einem Gegner** — die Zielzahl ist dann die **Parade des
+  Ziels** statt der 4, und die Waffe darf nicht größer als eine Pistole sein. **In Bibel §4 stand
+  zu diesem Fall nichts**, weder in 4.4a noch in 4.5. Das war der eigentliche Befund.
+  - **Bibel 4.4a hat jetzt einen Abschnitt „Der Schuss aus der Nähe"**, der Spickzettel in
+    `REGELREFERENZ.md` eine Zeile, `ARENA-ENDKAMPF.md` einen eigenen Abschnitt **4.2a** mit
+    Vergleichstabelle.
+  - **Gang Up hilft dabei NICHT** — der Bonus gehört in Savage Worlds dem Nahkampf. Steht als
+    eigene Prüfung da: mit drei Verbündeten am Ziel muss der Schuss denselben Modifikator haben
+    wie allein, der Nahkampf nicht.
+  - **Die Größengrenze trägt das GEWICHT der Ware**, nicht die Reichweite: Wurfmesser 1,
+    Steinschlosspistole 3, Donnerbüchse 6, Muskete 8 — die Reichweite hätte Pistole (5) und
+    Donnerbüchse (3) gar nicht unterschieden. Neues Feld `fernHandlich` am Token,
+    `arenaWerteAusFigur()` leitet es ab. **Fehlt das Feld, gilt NEIN** — anders als bei der
+    Zuteilung gestern ist hier die großzügige Vorgabe die falsche: Ein stillschweigend erlaubter
+    Musketenschuss aus zwei Schritt wäre schlimmer als ein fehlender Knopf. Kann eine Figur es
+    nicht, sagt das Panel **warum**.
+  - **Bewusst nicht abgebildet:** der Fehlschuss in die eigenen Reihen (*Innocent Bystanders*) —
+    als fünfte Abweichung in `ARENA-ENDKAMPF.md` 3.5 eingetragen.
+- **Zu 6:** `auswahlDerReiheFolgen()` zieht die Auswahl **nur beim Wechsel des Eintrags**. Der
+  Firebase-Lauscher feuert nach **jedem** Schreibvorgang; sprang die Auswahl dabei jedes Mal
+  zurück, könnte die SL keine andere Figur mehr ansehen. Auf der **Diener-Karte** wird sie
+  geleert (dort handelt niemand einzeln), und der **Versetzen-Modus** endet beim Zugwechsel mit —
+  sonst setzte der nächste Klick die neue Figur frei herum statt sie zu bewegen.
+- **Die Abfolge selbst ist bestätigt richtig:** Bewegung und Angriff je **einmal**, in beliebiger
+  Folge — erst laufen und dann schlagen, oder erst schlagen und dann noch ein Feld weiter. Das ist
+  Savage Worlds, und es stand als Prüfung bisher nirgends.
+- **Getestet: 380 Prüfungen in `t_arena.js`, 0 Fehler** (35 neue; **2112 über vierzehn Skripte**,
+  ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.).
+  - **Die Auswahl wird AUS `arena_admin.html` geschnitten und wirklich ausgeführt** — eine
+    nachgebaute Kopie prüft genau die zwei Punkte nicht, um die es geht.
+  - **Sieben Gegenproben, jede nennt den Fehler wörtlich:** Wachen entfernt (2) · Nachladen
+    zurückgedreht (1) · Vorwärtsauflösung zurück (1) · Nahschuss abgeschaltet (7) · Index beim
+    Landen nicht aufgelöst (3) · Auswahl bei jedem Lauf gezogen (1) · Diener-Karte wählt eine
+    beliebige Figur (1).
+- **Ein eigener Fehler, gefunden beim Gegenlesen der Scopes:** Mein neuer Tooltip-Text griff in
+  `arenaTokenEl()` auf `tokens` zu — **die Variable gibt es dort nicht**, sie gehört
+  `renderArena()`. Beim ersten angreifbaren Ziel hätte das geworfen. Genau die hängende Referenz,
+  die dieses Projekt schon einmal gekostet hat; jetzt über `arenaSnap`.
+- **Zwei eigene Fehler an den Prüfungen selbst:**
+  1. **Eine Gegenprobe, die nichts bewies:** „Der Versetzen-Modus endet beim Zugwechsel" prüfte,
+     ohne ihn vorher **einzuschalten** — beide Seiten standen auf `false`, und das Entfernen des
+     Zurücksetzens schlug **nicht** an. Jetzt wird er erst gesetzt. **Eine Gegenprobe, die nicht
+     anschlägt, kann auch eine schlechte Probe sein.**
+  2. **Zwei Bestandsprüfungen trugen die alte Erwartung** (Nachladen in der nächsten Runde,
+     `arenaIniAmZug` springt). Beide **umgedreht statt gelöscht**, mit der Begründung daneben —
+     wer das zurücknimmt, soll darüber stolpern.
+- **Die Dublettenfalle von heute Vormittag ein zweites Mal getreten:** Mein Doku-Skript hängte an
+  einen Suchtext an, der im Ersatztext wieder vorkam. Diesmal hat der eingebaute Wächter sie
+  gefangen, bevor etwas geschrieben wurde; die Skripte tragen jetzt **je Datei eine Marke** und
+  brechen bei einem zweiten Lauf ab.
+- **[OFFEN] Ob der Nahschuss am Tisch gebraucht wird, zeigt der Probekampf.** Teuer ist er
+  jedenfalls: Die Waffe ist danach zwei Runden leer, und gegen Parade 8 des Seelenlosen trifft er
+  genauso schlecht wie ein Säbelhieb — gegen einen Diener mit Parade 4 dagegen gut.
+
 ### 2026-10-31 — Der Seelenlose steckt mehr weg, die Wiedergänger weniger
 - **Hendriks Frage:** „Wie können wir die Gesundheit des Seelenlosen höher machen und die
   kleinen Zombies schwächer?"

@@ -227,9 +227,32 @@ function arenaWundenAnteil(t) {
    "Schiessen" ist auch ungelernt eine gueltige Probe (d4-2), ein
    fehlender Fertigkeitswert hindert also niemanden am Abdruecken. Nur
    die fehlende WAFFE tut das. */
-function arenaAngriffsart(angreifer, ziel, regeln) {
+/* Darf diese Figur einem Gegner, der NEBEN ihr steht, die Waffe ins Gesicht
+   setzen? Savage Worlds erlaubt das (nachgelesen am 31.10.2026, Bibel 4.4a):
+   Die Zielzahl ist dann die PARADE des Ziels statt der 4, und die Waffe darf
+   nicht groesser als eine Pistole sein - mit einer Muskete im Handgemenge
+   kommt niemand zum Schuss.
+
+   "fernHandlich" traegt genau diese Groessengrenze. Fehlt das Feld, gilt NEIN:
+   Der Nahschuss ist die neue Faehigkeit, und ein stillschweigend erlaubter
+   Musketenschuss aus zwei Schritt waere schlimmer als ein fehlender Knopf.
+   arenaWerteAusFigur() setzt es aus dem Gewicht der Ware (bis 3 Pfund:
+   Pistole, Wurfmesser), im Schlachtfeld ist es je Figur umstellbar. */
+const ARENA_NAHSCHUSS_GEWICHT = 3;   // Pfund; Pistole ja, Donnerbuechse nein
+
+function arenaNahschussMoeglich(t) {
+  return !!t && ((t.fernwaffe || 0) > 0) && !!t.fernHandlich;
+}
+
+/* "wunsch" ist die EINZIGE Stelle, an der die Angriffsart ueberhaupt eine Wahl
+   ist: angrenzend und 'fern' gewuenscht -> Nahschuss, sonst Nahkampf. Auf
+   Distanz entscheidet weiter allein die Entfernung (Hendriks Vorgabe vom
+   23.08.2026) - dort gibt es nichts zu waehlen. */
+function arenaAngriffsart(angreifer, ziel, regeln, wunsch) {
   const d = arenaDistanz(angreifer, ziel);
-  if (d <= regeln.nahkampfReichweite) return 'nah';
+  if (d <= regeln.nahkampfReichweite) {
+    return (wunsch === 'fern' && arenaNahschussMoeglich(angreifer)) ? 'fern' : 'nah';
+  }
   if (d > regeln.fernkampfReichweite) return null;
   if (((angreifer && angreifer.fernwaffe) || 0) <= 0) return null;
   /* Die eigentliche Grenze ist seit dem 30.10.2026 die WAFFE, nicht das
@@ -284,8 +307,17 @@ function arenaAngriffMod(angreifer, ziel, art, alleTokens, regeln) {
     // Nahkampf gegen die Parade des Ziels, plus Gang Up.
     mod = angriffsMod(ziel.parade != null ? ziel.parade : 2);
     mod += arenaGangUp(angreifer, ziel, alleTokens, regeln);
+  } else if (arenaDistanz(angreifer, ziel) <= regeln.nahkampfReichweite) {
+    /* NAHSCHUSS (Savage Worlds): Steht das Ziel daneben, ist die Zielzahl
+       seine PARADE - dieselbe Rechnung wie im Nahkampf, denn es weicht
+       aus, statt sich auf die Entfernung zu verlassen.
+       KEIN Gang Up: Der Bonus gehoert in Savage Worlds dem Nahkampf
+       (Fighting), nicht dem Schuss. Und bewusst NICHT abgebildet ist der
+       Fehlschuss in die eigenen Reihen ("Innocent Bystanders") - das ist
+       die Art Buchhaltung, die dieses Projekt weglaesst. */
+    mod = angriffsMod(ziel.parade != null ? ziel.parade : 2);
   } else {
-    // Fernkampf gegen die 4. Die Parade zaehlt hier NICHT.
+    // Fernkampf auf Distanz gegen die 4. Die Parade zaehlt dort NICHT.
     const fm = fernkampfMod(angreifer.reichweite || 1, arenaDistanz(angreifer, ziel));
     if (fm === null) return null;
     mod = fm;
@@ -345,9 +377,21 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorg
   const v = vorgabe || {};
   const zuschlag = Math.max(0, bonus || 0);
   if (ziel && ziel.tot) return { ok: false, grund: 'ziel_liegt' };
-  if (angreifer && angreifer.angeschlagen) return { ok: false, grund: 'angeschlagen' };
+  /* DIE DREI WACHEN DES ANGREIFERS, und sie stehen seit dem 31.10.2026 HIER
+     statt nur in der Oberflaeche. arenaBewegungErlaubt() prueft "tot" und
+     "hatGezogen" seit je selbst; der Angriff prueft bis dahin nur
+     "angeschlagen" - eine gefallene Figur konnte angreifen, und eine, die
+     schon zugeschlagen hatte, ein zweites Mal. Beides haben nur karte.html
+     und arena_admin.html verhindert, indem sie die Klickziele versteckten.
+     Dieselbe Linie wie bei arenaDarfSteuern(): auch ein von Hand abgesetzter
+     Aufruf kommt daran nicht vorbei.
+     arenaKannAngreifen() gab es dafuer schon - sie wurde nirgends gerufen. */
+  if (!arenaKannAngreifen(angreifer)) {
+    return { ok: false, grund: (angreifer && angreifer.tot) ? 'tot' : 'angeschlagen' };
+  }
+  if (angreifer.hatAngegriffen) return { ok: false, grund: 'schon_angegriffen' };
 
-  const art = arenaAngriffsart(angreifer, ziel, regeln);
+  const art = arenaAngriffsart(angreifer, ziel, regeln, v.art);
   if (!art) return { ok: false, grund: 'ausser_reichweite' };
   if (art === 'fern' && !angreifer.geladen) return { ok: false, grund: 'nicht_geladen' };
 
@@ -514,9 +558,15 @@ function arenaRundenwechsel(tokens, regeln, alteRunde) {
       erholt.push(id);
     }
 
-    // Nachladen: wer geschossen hat, ist die volle Runde darauf wieder bereit.
+    /* Nachladen: erst in der UEBERNAECHSTEN Runde wieder bereit (Bibel 4.5,
+       "1701 ist alles Vorderlader - ein Schuss, und Nachladen dauert").
+       Bis zum 31.10.2026 stand hier "runde > entladenSeitRunde", also schon
+       die naechste Runde - damit kostete das Nachladen gar nichts und eine
+       Pistole feuerte JEDE Runde. Der Code widersprach drei Dokumenten; es
+       gilt die Bibel, nicht der Code. Schuss in Runde 3 -> Runde 4 leer ->
+       ab Runde 5 wieder bereit. */
     if (!t.geladen && !t.tot) {
-      if (t.entladenSeitRunde != null && runde > t.entladenSeitRunde) {
+      if (t.entladenSeitRunde != null && runde > t.entladenSeitRunde + 1) {
         aenderungen['tokens/' + id + '/geladen'] = true;
         aenderungen['tokens/' + id + '/entladenSeitRunde'] = null;
       }
@@ -686,14 +736,36 @@ function arenaIniIndex(ini, tokens, von) {
   return -1;
 }
 
+/* Wer ist JETZT am Zug? Genau der Eintrag, auf dem die Reihe steht - ohne
+   vorwaerts aufzuloesen.
+
+   Bis zum 31.10.2026 sprang diese Funktion zum naechsten Eintrag mit noch
+   lebenden Figuren. Das war der Abfolge-Fehler: Fiel die Figur, die gerade
+   handelte, zeigte die Leiste sofort die NAECHSTE als "am Zug", waehrend
+   "freigegeben" noch auf der Gefallenen stand - ein Phantom-Zug, den niemand
+   spielen konnte. Und weil "weiter" von dort aus zaehlte, wurde diese Figur
+   anschliessend UEBERSPRUNGEN.
+
+   Dass der gespeicherte Index auf einen bespielbaren Eintrag zeigt, sichert
+   jetzt arenaIniLanden() beim Schreiben. Bleibt nur der Fall, dass die Figur
+   WAEHREND ihres eigenen Zuges faellt - dann steht sie durchgestrichen als
+   "am Zug" da, und das ist die Wahrheit: Ihr Zug ist vorbei, die SL (oder der
+   Spieler) schaltet weiter. */
 function arenaIniAmZug(ini, tokens) {
-  const i = arenaIniIndex(ini, tokens, (ini && ini.index) || 0);
-  if (i < 0) return null;
-  return Object.assign({ index: i }, ini.reihe[i]);
+  const reihe = (ini && ini.reihe) || [];
+  const i = (ini && ini.index) != null ? ini.index : 0;
+  if (!(i >= 0) || i >= reihe.length) return null;
+  return Object.assign({ index: i }, reihe[i]);
 }
 
+/* Der naechste Eintrag, der ueberhaupt noch jemanden hat - gezaehlt vom
+   Eintrag, auf dem die Reihe STEHT. Leere Eintraege dazwischen werden dabei
+   uebersprungen; der gefundene ist genau der, auf dem arenaIniLanden()
+   anschliessend landet. Damit kann keine Figur verloren gehen und keine
+   zweimal dran sein. */
 function arenaIniWeiter(ini, tokens) {
-  const i = arenaIniIndex(ini, tokens, ((ini && ini.index) || 0) + 1);
+  const von = ((ini && ini.index) != null ? ini.index : 0) + 1;
+  const i = arenaIniIndex(ini, tokens, von);
   return { index: i < 0 ? null : i, rundeFertig: i < 0 };
 }
 
@@ -1073,6 +1145,10 @@ function arenaWerteAusFigur(figur, name) {
     waffe: nah ? (nah.schaden || 0) : 0,
     fernwaffe: fern ? (fern.schaden || 0) : 0,
     reichweite: fern ? (fern.reichweite || 1) : 0,
+    /* Darf die Waffe im Handgemenge abgedrueckt werden? Savage Worlds:
+       hoechstens pistolengross. Das Gewicht der Ware traegt diese Grenze
+       sauber - Wurfmesser 1, Pistole 3, Donnerbuechse 6, Muskete 8. */
+    fernHandlich: !!(fern && (fern.gew || 0) <= ARENA_NAHSCHUSS_GEWICHT),
     parade: parade(figur),
     robustheit: robustheit(figur),
     /* Wild Card: Spielerfiguren immer, NSC laut Blatt. nscAlsFigur() setzt
@@ -1152,8 +1228,15 @@ function arenaMischen(ziel, quelle) {
 function arenaIniLanden(ini, tokens, index, regeln, saebeltraegerId, runde) {
   const aenderungen = {};
   const logs = [];
-  aenderungen['initiative/index'] = (index == null) ? null : index;
-  const eintrag = (index == null) ? null : (((ini && ini.reihe) || [])[index] || null);
+  /* Der uebergebene Index wird VORWAERTS AUFGELOEST und der aufgeloeste
+     geschrieben (31.10.2026). Sonst bliebe im Stand ein Index stehen, der auf
+     einen leeren Eintrag zeigt, und "Am Zug" waere der Freigabe einen Eintrag
+     voraus - genau der Fehler, den arenaIniWeiter() oben beschreibt. Ist ab
+     hier niemand mehr uebrig, ist die Runde durch. */
+  const roh = (index == null) ? -1 : arenaIniIndex(ini, tokens, index);
+  const i = roh < 0 ? null : roh;
+  aenderungen['initiative/index'] = i;
+  const eintrag = (i == null) ? null : (((ini && ini.reihe) || [])[i] || null);
   aenderungen['freigegeben'] = eintrag ? (arenaIniFreigabe(eintrag, tokens) || null) : null;
   if (!eintrag || eintrag.key !== ARENA_DIENER_SCHLUESSEL) {
     return { aenderungen: aenderungen, logs: logs, tokens: tokens, eintrag: eintrag };
@@ -1205,6 +1288,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ARENA_NACHBARN,
     arenaDienerZug, arenaDienerRunde,
     arenaIniLanden, arenaIniNeueRunde, arenaMischen,
-    arenaBesteWaffe, arenaWerteAusFigur, arenaZustandAusFigur
+    arenaBesteWaffe, arenaWerteAusFigur, arenaZustandAusFigur,
+    arenaNahschussMoeglich, ARENA_NAHSCHUSS_GEWICHT
   };
 }

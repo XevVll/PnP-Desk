@@ -61,6 +61,7 @@ vm.runInContext('this.X = {' + [
   'arenaIniLanden', 'arenaIniNeueRunde', 'arenaMischen',
   'kartenText', 'kartenVergleich', 'jokerBonus',
   'arenaBesteWaffe', 'arenaWerteAusFigur', 'arenaZustandAusFigur',
+  'arenaNahschussMoeglich', 'ARENA_NAHSCHUSS_GEWICHT',
   'alsFigur', 'AUSR_BY_ID', 'eigeneWarenSetzen'
 ].join(',') + '};', ctx);
 const A = ctx.X;
@@ -411,10 +412,19 @@ function held(id, opts) {
   chk('ein Nahkampfschlag nicht',
     A.arenaAngriff(h, diener('d', { x: 6, y: 5 }), { h1: h }, REGELN, null,
       { probeBand: 'erfolg', schaden: 3 }).entlaedt === false);
-  const nachladen = A.arenaRundenwechsel(
+  /* NACHLADEN: erst in der UEBERNAECHSTEN Runde (Bibel 4.5 - 1701 ist alles
+     Vorderlader). Bis zum 31.10.2026 lud der Code schon in der naechsten, womit
+     das Nachladen gar nichts kostete und eine Pistole jede Runde feuerte. Der
+     Code widersprach drei Dokumenten; es gilt die Bibel.
+     Geschossen in Runde 3: Runde 4 ist leer, ab Runde 5 wieder bereit. */
+  const r4 = A.arenaRundenwechsel(
     { l: held('l', { geladen: false, entladenSeitRunde: 3 }) }, REGELN, 3);
-  chk('nachgeladen wird erst die Runde DARAUF',
-    nachladen.aenderungen['tokens/l/geladen'] === true, nachladen.aenderungen);
+  chk('die Runde NACH dem Schuss bleibt die Waffe leer',
+    r4.aenderungen['tokens/l/geladen'] === undefined, r4.aenderungen);
+  const r5 = A.arenaRundenwechsel(
+    { l: held('l', { geladen: false, entladenSeitRunde: 3 }) }, REGELN, 4);
+  chk('erst in der uebernaechsten ist sie wieder bereit',
+    r5.aenderungen['tokens/l/geladen'] === true, r5.aenderungen);
   const zuFrueh = A.arenaRundenwechsel(
     { l: held('l', { geladen: false, entladenSeitRunde: 4 }) }, REGELN, 3);
   chk('in derselben Runde nicht',
@@ -825,8 +835,18 @@ function held(id, opts) {
     });
     const w = A.arenaIniWeiter({ reihe: reihe, index: 0 }, gefallen);
     chk('ein Eintrag ohne stehende Figur wird uebersprungen', w.index === 2, w);
-    chk('und arenaIniAmZug springt ebenso',
-      A.arenaIniAmZug({ reihe: reihe, index: 1 }, gefallen).index === 2);
+    /* arenaIniAmZug springt dagegen NICHT (geaendert am 31.10.2026, Hendriks
+       "irgendwie stimmt die Abfolge noch nicht"). Vorher loeste sie vorwaerts
+       auf - und damit zeigte die Leiste schon den Naechsten als "am Zug",
+       waehrend "freigegeben" noch auf der Gefallenen stand: ein Phantom-Zug,
+       den niemand spielen konnte. Und weil "weiter" von dort aus zaehlte,
+       wurde diese Figur anschliessend UEBERSPRUNGEN. */
+    const amZug = A.arenaIniAmZug({ reihe: reihe, index: 1 }, gefallen);
+    chk('arenaIniAmZug bleibt auf dem Eintrag stehen, auf dem die Reihe steht',
+      amZug.index === 1 && amZug.name === 'Bert', amZug);
+    chk('und "weiter" findet von dort aus Harwick, ohne ihn zu ueberspringen',
+      A.arenaIniWeiter({ reihe: reihe, index: 1 }, gefallen).index === 2,
+      A.arenaIniWeiter({ reihe: reihe, index: 1 }, gefallen));
   })();
 
   // -------------------------------------------------- Joker
@@ -1708,6 +1728,278 @@ function held(id, opts) {
       abzugGegen(vorlagen.diener.parade) > abzugGegen(5),
       [abzugGegen(vorlagen.diener.parade), abzugGegen(5)]);
   })();
+})();
+
+/* ==========================================================
+   DIE ABFOLGE EINER RUNDE (31.10.2026)
+   ----------------------------------------------------------
+   Hendrik: "Irgendwie stimmt die Abfolge davon noch nicht.
+   Pruefe das bitte ein mal vollstaendig. Wie verhaelt es sich
+   mit schiessen und schlagen?"
+
+   Fuenf Befunde, und vier davon konnten nur deshalb unbemerkt
+   bleiben, weil die OBERFLAECHE sie verhinderte:
+
+   1. arenaAngriff() prueft "hatAngegriffen" nicht -> zweiter
+      Schlag in derselben Runde.
+   2. arenaAngriff() prueft "angreifer.tot" nicht -> eine
+      gefallene Figur schlaegt zu. arenaKannAngreifen() gab es
+      dafuer schon und wurde nirgends gerufen.
+   3. Nachladen war wirkungslos (siehe eigener Block oben).
+   4. arenaIniAmZug() loeste vorwaerts auf -> Phantom-Zug, und
+      die Figur wurde danach uebersprungen (siehe oben).
+   5. Neben einem Gegner war ein Schuss UNMOEGLICH. Savage
+      Worlds erlaubt ihn gegen die PARADE des Ziels, mit
+      hoechstens pistolengrosser Waffe.
+
+   Dieselbe Linie wie bei arenaDarfSteuern(): entschieden wird
+   in js/arena.js, nicht in der Oberflaeche - auch ein von Hand
+   abgesetzter Aufruf kommt daran nicht vorbei.
+   ========================================================== */
+(function () {
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+  function tk(v, ex) {
+    return Object.assign({}, vorlagen[v], { geladen: true, wunden: 0 }, ex || {});
+  }
+
+  // -------------------------------------------------- Die Wachen des Angreifers
+  (function () {
+    const z = tk('diener', { id: 'z', x: 5, y: 6 });
+    function schlag(ex) {
+      const a = tk('spieler', Object.assign({ id: 'a', x: 5, y: 5 }, ex));
+      return A.arenaAngriff(a, z, { a: a, z: z }, REGELN, null, { probeBand: 'erfolg' });
+    }
+    chk('frisch darf die Figur angreifen', schlag({}).ok === true, schlag({}).grund);
+    chk('wer schon angegriffen hat, nicht nochmal',
+      schlag({ hatAngegriffen: true }).grund === 'schon_angegriffen',
+      schlag({ hatAngegriffen: true }));
+    chk('eine gefallene Figur greift nicht an',
+      schlag({ tot: true }).grund === 'tot', schlag({ tot: true }));
+    chk('eine angeschlagene auch nicht',
+      schlag({ angeschlagen: true }).grund === 'angeschlagen',
+      schlag({ angeschlagen: true }));
+    /* Und die Gegenrichtung: Bewegen darf sie beides - angeschlagen kostet die
+       HANDLUNG, nicht den Wuerfel (Bibel 4.4a), und nach dem Angriff darf man
+       noch laufen (Savage Worlds: Bewegung und Handlung in beliebiger Folge). */
+    const ang = tk('spieler', { id: 'a', x: 5, y: 5, angeschlagen: true });
+    chk('angeschlagen darf sie sich aber bewegen',
+      A.arenaBewegungErlaubt(ang, { x: 5, y: 7 }, REGELN, { a: ang }).ok === true);
+    const schonGeschlagen = tk('spieler', { id: 'a', x: 5, y: 5, hatAngegriffen: true });
+    chk('und nach dem Angriff noch laufen',
+      A.arenaBewegungErlaubt(schonGeschlagen, { x: 5, y: 7 }, REGELN,
+        { a: schonGeschlagen }).ok === true);
+    const schonGelaufen = tk('spieler', { id: 'a', x: 5, y: 5, hatGezogen: true });
+    chk('umgekehrt ebenso: erst laufen, dann schlagen',
+      A.arenaAngriff(schonGelaufen, z, { a: schonGelaufen, z: z }, REGELN, null,
+        { probeBand: 'erfolg' }).ok === true);
+    const totBewegt = tk('spieler', { id: 'a', x: 5, y: 5, tot: true });
+    chk('eine gefallene Figur bewegt sich nicht',
+      A.arenaBewegungErlaubt(totBewegt, { x: 5, y: 6 }, REGELN, { a: totBewegt }).ok === false);
+  })();
+
+  // -------------------------------------------------- Nahschuss
+  (function () {
+    chk('eine Pistole ist handlich genug fuer den Nahschuss',
+      A.arenaNahschussMoeglich(tk('spieler')) === true);
+    chk('eine Figur ohne Schusswaffe nicht',
+      A.arenaNahschussMoeglich(tk('verbuendeter')) === false);
+    chk('und eine mit einer zu grossen Waffe auch nicht',
+      A.arenaNahschussMoeglich(tk('spieler', { fernHandlich: false })) === false);
+    /* Ein fehlendes Feld heisst NEIN - der Nahschuss ist die neue Faehigkeit,
+       und ein stillschweigend erlaubter Musketenschuss aus zwei Schritt waere
+       schlimmer als ein fehlender Knopf. */
+    const ohneFeld = tk('spieler');
+    delete ohneFeld.fernHandlich;
+    chk('ohne das Feld gilt NEIN', A.arenaNahschussMoeglich(ohneFeld) === false);
+
+    const a = tk('spieler', { id: 'a', x: 5, y: 5 });
+    const nah = tk('diener', { id: 'n', x: 5, y: 6 });
+    chk('ohne Wunsch ist angrenzend weiterhin Nahkampf',
+      A.arenaAngriffsart(a, nah, REGELN) === 'nah');
+    chk('mit Wunsch wird daraus ein Schuss',
+      A.arenaAngriffsart(a, nah, REGELN, 'fern') === 'fern');
+    chk('eine zu grosse Waffe bleibt beim Nahkampf',
+      A.arenaAngriffsart(tk('spieler', { id: 'a', x: 5, y: 5, fernHandlich: false }),
+        nah, REGELN, 'fern') === 'nah');
+    // Auf Distanz gibt es nichts zu waehlen - die Entfernung entscheidet.
+    const fern = tk('diener', { id: 'f', x: 5, y: 12 });
+    chk('auf Distanz aendert der Wunsch nichts',
+      A.arenaAngriffsart(a, fern, REGELN) === 'fern'
+      && A.arenaAngriffsart(a, fern, REGELN, 'nah') === 'fern');
+
+    /* DIE TRAGENDE PRUEFUNG: Die Zielzahl des Nahschusses ist die PARADE des
+       Ziels, nicht die 4. Gemessen gegen angriffsMod() statt abgeschrieben. */
+    const sNah = A.arenaAngriff(a, nah, { a: a, n: nah }, REGELN, null,
+      { probeBand: 'erfolg', art: 'fern', schaden: 3 });
+    chk('der Nahschuss geht gegen die Parade des Ziels',
+      sNah.art === 'fern' && sNah.mod === A.angriffsMod(nah.parade),
+      [sNah.art, sNah.mod, A.angriffsMod(nah.parade)]);
+    /* KEIN Gang Up: Der Bonus gehoert in Savage Worlds dem Nahkampf. Mit drei
+       Verbuendeten am Ziel muss der Schuss denselben Modifikator haben. */
+    const mit = { a: a, n: nah };
+    [[4, 6], [6, 6], [4, 5]].forEach(function (f, i) {
+      mit['h' + i] = tk('spieler', { id: 'h' + i, x: f[0], y: f[1] });
+    });
+    const sMit = A.arenaAngriff(a, nah, mit, REGELN, null,
+      { probeBand: 'erfolg', art: 'fern', schaden: 3 });
+    const nMit = A.arenaAngriff(a, nah, mit, REGELN, null,
+      { probeBand: 'erfolg', schaden: 3 });
+    chk('Gang Up hilft dem Nahkampf, nicht dem Nahschuss',
+      sMit.mod === A.angriffsMod(nah.parade) && nMit.mod > sMit.mod,
+      [sMit.mod, nMit.mod]);
+    chk('und die beiden Faelle fallen nachweislich auseinander',
+      sMit.mod !== nMit.mod);
+    // Ein Nahschuss leert die Waffe genauso wie ein Schuss auf Distanz.
+    chk('der Nahschuss leert die Waffe', sNah.entlaedt === true);
+    chk('und wirft nur den Waffenwuerfel, ohne Staerke',
+      sNah.schadensWuerfel.length === 1, sNah.schadensWuerfel);
+    // Ohne geladene Waffe gibt es auch im Handgemenge keinen Schuss.
+    const leer = tk('spieler', { id: 'a', x: 5, y: 5, geladen: false });
+    chk('ohne Ladung kein Nahschuss',
+      A.arenaAngriff(leer, nah, { a: leer, n: nah }, REGELN, null,
+        { probeBand: 'erfolg', art: 'fern' }).grund === 'nicht_geladen');
+  })();
+
+  // -------------------------------------------------- Landen loest den Index auf
+  (function () {
+    const tokens = {
+      a: tk('spieler', { id: 'a', name: 'Anna', x: 1, y: 1 }),
+      c: tk('spieler', { id: 'c', name: 'Cord', x: 3, y: 1 })
+    };
+    const reihe = [
+      { key: 't:a', name: 'Anna', tokens: ['a'], karte: { wert: 14, farbe: 'pik' } },
+      { key: 't:b', name: 'Bert', tokens: ['b'], karte: { wert: 10, farbe: 'herz' } },
+      { key: 't:c', name: 'Cord', tokens: ['c'], karte: { wert: 5, farbe: 'karo' } }
+    ];
+    const ini = { reihe: reihe, index: 0, deck: [], mischenNoetig: false };
+    // Bert gibt es nicht mehr (endgueltig gefallen, Token weg).
+    const e = A.arenaIniLanden(ini, tokens, 1, REGELN, null, 1);
+    chk('ein leerer Eintrag wird beim Landen vorwaerts aufgeloest',
+      e.aenderungen['initiative/index'] === 2, e.aenderungen);
+    chk('und die Figur dieses Eintrags ist freigegeben',
+      e.aenderungen['freigegeben'] === 'c', e.aenderungen);
+    /* Ist ab dort niemand mehr uebrig, ist die Runde durch - und es wird
+       niemand freigegeben, statt dass eine Figur ohne Zug dasteht. */
+    const ende = A.arenaIniLanden(ini, { a: tokens.a }, 1, REGELN, null, 1);
+    chk('ist niemand mehr uebrig, gibt es keine Freigabe',
+      ende.aenderungen['initiative/index'] === null
+      && ende.aenderungen['freigegeben'] === null, ende.aenderungen);
+  })();
+})();
+
+/* ==========================================================
+   DIE AUSWAHL FOLGT DER REIHE (31.10.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Die Figur, die gerade dran ist, sollte
+   automatisch auch ausgewaehlt sein."
+
+   Zwei Dinge koennen hier lautlos falsch sein:
+
+   1. ZU EIFRIG. Der Firebase-Lauscher feuert nach JEDEM
+      Schreibvorgang. Zieht die Auswahl dabei jedes Mal zurueck,
+      kann die SL keine andere Figur mehr ansehen - sie springt
+      sofort wieder weg. Deshalb nur beim WECHSEL des Eintrags.
+   2. AUF DER DIENER-KARTE handelt niemand einzeln. Dort eine
+      beliebige der zwoelf auszuwaehlen waere eine Luege ueber
+      den Stand.
+
+   Der Code wird AUS arena_admin.html GESCHNITTEN und wirklich
+   ausgefuehrt - eine nachgebaute Kopie prueft genau diese zwei
+   Punkte nicht.
+   ========================================================== */
+(function () {
+  const quelle = fs.readFileSync(path.join(WURZEL, 'arena_admin.html'), 'utf8');
+  const von = quelle.indexOf('function auswahlDerReiheFolgen()');
+  const bis = quelle.indexOf('// ---------- Start ----------');
+  chk('der Schnitt findet auswahlDerReiheFolgen() in arena_admin.html',
+    von > 0 && bis > von, [von, bis]);
+  if (von < 0 || bis < von) return;
+  const code = quelle.slice(von, bis);
+
+  const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
+  function tk(v, ex) {
+    return Object.assign({}, vorlagen[v], { geladen: true, wunden: 0 }, ex || {});
+  }
+
+  function umgebung(stand) {
+    const ctx2 = {};
+    vm.createContext(ctx2);
+    ['js/regelwerk.js', 'js/kampf.js', 'js/arena.js', 'js/arena_scenes.js'].forEach(function (p) {
+      vm.runInContext(fs.readFileSync(path.join(WURZEL, p), 'utf8'), ctx2, { filename: p });
+    });
+    ctx2.snap = stand;
+    ctx2.auswahlId = null;
+    ctx2.iniZuletzt = null;
+    ctx2.versetzen = false;
+    vm.runInContext('var snap = this.snap, auswahlId = this.auswahlId, '
+      + 'iniZuletzt = this.iniZuletzt, versetzen = this.versetzen;'
+      + code
+      + '\nthis.__folgen = function () { auswahlDerReiheFolgen(); '
+      + 'return { auswahlId: auswahlId, iniZuletzt: iniZuletzt, versetzen: versetzen }; };'
+      + '\nthis.__setze = function (id) { auswahlId = id; };'
+      + '\nthis.__versetzenAn = function () { versetzen = true; };'
+      + '\nthis.__stand = function (n) { snap = n; };', ctx2);
+    return ctx2;
+  }
+
+  const tokens = {
+    a_anna: tk('spieler', { name: 'Anna', pid: 'anna', x: 2, y: 15 }),
+    b_bert: tk('spieler', { name: 'Bert', pid: 'bert', x: 4, y: 15 }),
+    c_d1: tk('diener', { name: 'Diener 1', x: 2, y: 14 }),
+    c_d2: tk('diener', { name: 'Diener 2', x: 3, y: 14 })
+  };
+  const reihe = [
+    { key: 't:a_anna', name: 'Anna', tokens: ['a_anna'], karte: { wert: 14, farbe: 'pik' } },
+    { key: A.ARENA_DIENER_SCHLUESSEL, name: 'Die Wiedergänger (2)', tokens: ['c_d1', 'c_d2'],
+      karte: { wert: 10, farbe: 'herz' } },
+    { key: 't:b_bert', name: 'Bert', tokens: ['b_bert'], karte: { wert: 5, farbe: 'karo' } }
+  ];
+  function stand(index) {
+    return {
+      runde: 3, tokens: tokens, saebeltraeger: null,
+      freigegeben: null,
+      initiative: { reihe: reihe, index: index, deck: [], mischenNoetig: false }
+    };
+  }
+
+  const u = umgebung(stand(0));
+  chk('die Figur am Zug ist von selbst ausgewählt',
+    u.__folgen().auswahlId === 'a_anna', u.__folgen());
+
+  /* Kein Zurueckspringen: derselbe Eintrag, zweiter Lauf des Lauschers - die
+     SL hat zwischendurch eine andere Figur angesehen. */
+  u.__setze('c_d1');
+  chk('ein zweiter Lauf auf demselben Eintrag lässt die Auswahl stehen',
+    u.__folgen().auswahlId === 'c_d1', u.__folgen());
+
+  // Die Reihe bewegt sich auf die Diener-Karte: dort handelt niemand einzeln.
+  u.__stand(stand(1));
+  chk('auf der Diener-Karte wird die Auswahl geleert',
+    u.__folgen().auswahlId === null, u.__folgen());
+
+  // Weiter auf Bert.
+  u.__stand(stand(2));
+  chk('danach zieht sie auf Bert',
+    u.__folgen().auswahlId === 'b_bert', u.__folgen());
+
+  /* Ein Versetzen-Modus, der über den Zugwechsel hinaus stehen bliebe, wäre
+     eine Falle: Der nächste Klick würde die neue Figur frei herumsetzen,
+     statt sie regelkonform zu bewegen. */
+  u.__versetzenAn();
+  chk('der Versetzen-Modus steht fuer die Gegenprobe wirklich an',
+    u.__folgen().versetzen === true, u.__folgen());
+  u.__stand(stand(0));
+  const nachWechsel = u.__folgen();
+  chk('und der Versetzen-Modus endet beim Zugwechsel',
+    nachWechsel.versetzen === false && nachWechsel.auswahlId === 'a_anna',
+    nachWechsel);
+
+  // Ist die Runde durch, ist nichts ausgewählt.
+  const ohne = stand(0);
+  ohne.initiative = null;
+  const u2 = umgebung(ohne);
+  chk('ohne ausgeteilte Karten wird nichts ausgewählt',
+    u2.__folgen().auswahlId === null, u2.__folgen());
 })();
 
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');

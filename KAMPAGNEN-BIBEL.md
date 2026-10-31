@@ -300,6 +300,28 @@ gemeinsam stellt. Gemessen an einer Figur mit Kämpfen d8: **allein 24,7 %, zu f
 > **Bewusst nicht abgebildet:** ob ein mithelfender Verbündeter selbst gerade von jemand
 > anderem gebunden ist. Das ist die Art Buchhaltung, die diese Kampagne weglässt (vgl. 4.5).
 
+#### Der Schuss aus der Nähe
+
+**Man darf auch dann schießen, wenn der Gegner direkt vor einem steht** — aber nicht gegen die 4.
+
+- **Die Zielzahl ist dann die Parade des Ziels**, genau wie im Nahkampf. Es weicht aus, statt sich
+  auf die Entfernung zu verlassen.
+- **Nur mit einer Waffe von höchstens Pistolengröße.** Mit einer Muskete oder einer Donnerbüchse
+  kommt im Handgemenge niemand zum Schuss. Im Projekt trägt das Gewicht der Ware diese Grenze:
+  **bis 3 Pfund** (Wurfmesser 1, Steinschlosspistole 3; Donnerbüchse 6, Muskete 8).
+- **Gang Up hilft hier nicht.** Der Bonus gehört dem Nahkampf, nicht dem Schuss.
+- Geschossen bleibt geschossen: **nur der Waffenwürfel**, die Stärke zählt nicht mit, und die
+  Waffe ist danach leer (4.5).
+
+> **Nachgetragen am 31.10.2026.** Dieser Fall stand in diesem Abschnitt bisher **nicht** — und in
+> der Arena war ein Schuss neben einem Gegner deshalb **unmöglich**, weil dort allein die
+> Entfernung die Angriffsart bestimmte. Aufgefallen auf Hendriks Frage „Wie verhält es sich mit
+> schießen und schlagen?". Dass die Regel im Projekt nirgends stand, war der eigentliche Befund.
+>
+> **Bewusst nicht abgebildet:** der Fehlschuss in die eigenen Reihen (*Innocent Bystanders* —
+> eine natürliche 1 auf dem Fertigkeitswürfel trifft bei einem Fehlschlag einen zufälligen
+> Nebenstehenden). Das ist die Art Buchhaltung, die diese Kampagne weglässt (vgl. 4.5).
+
 #### Der Schadenswurf
 
 - **Nahkampf: Waffenwürfel + Stärkewürfel**, addiert.

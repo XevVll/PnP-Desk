@@ -149,7 +149,7 @@ Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
 > einen Zustand zu verwalten. Ein **Bennie**, der den Haken sofort wegnimmt, bleibt möglich: Der
 > Spieler sagt es an, die SL klickt „Haken weg".
 
-### 3.5 Die vier bewussten Abweichungen, zusammengefasst
+### 3.5 Die fünf bewussten Abweichungen, zusammengefasst
 
 1. **Angeschlagen** ohne Willenskraft-Probe (siehe 3.4).
 2. Beim **Gang Up** wird nicht geprüft, ob ein mithelfender Verbündeter selbst gebunden ist —
@@ -157,6 +157,8 @@ Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
 3. Der **Wunden-Abzug** ist bei 3 gedeckelt, auch wenn eine Figur mehr tragen kann.
 4. **Der Seelenlose trägt sechs Wunden** statt der drei, die Savage Worlds einer Wild Card gibt
    (31.10.2026, Hendriks Vorgabe). Siehe den Kasten darunter.
+5. Beim **Schuss aus der Nähe** (4.2a) wird der Fehlschuss in die eigenen Reihen nicht
+   ausgewürfelt (*Innocent Bystanders*) — dieselbe Buchhaltung, die schon Nummer 2 weglässt.
 
 > **Zu Nummer 4.** In Savage Worlds trägt eine Wild Card genau **drei** Wunden, die vierte ist
 > *außer Gefecht*; der Weg des Regelwerks für ein Monster, das mehr wegsteckt, ist die
@@ -222,6 +224,25 @@ Runde neu gemischt; sonst wird das **Restdeck weitergereicht**.
 **Die Leiste sehen auch die Spieler** (`karte.html`, unter dem Rundenkopf, nicht anklickbar).
 Wer weiß, dass er nach dem Seelenlosen dran ist, kann sich seinen Zug überlegen, statt auf die
 Freigabe zu warten. Geschaltet wird ausschließlich auf der SL-Seite.
+
+#### Kein Phantom-Zug (31.10.2026)
+
+`arenaIniAmZug()` liefert **genau den Eintrag, auf dem die Reihe steht** — ohne vorwärts
+aufzulösen. Dass der gespeicherte Index auf einen bespielbaren Eintrag zeigt, sichert
+`arenaIniLanden()` beim **Schreiben**: Ein übergebener Index wird vorwärts aufgelöst und der
+aufgelöste geschrieben; ist ab dort niemand mehr übrig, ist die Runde durch und es wird niemand
+freigegeben.
+
+> **Vorher sprang `arenaIniAmZug()` selbst zum nächsten Eintrag mit lebenden Figuren.** Fiel die
+> Figur, die gerade handelte, zeigte die Leiste damit sofort die **nächste** als „am Zug", während
+> `freigegeben` noch auf der Gefallenen stand — ein Zug, den niemand spielen konnte. Und weil
+> „weiter" von dort aus zählte, wurde diese Figur anschließend **übersprungen**. Gemessen: Index 1,
+> Bert gefallen → Leiste sagt „Cord", freigegeben ist weiter `b`, und „Nächste Figur" landet hinter
+> Cord. Zwei Quellen für „wer ist dran", die auseinanderlaufen.
+>
+> Bleibt der Fall, dass die Figur **während ihres eigenen Zuges** fällt — dann steht sie
+> durchgestrichen als „am Zug" da, und das ist die Wahrheit: Ihr Zug ist vorbei, die Spielleitung
+> oder der Spieler schaltet weiter.
 
 ### 3.7 Die Wiedergänger handeln von selbst (30.10.2026)
 
@@ -296,6 +317,26 @@ gierige Schritt findet **keinen**. Liegt die Lücke links, dreht der Weg mit.
 | `spieler` | Helden | Spieler — nach Freigabe, und **nur der zugeteilte** (4.1a) |
 | `verbuendeter` | Helden | **nur die SL** (`arena_admin.html`) |
 | `diener`, `seelenloser` | Gegner | **nur die SL** (`arena_admin.html`) |
+
+**Bewegung und Angriff je einmal, in beliebiger Folge** (Savage Worlds): erst laufen und dann
+schlagen, oder erst schlagen und dann noch ein Feld weiter. Geprüft wird das **in `js/arena.js`**
+— `arenaBewegungErlaubt()` lehnt `tot` und `hatGezogen` ab, `arenaAngriff()` seit dem 31.10.2026
+`tot`, `angeschlagen` und `hatAngegriffen`.
+
+> **Vorher prüfte den Angriff nur die Oberfläche.** `arenaAngriff()` sah allein `ziel.tot` und
+> `angreifer.angeschlagen` — eine **gefallene** Figur konnte zuschlagen, und eine, die schon
+> angegriffen hatte, ein **zweites Mal**. Dass es am Tisch nicht auffiel, lag daran, dass
+> `karte.html` und `arena_admin.html` die Klickziele versteckten. `arenaKannAngreifen()` gab es
+> für genau diese Frage schon — und wurde **nirgends** gerufen. Dieselbe Linie wie bei
+> `arenaDarfSteuern()`: entschieden wird in der Engine, nicht in der Oberfläche.
+
+**Die Auswahl im Schlachtfeld folgt der Reihe** (31.10.2026, Hendriks Vorgabe „die Figur, die
+gerade dran ist, sollte automatisch auch ausgewählt sein"). `auswahlDerReiheFolgen()` zieht sie
+**nur beim Wechsel des Eintrags** (`iniZuletzt`) — der Firebase-Lauscher feuert nach jedem
+Schreibvorgang, und eine Auswahl, die dabei jedes Mal zurückspringt, wäre unbenutzbar: Man könnte
+keine andere Figur mehr ansehen. Auf der **Diener-Karte** wird sie geleert, weil dort niemand
+einzeln handelt; der **Versetzen-Modus** endet beim Zugwechsel mit, sonst setzte der nächste Klick
+die neue Figur frei herum statt sie regelkonform zu bewegen.
 
 **Seit dem 30.10.2026 bestimmt die INITIATIVE, wer am Zug ist** (3.6), nicht mehr die Hand der
 SL: „Nächste Figur ▸" schaltet einen Eintrag weiter und gibt dessen Figur frei. Der
@@ -392,9 +433,10 @@ jemand „Runde weiter ▸" drückt. Dafür steht eine eigene Prüfung da (7).
 
 ### 4.2 Angriffsart
 
-Die Entfernung entscheidet, es gibt keine Wahl:
+Die Entfernung entscheidet, mit **einer** Ausnahme (4.2a):
 
-- Distanz ≤ `nahkampfReichweite` (1, also angrenzend inkl. diagonal) → **Nahkampf**
+- Distanz ≤ `nahkampfReichweite` (1, also angrenzend inkl. diagonal) → **Nahkampf** — oder, auf
+  Wunsch und mit pistolengroßer Waffe, ein **Schuss aus der Nähe** (4.2a)
 - darüber, mit einer Schusswaffe (`fernwaffe > 0`) → **Fernkampf**, solange die Waffe trägt
 - sonst → kein Angriff möglich
 
@@ -416,12 +458,49 @@ stillschweigend ins Leere; jetzt sagt er, warum. **[OFFEN]** Ob der Säbelträge
 niedergeschlagenen Diener *nachstoßen* darf, damit er nicht wieder aufsteht, ist bewusst **nicht**
 eingebaut — das wäre eine echte neue Taktik und Hendriks Entscheidung, nicht meine.
 
+### 4.2a Der Schuss aus der Nähe (31.10.2026)
+
+**Das ist die einzige Stelle der Arena, an der die Angriffsart eine WAHL ist.** Auf Distanz
+entscheidet weiter allein die Entfernung; angrenzend darf eine pistolengroße Waffe trotzdem
+abgedrückt werden (Bibel 4.4a, dort am 31.10.2026 nachgetragen).
+
+| | Nahkampf | Schuss aus der Nähe | Fernkampf auf Distanz |
+|---|---|---|---|
+| Fertigkeit | Kämpfen | **Schießen** | Schießen |
+| Zielzahl | Parade des Ziels | **Parade des Ziels** | 4 + Entfernungsabzug |
+| Gang Up | ja, bis +4 | **nein** | nein |
+| Schaden | Waffe + Stärke | **nur die Waffe** | nur die Waffe |
+| Waffe danach | unverändert | **leer** | leer |
+
+- **Gewählt** wird über `vorgabe.art = 'fern'` an `arenaAngriff()`; `arenaAngriffsart()` nimmt den
+  Wunsch als vierten Parameter und gibt ihn **nur angrenzend** heraus.
+- **Die Größengrenze trägt `fernHandlich` am Token**, abgeleitet aus dem Gewicht der Ware
+  (`ARENA_NAHSCHUSS_GEWICHT = 3` Pfund: Wurfmesser 1, Steinschlosspistole 3 — Donnerbüchse 6 und
+  Muskete 8 fallen heraus). **Fehlt das Feld, gilt NEIN**: Der Nahschuss ist die neue Fähigkeit,
+  und ein stillschweigend erlaubter Musketenschuss aus zwei Schritt wäre schlimmer als ein
+  fehlender Knopf. Im Schlachtfeld ist das Feld je Figur umstellbar.
+- **Bedient** wird es als Umschalter — in `karte.html` der Knopf „Aus der Nähe schießen" neben
+  „Zug beenden", in `arena_admin.html` einer im Auswahlpanel. Er erscheint nur, wenn er auch
+  wirkt (handliche Waffe, geladen, noch nicht angegriffen, ein Gegner steht wirklich daneben), und
+  **gilt nur für die eine Figur**: Wechselt die Freigabe bzw. die Auswahl, fällt der Wunsch weg —
+  sonst schießt die nächste Figur, obwohl sie zuschlagen wollte.
+- Kann eine Figur es grundsätzlich nicht, sagt das Panel **warum** („Die Waffe ist zu groß …")
+  statt den Knopf nur weglassen.
+
 ### 4.3 Nachladen
 
 Ein Fernkampfangriff setzt `geladen: false` und merkt sich `entladenSeitRunde`. Der Rundenwechsel
-lädt erst nach, wenn die Runde **größer** als `entladenSeitRunde` ist — also eine volle Runde
-später. Am Token erscheint eine „leer"-Marke, aber nur bei Figuren mit `fernWert > 0` (bei einem
-Diener wäre „leer" keine Aussage).
+lädt erst nach, wenn die Runde **größer als `entladenSeitRunde` + 1** ist — also **erst in der
+übernächsten** Runde: Schuss in Runde 3, Runde 4 bleibt leer, ab Runde 5 wieder bereit. Am Token
+erscheint eine „leer"-Marke, aber nur bei Figuren mit einer Schusswaffe (bei einem Diener wäre
+„leer" keine Aussage).
+
+> **Korrigiert am 31.10.2026.** Hier stand `runde > entladenSeitRunde`, also **schon die nächste
+> Runde** — damit kostete das Nachladen gar nichts und eine Steinschlosspistole feuerte **jede
+> Runde**. Bibel 4.5, der Spickzettel in `REGELREFERENZ.md` und der Dateikopf von
+> `js/arena_scenes.js` sagten alle drei „erst in der übernächsten Runde". Der Code widersprach
+> der Bibel, und dann gilt die Bibel. Gefunden beim vollständigen Abfolge-Audit auf Hendriks
+> Hinweis „irgendwie stimmt die Abfolge noch nicht".
 
 ### 4.4 Der Seelenlose als Quelle
 
@@ -775,15 +854,24 @@ gefallene Figur zurück.
 
 ## 7. Testen
 
-**`tests/t_arena.js`, 328 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
+**`tests/t_arena.js`, 380 Prüfungen, im Repo.** Reines Node, kein Browser. Am 30.10.2026 für die
 Umstellung komplett neu geschrieben (vorher 30 Prüfungen gegen das W100-System) und am selben
-Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert.
+Tag um 88 Prüfungen für Initiative und Diener-Automatik erweitert; am 31.10.2026 um 52 für die
+gedrehten Werte, das Abfolge-Audit und die Auswahl, die der Reihe folgt.
 
 **Geladen wird wie im Browser**, nicht per `require()`: `js/regelwerk.js`, `js/kampf.js`,
 `js/arena.js`, `js/arena_scenes.js` und `js/npcs.js` laufen in **einem** `vm`-Kontext. Unter
 `require()` wäre jede Datei ihr eigener Scope, und `arena.js` sähe die anderen nicht.
 
-**Geprüft wird gegen die REGEL, nicht gegen den Code.** Die sechs Prüffelder:
+**Geprüft wird gegen die REGEL, nicht gegen den Code.** Die Prüffelder:
+
+0. **Die Abfolge einer Runde** (31.10.2026) — Bewegung und Angriff je **einmal**, in beliebiger
+   Folge; eine gefallene oder angeschlagene Figur greift nicht an, bewegen darf sich die
+   angeschlagene aber; nachgeladen wird erst in der **übernächsten** Runde; `arenaIniAmZug()`
+   springt **nicht** vorwärts, `arenaIniLanden()` löst den Index beim Schreiben auf. Dazu der
+   **Schuss aus der Nähe**: gegen die Parade, **ohne** Gang Up, nur mit handlicher Waffe, und ein
+   fehlendes `fernHandlich` heißt NEIN. Die Auswahl im Schlachtfeld wird dafür **aus
+   `arena_admin.html` geschnitten und ausgeführt**.
 
 1. **Der Angriffswurf** — `4 − Parade` im Nahkampf, und dass der Fernkampf die Parade **nicht**
    nimmt; die drei Entfernungsbänder; der flache Wundenabzug samt Deckel.
@@ -986,6 +1074,30 @@ Drei Fehler beim Bau, alle vom Test gefunden:
     nimmt die erste) schlug **nicht** an. Das Messer steht jetzt absichtlich vorn — danach schlägt
     sie an. **Eine Prüfung, deren beide Seiten zusammenfallen, prüft nichts** (dieselbe Lehre wie
     bei der blinden Parade-Prüfung vom 30.10. Mittag).
+
+### Aus dem Abfolge-Audit (31.10.2026)
+
+19. **`arenaAngriff()` prüfte weder `hatAngegriffen` noch `angreifer.tot`** — nur die Oberfläche
+    tat es, indem sie die Klickziele versteckte. Eine gefallene Figur konnte zuschlagen, eine, die
+    schon angegriffen hatte, ein zweites Mal. `arenaBewegungErlaubt()` prüfte beides seit je
+    selbst, und `arenaKannAngreifen()` gab es für genau diese Frage — **sie wurde nirgends
+    gerufen.** Behoben, dieselbe Linie wie bei `arenaDarfSteuern()`.
+20. **Das Nachladen war wirkungslos.** `runde > entladenSeitRunde` lud schon in der *nächsten*
+    Runde nach, womit eine Steinschlosspistole **jede Runde** feuerte. Drei Dokumente sagten
+    „übernächste". Siehe 4.3.
+21. **Der Phantom-Zug.** `arenaIniAmZug()` löste vorwärts auf und lief damit der Freigabe voraus —
+    und „weiter" zählte von dort, wodurch die Figur anschließend **übersprungen** wurde. Siehe
+    3.6, „Kein Phantom-Zug".
+22. **Mein erster Fix machte es schlimmer.** Ich hatte `arenaIniWeiter()` auf den *aufgelösten*
+    Index umgestellt und die Vorwärtsauflösung in `arenaIniAmZug()` stehen lassen. Gemessen: Cord
+    wurde dann **wirklich übersprungen** (`rundeFertig: true`, obwohl er noch stand). Die Ursache
+    lag nicht beim Weiterzählen, sondern bei der Auflösung selbst — **erst die Messung nach dem
+    Fix hat das gezeigt**, nicht das Nachdenken davor.
+23. **Eine Gegenprobe, die nichts bewies.** „Der Versetzen-Modus endet beim Zugwechsel" stand im
+    Test, ohne ihn vorher **einzuschalten** — beide Seiten standen auf `false`, und das Entfernen
+    des Zurücksetzens schlug nicht an. Jetzt wird er erst gesetzt; danach schlägt sie an.
+    **Eine Gegenprobe, die nicht anschlägt, kann auch eine schlechte Probe sein** (dieselbe Lehre
+    wie am 15.10. bei der CSS-Prüfung).
 
 ---
 
