@@ -716,23 +716,61 @@ function eigeneWarenSetzen(knoten) {
   return Object.keys(EIGENE_WAREN).length;
 }
 
-/* Traglast haengt an der Staerke: doppelte Seitenzahl des Wuerfels.
-   d4 = 8 · d6 = 12 · d8 = 16 · d10 = 20 · d12 = 24 */
-function traglast(figur) { return SIDES[figur.attr['Stärke'] || 1] * 2; }
-function getragen(figur) {
+/* ==========================================================
+   TRAGLAST UND DAS SCHIFFSLAGER
+   ----------------------------------------------------------
+   Die Traglast haengt an der Staerke: FUENFFACHE Seitenzahl des
+   Wuerfels (Savage Worlds, Load Limit = Strength x 5).
+   d4 = 20 · d6 = 30 · d8 = 40 · d10 = 50 · d12 = 60
+
+   Bis zum 04.11.2026 stand hier das ZWEIFACHE (d4 = 8 ... d12 = 24),
+   und das war kaputt statt streng: Saebel 3 + Pistole 3 + Pulverhorn 2
+   + Lederwams 5 sind 13 Pfund - eine Figur mit Staerke d6 (Traglast 12)
+   war von ihrer Grundausruestung schon ueberladen, bevor sie irgendetwas
+   anderes anfasste. Die Gewichte sind ungefaehr Pfund (Saebel 3,
+   Muskete 8, Brustharnisch 20), die Skalen also vergleichbar. In
+   Bibel §4 stand die Traglast ueberhaupt nicht - sie lebte allein hier.
+
+   ZWEI INVENTARE (Hendriks Vorgabe vom 04.11.2026):
+     ausr  = was die Figur TRAEGT. Zaehlt fuer Gewicht, Ruestung,
+             Waffen, die Arena - also fuer alles.
+     lager = was auf dem SCHIFF verstaut ist. Zaehlt fuer NICHTS
+             davon; es liegt nur da.
+
+   Dass "ausr" weiterhin "getragen" heisst, ist die tragende
+   Entscheidung dieses Umbaus: Jede Stelle, die Ausruestung anfasst -
+   arenaBesteWaffe(), ruestbonus(), der Kampfmodus, die SL-Uebersicht -
+   bleibt damit unveraendert richtig, ohne einen einzigen zweiten Fall.
+   Das Lager ist rein additiv. */
+const TRAGLAST_FAKTOR = 5;
+
+function traglast(figur) { return SIDES[figur.attr['Stärke'] || 1] * TRAGLAST_FAKTOR; }
+
+/* Gewicht einer Liste von Waren-IDs. Zweimal gebraucht (getragen und
+   verstaut), also einmal geschrieben. */
+function warenGewicht(liste) {
   let g = 0;
-  (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) g += a.gew || 0; });
+  (liste || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) g += a.gew || 0; });
   return g;
 }
+function getragen(figur) { return warenGewicht(figur.ausr); }
+/* Nur fuer die Anzeige: Das Lager zaehlt NICHT gegen die Traglast - genau
+   das ist sein Zweck. */
+function verstaut(figur) { return warenGewicht(figur.lager); }
 function ueberladen(figur) { return getragen(figur) > traglast(figur); }
+/* NUR aus dem Getragenen - ein Kettenhemd in der Seemannskiste schuetzt
+   niemanden. Deshalb steht hier "ausr" und nicht beides. */
 function ruestbonus(figur) {
   let r = 0;
   (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a && a.ruest) r += a.ruest; });
   return r;
 }
+/* Bezahlt ist bezahlt - was im Lager liegt, hat genauso Geld gekostet.
+   Hier zaehlen deshalb BEIDE Listen, anders als bei Gewicht und Ruestung. */
 function ausgabenMuenzen(figur) {
   let m = 0;
-  (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) m += a.preis || 0; });
+  (figur.ausr || []).concat(figur.lager || [])
+    .forEach(function (id) { const a = AUSR_BY_ID[id]; if (a) m += a.preis || 0; });
   return m;
 }
 
@@ -754,7 +792,9 @@ function leereFigur() {
     startRang:0,
     attributImRang:false,          // "Attribut nur einmal je Rang" braucht einen Merker
     attr:{}, fert:{}, tal:[], hnd:[], brief:{},
-    ausr:[], muenzen:STARTGELD,    // Ausruestung als Liste von IDs
+    ausr:[],                       // GETRAGEN - zaehlt fuer Gewicht und Ruestung
+    lager:[],                      // auf dem Schiff VERSTAUT - zaehlt fuer nichts
+    muenzen:STARTGELD,
     angeschlagen:false, wunden:0,  // Zustand im Spiel
     benniesUebrig:null,            // null = noch nicht angefasst, dann gilt bennies(figur)
     notizen:''
@@ -787,7 +827,8 @@ function alsFigur(roh) {
   f.startRang = Math.max(0, Math.min(RAENGE.length - 1, +roh.startRang || 0));
   f.tal  = alsListe(roh.tal);
   f.hnd  = alsListe(roh.hnd);
-  f.ausr = alsListe(roh.ausr);
+  f.ausr  = alsListe(roh.ausr);
+  f.lager = alsListe(roh.lager);
   f.brief = roh.brief || {};
   f.rang = roh.rang || 0;
   f.steigerungen = roh.steigerungen || 0;
@@ -1300,7 +1341,8 @@ if (typeof module !== 'undefined' && module.exports) {
     AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, LADUNGEN_START, ausruestungDerArt,
     EIGENE_PRAEFIX, EIGENE_WAREN, eigeneWareId, istEigeneWare,
     eigeneWarePruefen, eigeneWareEintragen, eigeneWarenSetzen,
-    traglast, getragen, ueberladen, ruestbonus, ausgabenMuenzen,
+    traglast, getragen, verstaut, warenGewicht, ueberladen, ruestbonus,
+    ausgabenMuenzen, TRAGLAST_FAKTOR,
     leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,
     parade, robustheit, bennies, bewegung, wertVon, talentVerfuegbar, pruefeFigur,

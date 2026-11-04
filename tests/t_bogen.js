@@ -1556,6 +1556,197 @@ chk('die Teilwuerfe als Liste, nicht als fertiger Satz',
 /* ---- Beim Öffnen wird geholt ---- */
 bLese = { bild: 'data:image/webp;base64,abc', name: 'Mara Quint' };
 bctx.bildHolen();
+/* ==========================================================
+   TRAGLAST UND DAS SCHIFFSLAGER (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Koennen wir die Traglast der Spieler ein
+   wenig erhoehen und ein aktives (tragendes) und inaktives
+   (auf dem Schiff verstautes) Inventar haben?"
+
+   DIE TRAGENDE PRUEFUNG IST DIE MESSUNG, nicht die Formel:
+   Saebel + Pistole + Pulverhorn + Lederwams sind 13 Pfund. Mit
+   dem alten Faktor 2 war eine Figur mit Staerke d6 (Traglast 12)
+   davon schon ueberladen - von ihrer Grundausruestung, bevor sie
+   irgendetwas anderes anfasste. Diese Rechnung steht hier, damit
+   niemand den Faktor zurueckdreht, ohne darueber zu stolpern.
+
+   UND DIE WICHTIGERE HAELFTE: Das Lager zaehlt fuer NICHTS.
+   Kein Gewicht, keine Ruestung, keine Waffe in der Hand. Weil
+   "ausr" weiterhin "getragen" heisst, bleibt jede Stelle, die
+   Ausruestung anfasst, unveraendert richtig - und genau das
+   pruefen die drei Gegenrichtungen unten.
+   ========================================================== */
+(function () {
+  const A = R.AUSR_BY_ID;
+  // Erst pruefen, dass es alle vier Waren wirklich gibt: Eine erfundene ID
+  // wird stillschweigend ignoriert, und dann messen die Zeilen darunter
+  // nichts (Lehre vom 30.10.2026).
+  const KIT = ['saebel', 'pistole', 'pulverhorn', 'lederwams'];
+  chk('die vier Waren des Grundkits gibt es wirklich',
+    KIT.every(function (id) { return !!A[id]; }), KIT.filter(function (id) { return !A[id]; }));
+
+  const kitGew = KIT.reduce(function (g, id) { return g + (A[id].gew || 0); }, 0);
+  chk('das Grundkit wiegt 13 Pfund', kitGew === 13, kitGew);
+
+  // ---------------------------------------------------- Die Traglast selbst
+  function tl(stufe) { return R.traglast(R.alsFigur({ attr: { 'St\u00e4rke': stufe } })); }
+  chk('Traglast = Staerke x 5 (Savage Worlds)', R.TRAGLAST_FAKTOR === 5, R.TRAGLAST_FAKTOR);
+  chk('d4 = 20, d6 = 30, d8 = 40, d10 = 50, d12 = 60',
+    tl(1) === 20 && tl(2) === 30 && tl(3) === 40 && tl(4) === 50 && tl(5) === 60,
+    [tl(1), tl(2), tl(3), tl(4), tl(5)]);
+
+  /* DER BEFUND, der die Aenderung ausgeloest hat - als Prüfung festgehalten. */
+  const fechter = R.alsFigur({ attr: { 'St\u00e4rke': 2 }, ausr: KIT });
+  chk('ein Fechter mit Staerke d6 ist von seinem Grundkit NICHT ueberladen',
+    R.ueberladen(fechter) === false,
+    { getragen: R.getragen(fechter), traglast: R.traglast(fechter) });
+  chk('und er traegt mit dem alten Faktor 2 nachweislich zu viel',
+    kitGew > R.SIDES[2] * 2, [kitGew, R.SIDES[2] * 2]);
+
+  /* Die volle Expeditionsladung (27) passt ebenfalls - das war der Zweck der
+     Erhoehung. Auch hier erst die Existenz pruefen. */
+  const VOLL = KIT.concat(['laterne', 'seil', 'proviant', 'verband']);
+  chk('auch die Waren der vollen Ladung gibt es',
+    VOLL.every(function (id) { return !!A[id]; }), VOLL.filter(function (id) { return !A[id]; }));
+  const vollFig = R.alsFigur({ attr: { 'St\u00e4rke': 2 }, ausr: VOLL });
+  chk('die volle Expeditionsladung passt bei d6 noch',
+    R.getragen(vollFig) === 27 && R.ueberladen(vollFig) === false,
+    { getragen: R.getragen(vollFig), traglast: R.traglast(vollFig) });
+
+  /* Ueberladung bleibt MOEGLICH - sie ist erlaubt und kostet eine Stufe
+     (wundenAbzug), sie ist kein Verbot. Waere sie unerreichbar, waere die
+     ganze Regel toter Code. */
+  const SCHWER = ['harnisch', 'muskete', 'kiste', 'werkzeug'];
+  chk('die schweren Waren gibt es wirklich',
+    SCHWER.every(function (id) { return !!A[id]; }),
+    SCHWER.filter(function (id) { return !A[id]; }));
+  const schwer = R.alsFigur({ attr: { 'St\u00e4rke': 1 }, ausr: SCHWER });
+  chk('ueberladen kann man sich weiterhin',
+    R.ueberladen(schwer) === true,
+    { getragen: R.getragen(schwer), traglast: R.traglast(schwer) });
+  chk('und das kostet nachweislich eine Stufe',
+    R.wundenAbzug(schwer) >= 1, R.wundenAbzug(schwer));
+
+  // ---------------------------------------------------- Das Lager zaehlt nicht
+  const mitLager = R.alsFigur({
+    attr: { 'St\u00e4rke': 1 },
+    ausr: ['messer'],
+    lager: ['harnisch', 'muskete', 'kiste']           // 38 Pfund, Traglast 20
+  });
+  chk('das Lager zaehlt NICHT gegen die Traglast',
+    R.getragen(mitLager) === (A['messer'].gew || 0) && R.ueberladen(mitLager) === false,
+    { getragen: R.getragen(mitLager), verstaut: R.verstaut(mitLager) });
+  chk('verstaut() nennt sein Gewicht trotzdem',
+    R.verstaut(mitLager) === 38, R.verstaut(mitLager));
+  /* Gegenrichtung 1: Ein Brustharnisch in der Kiste schuetzt niemanden. */
+  chk('ein Harnisch im Lager hebt die Robustheit nicht',
+    R.ruestbonus(mitLager) === 0, R.ruestbonus(mitLager));
+  chk('getragen hebt er sie dagegen schon',
+    R.ruestbonus(R.alsFigur({ ausr: ['harnisch'] })) === A['harnisch'].ruest,
+    R.ruestbonus(R.alsFigur({ ausr: ['harnisch'] })));
+
+  /* Gegenrichtung 2 liegt in tests/t_arena.js: Die ARENA leitet die Waffe
+     eines Tokens aus dem Blatt ab (arenaBesteWaffe), und eine verstaute
+     Muskete darf dort nicht in der Hand liegen. Die Funktion steht in
+     js/arena.js, also wird sie dort geprueft - hier waere es eine Pruefung
+     ohne Pruefling gewesen.
+
+  /* Gegenrichtung 3: Bezahlt ist bezahlt - beim Geld zaehlt das Lager mit. */
+  const bezahlt = R.alsFigur({ ausr: ['messer'], lager: ['harnisch'] });
+  chk('ausgabenMuenzen zaehlt BEIDE Listen',
+    R.ausgabenMuenzen(bezahlt) === (A['messer'].preis + A['harnisch'].preis),
+    R.ausgabenMuenzen(bezahlt));
+
+  // ---------------------------------------------------- Firebase-Formen
+  chk('alsFigur nimmt ein Lager als Firebase-Objekt an',
+    R.alsFigur({ lager: { '0': 'messer', '2': 'saebel' } }).lager.length === 2,
+    R.alsFigur({ lager: { '0': 'messer', '2': 'saebel' } }).lager);
+  chk('eine Figur ohne Feld hat ein leeres Lager',
+    Array.isArray(R.alsFigur({}).lager) && R.alsFigur({}).lager.length === 0);
+})();
+
+/* ---------- Umhaengen, aus heldenbrief.html geschnitten ----------
+   Die vier Funktionen werden AUS DER SEITE ausgefuehrt, nicht nachgebaut:
+   Eine Kopie prueft nicht, dass der Bogen das Lager auch wirklich
+   HOCHSCHREIBT - und ein Feld, das die Figur kennt und der Bogen nicht
+   speichert, ist der haeufigste stille Datenverlust in diesem Projekt. */
+(function () {
+  const von = BOGEN.indexOf('function verstauen(i)');
+  const bis = BOGEN.indexOf('function lagerVerkaufen(i)');
+  chk('der Schnitt findet verstauen()/hervorholen() in heldenbrief.html',
+    von > 0 && bis > von, [von, bis]);
+  if (von < 0 || bis < von) return;
+
+  const ctx = {};
+  vm.createContext(ctx);
+  const gesichert = [];
+  ctx.F = R.alsFigur({ attr: { 'St\u00e4rke': 2 }, ausr: ['saebel', 'pistole'], lager: ['harnisch'] });
+  ctx.speichern = function () { gesichert.push({ ausr: ctx.F.ausr.slice(), lager: ctx.F.lager.slice() }); };
+  ctx.renderAlles = function () {};
+  vm.runInContext(BOGEN.slice(von, bis)
+    + '\nthis.__verstauen = verstauen; this.__holen = hervorholen;', ctx);
+
+  ctx.__verstauen(0);                       // Saebel in die Kiste
+  chk('verstauen nimmt es aus dem Beutel und legt es ins Lager',
+    ctx.F.ausr.join() === 'pistole' && ctx.F.lager.join() === 'harnisch,saebel',
+    [ctx.F.ausr, ctx.F.lager]);
+  chk('und es wird gespeichert',
+    gesichert.length === 1 && gesichert[0].lager.indexOf('saebel') >= 0, gesichert);
+
+  ctx.__holen(1);                           // Saebel wieder hervor
+  chk('hervorholen ist der genaue Rueckweg',
+    ctx.F.ausr.join() === 'pistole,saebel' && ctx.F.lager.join() === 'harnisch',
+    [ctx.F.ausr, ctx.F.lager]);
+
+  /* Nichts geht verloren und nichts entsteht: Die Summe beider Listen ist
+     ueber alle Zuege konstant. Eine Pruefung auf die einzelne Liste haette
+     einen Fehler, der etwas DOPPELT eintraegt, nicht gesehen. */
+  const alle = ctx.F.ausr.concat(ctx.F.lager).sort().join();
+  chk('die Summe beider Listen bleibt unveraendert',
+    alle === 'harnisch,pistole,saebel', alle);
+
+  // Ein Griff ins Leere darf nichts anrichten.
+  const vorher = ctx.F.ausr.length + ctx.F.lager.length;
+  ctx.__verstauen(99); ctx.__holen(99);
+  chk('ein Griff auf einen leeren Platz aendert nichts',
+    ctx.F.ausr.length + ctx.F.lager.length === vorher,
+    [ctx.F.ausr, ctx.F.lager]);
+
+  /* Ueberladung wird beim Hervorholen NICHT verhindert - sie ist erlaubt und
+     kostet eine Stufe. Ein Verbot waere hier die falsche Strenge. */
+  const eng = {};
+  vm.createContext(eng);
+  eng.F = R.alsFigur({ attr: { 'St\u00e4rke': 1 }, ausr: [], lager: ['harnisch', 'muskete', 'kiste'] });
+  eng.speichern = function () {}; eng.renderAlles = function () {};
+  vm.runInContext(BOGEN.slice(von, bis) + '\nthis.__holen = hervorholen;', eng);
+  eng.__holen(0); eng.__holen(0); eng.__holen(0);
+  chk('man darf sich aus dem Lager bis zur Ueberladung beladen',
+    eng.F.lager.length === 0 && R.ueberladen(eng.F) === true,
+    { getragen: R.getragen(eng.F), traglast: R.traglast(eng.F) });
+})();
+
+/* Der Bogen muss das Lager HOCHSCHREIBEN. Ohne diese Zeile waere das ganze
+   Feld nach einem Neuladen weg - und niemand saehe, woran es lag. */
+chk('bogenFelder() nimmt das Lager mit',
+  /ausr:\s*F\.ausr,\s*lager:\s*F\.lager/.test(BOGEN), 'in bogenFelder()');
+
+/* Und die Spielleitung sieht es. "Trägt" und "Verstaut" sind getrennte
+   Bloecke, weil das Lager fuer nichts zaehlt - in einer Liste zusammengelegt
+   saehe es aus, als haette die Figur es dabei. */
+(function () {
+  const SL = fs.readFileSync(path.join(BASIS, 'regie_figuren.html'), 'utf8');
+  chk('die SL-Uebersicht zeigt einen eigenen Verstaut-Block',
+    SL.indexOf('Verstaut (auf dem Schiff)') > 0);
+  chk('und nennt das Lagergewicht getrennt von der Traglast',
+    SL.indexOf("'im Lager <b>' + verstaut(f)") > 0);
+  /* Zieht die SL etwas ein, muss die Liste mitgehen - sonst sucht der Bogen
+     im falschen Inventar und das Einziehen bleibt wirkungslos. */
+  chk('das Einziehen reicht die Liste durch',
+    /art:\s*'nehmen',\s*id:\s*teile\[1\],\s*liste:/.test(SL));
+  chk('und der Bogen zieht aus der genannten Liste',
+    BOGEN.indexOf("(z.liste === 'lager') ? 'lager' : 'ausr'") > 0);
+})();
+
 setTimeout(function () {
   chk('beim Öffnen kommt das Bild zurück',
     bctx.bildStand() === 'data:image/webp;base64,abc', bctx.bildStand());

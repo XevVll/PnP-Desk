@@ -446,7 +446,9 @@ function istFigurEcht(roh) {
   if (!roh || typeof roh !== 'object') return false;
 
   if (String(roh.name || '').trim()) return true;
-  if (laenge(roh.tal) || laenge(roh.hnd) || laenge(roh.ausr)) return true;
+  /* "lager" zaehlt mit: Eine Figur, die nur eine Kiste auf dem Schiff hat,
+     ist trotzdem eine Figur (Feld seit 04.11.2026). */
+  if (laenge(roh.tal) || laenge(roh.hnd) || laenge(roh.ausr) || laenge(roh.lager)) return true;
   if (+roh.steigerungen > 0 || +roh.rang > 0) return true;
   if (+roh.wunden > 0 || roh.angeschlagen) return true;
   if (String(roh.notizen || '').trim()) return true;

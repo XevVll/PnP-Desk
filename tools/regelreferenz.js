@@ -178,8 +178,11 @@ function erzeuge() {
   t.push('');
   t.push('Startgeld ' + R.STARTGELD + ' Münzen. **Waffen bringen einen eigenen Schadenswürfel**');
   t.push('mit, keinen Bonus — in diesem System wird nichts addiert. Rüstung hebt die Robustheit.');
-  t.push('Die Traglast hängt an der Stärke (doppelte Seitenzahl); **Überladung kostet eine');
-  t.push('Würfelstufe**, genau wie eine Wunde.');
+  t.push('Die Traglast ist die **' + R.TRAGLAST_FAKTOR + '-fache Seitenzahl des Stärkewürfels**');
+  t.push('(d4 = ' + (R.SIDES[1] * R.TRAGLAST_FAKTOR) + ' … d12 = ' +
+    (R.SIDES[5] * R.TRAGLAST_FAKTOR) + '); **Überladung kostet eine Würfelstufe**, flach wie');
+  t.push('eine Wunde. Was auf dem **Schiff verstaut** ist, zählt nicht mit — schützt dort aber');
+  t.push('auch nicht und liegt nicht in der Hand.');
   t.push('');
   R.AUSR_ARTEN.forEach(function (art) {
     const liste = R.AUSRUESTUNG.filter(function (a) { return a.art === art; });

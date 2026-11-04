@@ -1915,14 +1915,15 @@ function render() {
     /* Was ein Gegenstand TUT, nicht nur, dass er da ist (Hendriks Frage vom
        15.10.2026). Die Kurzwerte stehen am Chip, alles Weitere im Overlay -
        dieselbe Mechanik wie bei Talenten, dritte Art "ausr". */
-    const traegt = (f.ausr || []).map(function (id) {
+    function warenChip(id, liste) {
       const a = AUSR_BY_ID[id];
       /* Ein Gegenstand, den es nicht (mehr) gibt, wird GENANNT statt
          verschluckt: Sonst traegt die Figur etwas, das niemand sieht. */
       if (!a) return '<span class="tag ausr" title="Diesen Gegenstand gibt es im Regelwerk ' +
         'nicht - vermutlich eine gelöschte Erfindung der Spielleitung.">' + esc(id) +
         ' <span class="wert">unbekannt</span>' +
-        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) + '">×</span></span>';
+        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) + '|' + liste +
+        '">×</span></span>';
       const kurz = [];
       if (a.schaden) kurz.push(DLBL[a.schaden]);
       /* Beschriftet, nicht nackt: Zwischen "d6" und "1 Schuss" ist eine
@@ -1934,9 +1935,16 @@ function render() {
         (a.vonSl ? ' · von der Spielleitung' : '');
       return markeChip('ausr', id, 'ausr', a.n, einordnung, a.d,
         (kurz.length ? ' <span class="wert">' + esc(kurz.join(' · ')) + '</span>' : '') +
-        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) +
+        '<span class="zu" data-nehmen="' + esc(pid) + '|' + esc(id) + '|' + liste +
         '" title="einziehen">×</span>');
-    }).join('');
+    }
+
+    const traegt = (f.ausr || []).map(function (id) { return warenChip(id, 'ausr'); }).join('');
+    /* Was auf dem Schiff liegt (Feld "lager", seit 04.11.2026). Getrennt
+       angezeigt, weil es fuer NICHTS zaehlt - kein Gewicht, keine Ruestung,
+       keine Waffe in der Hand. Die SL muss es trotzdem sehen: Wer im
+       Dschungel nach seinem Kettenhemd fragt, soll eine Antwort bekommen. */
+    const verstautChips = (f.lager || []).map(function (id) { return warenChip(id, 'lager'); }).join('');
 
     /* Traglast und Ladungen kamen hier bisher gar nicht vor - beides muss
        die Spielleitung im Kampf wissen. Der Schuetze ohne Pulver ist der
@@ -1945,6 +1953,9 @@ function render() {
       return AUSR_BY_ID[id] && AUSR_BY_ID[id].schuss;
     }).length;
     const lastTeile = ['Gewicht <b>' + getragen(f) + '</b> von ' + traglast(f)];
+    /* Bewusst als eigene Angabe HINTER der Traglast, nicht hineingerechnet -
+       sonst sieht es aus, als zaehlte die Kiste mit. */
+    if (verstaut(f)) lastTeile.push('im Lager <b>' + verstaut(f) + '</b> Gew.');
     if (schuesse) {
       lastTeile.push('Ladungen <b' + ((f.ladungen || 0) ? '' : ' class="voll"') + '>' +
         (f.ladungen || 0) + '</b>' + ((f.ladungen || 0) ? '' : ' — kann nicht schießen'));
@@ -1990,6 +2001,8 @@ function render() {
         (tal || hnd ? '<div class="sl">Talente &amp; Schwächen</div><div class="tags">' + tal + hnd + '</div>' : '') +
         (traegt ? '<div class="sl">Trägt</div>' + last +
                   '<div class="tags">' + traegt + '</div>' : '') +
+        (verstautChips ? '<div class="sl">Verstaut (auf dem Schiff)</div>' +
+                  '<div class="tags">' + verstautChips + '</div>' : '') +
         pcBildBlock(pid) +
         gebenBlock(pid, roh) +
         menuBlock(pid) +
@@ -2091,7 +2104,7 @@ document.addEventListener('click', function (ev) {
     /* Gefragt wird, seit der Chip selbst die Erklaerung oeffnet: Das Kreuz
        ist klein, und ein Fehlgriff kostete der Figur sonst ihre Waffe. */
     if (!confirm('„' + ((a && a.n) || teile[1]) + '" wieder einziehen?')) return;
-    uebergeben(teile[0], { art: 'nehmen', id: teile[1] });
+    uebergeben(teile[0], { art: 'nehmen', id: teile[1], liste: teile[2] || 'ausr' });
     return;
   }
   if (t.dataset.komm !== undefined) { kommentiert = t.dataset.komm; render(); return; }

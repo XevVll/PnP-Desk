@@ -124,6 +124,18 @@ textarea:focus{border-color:var(--gold)}
 .chip.on{border-color:var(--teal);background:rgba(42,157,143,.15);color:#8fe0d6}
 .chip .cs{font-size:.62rem;color:var(--gray);margin-left:.3rem}
 
+/* ── Schiffslager: dieselben Zeilen, nur gedaempft ── */
+#lager .zeile { opacity: .78; }
+#lager .zeile .n { color: var(--ink-dim); }
+.lagerkopf { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.lagerkopf .gew { color: var(--gold); font-weight: 600; }
+.holbtn {
+  background: rgba(201,162,75,.14); border: 1px solid var(--gold); color: var(--gold);
+  border-radius: 4px; font: inherit; font-size: .72rem; padding: .1rem .45rem;
+  cursor: pointer; flex: none;
+}
+.holbtn:hover { background: rgba(201,162,75,.28); }
+
 /* ── Ausrüstung ── */
 .trag{height:8px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin:.35rem 0 .2rem}
 .trag i{display:block;height:100%;background:var(--teal);transition:width .25s}
@@ -321,6 +333,10 @@ textarea:focus{border-color:var(--gold)}
       <div class="card-hdr">Was du trägst</div>
       <div id="ladungen"></div>
       <div class="card-body" id="getragen"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">Auf dem Schiff verstaut</div>
+      <div class="card-body" id="lager"></div>
     </div>
   </div>
 </div>
@@ -526,7 +542,7 @@ function figurLoeschenFragen() {
 
 function bogenFelder() {
   return {
-    ausr: F.ausr, muenzen: F.muenzen, ladungen: F.ladungen,
+    ausr: F.ausr, lager: F.lager, muenzen: F.muenzen, ladungen: F.ladungen,
     angeschlagen: F.angeschlagen, wunden: F.wunden,
     benniesUebrig: F.benniesUebrig, notizen: F.notizen,
     // Steigerungen aendern auch Werte - die muessen mit.
@@ -1226,8 +1242,10 @@ function renderAusruestung() {
   bar.style.width = Math.min(100, Math.round(g / Math.max(1, t) * 100)) + '%';
   bar.className = ueberladen(F) ? 'voll' : '';
   document.getElementById('tragNote').textContent = ueberladen(F)
-    ? 'Überladen — alle Würfel eine Stufe niedriger, solange du das alles schleppst.'
-    : 'Die Traglast hängt an deiner Stärke (' + DLBL[F.attr['Stärke'] || 1] + ').';
+    ? 'Überladen — alle Würfel eine Stufe niedriger, solange du das alles schleppst. '
+      + 'Verstau etwas auf dem Schiff.'
+    : 'Die Traglast hängt an deiner Stärke (' + DLBL[F.attr['Stärke'] || 1] + ') — '
+      + 'fünfmal ihre Seitenzahl. Was auf dem Schiff liegt, zählt nicht mit.';
 
   /* Der Vorrat an Ladungen. Abgezogen wird von Hand: Nicht jede
      Schiessen-Probe ist ein Schuss (Zielen, Drohen, Warten), und eine
@@ -1249,24 +1267,77 @@ function renderAusruestung() {
       : 'Du trägst keine Schusswaffe. Pulver schadet trotzdem nicht.') +
     '</span></div>';
 
+  /* EINE Zeile fuer beide Listen. Zwei Bauer wuerden auseinanderlaufen, und
+     dann zeigte das Lager andere Werte als der Beutel. */
+  function warenZeile(id, knoepfe) {
+    const a = AUSR_BY_ID[id];
+    if (!a) return '';
+    const werte = [];
+    if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
+    if (a.reichweite) werte.push('Reichweite ' + a.reichweite);
+    if (a.ruest) werte.push('Robustheit +' + a.ruest);
+    /* Dass die Waffe nach einem Schuss leer ist, stand hier nicht -
+       dabei ist genau das die Regel (Bibel 4.5). */
+    if (a.schuss) werte.push(a.schuss + ' Schuss');
+    return '<div class="zeile"><div class="n">' + esc(a.n) +
+      '<div class="d">' + esc(a.d) + '</div></div>' +
+      '<div class="z">' + werte.join(' · ') + (werte.length ? ' · ' : '') + '<b>' + a.gew + '</b> Gew.</div>' +
+      knoepfe + '</div>';
+  }
+
   document.getElementById('getragen').innerHTML = F.ausr.length
     ? F.ausr.map(function (id, i) {
-        const a = AUSR_BY_ID[id];
-        if (!a) return '';
-        const werte = [];
-        if (a.schaden) werte.push('Schaden ' + DLBL[a.schaden]);
-        if (a.reichweite) werte.push('Reichweite ' + a.reichweite);
-        if (a.ruest) werte.push('Robustheit +' + a.ruest);
-        /* Dass die Waffe nach einem Schuss leer ist, stand hier nicht -
-           dabei ist genau das die Regel (Bibel 4.5). */
-        if (a.schuss) werte.push(a.schuss + ' Schuss');
-        return '<div class="zeile"><div class="n">' + esc(a.n) +
-          '<div class="d">' + esc(a.d) + '</div></div>' +
-          '<div class="z">' + werte.join(' · ') + (werte.length ? ' · ' : '') + '<b>' + a.gew + '</b> Gew.</div>' +
-          '<button class="wegbtn" title="ablegen und verkaufen" onclick="ablegen(' + i + ')">✕</button></div>';
+        return warenZeile(id,
+          '<button class="holbtn" title="auf dem Schiff verstauen" onclick="verstauen(' + i + ')">↓ verstauen</button>' +
+          '<button class="wegbtn" title="ablegen und verkaufen" onclick="ablegen(' + i + ')">✕</button>');
       }).join('')
     : '<div class="leer">Du trägst nichts.</div>';
 
+  renderLager();
+}
+
+/* Das Schiffslager. Es zaehlt fuer NICHTS - nicht fuers Gewicht, nicht fuer
+   die Ruestung, nicht fuer die Waffe in der Hand. Es liegt nur da.
+
+   ERREICHBAR IST ES IMMER, und das ist eine Entscheidung (Hendrik,
+   04.11.2026): Der Heldenbrief hoert seit dem 15.10.2026 ueberhaupt nicht
+   mehr auf den Spielstand - er kennt nur seine eigene Figur, und genau das
+   hat die zehn Szenendateien (rund 64 KB) aus jedem Seitenaufruf genommen.
+   Eine technische Sperre "nur an Bord" waere der Rueckweg dorthin. Also sagt
+   die Zeile es, und am Tisch sagt die Spielleitung nein - dieselbe Linie wie
+   beim Pulver, das auch von Hand abgezogen wird (Bibel 4.5). */
+function renderLager() {
+  const el = document.getElementById('lager');
+  const g = verstaut(F);
+  const kopf = '<div class="lagerkopf"><span class="hint">Deine Seemannskiste unter Deck. '
+    + 'Zählt <b>nicht</b> gegen die Traglast — aber du kommst nur <b>an Bord</b> daran.</span>'
+    + (g ? '<span class="gew">' + g + ' Gew.</span>' : '') + '</div>';
+  el.innerHTML = kopf + (F.lager.length
+    ? F.lager.map(function (id, i) {
+        return warenZeile(id,
+          '<button class="holbtn" title="an dich nehmen" onclick="hervorholen(' + i + ')">↑ nehmen</button>' +
+          '<button class="wegbtn" title="verkaufen" onclick="lagerVerkaufen(' + i + ')">✕</button>');
+      }).join('')
+    : '<div class="leer">Nichts verstaut.</div>');
+}
+
+/* Zwischen den beiden Listen umhaengen. Bewusst OHNE Traglast-Pruefung in
+   dieser Richtung: Ueberladung ist in diesem System ausdruecklich erlaubt und
+   kostet eine Wuerfelstufe (siehe wundenAbzug) - das ist die Strafe, nicht
+   ein Verbot. Wer sich ueberladen will, darf das. */
+function verstauen(i) {
+  const id = F.ausr[i];
+  if (id == null) return;
+  F.ausr.splice(i, 1);
+  F.lager.push(id);
+  speichern(); renderAlles();
+}
+function hervorholen(i) {
+  const id = F.lager[i];
+  if (id == null) return;
+  F.lager.splice(i, 1);
+  F.ausr.push(id);
+  speichern(); renderAlles();
 }
 
 /* Eine Uebergabe annehmen. Erst eintragen und speichern, DANN das Postfach
@@ -1302,8 +1373,19 @@ function zuteilungAnnehmen(post) {
       if (g.ladungen) F.ladungen = (F.ladungen || 0) + g.ladungen;
       erzaehlt.push(g.n + (g.ladungen ? ' (+' + g.ladungen + ' Ladungen)' : ''));
     } else if (z.art === 'nehmen') {
-      const i = F.ausr.indexOf(z.id);
-      if (i >= 0) { F.ausr.splice(i, 1); erzaehlt.push('— ' + (AUSR_BY_ID[z.id] || {}).n); }
+      /* Die Spielleitung sagt mit, aus WELCHEM Inventar sie einzieht (Feld
+         "liste", seit 04.11.2026). Eine alte Postfach-Zeile ohne das Feld
+         meint den Beutel - damals gab es nur den.
+
+         Und wenn es dort nicht liegt, wird die andere Liste durchsucht: Der
+         Spieler kann den Gegenstand zwischen Klick und Annahme umgehaengt
+         haben, und ein Einziehen, das deswegen wirkungslos bleibt, waere
+         schlimmer als eines, das sein Ziel trotzdem findet. */
+      const zuerst = (z.liste === 'lager') ? 'lager' : 'ausr';
+      const dann = (zuerst === 'lager') ? 'ausr' : 'lager';
+      let i = F[zuerst].indexOf(z.id), wo = zuerst;
+      if (i < 0) { i = F[dann].indexOf(z.id); wo = dann; }
+      if (i >= 0) { F[wo].splice(i, 1); erzaehlt.push('— ' + (AUSR_BY_ID[z.id] || {}).n); }
     } else if (z.art === 'muenzen') {
       const d = Math.round(Number(z.wert) || 0);
       F.muenzen = Math.max(0, (F.muenzen || 0) + d);
@@ -1360,6 +1442,18 @@ function muenzenAendern(d) {
    und der Kauf kommt als Eintrag im Postfach an (siehe zuteilungAnnehmen,
    Fall "kauf"). Dort wird auch das Geld geprueft - das ist die massgebliche
    Stelle, weil hier die Figur steht. */
+/* Verkauf aus dem Lager - derselbe halbe Preis wie beim Ablegen. Was in der
+   Kiste liegt, laesst sich im Hafen genauso verkaufen wie das am Guertel. */
+function lagerVerkaufen(i) {
+  const a = AUSR_BY_ID[F.lager[i]];
+  if (!a) { F.lager.splice(i, 1); speichern(); renderAlles(); return; }
+  if (!confirm('„' + a.n + '“ aus dem Lager verkaufen? Du bekommst '
+      + Math.floor((a.preis || 0) / 2) + ' Münzen.')) return;
+  F.muenzen = (F.muenzen || 0) + Math.floor((a.preis || 0) / 2);
+  F.lager.splice(i, 1);
+  speichern(); renderAlles();
+}
+
 function ablegen(i) {
   const a = AUSR_BY_ID[F.ausr[i]];
   if (!a) { F.ausr.splice(i, 1); speichern(); renderAlles(); return; }

@@ -110,6 +110,17 @@ chk('ungelernt steht als d' + R.UNGELERNT_WUERFEL + ' −' + R.UNGELERNT_ABZUG,
 chk('hoechstens ' + R.MAX_WUNDEN + ' Wunden',
   inhalt.indexOf('höchstens ' + R.MAX_WUNDEN) >= 0);
 chk('Startgeld ' + R.STARTGELD, inhalt.indexOf('Startgeld ' + R.STARTGELD) >= 0);
+/* Die Traglast steht an ZWEI Stellen: im handgeschriebenen Spickzettel und in
+   der erzeugten Ausruestungs-Einleitung. Beide muessen die Zahlen des Codes
+   nennen - eine Referenz, die eine andere Traglast nennt als das Regelwerk,
+   lehrt genau das Falsche. */
+chk('die Traglast nennt die Zahlen des Regelwerks (d6 = ' + (R.SIDES[2] * R.TRAGLAST_FAKTOR) + ')',
+  inhalt.indexOf('d6 = ' + (R.SIDES[2] * R.TRAGLAST_FAKTOR)) >= 0);
+chk('und die Spanne d4 bis d12',
+  inhalt.indexOf('d4 = ' + (R.SIDES[1] * R.TRAGLAST_FAKTOR)) >= 0
+  && inhalt.indexOf('d12 = ' + (R.SIDES[5] * R.TRAGLAST_FAKTOR)) >= 0);
+chk('das Schiffslager kommt vor', inhalt.indexOf('Schiff verstaut') >= 0
+  && inhalt.indexOf('Seemannskiste auf dem Schiff') >= 0);
 chk('die Erschwernis-Tabelle nennt die noetigen Zahlen',
   [2, 4, 6, 8].every(function (n) { return inhalt.indexOf('| ' + n + ' |') >= 0 ||
     inhalt.indexOf('| ' + n + ' |\n') >= 0; }) &&

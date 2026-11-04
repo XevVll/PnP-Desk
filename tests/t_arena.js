@@ -2002,5 +2002,56 @@ function held(id, opts) {
     u2.__folgen().auswahlId === null, u2.__folgen());
 })();
 
+/* ==========================================================
+   DAS SCHIFFSLAGER REICHT NICHT AUFS BRETT (04.11.2026)
+   ----------------------------------------------------------
+   Seit dem 04.11.2026 hat eine Figur zwei Inventare: "ausr"
+   (getragen) und "lager" (auf dem Schiff verstaut). Die Arena
+   leitet die Waffe eines Tokens aus dem Blatt ab - und eine
+   Muskete, die unter Deck in einer Kiste liegt, darf dort nicht
+   in der Hand sein.
+
+   Das ist die gefaehrlichste der drei Gegenrichtungen: Es faellt
+   am Tisch NICHT auf. Die Figur stuende mit einer Waffe auf dem
+   Brett, und niemand saehe, woher sie kommt.
+   ========================================================== */
+(function () {
+  const bogen = {
+    name: 'Mara Quint',
+    attr: { 'St\u00e4rke': 3, 'Geschicklichkeit': 3, 'Konstitution': 2, 'Verstand': 2, 'Willenskraft': 2 },
+    fert: { 'Kämpfen': 3, 'Schießen': 3 },
+    ausr: ['messer'],                 // in der Hand: nur das Messer
+    lager: ['saebel', 'muskete']      // unter Deck: die guten Sachen
+  };
+  // Erst pruefen, dass es alle drei Waren wirklich gibt - eine unbekannte
+  // Ware wird stillschweigend ignoriert, und dann prueft der Block nichts
+  // (Lehre vom 30.10.2026, heute zum dritten Mal getreten).
+  chk('die drei Waren dieses Bogens gibt es wirklich',
+    !!A.AUSR_BY_ID['messer'] && !!A.AUSR_BY_ID['saebel'] && !!A.AUSR_BY_ID['muskete']);
+
+  const fig = A.alsFigur(bogen);
+  const nah = A.arenaBesteWaffe(fig, 'Nahkampf');
+  const fern = A.arenaBesteWaffe(fig, 'Fernkampf');
+  chk('die beste NAHkampfwaffe ist das getragene Messer, nicht der verstaute Saebel',
+    nah && nah.id === 'messer', nah && nah.id);
+  chk('und es gibt GAR KEINE Fernkampfwaffe, obwohl eine Muskete im Lager liegt',
+    !fern, fern && fern.id);
+
+  const w = A.arenaWerteAusFigur(fig, bogen.name);
+  chk('das Token traegt damit den Messer-Schaden',
+    w.waffe === A.AUSR_BY_ID['messer'].schaden, [w.waffe, A.AUSR_BY_ID['messer'].schaden]);
+  chk('und kann nicht schiessen', w.fernwaffe === 0, w.fernwaffe);
+  /* Und die Gegenrichtung, damit die Pruefung nicht aus einem anderen Grund
+     gruen ist: Dieselben Waren GETRAGEN schlagen voll durch. */
+  const getragen = A.alsFigur(Object.assign({}, bogen,
+    { ausr: ['messer', 'saebel', 'muskete'], lager: [] }));
+  const w2 = A.arenaWerteAusFigur(getragen, 'Mara');
+  chk('getragen zaehlen dieselben Waren voll',
+    w2.waffe === A.AUSR_BY_ID['saebel'].schaden
+    && w2.fernwaffe === A.AUSR_BY_ID['muskete'].schaden, [w2.waffe, w2.fernwaffe]);
+  chk('die beiden Faelle fallen nachweislich auseinander',
+    w.waffe !== w2.waffe && w.fernwaffe !== w2.fernwaffe);
+})();
+
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');
 process.exit(f ? 1 : 0);

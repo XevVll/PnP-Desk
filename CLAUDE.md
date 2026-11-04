@@ -129,6 +129,83 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-11-04 — Die Traglast folgt der Regel, und das Schiff hat eine Kiste
+- **Hendriks Vorgabe:** „Können wir die Traglast der Spieler ein wenig erhöhen und ein aktives
+  (tragendes) und inaktives (auf dem Schiff verstautes) Inventar haben?"
+- **„Ein wenig" war zu bescheiden — die alte Traglast war nicht streng, sondern kaputt.**
+  Gemessen: **Säbel 3 + Pistole 3 + Pulverhorn 2 + Lederwams 5 = 13 Pfund.** Mit dem Faktor 2
+  hatte eine Figur mit Stärke d6 genau **12** — sie war von ihrer **Grundausrüstung** überladen,
+  bevor sie irgendetwas anderes anfasste.
+- **Und die Regel sagte etwas anderes:** Savage Worlds setzt das Load Limit auf **Stärke × 5**.
+  Unsere Gewichte sind ungefähr Pfund (Säbel 3, Muskete 8, Brustharnisch 20), die Skalen also
+  vergleichbar. **In Bibel §4 stand die Traglast überhaupt nicht** — die Zahl lebte allein in
+  `js/regelwerk.js`. Das war der eigentliche Befund, derselbe wie beim Nahschuss am 31.10.
+  - Jetzt **d4 = 20 · d6 = 30 · d8 = 40 · d10 = 50 · d12 = 60**, und die volle
+    Expeditionsladung (27) passt bei d6. **Überladung bleibt erlaubt** und kostet eine Stufe —
+    sie ist die Strafe, kein Verbot, und das steht als eigene Prüfung da.
+  - Neu **Bibel 4.5a „Traglast und das Schiffslager"** (Buchstabe statt 4.6, wie 4.4a/4.4b —
+    ein echtes 4.6 hätte alles dahinter verschoben), dazu ein Absatz im handgeschriebenen
+    Spickzettel.
+- **DIE TRAGENDE ENTSCHEIDUNG BEIM ZWEITEN INVENTAR IST, DASS `ausr` WEITERHIN „GETRAGEN"
+  HEISST.** Das Lager ist ein **neues Feld `lager` daneben**, rein additiv.
+  - Hätte ich stattdessen eine gemeinsame Liste mit einem Haken „getragen ja/nein" gebaut,
+    müsste **jede** Stelle, die Ausrüstung anfasst, einen zweiten Fall kennen —
+    `arenaBesteWaffe()`, `ruestbonus()`, der Kampfmodus, die SL-Übersicht, der Laden. So bleibt
+    jede einzelne davon **unverändert richtig**, ohne eine Zeile Anpassung.
+  - **Das Lager zählt für NICHTS** außer dem Geld, das es gekostet hat: kein Gewicht, keine
+    Rüstung, keine Waffe in der Hand. Ein Brustharnisch in der Seemannskiste schützt niemanden.
+- **Erreichbar ist es IMMER, mit dem Hinweis „nur an Bord" — und das ist eine Entscheidung,
+  keine Nachlässigkeit.** Der Heldenbrief hört seit dem 15.10.2026 **überhaupt nicht mehr auf
+  den Spielstand**; genau das hat die zehn Szenendateien (rund 64 KB) aus jedem Seitenaufruf
+  genommen. Eine technische Sperre wäre der Rückweg dorthin gewesen. Also sagt die Zeile es, und
+  am Tisch sagst du nein — dieselbe Linie wie beim Pulver, das auch von Hand abgezogen wird.
+- **Die SL sieht das Lager als eigenen Block** („Verstaut (auf dem Schiff)"), und das
+  Lagergewicht steht **hinter** der Traglast statt darin — sonst sähe es aus, als zählte die
+  Kiste mit. Zieht sie etwas ein, trägt das Postfach jetzt die **Liste** mit; der Bogen sucht
+  zuerst dort und **dann in der anderen**, falls der Spieler es zwischen Klick und Annahme
+  umgehängt hat. Ein Einziehen, das deswegen wirkungslos bliebe, wäre schlimmer als eines, das
+  sein Ziel trotzdem findet.
+- **Getestet: 322 Prüfungen in `t_bogen.js` und 387 in `t_arena.js`, 0 Fehler** (36 neue;
+  **2155 über vierzehn Skripte**, ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert
+  seit dem 13.10.).
+  - **Die tragende Prüfung ist die MESSUNG, nicht die Formel:** Das 13-Pfund-Kit steht als
+    eigene Zeile da, samt der Gegenrechnung, dass es mit dem alten Faktor nachweislich zu viel
+    war. Wer die Zahl zurückdreht, stolpert darüber.
+  - **Die gefährlichste Gegenrichtung liegt in der ARENA** und wird dort geprüft: Eine verstaute
+    Muskete darf im Endkampf nicht in der Hand liegen. Das fiele am Tisch **nicht** auf — die
+    Figur stünde mit einer Waffe auf dem Brett, und niemand sähe, woher sie kommt. Dazu die
+    Gegenprobe mit denselben Waren **getragen**, sonst wäre die Prüfung aus einem anderen Grund
+    grün.
+  - Das Umhängen wird **aus `heldenbrief.html` geschnitten und wirklich ausgeführt** — eine
+    nachgebaute Kopie prüft nicht, ob der Bogen das Lager auch **hochschreibt**, und ein Feld,
+    das die Figur kennt und der Bogen nicht speichert, ist der häufigste stille Datenverlust in
+    diesem Projekt. Geprüft wird dabei die **Summe beider Listen**: Eine Prüfung auf eine
+    einzelne Liste sähe einen Fehler nicht, der etwas doppelt einträgt.
+  - **Fünf Gegenproben, jede nennt den Fehler wörtlich:** Faktor zurück auf 2 (4 Prüfungen) ·
+    Lager wiegt mit (1) · Lager rüstet (1) · Lager reicht aufs Brett (5) · Bogen speichert es
+    nicht (1).
+- **Zum DRITTEN Mal eine Waren-ID erfunden:** `seemannskiste` statt `kiste`,
+  `zimmermannswerkzeug` statt `werkzeug`. Gefährlich ist das, weil eine unbekannte Ware
+  **stillschweigend ignoriert** wird — die Zeilen darunter messen dann nichts. Ich hatte den
+  Existenz-Wächter für zwei von drei Warenlisten geschrieben und bei der dritten vergessen;
+  jetzt steht er an allen.
+- **Ein Blindgänger in meiner eigenen Prüfung, vor dem Lauf gefangen:** Ich hatte
+  `chk(..., R.arenaBesteWaffe ? true : true, ...)` geschrieben — eine Prüfung, die **nicht
+  fehlschlagen kann**. `arenaBesteWaffe()` liegt in `js/arena.js`, also gehört sie nach
+  `tests/t_arena.js`; dort steht sie jetzt und schlägt nachweislich an. **Lieber keine Prüfung
+  als eine, die nichts prüfen kann.**
+- **Zwei veraltete Erwartungen in `t_regie_wuerfel.js`, kein echter Fehler:** Sie suchten
+  `data-nehmen="anna|saebel"`, und das Attribut trägt jetzt die Liste als drittes Feld.
+  Nachgezogen — und gleich vier Prüfungen dazu, darunter die, dass die beiden Listen
+  nachweislich **unterschieden** werden.
+- **Die Zahlen der Regelreferenz kommen jetzt aus dem Code**, nicht aus dem Text: Der Generator
+  rechnet `SIDES × TRAGLAST_FAKTOR` aus, und `t_regelreferenz.js` prüft, dass Spickzettel und
+  erzeugter Teil dieselbe Traglast nennen wie `js/regelwerk.js`. Eine Referenz, die eine andere
+  Zahl nennt als die Regel, lehrt genau das Falsche.
+- **[OFFEN] Die Spielleitung kann nur IN den Beutel übergeben, nicht ins Lager.** Für Beute, die
+  ohnehin unter Deck wandert, wäre das bequem — der Spieler verstaut sie aber mit einem Klick
+  selbst. Nicht gebaut, weil nicht beauftragt.
+
 ### 2026-10-31 (Fortsetzung) — Die Abfolge einer Runde, vollständig geprüft
 - **Hendriks Auftrag:** „Irgendwie stimmt die Abfolge davon noch nicht. Prüfe das bitte ein mal
   vollständig. Wie verhält es sich mit schießen und schlagen, und die Figur, die gerade dran ist,

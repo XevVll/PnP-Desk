@@ -366,8 +366,23 @@ chk('ohne offene Übergabe kein Hinweis',
 
 const mitAusr = JSON.parse(JSON.stringify(FIGUREN));
 mitAusr.anna.ausr = ['saebel'];
+mitAusr.anna.lager = ['kettenhemd'];
 MU.setFiguren(mitAusr);
-chk('Getragenes lässt sich anklicken', u.inhalt().indexOf('data-nehmen="anna|saebel"') >= 0);
+chk('Getragenes lässt sich anklicken',
+  u.inhalt().indexOf('data-nehmen="anna|saebel|ausr"') >= 0);
+/* Das Schiffslager steht als EIGENER Block da (seit 04.11.2026): Es zählt
+   für nichts, und in einer Liste mit dem Getragenen sähe es aus, als hätte
+   die Figur es dabei. */
+chk('das Verstaute steht in einem eigenen Block',
+  u.inhalt().indexOf('Verstaut (auf dem Schiff)') >= 0);
+chk('und das Einziehen nennt dort die Liste "lager"',
+  u.inhalt().indexOf('data-nehmen="anna|kettenhemd|lager"') >= 0);
+/* Die beiden Fälle fallen nachweislich auseinander - sonst prüften die zwei
+   Zeilen darüber dasselbe. */
+chk('die beiden Listen werden unterschieden',
+  u.inhalt().indexOf('|saebel|ausr') >= 0
+  && u.inhalt().indexOf('|kettenhemd|lager') >= 0
+  && u.inhalt().indexOf('|kettenhemd|ausr') < 0);
 
 console.log('');
 console.log('=== PROTOKOLL: SZENE UND ORT IM KLARTEXT ===');
@@ -1387,7 +1402,7 @@ chk('ohne Schusswaffe keine Ladungszeile',
 /* Einziehen laeuft jetzt ueber das Kreuz UND fragt nach: Der Chip selbst
    oeffnet die Erklaerung, ein Fehlgriff darf keine Waffe kosten. */
 chk('das Kreuz zieht ein, nicht der ganze Chip',
-  ah.indexOf('class="zu" data-nehmen="dora|saebel"') > 0);
+  ah.indexOf('class="zu" data-nehmen="dora|saebel|ausr"') > 0);
 A.schreib.length = 0;
 A.ctx._confirm = false;
 A.klick({ nehmen: 'dora|saebel' });

@@ -45,6 +45,11 @@ Zeitstrafe, keine Werteinbuße.
 **Bennie.** 3 je Sitzung (mit *Glückspilz* 4). Einer wiederholt eine misslungene Probe
 vollständig — das bessere Ergebnis zählt, wobei erst das Band zählt und dann die Zahl.
 
+**Traglast.** Du trägst die **fünffache Seitenzahl deines Stärkewürfels** in Pfund — d6 = 30,
+d8 = 40. **Überladung ist erlaubt** und kostet **eine Stufe auf alles**, flach wie eine Wunde.
+Was in deiner **Seemannskiste auf dem Schiff** liegt, zählt nicht mit — aber es schützt dich
+dort auch nicht und liegt dir nicht in der Hand. Daran kommst du nur **an Bord**.
+
 **Schuss aus der Nähe.** Steht der Gegner direkt vor dir, darfst du trotzdem schießen — aber
 gegen **seine Parade** statt gegen die 4, und nur mit einer Waffe von höchstens Pistolengröße
 (bis 3 Pfund). Gang Up hilft dabei nicht, das ist ein Nahkampf-Bonus. Danach ist die Waffe leer.
@@ -267,8 +272,10 @@ Spielleitung etwas, woran sie die Figur aufhängt. 15 der 24 sind von dieser Art
 
 Startgeld 500 Münzen. **Waffen bringen einen eigenen Schadenswürfel**
 mit, keinen Bonus — in diesem System wird nichts addiert. Rüstung hebt die Robustheit.
-Die Traglast hängt an der Stärke (doppelte Seitenzahl); **Überladung kostet eine
-Würfelstufe**, genau wie eine Wunde.
+Die Traglast ist die **5-fache Seitenzahl des Stärkewürfels**
+(d4 = 20 … d12 = 60); **Überladung kostet eine Würfelstufe**, flach wie
+eine Wunde. Was auf dem **Schiff verstaut** ist, zählt nicht mit — schützt dort aber
+auch nicht und liegt nicht in der Hand.
 
 ### Nahkampf
 

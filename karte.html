@@ -1327,6 +1327,9 @@
             // Fuer den Laden am Ort: was die Figur hat und was sie schon traegt.
             muenzen: (roh.muenzen == null) ? 0 : roh.muenzen,
             ausr: fig.ausr || [],
+            // Nur fuer die Kauf-Bestaetigung: Verstaut der Spieler das frisch
+            // Gekaufte sofort, soll der Laden trotzdem "gekauft" melden.
+            lager: fig.lager || [],
             // Wunden und Überladung senken keine Würfelstufe mehr, sie ziehen
             // flach ab - dieselbe Funktion, die auch der Heldenbrief nutzt.
             abzug: (typeof wundenAbzug === 'function') ? wundenAbzug(fig) : 0
@@ -2478,8 +2481,13 @@
     let kaufOffen = {};        // Postfach-Schluessel -> was wir erwarten
     let kaufMeld = null;       // { text, art } - wird im Laden gezeichnet
 
+    /* Gezaehlt wird BEIDES. Der Kauf landet im Beutel, aber die Zahl davor
+       wird genauso erhoben - die Differenz stimmt also auch, wenn dasselbe
+       Stueck schon im Lager liegt oder sofort dorthin wandert. */
     function zaehleGetragen(id) {
-      return ((meineFigur && meineFigur.ausr) || []).filter(function (x) { return x === id; }).length;
+      const f = meineFigur || {};
+      return ((f.ausr || []).concat(f.lager || []))
+        .filter(function (x) { return x === id; }).length;
     }
 
     function kaufSagen(text, art) {

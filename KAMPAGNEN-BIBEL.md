@@ -430,6 +430,46 @@ mit Bleibarren, mit der man sich selbst versorgt. **Schusswaffen und Pulver gibt
 Kampagne nur bei den Schmugglern** (`8.1`) — und beim Krämer in Grimsgate hält er das Pulver
 hinter einem Vorhang, nicht im Laden.
 
+### 4.5a Traglast und das Schiffslager
+
+**Eine Figur kann die fünffache Seitenzahl ihres Stärkewürfels in Pfund tragen** (Savage Worlds,
+Load Limit = Stärke × 5).
+
+| Stärke | d4 | d6 | d8 | d10 | d12 |
+|---|---|---|---|---|---|
+| **Traglast** | 20 | 30 | 40 | 50 | 60 |
+
+- **Überladung ist erlaubt**, nicht verboten: Sie kostet **eine Stufe auf alles**, flach, genau
+  wie eine Wunde (4.4). Wer schleppen will, darf schleppen und zahlt dafür.
+- Die Gewichte der Ausrüstungsliste sind ungefähr **Pfund** — Säbel 3, Muskete 8,
+  Brustharnisch 20.
+
+#### Zwei Inventare
+
+**Was eine Figur TRÄGT und was auf dem SCHIFF liegt, sind zwei getrennte Listen.**
+
+| | trägt (`ausr`) | verstaut (`lager`) |
+|---|---|---|
+| Gewicht gegen die Traglast | **ja** | nein |
+| Rüstung / Robustheit | **ja** | nein |
+| Waffe in der Hand (auch in der Arena) | **ja** | nein |
+| bezahlt (Startgeld) | ja | ja |
+
+- Verstautes zählt **für nichts** außer dem Geld, das es gekostet hat. Ein Brustharnisch in der
+  Seemannskiste schützt niemanden, und eine Muskete unter Deck liegt im Endkampf nicht in der
+  Hand.
+- **Erreichbar ist das Lager nur an Bord** — aber das sagt die Spielleitung, es ist nicht
+  gesperrt. Dieselbe Linie wie bei den Ladungen (4.5): von Hand, nicht per Automatik.
+- Umgehängt wird im Heldenbrief, in beide Richtungen. Beim Hervorholen wird **nicht** geprüft,
+  ob die Traglast reicht — Überladung ist ja erlaubt.
+
+> **Nachgetragen am 04.11.2026**, und das war der eigentliche Befund: Die Traglast stand in
+> diesem Abschnitt **überhaupt nicht**. Die Regel lebte allein in `js/regelwerk.js` — und dort
+> mit dem **zweifachen** Faktor, also d4 = 8 bis d12 = 24. Das war nicht streng, sondern kaputt:
+> **Säbel 3 + Pistole 3 + Pulverhorn 2 + Lederwams 5 sind 13 Pfund**, und eine Figur mit
+> Stärke d6 (Traglast 12) war davon schon überladen, bevor sie irgendetwas anderes anfasste.
+> Auf Hendriks Vorgabe („ein wenig erhöhen") auf die Regel gezogen statt auf einen Zwischenwert.
+
 ### 4.6 Ränge und Steigerungen
 
 Novize → Erfahren → Veteran → Heroisch → Legendär, je vier Steigerungen ein Rang. Am Rang
