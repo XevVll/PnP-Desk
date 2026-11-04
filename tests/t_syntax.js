@@ -147,5 +147,48 @@ for (const f of htmls) {
   } else { ok++; klOk++; }
 }
 console.log('Seiten ohne Klasse ins Leere: ' + klOk + '/' + htmls.length);
+
+/* ==========================================================
+   CSS-VARIABLEN OHNE DEFINITION (04.11.2026)
+   ----------------------------------------------------------
+   Die Pruefung darueber fragt, ob jede benutzte KLASSE eine
+   Regel hat. Variablen kannte sie nicht - und genau dort lag
+   das naechste Loch: karte.html benutzte zweimal
+   var(--accent) und definierte --accent NIE.
+
+   Dieselbe Fehlerklasse und genauso unsichtbar: Eine
+   ungueltige var() ohne Fallback macht die ganze Eigenschaft
+   "invalid at computed-value time", und der Browser nimmt den
+   INITIALWERT. Bei outline-color und border-color ist das
+   currentColor - die Angriffs-Umrandung hatte damit die Farbe
+   des Tokens, um das sie liegt. Unsichtbar, und in der
+   Konsole steht nichts.
+
+   Ein Fallback (var(--x, gold)) zaehlt als in Ordnung: Dort
+   ist das Fehlen ausdruecklich eingeplant.
+   ========================================================== */
+let varOk = 0;
+for (const f of htmls) {
+  const s = fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const a = s.indexOf('<style>'), b = s.lastIndexOf('</style>');
+  let stil = (a >= 0 && b > a) ? s.slice(a, b) : '';
+  // js/marken.js bringt eigenen Stil MIT eigenen Variablen mit.
+  if (s.indexOf('js/marken.js') > 0) stil += fs.readFileSync(path.join(jsdir, 'marken.js'), 'utf8');
+  // Auch die Seiten setzen Variablen per style="--x: ..." - selten, aber zulaessig.
+  const def = new Set();
+  (stil.match(/--[A-Za-z0-9_-]+\s*:/g) || []).forEach(function (m) {
+    def.add(m.slice(0, m.indexOf(':')).trim());
+  });
+  const fehlt = new Set();
+  (stil.match(/var\(\s*--[A-Za-z0-9_-]+\s*\)/g) || []).forEach(function (m) {
+    const n = m.slice(m.indexOf('--')).replace(/[\s\)]/g, '');
+    if (!def.has(n)) fehlt.add(n);
+  });
+  if (fehlt.size) {
+    bad++;
+    console.log('FEHLER ' + f + ': CSS-Variable ohne Definition: ' + [...fehlt].join(', '));
+  } else { ok++; varOk++; }
+}
+console.log('Seiten ohne undefinierte CSS-Variable: ' + varOk + '/' + htmls.length);
 console.log('\nOK: ' + ok + '   FEHLER: ' + bad);
 process.exit(bad ? 1 : 0);

@@ -10,6 +10,17 @@
     --ink: #e6ddc7;
     --ink-dim: #a89d81;
     --gold: #c9a24b;
+    /* Rostrot fuer den Angriff. Stand bis zum 04.11.2026 NIRGENDS,
+       wurde aber zweimal benutzt: Eine ungueltige var() ohne Fallback
+       macht die ganze Eigenschaft ungueltig, und outline-color faellt
+       dann auf currentColor zurueck - die Angriffs-Umrandung hatte die
+       Farbe des Tokens, um das sie liegt. Unsichtbar, ohne Fehler in
+       der Konsole. Derselbe Wert wie in arena_admin.html, damit beide
+       Ansichten gleich markieren. */
+    --accent: #a8391e;
+    /* Stahlblau fuer den Schuss - deutlich getrennt vom Rostrot des
+       Nahkampfs, und beide heben sich vom Gold der Bewegung ab. */
+    --schuss: #4a7fb5;
     --line: #3a2a18;
     --panel: #1a130b;
   }
@@ -135,7 +146,13 @@
     border: 1px solid rgba(201,162,75,0.10);
     display: flex; align-items: center; justify-content: center;
   }
-  .arena-feld.erreichbar { background: rgba(201,162,75,0.16); cursor: pointer; }
+  .arena-feld.erreichbar {
+    background: rgba(201,162,75,0.16); cursor: pointer;
+    /* Ein Punkt in der Mitte: Die goldene Flaeche allein geht auf einem
+       detailreichen Hintergrund unter, und sie ist das einzige der drei
+       Zeichen, das keine Umrandung tragen kann. */
+    background-image: radial-gradient(circle, rgba(201,162,75,0.55) 11%, transparent 12%);
+  }
   .arena-feld.erreichbar:hover { background: rgba(201,162,75,0.32); }
   .arena-token {
     width: 78%; height: 78%; border-radius: 50%;
@@ -154,7 +171,29 @@
   }
   .arena-token.frei { animation: markPulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(201,162,75,0.35); }
   .arena-token.tot { opacity: 0.32; filter: grayscale(1); }
-  .arena-token.angreifbar { cursor: pointer; outline: 2px dashed var(--accent); outline-offset: 3px; }
+  /* DREI MARKIERUNGEN, und jede traegt FORM UND SYMBOL, nicht nur Farbe:
+     Gold-gepunktete Flaeche = dorthin kannst du laufen. Rostrot
+     DURCHGEZOGEN = Nahkampf. Blau GESTRICHELT = Schuss. Farbe allein waere
+     fuer rund jeden zwanzigsten Mann am Tisch nicht zu unterscheiden -
+     dieselbe Linie wie bei der Tastatur-Erreichbarkeit (15.10.2026). */
+  .arena-token.angreifbar { cursor: pointer; }
+  .arena-token.ziel-nah { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .arena-token.ziel-fern { outline: 3px dashed var(--schuss); outline-offset: 3px; }
+  /* Der Nahschuss ist teuer (Waffe danach zwei Runden leer) und steht
+     deshalb nicht einfach als Schuss da, sondern blinkt. */
+  .arena-token.ziel-nahschuss { animation: zielPuls 1.2s ease-in-out infinite; }
+  @keyframes zielPuls {
+    0%, 100% { outline-color: var(--schuss); }
+    50% { outline-color: var(--gold); }
+  }
+  /* Das Symbol sagt dasselbe noch einmal in Zeichen. */
+  .arena-zielart {
+    position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; line-height: 1; padding: 0 3px; border-radius: 6px;
+    background: rgba(12,9,6,0.92); pointer-events: none;
+  }
+  .arena-zielart.nah { color: var(--accent); }
+  .arena-zielart.fern { color: var(--schuss); }
   /* Zeigt seit dem 30.10.2026 die noch freie WUNDENKAPAZITAET, nicht HP -
      die gibt es nicht mehr. Ein Statist (Diener) traegt keine Wunde und hat
      deshalb gar keine Leiste; dort steht stattdessen der Haken. */
@@ -2095,9 +2134,19 @@
            fragt; sie hier zu fragen heisst, dass Aufforderung und
            Ausfuehrung dieselbe Antwort geben. */
         if (arenaKannAngreifen(frei) && Object.keys(angreifbar).length) {
-          teile.push(arenaNahschuss
+          /* KEINE LEGENDE, sondern die Zeichen, die GERADE dastehen: Eine
+             feste Legende kostet auf einem engen Schirm Platz und erklaert
+             auch das, was nicht vorkommt. Steht nur Nahkampf auf dem Brett,
+             soll da auch nur ⚔ stehen. */
+          const arten = {};
+          Object.keys(angreifbar).forEach(function (k) { arten[angreifbar[k]] = true; });
+          const zeichen = [];
+          if (arten.nah) zeichen.push('⚔ Nahkampf');
+          if (arten.fern) zeichen.push('⌖ Schuss');
+          teile.push((arenaNahschuss
             ? 'Gegner anklicken — du schießt aus der Nähe'
-            : 'Gegner anklicken zum Angreifen');
+            : 'Gegner anklicken zum Angreifen')
+            + (zeichen.length ? ' (' + zeichen.join(' · ') + ')' : ''));
         } else if (frei.angeschlagen && !frei.hatAngegriffen) {
           teile.push('Angeschlagen — du kannst dich bewegen, aber nicht angreifen');
         }
@@ -2185,6 +2234,21 @@
 
       if (angreifbar[id]) {
         el.classList.add('angreifbar');
+        /* DIE ART STAND SCHON IN angreifbar[id] und wurde bis zum 04.11.2026
+           weggeworfen: Jedes Ziel bekam dieselbe Umrandung, und der
+           Unterschied steckte allein im title. AM TABLET AM TISCH GIBT ES
+           KEIN HOVERN - damit war er faktisch unsichtbar (dieselbe
+           Begruendung wie bei den Marken-Overlays am 15.10.2026). */
+        const nahR0 = ((arenaSzene(arenaScene) || {}).regeln || {}).nahkampfReichweite || 1;
+        const meinT = (arenaSnap.tokens || {})[freigegebenId] || {};
+        const nahschussHier = angreifbar[id] === 'fern'
+          && arenaDistanz(meinT, t) <= nahR0;
+        el.classList.add(angreifbar[id] === 'nah' ? 'ziel-nah' : 'ziel-fern');
+        if (nahschussHier) el.classList.add('ziel-nahschuss');
+        const zeichen = document.createElement('span');
+        zeichen.className = 'arena-zielart ' + (angreifbar[id] === 'nah' ? 'nah' : 'fern');
+        zeichen.textContent = angreifbar[id] === 'nah' ? '⚔' : '⌖';
+        el.appendChild(zeichen);
         /* "tokens" gibt es in dieser Funktion NICHT - sie bekommt nur das eine
            Token. Der Stand kommt deshalb aus arenaSnap; ein Griff auf eine
            Variable der aufrufenden Funktion waere eine haengende Referenz und

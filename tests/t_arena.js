@@ -2331,5 +2331,131 @@ function held(id, opts) {
     karte.indexOf('Angeschlagen — du kannst dich bewegen, aber nicht angreifen') >= 0);
 })();
 
+
+/* ==========================================================
+   DREI MARKIERUNGEN AUF DEM BRETT (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Koennen wir eine Markierung setzen fuer
+   Nah und Fernkampf Angriff und Bewegung?"
+
+   GEMESSEN: Bewegung und Ziele waren beide schon markiert -
+   aber ALLE Ziele gleich. Die Art stand in angreifbar[id] und
+   wurde weggeworfen; der Unterschied steckte allein im title,
+   und am Tablet am Tisch gibt es kein Hovern. Im Schlachtfeld
+   stand er nicht einmal dort.
+   ========================================================== */
+(function () {
+  const R = A.ARENA_SCENES['15.1'].regeln;
+  const mach = function (o) {
+    return Object.assign({ id: 'p1', typ: 'spieler', x: 5, y: 5, kaempfen: 3, schiessen: 3,
+      staerke: 3, waffe: 2, fernwaffe: 0, parade: 6, robustheit: 6, wild: true,
+      geladen: true, bewegung: 2 }, o);
+  };
+  const feind = function (x, y) {
+    return { id: 'g1', typ: 'diener', x: x, y: y, parade: 4, robustheit: 4,
+      kaempfen: 1, wild: false };
+  };
+
+  /* ---- Die Engine unterscheidet die drei Faelle wirklich ----
+     Daran haengt jede Markierung: Liefert arenaAngriffsart() nicht drei
+     verschiedene Antworten, gibt es auch nichts zu unterscheiden. */
+  const nurNah = mach({});
+  chk('angrenzend ohne Fernwaffe: Nahkampf',
+    A.arenaAngriffsart(nurNah, feind(6, 5), R, null) === 'nah');
+  const schuetze = mach({ fernwaffe: 2, reichweite: 5, fernHandlich: true });
+  chk('auf Entfernung: Fernkampf',
+    A.arenaAngriffsart(schuetze, feind(9, 5), R, null) === 'fern');
+  chk('angrenzend bleibt es Nahkampf, solange niemand schiessen WILL',
+    A.arenaAngriffsart(schuetze, feind(6, 5), R, null) === 'nah');
+  chk('mit Wunsch und handlicher Waffe wird daraus der Nahschuss',
+    A.arenaAngriffsart(schuetze, feind(6, 5), R, 'fern') === 'fern');
+  /* Und die Gegenrichtung, sonst waere die Zeile darueber aus einem anderen
+     Grund gruen: Eine zu grosse Waffe bleibt auch mit Wunsch Nahkampf. */
+  const musketier = mach({ fernwaffe: 3, reichweite: 10, fernHandlich: false });
+  chk('eine zu grosse Waffe bleibt im Handgemenge Nahkampf',
+    A.arenaAngriffsart(musketier, feind(6, 5), R, 'fern') === 'nah');
+  chk('die vier Faelle fallen nachweislich auseinander',
+    A.arenaAngriffsart(nurNah, feind(6, 5), R, null) === 'nah'
+    && A.arenaAngriffsart(schuetze, feind(9, 5), R, null) === 'fern'
+    && A.arenaAngriffsart(schuetze, feind(6, 5), R, 'fern') === 'fern'
+    && A.arenaAngriffsart(musketier, feind(6, 5), R, 'fern') === 'nah');
+
+  /* ---- BEIDE ANSICHTEN MARKIEREN GLEICH ----
+     Das ist die eigentliche Zusage: Zwei Ansichten, die dasselbe Brett
+     verschieden markieren, waeren am Tisch schlimmer als keine Markierung. */
+  const K = fs.readFileSync(path.join(WURZEL, 'karte.html'), 'utf8');
+  const AD = fs.readFileSync(path.join(WURZEL, 'arena_admin.html'), 'utf8');
+  /* STYLESHEET UND SKRIPT GETRENNT, und das ist der Punkt: Meine erste
+     Fassung fragte nur, ob "ziel-nah" in der Datei VORKOMMT - und das tat
+     es im CSS auch dann noch, als die Klasse nirgends mehr gesetzt wurde.
+     Die Gegenprobe schlug deshalb NICHT an. Eine Gegenprobe, die nicht
+     anschlaegt, kann auch eine schlechte Probe sein (Lehre vom 31.10.) -
+     hier war sie es. Jetzt wird die VERWENDUNG geprueft. */
+  const nurStil = function (q) {
+    const a = q.indexOf('<style>'), b = q.lastIndexOf('</style>');
+    return (a >= 0 && b > a) ? q.slice(a, b) : '';
+  };
+  const ohneStil = function (q) {
+    const a = q.indexOf('<style>'), b = q.lastIndexOf('</style>');
+    return (a >= 0 && b > a) ? (q.slice(0, a) + q.slice(b)) : q;
+  };
+  [['karte.html', K], ['arena_admin.html', AD]].forEach(function (p) {
+    const stil = nurStil(p[1]), skript = ohneStil(p[1]);
+    /* EIN PRAEFIX GENUEGT NICHT: "ziel-nah" steckt in "ziel-nahschuss".
+       Ohne diese Schaerfung blieb das Entfernen der Nahkampf-Markierung
+       unentdeckt - genau die Falle, die am 15.10.2026 schon bei .lad
+       gegen .ladenzu zugeschnappt hat. Hinter dem Namen muss etwas
+       stehen, das kein Namenszeichen ist. */
+    const traegt = function (q, kl) {
+      return new RegExp(kl + '(?![A-Za-z0-9_-])').test(q);
+    };
+    ['ziel-nah', 'ziel-fern', 'ziel-nahschuss'].forEach(function (kl) {
+      chk(p[0] + ': "' + kl + '" hat eine Regel', traegt(stil, '.' + kl));
+      chk(p[0] + ': "' + kl + '" wird auch GESETZT', traegt(skript, kl),
+        kl + ' nur im Stylesheet - die Markierung erscheint nie');
+    });
+  });
+  chk('beide zeigen dieselben Zeichen',
+    K.indexOf('\u2694') >= 0 && K.indexOf('\u2316') >= 0
+    && AD.indexOf('\u2694') >= 0 && AD.indexOf('\u2316') >= 0);
+  chk('und dieselbe Schussfarbe',
+    K.indexOf('--schuss: #4a7fb5') >= 0 && AD.indexOf('--schuss: #4a7fb5') >= 0);
+
+  /* ---- NICHT NUR UEBER DIE FARBE ----
+     Rund jeder zwanzigste Mann am Tisch unterscheidet Rot und Blau nicht
+     zuverlaessig. Deshalb traegt jede Zielart zusaetzlich eine FORM. */
+  chk('Nahkampf ist durchgezogen, Schuss gestrichelt - in beiden Ansichten',
+    /ziel-nah \{[^}]*solid/.test(K) && /ziel-fern \{[^}]*dashed/.test(K)
+    && /ziel-nah \{[^}]*solid/.test(AD) && /ziel-fern \{[^}]*dashed/.test(AD));
+  chk('und die Bewegungsflaeche traegt einen Punkt, nicht nur Farbe',
+    K.indexOf('radial-gradient') >= 0 && AD.indexOf('radial-gradient') >= 0);
+
+  /* ---- DER FEHLER, DEN NUR DIE REIHENFOLGE ZEIGT ----
+     el.textContent = t.symbol LOESCHT alle Kindknoten. Haengt das Zeichen
+     davor, ist es bei jedem Token OHNE eigenes Bild sofort wieder weg - und
+     das ist die Mehrzahl. Im Admin ist mir genau das passiert. */
+  [['karte.html', K, 'arena-zielart'], ['arena_admin.html', AD, "'zielart '"]]
+    .forEach(function (p) {
+      const sym = p[1].indexOf("el.textContent = t.symbol");
+      const zeichen = p[1].lastIndexOf(p[2]);
+      chk(p[0] + ': das Zielzeichen haengt NACH dem textContent-Zweig',
+        sym > 0 && zeichen > sym, { textContent: sym, zeichen: zeichen });
+    });
+
+  /* ---- KEINE HAENGENDE REFERENZ ----
+     tokenEl() im Admin bekommt nur id, t und angreifbar - "sel" gibt es dort
+     nicht. Mein erster Anlauf griff darauf zu; es waere beim ersten
+     angreifbaren Ziel geworfen, wie "tokens" am 31.10.2026. */
+  (function () {
+    const von = AD.indexOf('function tokenEl(id, t, angreifbar)');
+    const bis = AD.indexOf('function ', von + 10);
+    chk('der Schnitt findet tokenEl() im Schlachtfeld', von > 0 && bis > von, [von, bis]);
+    if (von < 0) return;
+    const koerper = AD.slice(von, bis);
+    chk('tokenEl() greift nicht auf "sel" zu',
+      !/[^A-Za-z0-9_]sel[^A-Za-z0-9_]/.test(koerper), koerper.length);
+  })();
+})();
+
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');
 process.exit(f ? 1 : 0);

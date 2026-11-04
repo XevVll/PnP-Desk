@@ -129,6 +129,90 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-04 (Fortsetzung 4) — Drei Markierungen auf dem Brett
+- **Hendriks Vorgabe:** „Können wir eine Markierung setzen für Nah und Fernkampf Angriff und
+  Bewegung?"
+- **ERST GEMESSEN, und die Messung hat die Aufgabe verschoben:** Bewegung und Ziele waren
+  **beide schon markiert** — aber **alle Ziele gleich.** Die Art steckte längst in
+  `angreifbar[id]`, wurde berechnet und dann **weggeworfen**; der Unterschied stand allein im
+  `title`. **Am Tablet am Tisch gibt es kein Hovern** — damit war er faktisch unsichtbar
+  (dieselbe Begründung wie bei den Marken-Overlays am 15.10.). Im Schlachtfeld stand er nicht
+  einmal dort. Dieselbe Sorte Verlust wie beim abgelehnten Angriff heute Mittag: Die Engine
+  weiß es, die Anzeige verschweigt es.
+- **Jetzt drei Zeichen, und jedes trägt FORM UND SYMBOL, nicht nur Farbe:**
+
+      Fläche mit Punkt     gold                  dorthin kannst du laufen
+      Umrandung ⚔          rostrot DURCHGEZOGEN  Nahkampf
+      Umrandung ⌖          blau GESTRICHELT      Schuss
+      Umrandung ⌖ blinkend blau/gold             Schuss aus der Nähe — teuer
+
+  **Rund jeder zwanzigste Mann am Tisch unterscheidet Rot und Blau nicht zuverlässig** — eine
+  Markierung, die allein über die Farbe funktioniert, ist für ihn keine. Steht als eigene
+  Prüfung da (durchgezogen gegen gestrichelt, dazu der Punkt auf der Bewegungsfläche).
+- **Beide Ansichten markieren gleich**, mit denselben Klassen, Zeichen und Farben. Zwei
+  Ansichten, die dasselbe Brett verschieden markieren, wären am Tisch schlimmer als keine
+  Markierung.
+- **Keine feste Legende, sondern die Zeichen, die GERADE dastehen** („⚔ Nahkampf · ⌖ Schuss" im
+  Hinweis). Eine feste Legende kostet auf einem engen Schirm Platz und erklärt auch das, was
+  nicht vorkommt.
+- **DER SCHWERSTE FUND LAG DANEBEN, und er erklärt die Frage vielleicht mit:
+  `karte.html` benutzte `var(--accent)` ZWEIMAL und definierte `--accent` NIE.** Eine ungültige
+  `var()` ohne Fallback macht die ganze Eigenschaft *invalid at computed-value time*, und der
+  Browser nimmt den **Initialwert** — bei `outline-color` ist das `currentColor`. **Die
+  Angriffs-Umrandung hatte damit die Farbe des Tokens, um das sie liegt**, also praktisch keine.
+  Unsichtbar, und in der Konsole steht nichts.
+  - **Nachgemessen: elf solche Stellen über drei Seiten.** `karte.html` `--accent` (2) ·
+    `heldenbrief.html` `--ink-dim`/`--line` (2, **beide von meinen Lager-Änderungen vom
+    04.11.**) · `regie_figuren.html` `--card`/`--line` (7, älter).
+  - **Jede Seite bekommt den Namen, den sie selbst definiert** (`--gray`, `--border`,
+    `--surface`), statt eines Alias daneben — **ein Name je Farbe**, dieselbe Linie wie heute
+    Vormittag bei der Waffenwahl. Nur `--accent` in `karte.html` wird wirklich **definiert**,
+    mit demselben Wert wie `arena_admin.html`.
+- **Neue Prüfung in `tests/t_syntax.js`, und sie gilt für JEDE Seite:** Zu jeder benutzten
+  CSS-Variable muss eine Definition im Stylesheet stehen. **15 von 15 sauber** — nach den elf
+  Funden. Ein Fallback (`var(--x, gold)`) zählt als in Ordnung, dort ist das Fehlen
+  ausdrücklich eingeplant.
+  - **Das ist dieselbe Fehlerklasse wie am 15.10.** („Ungültiges CSS ist ein Fehler, **fehlendes
+    CSS ist nur unsichtbar**"), und meine Prüfung von damals hatte sie trotzdem nicht gesehen:
+    Sie fragt nur, ob jede benutzte **Klasse** eine Regel hat. **Variablen kannte sie nicht** —
+    eine Lücke in meiner eigenen Absicherung.
+- **Getestet: 2286 Prüfungen über vierzehn Skripte** (34 neue; `t_arena.js` 459, `t_syntax.js`
+  75), ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.
+  - Die Engine wird dabei auf die **vier** Fälle geprüft, von denen die Markierungen abhängen:
+    Nahkampf · Fernkampf · Nahschuss · und die zu große Waffe, die im Handgemenge **Nahkampf
+    bleibt**. Fielen die nicht auseinander, gäbe es nichts zu unterscheiden.
+  - **Vier Gegenproben**, jede nennt den Fehler wörtlich: die Art wieder wegwerfen · beide Arten
+    gestrichelt (nur noch Farbe) · das Zeichen vor den `textContent`-Zweig · die hängende
+    Referenz auf `sel`.
+- **Zwei echte Fehler beim Bauen, beide schwerer als die Aufgabe:**
+  1. **Die hängende Referenz, zum dritten Mal:** Mein erster Anlauf griff in `tokenEl()` auf
+     `sel` zu — die Funktion bekommt nur `id`, `t` und `angreifbar`. Es wäre beim ersten
+     angreifbaren Ziel geworfen, wie `tokens` in `arenaTokenEl()` am 31.10. Jetzt über `snap`,
+     und eine Prüfung **schneidet den Funktionskörper** und verbietet `sel` darin.
+  2. **`el.textContent = t.symbol` löscht alle Kindknoten.** Ich hatte das Zielzeichen **davor**
+     angehängt — bei jedem Token **ohne** eigenes Bild wäre es sofort wieder weg gewesen, und
+     das ist die Mehrzahl. **Nur durch Nachlesen der Reihenfolge zu finden.** In `karte.html`
+     stand es zufällig richtig; eine Prüfung nagelt es jetzt in beiden fest.
+- **EINE GEGENPROBE SCHLUG NICHT AN, und damit war die PRÜFUNG schlecht:** „Beide Ansichten
+  kennen `ziel-nah`" fragte nur, ob die Zeichenkette in der Datei **vorkommt** — und das tat sie
+  im Stylesheet auch dann noch, als die Klasse nirgends mehr gesetzt wurde. Jetzt werden
+  **Stylesheet und Skript getrennt** geprüft: Regel vorhanden **und** Klasse wirklich gesetzt.
+  - **Und danach war sie noch zu schwach:** `ziel-nah` steckt in `ziel-nahschuss`, also blieb
+    das Entfernen **nur** der Nahkampf-Markierung unentdeckt — genau die Präfix-Falle, die am
+    15.10. schon bei `.lad` gegen `.ladenzu` zugeschnappt hat. Hinter dem Namen muss jetzt ein
+    Zeichen stehen, das kein Namenszeichen ist; danach schlägt auch die feinste Variante an.
+- **Zeilenenden: ich habe zwei Dateien selbst verschmutzt und aufgeräumt.** Mein Eintrag von
+  heute Mittag schrieb **30 LF-Zeilen** in die CRLF-Datei `ARENA-ENDKAMPF.md` (die
+  Zeilenende-Umsetzung im Fehlerblock vergessen), und mein Patch von heute Vormittag **7
+  CRLF-Zeilen** in die LF-Datei `REGELREFERENZ.md` — genau das, wovor der Eintrag vom 14.10.
+  warnt. Beide normalisiert.
+  - **Die Lehre schärft die Regel:** Mein Helfer wählte CRLF, sobald **irgendwo** ein CRLF
+    stand. Bei einer gemischten Datei verschmutzt das den Rest weiter. Er entscheidet jetzt nach
+    der **Mehrheit** — und beim Changelog weiterhin nach dem Zeilenende **an der Fundstelle**.
+  - **Und der Messbefehl selbst log:** `grep -c $'\r'` ließ `arena_admin.html` als CRLF
+    erscheinen; sie ist **komplett LF**, als einzige Datei des Projekts. Zeilenenden werden ab
+    jetzt in Python gezählt, nicht mit `grep`.
+
 ### 2026-11-04 (Fortsetzung 3) — Fehler: der abgelehnte Angriff schwieg
 - **Hendriks Frage:** „Ich kann manchmal nicht angreifen. Woran liegt das?"
 - **Nicht geraten, sondern alle Wachen durchgerechnet** — und das Ergebnis nennt den Fall:

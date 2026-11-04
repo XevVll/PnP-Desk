@@ -28,7 +28,7 @@
   :root {
     --bg: #14100b; --panel: #1a130b; --line: #3a2a18;
     --ink: #cbb98f; --ink-dim: #8a7a5c; --ink-faint: #6b5d45;
-    --gold: #c9a24b; --accent: #a8391e; --live: #7fa87f;
+    --gold: #c9a24b; --accent: #a8391e; --live: #7fa87f; --schuss: #4a7fb5;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -57,7 +57,10 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.7);
   }
   .feld { position: relative; border: 1px solid rgba(201,162,75,0.10); display: flex; align-items: center; justify-content: center; }
-  .feld.erreichbar { background: rgba(201,162,75,0.16); cursor: pointer; }
+  .feld.erreichbar {
+    background: rgba(201,162,75,0.16); cursor: pointer;
+    background-image: radial-gradient(circle, rgba(201,162,75,0.55) 11%, transparent 12%);
+  }
   .feld.erreichbar:hover { background: rgba(201,162,75,0.32); }
   .feld.versetzbar { background: rgba(127,168,127,0.14); cursor: pointer; }
   .feld.versetzbar:hover { background: rgba(127,168,127,0.32); }
@@ -78,7 +81,26 @@
   .token.frei { animation: puls 1.6s ease-in-out infinite; }
   @keyframes puls { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.6); } }
   .token.tot { opacity: 0.32; filter: grayscale(1); }
-  .token.angreifbar { outline: 2px dashed var(--accent); outline-offset: 2px; }
+  /* DREI MARKIERUNGEN, deckungsgleich mit karte.html: Gold-gepunktet =
+     Bewegung, rostrot DURCHGEZOGEN = Nahkampf, blau GESTRICHELT = Schuss.
+     Form und Symbol tragen die Unterscheidung mit, nicht die Farbe allein.
+     Zwei Ansichten, die dasselbe Brett verschieden markieren, waeren am
+     Tisch schlimmer als gar keine Markierung. */
+  .token.angreifbar { cursor: pointer; }
+  .token.ziel-nah { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .token.ziel-fern { outline: 3px dashed var(--schuss); outline-offset: 2px; }
+  .token.ziel-nahschuss { animation: zielPuls 1.2s ease-in-out infinite; }
+  @keyframes zielPuls {
+    0%, 100% { outline-color: var(--schuss); }
+    50% { outline-color: var(--gold); }
+  }
+  .zielart {
+    position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; line-height: 1; padding: 0 3px; border-radius: 6px;
+    background: rgba(12,9,6,0.92); pointer-events: none;
+  }
+  .zielart.nah { color: var(--accent); }
+  .zielart.fern { color: var(--schuss); }
   /* Zeigt die noch freie WUNDENKAPAZITAET, nicht HP - die gibt es seit dem
      30.10.2026 nicht mehr. Ein Statist (Diener) traegt keine Wunde und hat
      deshalb gar keine Leiste. */
@@ -810,13 +832,28 @@
     schreibe(e.aenderungen, e.logs);
   }
 
+  /* "sel" GIBT ES IN tokenEl() NICHT - die Funktion bekommt nur id, t und
+     angreifbar. Mein erster Anlauf griff darauf zu: genau die haengende
+     Referenz, die dieses Projekt schon zweimal gekostet hat (zuletzt
+     "tokens" in arenaTokenEl() am 31.10.2026). Der Stand kommt deshalb aus
+     snap, und die Pruefung faengt es. */
+  function nahschussAuf(id, t) {
+    const mein = (snap.tokens || {})[auswahlId];
+    return !!mein && arenaDistanz(mein, t) <= (R.nahkampfReichweite || 1);
+  }
+
   function tokenEl(id, t, angreifbar) {
     const el = document.createElement('div');
     el.className = 'token'
       + (id === auswahlId ? ' ausgewaehlt' : '')
       + (id === (snap.freigegeben || null) ? ' frei' : '')
       + (t.tot ? ' tot' : '')
-      + (angreifbar[id] ? ' angreifbar' : '');
+      + (angreifbar[id] ? ' angreifbar' : '')
+      /* Die Art stand schon in angreifbar[id] und wurde weggeworfen - im
+         Admin steckte sie nicht einmal im title. */
+      + (angreifbar[id] === 'nah' ? ' ziel-nah' : '')
+      + (angreifbar[id] === 'fern' ? ' ziel-fern' : '')
+      + (nahschussAuf(id, t) ? ' ziel-nahschuss' : '');
     el.style.color = t.farbe || '#c9a24b';
     // Eigenes Bild (t.bild) fuellt den Token aus, sonst wie bisher das Symbol.
     if (t.bild) {
@@ -827,6 +864,17 @@
       el.appendChild(bildEl);
     } else {
       el.textContent = t.symbol || '?';
+    }
+    /* NACH dem Symbol/Bild-Zweig: el.textContent = t.symbol LOESCHT alle
+       Kindknoten. Mein erster Anlauf hing das Zeichen davor an - bei
+       jedem Token OHNE eigenes Bild waere es damit sofort wieder weg
+       gewesen, und das ist die Mehrzahl. Nur durch Nachlesen der
+       Reihenfolge zu finden. */
+    if (angreifbar[id]) {
+      const zeichen = document.createElement('span');
+      zeichen.className = 'zielart ' + (angreifbar[id] === 'nah' ? 'nah' : 'fern');
+      zeichen.textContent = angreifbar[id] === 'nah' ? '⚔' : '⌖';
+      el.appendChild(zeichen);
     }
     el.title = (t.name || id) + ' — ' + t.typ + ', ' + arenaZustandText(t);
 

@@ -17,7 +17,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .topbar{position:sticky;top:0;z-index:100;background:rgba(18,35,42,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(10px);display:flex;align-items:center;gap:.8rem;padding:.55rem 1rem;flex-wrap:wrap}
 .brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.95rem;letter-spacing:.13em}
 /* Die Werkstatt: ein Gegenstand, den es im Regelwerk nicht gibt. */
-.wst{background:var(--card);border:1px solid var(--gold);border-radius:6px;
+.wst{background:var(--surface);border:1px solid var(--gold);border-radius:6px;
   padding:.8rem .9rem;margin-bottom:1rem}
 .wst h3{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.1em;color:var(--gold);
   margin:0 0 .2rem;text-transform:uppercase}
@@ -25,10 +25,10 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 .wst-f{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
 .wst-f label{font-size:.68rem;color:var(--gray);display:flex;flex-direction:column;gap:.15rem}
 .wst-f input,.wst-f select{font-family:inherit;font-size:.76rem;padding:.25rem .4rem;
-  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+  background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:4px}
 .wst-f input.lang{min-width:15rem}
 .wst-liste{margin-top:.7rem;display:flex;flex-wrap:wrap;gap:.35rem}
-.wst-w{display:flex;align-items:center;gap:.35rem;border:1px solid var(--line);
+.wst-w{display:flex;align-items:center;gap:.35rem;border:1px solid var(--border);
   border-radius:11px;padding:.1rem .3rem .1rem .6rem;font-size:.74rem}
 .wst-w b{font-weight:400;color:var(--gold)}
 .wst-w .x{cursor:pointer;color:var(--gray);padding:0 .2rem}
@@ -57,7 +57,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   padding-bottom:.7rem;border-bottom:1px solid var(--border)}
 .wk label{font-size:.66rem;color:var(--gray);display:flex;flex-direction:column;gap:.15rem}
 .wk input,.wk select{font-family:inherit;font-size:.8rem;padding:.3rem .45rem;
-  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+  background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:4px}
 .wk input{min-width:16rem}
 .wk .zahl{font-size:.7rem;color:var(--gray);padding-bottom:.35rem}
 .wart{margin-bottom:1rem}
@@ -81,7 +81,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   padding-bottom:.7rem;border-bottom:1px solid var(--border)}
 .kk label{font-size:.66rem;color:var(--gray);display:flex;flex-direction:column;gap:.15rem}
 .kk input,.kk select{font-family:inherit;font-size:.8rem;padding:.3rem .45rem;
-  background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+  background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:4px}
 .kk .runde{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold);padding-bottom:.3rem}
 .ki{display:flex;align-items:center;gap:.6rem;padding:.35rem .4rem;flex-wrap:wrap;
   border-bottom:1px solid rgba(255,255,255,.05)}
@@ -109,8 +109,8 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
   text-transform:uppercase;min-width:5.5rem}
 .kband>.bl small{display:block;font-size:.58rem;opacity:.8}
 .kmitte{border-top:1px solid var(--border);margin:.6rem 0}
-.ktok{display:flex;flex-direction:column;gap:.1rem;border:1px solid var(--line);
-  border-radius:6px;padding:.3rem .5rem;background:var(--card);cursor:grab;min-width:7rem}
+.ktok{display:flex;flex-direction:column;gap:.1rem;border:1px solid var(--border);
+  border-radius:6px;padding:.3rem .5rem;background:var(--surface);cursor:grab;min-width:7rem}
 .ktok:active{cursor:grabbing}
 .ktok .tn{font-size:.8rem}
 .ktok .tw{font-size:.62rem;color:var(--gray);font-family:'Cinzel',serif}

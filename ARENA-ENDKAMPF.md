@@ -630,6 +630,39 @@ Gepäck, zwei verschiedene Erlaubnisse — entschieden allein durch den Klick im
 
 ---
 
+### 4.7 Was auf dem Brett markiert ist (04.11.2026)
+
+Hendriks Vorgabe: *„Können wir eine Markierung setzen für Nah und Fernkampf Angriff und
+Bewegung?"*
+
+| Zeichen | Form | Farbe | Bedeutung |
+|---|---|---|---|
+| Fläche mit Punkt | — | Gold | **dorthin kannst du laufen** |
+| Umrandung ⚔ | **durchgezogen** | Rostrot | **Nahkampf** — gegen seine Parade, Gang Up zählt |
+| Umrandung ⌖ | **gestrichelt** | Stahlblau | **Schuss** — Entfernungsabzug, danach ist die Waffe leer |
+| Umrandung ⌖, **blinkend** | gestrichelt | blau/gold | **Schuss aus der Nähe** (4.2a) — teuer |
+
+**Jede Markierung trägt Form UND Symbol, nicht nur Farbe.** Rund jeder zwanzigste Mann am Tisch
+unterscheidet Rot und Blau nicht zuverlässig; eine Markierung, die allein über die Farbe
+funktioniert, ist für ihn keine. Dieselbe Linie wie bei der Tastatur-Erreichbarkeit (15.10.2026).
+
+**Beide Ansichten markieren gleich** — `karte.html` und `arena_admin.html` benutzen dieselben
+Klassen, dieselben Zeichen und dieselbe Schussfarbe. Zwei Ansichten, die dasselbe Brett
+verschieden markieren, wären am Tisch schlimmer als keine Markierung, und das steht als Prüfung
+da.
+
+**Keine feste Legende.** Der Hinweis in der Spieleransicht nennt die Zeichen, die *gerade*
+dastehen („⚔ Nahkampf · ⌖ Schuss"). Eine feste Legende kostet auf einem engen Schirm Platz und
+erklärt auch das, was nicht vorkommt.
+
+> **Der Befund vorweg:** Bewegung und Ziele waren beide schon markiert — aber **alle Ziele
+> gleich.** Die Art stand längst in `angreifbar[id]` und wurde weggeworfen; der Unterschied
+> steckte allein im `title`, und **am Tablet am Tisch gibt es kein Hovern.** Im Schlachtfeld
+> stand er nicht einmal dort. Dieselbe Sorte Verlust wie beim abgelehnten Angriff (Fehler 24):
+> Die Engine weiß es, die Anzeige verschweigt es.
+
+---
+
 ---
 
 ## 5. Datenmodell
@@ -1171,6 +1204,24 @@ Die Fehler beim Bau, alle vom Test gefunden:
     **Kommentar**, der die alte Zeile zitiert. **Geschärft statt gelockert** (dieselbe Lehre wie
     am 30.10.): Sie blendet Kommentare aus, bevor sie sucht. Verboten ist die *Verwendung*,
     nicht die Erwähnung.
+28. **`var(--accent)` ohne Definition.** `karte.html` benutzte die Variable **zweimal** und
+    definierte sie **nie**. Eine ungültige `var()` ohne Fallback macht die ganze Eigenschaft
+    *invalid at computed-value time*, und der Browser nimmt den **Initialwert** — bei
+    `outline-color` ist das `currentColor`. **Die Angriffs-Umrandung hatte damit die Farbe des
+    Tokens, um das sie liegt**, also praktisch keine. Unsichtbar, und in der Konsole steht
+    nichts. Insgesamt **elf** solche Stellen über drei Seiten, gefunden von einer neuen Prüfung
+    in `tests/t_syntax.js`: Die vom 15.10. fragt nur, ob jede benutzte **Klasse** eine Regel hat
+    — Variablen kannte sie nicht.
+29. **Die hängende Referenz, zum dritten Mal in diesem Projekt.** Mein erster Anlauf griff in
+    `tokenEl()` auf `sel` zu; die Funktion bekommt nur `id`, `t` und `angreifbar`. Es wäre beim
+    ersten angreifbaren Ziel geworfen, wie `tokens` in `arenaTokenEl()` am 31.10. Der Stand
+    kommt jetzt aus `snap`, und eine Prüfung schneidet den Funktionskörper und verbietet `sel`
+    darin.
+30. **`el.textContent = t.symbol` löscht alle Kindknoten.** Ich hatte das Zielzeichen **davor**
+    angehängt — bei jedem Token **ohne** eigenes Bild wäre es damit sofort wieder weg gewesen,
+    und das ist die Mehrzahl. **Nur durch Nachlesen der Reihenfolge zu finden**, nicht durch
+    Hinsehen. Eine Prüfung nagelt jetzt fest, dass das Zeichen hinter dem `textContent`-Zweig
+    hängt.
 
 ---
 
