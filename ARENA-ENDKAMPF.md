@@ -149,7 +149,7 @@ Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
 > einen Zustand zu verwalten. Ein **Bennie**, der den Haken sofort wegnimmt, bleibt möglich: Der
 > Spieler sagt es an, die SL klickt „Haken weg".
 
-### 3.5 Die fünf bewussten Abweichungen, zusammengefasst
+### 3.5 Die sechs bewussten Abweichungen, zusammengefasst
 
 1. **Angeschlagen** ohne Willenskraft-Probe (siehe 3.4).
 2. Beim **Gang Up** wird nicht geprüft, ob ein mithelfender Verbündeter selbst gebunden ist —
@@ -159,6 +159,10 @@ Rundenwechsel räumt den Haken ab, die Figur verliert also genau eine Handlung.
    (31.10.2026, Hendriks Vorgabe). Siehe den Kasten darunter.
 5. Beim **Schuss aus der Nähe** (4.2a) wird der Fehlschuss in die eigenen Reihen nicht
    ausgewürfelt (*Innocent Bystanders*) — dieselbe Buchhaltung, die schon Nummer 2 weglässt.
+6. **Jede Figur hält genau eine Nahkampf- und eine Fernkampfwaffe** (Bibel 4.5a), und das
+   **Umhängen kostet keine Handlung**. Savage Worlds kennt keine Ausrüstungs-Slots, und das
+   Ziehen einer Waffe kostet dort normalerweise eine Handlung (*Quick Draw* macht es frei).
+   Siehe 4.6.
 
 > **Zu Nummer 4.** In Savage Worlds trägt eine Wild Card genau **drei** Wunden, die vierte ist
 > *außer Gefecht*; der Weg des Regelwerks für ein Monster, das mehr wegsteckt, ist die
@@ -587,6 +591,45 @@ den Spielern **nirgends angezeigt**:
 
 Beim Weiterbauen daran denken: **jede neue Log-Zeile und jede neue Anzeige muss das einhalten.**
 
+### 4.6 Welche Waffe aufs Brett kommt (04.11.2026)
+
+Hendriks Vorgabe: *„Dann wäre es noch gut, wenn man Waffen anlegen kann. Eine Nahkampfwaffe und
+auch eine Fernkampfwaffe."*
+
+**Die Arena entscheidet das NICHT selbst.** `waffeInHand(figur, art)` in `js/regelwerk.js` ist
+die einzige Auflösung — die angelegte Waffe, sonst die stärkste getragene. `arenaBesteWaffe()`
+behält nur seinen Namen und reicht weiter.
+
+| | ohne Wahl | mit Wahl |
+|---|---|---|
+| Schaden am Token | stärkste getragene | die angelegte, auch die schwächere |
+| Reichweite | stärkste getragene | die angelegte |
+| Nahschuss erlaubt (`fernHandlich`) | nach der stärksten | **nach der angelegten** |
+| verstaut (`lager`) | zählt nie | zählt nie, auch wenn angelegt |
+
+**Die letzte Zeile ist die gefährliche Richtung** und steht als Prüfung da: Eine angelegte, aber
+verstaute Muskete darf im Endkampf nicht in der Hand liegen. Am Tisch fiele das **nicht** auf —
+die Figur stünde mit einer Waffe auf dem Brett, und niemand sähe, woher sie kommt.
+
+**`fernHandlich` ist die Zeile, an der am meisten hängt:** Wer die Pistole angelegt hat, darf im
+Handgemenge abdrücken (4.2a), wer die Muskete angelegt hat, nicht. Dieselben zwei Waffen im
+Gepäck, zwei verschiedene Erlaubnisse — entschieden allein durch den Klick im Heldenbrief.
+
+> **DER BEFUND VOR DEM BAU, und er ist der Grund für die Zusammenlegung:** Es gab **vier** eigene
+> Waffenwahlen — `arenaBesteWaffe()` hier und `besteWaffe()`, der Filter in `fernMoeglich()` und
+> `waffeVon()` in `regie_figuren.html` — und sie waren **uneinig**. Gemessen an einer Figur mit
+> Wurfmesser und Muskete:
+>
+> ```
+> ARENA nimmt      : Muskete
+> KAMPFMODUS nimmt : Wurfmesser   (waffen[0], ungesortiert)
+> ```
+>
+> Die eine Fassung sortierte nach Schaden, die andere nahm das erste Fundstück. Am Tisch fällt so
+> etwas nicht auf, es rechnet nur anders — die Spielleitung sah eine andere Waffe als das Brett.
+
+---
+
 ---
 
 ## 5. Datenmodell
@@ -834,7 +877,7 @@ gedacht, jede Regelverzweigung deterministisch zu testen.
 | `arenaMischen(ziel, quelle)` | zwei Änderungspakete **pfadsicher** zusammenlegen (siehe 8, Fehler 12) |
 | `arenaWerteAusFigur(figur, name)` | Blatt → Token-Werte; **eine** Ableitung für Spielerbögen und NSC (5.4) |
 | `arenaZustandAusFigur(figur, wundenMax)` | Wunden und „angeschlagen" aus dem Bogen, geklemmt |
-| `arenaBesteWaffe(figur, art)` | die beste getragene Waffe dieser Art |
+| `arenaBesteWaffe(figur, art)` | die ANGELEGTE Waffe dieser Art, sonst die beste getragene — reicht nur noch an `waffeInHand()` in `js/regelwerk.js` weiter (04.11.2026) |
 | `arenaDarfSteuern(token, meineKennung)` | darf **dieser** Spieler diese Figur ziehen? (4.1a) |
 | `arenaFremdeFigur(token, meineKennung)` | gehört sie ausdrücklich jemand anderem? (nur für den Hinweistext) |
 

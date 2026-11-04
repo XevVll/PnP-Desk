@@ -50,6 +50,13 @@ d8 = 40. **Überladung ist erlaubt** und kostet **eine Stufe auf alles**, flach 
 Was in deiner **Seemannskiste auf dem Schiff** liegt, zählt nicht mit — aber es schützt dich
 dort auch nicht und liegt dir nicht in der Hand. Daran kommst du nur **an Bord**.
 
+**Angelegte Waffen.** Du hältst **eine Nahkampf- und eine Fernkampfwaffe** — angelegt
+wird im Heldenbrief. Hast du nichts gewählt, hältst du automatisch die **stärkste**, die du
+trägst. Nur Getragenes liegt in der Hand; die Wahl selbst bleibt gemerkt, auch wenn das
+Stück kurz in der Kiste war. Das Pulver gilt der Waffe **in der Hand**: Mit angelegtem
+Wurfmesser wirfst du auch mit leerem Pulverhorn. (Hausregel — Savage Worlds kennt keine
+Ausrüstungs-Slots; Umhängen kostet hier keine Handlung. Bibel 4.5a.)
+
 **Schuss aus der Nähe.** Steht der Gegner direkt vor dir, darfst du trotzdem schießen — aber
 gegen **seine Parade** statt gegen die 4, und nur mit einer Waffe von höchstens Pistolengröße
 (bis 3 Pfund). Gang Up hilft dabei nicht, das ist ein Nahkampf-Bonus. Danach ist die Waffe leer.

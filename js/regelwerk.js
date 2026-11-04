@@ -765,6 +765,58 @@ function ruestbonus(figur) {
   (figur.ausr || []).forEach(function (id) { const a = AUSR_BY_ID[id]; if (a && a.ruest) r += a.ruest; });
   return r;
 }
+/* WELCHE WAFFE LIEGT IN DER HAND? Die einzige Stelle, die das beantwortet.
+   Vorher beantworteten es VIER Stellen eigenstaendig (arenaBesteWaffe, und in
+   regie_figuren.html besteWaffe/der Filter in fernMoeglich/waffeVon) - und sie
+   waren nachweislich UNEINIG: Eine Figur mit Wurfmesser und Muskete schoss in
+   der Arena mit der Muskete und im Kampfmodus mit dem Wurfmesser, weil der
+   eine sortierte und der andere das erste Fundstueck nahm. Am Tisch faellt so
+   etwas nicht auf, es rechnet nur anders.
+
+   SAVAGE WORLDS KENNT KEINE AUSRUESTUNGS-SLOTS - was man in der Hand hat, ist
+   dort eine Frage der Haende. Die Festlegung auf EINE Nahkampf- und EINE
+   Fernkampfwaffe ist deshalb eine Hausregel (Hendriks Vorgabe vom 04.11.2026)
+   und steht als solche in Bibel 4.5a. Sie deckt sich mit dem Talent
+   "Beidhaendig", das genau diesen Fall voraussetzt: Saebel in der einen,
+   Pistole in der anderen Hand.
+
+   DIE RUECKFALL-REGEL IST DIE WICHTIGERE HAELFTE: Wer nichts angelegt hat,
+   haelt die BESTE getragene Waffe ihrer Art - also genau das Verhalten von
+   vorher. Stuende hier "ohne Wahl keine Waffe", stuende jede Figur, die den
+   neuen Knopf nie gesehen hat, mit der Faust auf dem Brett, und niemand saehe
+   den Grund.
+
+   Eine angelegte Waffe, die die Figur nicht TRAEGT (verkauft, verstaut, von
+   der SL eingezogen), zaehlt nicht - dann greift derselbe Rueckfall. Die Wahl
+   wird dabei bewusst NICHT geloescht: Wer seinen Saebel in die Kiste legt und
+   wieder herausholt, hat ihn danach wieder in der Hand. */
+function waffeInHand(figur, art) {
+  if (!figur) return null;
+  const liste = figur.ausr || [];
+  const angelegt = (figur.hand || {})[art];
+  if (angelegt && liste.indexOf(angelegt) >= 0) {
+    const w = AUSR_BY_ID[angelegt];
+    if (w && w.art === art) return w;
+  }
+  let best = null;
+  liste.forEach(function (id) {
+    const a = AUSR_BY_ID[id];
+    if (!a || a.art !== art) return;
+    if (!best || (a.schaden || 0) > (best.schaden || 0)) best = a;
+  });
+  return best;
+}
+/* Anlegen ist ein UMSCHALTER: dieselbe Waffe noch einmal legt sie weg, und
+   danach gilt wieder der Rueckfall. Sonst gaebe es keinen Weg zurueck zu
+   "nimm die beste", ohne den Gegenstand loszuwerden. */
+function handWaehlen(figur, id) {
+  const a = AUSR_BY_ID[id];
+  if (!figur || !a || !a.schaden) return false;
+  if (!figur.hand) figur.hand = {};
+  figur.hand[a.art] = (figur.hand[a.art] === id) ? null : id;
+  return true;
+}
+
 /* Bezahlt ist bezahlt - was im Lager liegt, hat genauso Geld gekostet.
    Hier zaehlen deshalb BEIDE Listen, anders als bei Gewicht und Ruestung. */
 function ausgabenMuenzen(figur) {
@@ -794,6 +846,7 @@ function leereFigur() {
     attr:{}, fert:{}, tal:[], hnd:[], brief:{},
     ausr:[],                       // GETRAGEN - zaehlt fuer Gewicht und Ruestung
     lager:[],                      // auf dem Schiff VERSTAUT - zaehlt fuer nichts
+    hand:{},                       // ANGELEGT: je Art die Waffe in der Hand
     muenzen:STARTGELD,
     angeschlagen:false, wunden:0,  // Zustand im Spiel
     benniesUebrig:null,            // null = noch nicht angefasst, dann gilt bennies(figur)
@@ -829,6 +882,13 @@ function alsFigur(roh) {
   f.hnd  = alsListe(roh.hnd);
   f.ausr  = alsListe(roh.ausr);
   f.lager = alsListe(roh.lager);
+  /* Nur die zwei Arten, und nur Zeichenketten - ein Fremdschluessel hier
+     waere eine Waffe, die niemand findet. */
+  f.hand = {};
+  ['Nahkampf', 'Fernkampf'].forEach(function (art) {
+    const v = roh.hand && roh.hand[art];
+    if (typeof v === 'string' && v) f.hand[art] = v;
+  });
   f.brief = roh.brief || {};
   f.rang = roh.rang || 0;
   f.steigerungen = roh.steigerungen || 0;
@@ -1342,6 +1402,7 @@ if (typeof module !== 'undefined' && module.exports) {
     EIGENE_PRAEFIX, EIGENE_WAREN, eigeneWareId, istEigeneWare,
     eigeneWarePruefen, eigeneWareEintragen, eigeneWarenSetzen,
     traglast, getragen, verstaut, warenGewicht, ueberladen, ruestbonus,
+    waffeInHand, handWaehlen,
     ausgabenMuenzen, TRAGLAST_FAKTOR,
     leereFigur, alsFigur, startStufe, fertKosten, ausgabenAttr, ausgabenFert,
     handicapPunkte, ausgabenTalent, zaehleSchwer, zaehleLeicht,

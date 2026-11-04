@@ -62,7 +62,8 @@ vm.runInContext('this.X = {' + [
   'kartenText', 'kartenVergleich', 'jokerBonus',
   'arenaBesteWaffe', 'arenaWerteAusFigur', 'arenaZustandAusFigur',
   'arenaNahschussMoeglich', 'ARENA_NAHSCHUSS_GEWICHT',
-  'alsFigur', 'AUSR_BY_ID', 'eigeneWarenSetzen'
+  'alsFigur', 'AUSR_BY_ID', 'eigeneWarenSetzen',
+  'waffeInHand', 'handWaehlen'
 ].join(',') + '};', ctx);
 const A = ctx.X;
 
@@ -2051,6 +2052,124 @@ function held(id, opts) {
     && w2.fernwaffe === A.AUSR_BY_ID['muskete'].schaden, [w2.waffe, w2.fernwaffe]);
   chk('die beiden Faelle fallen nachweislich auseinander',
     w.waffe !== w2.waffe && w.fernwaffe !== w2.fernwaffe);
+})();
+
+
+/* ==========================================================
+   DIE ANGELEGTE WAFFE KOMMT AUFS BRETT (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Dann waere es noch gut, wenn man Waffen
+   anlegen kann. Eine Nahkampfwaffe und auch eine
+   Fernkampfwaffe."
+
+   Gemessen VOR dem Bau, und das war der eigentliche Befund:
+   Es gab VIER eigene Waffenwahlen, und sie waren uneinig -
+   eine Figur mit Wurfmesser und Muskete schoss in der Arena
+   mit der Muskete und im Kampfmodus mit dem Wurfmesser. Jetzt
+   beantwortet waffeInHand() (js/regelwerk.js) die Frage ein
+   einziges Mal.
+
+   DIE WICHTIGERE HAELFTE IST DER RUECKFALL: Wer nichts
+   angelegt hat, haelt weiterhin die beste getragene Waffe.
+   Ohne das stuende jede Figur, die den Knopf nie gesehen hat,
+   mit der Faust auf dem Brett.
+   ========================================================== */
+(function () {
+  const WAREN = ['messer', 'saebel', 'wurfmesser', 'pistole', 'muskete'];
+  chk('die Waren dieses Blocks gibt es wirklich',
+    WAREN.every(function (id) { return !!A.AUSR_BY_ID[id]; }),
+    WAREN.filter(function (id) { return !A.AUSR_BY_ID[id]; }));
+  /* Die Pruefung unten lebt davon, dass Messer und Saebel sich im Schaden
+     UNTERSCHEIDEN - sonst faellt "angelegt" mit "beste" zusammen und der
+     Block prueft nichts (Lehre vom 30.10.2026). */
+  chk('Messer und Saebel unterscheiden sich im Schaden',
+    A.AUSR_BY_ID['messer'].schaden < A.AUSR_BY_ID['saebel'].schaden);
+  chk('Wurfmesser und Muskete ebenso',
+    A.AUSR_BY_ID['wurfmesser'].schaden < A.AUSR_BY_ID['muskete'].schaden);
+
+  const blatt = {
+    name: 'Mara Quint',
+    attr: { 'St\u00e4rke': 3, 'Geschicklichkeit': 3, 'Konstitution': 2, 'Verstand': 2, 'Willenskraft': 2 },
+    fert: { 'K\u00e4mpfen': 3, 'Schie\u00dfen': 3 },
+    ausr: ['messer', 'saebel', 'wurfmesser', 'muskete']
+  };
+
+  // 1. Ohne Wahl: die beste. Genau das Verhalten von vorher.
+  const ohne = A.alsFigur(blatt);
+  chk('ohne Wahl liegt die staerkste getragene Nahkampfwaffe in der Hand',
+    A.arenaBesteWaffe(ohne, 'Nahkampf').id === 'saebel',
+    A.arenaBesteWaffe(ohne, 'Nahkampf').id);
+  chk('und die staerkste Fernkampfwaffe',
+    A.arenaBesteWaffe(ohne, 'Fernkampf').id === 'muskete');
+
+  // 2. Mit Wahl: die SCHWAECHERE kommt aufs Brett. Das ist der Beleg,
+  //    dass die Wahl ueberhaupt etwas tut.
+  const mit = A.alsFigur(Object.assign({}, blatt,
+    { hand: { 'Nahkampf': 'messer', 'Fernkampf': 'wurfmesser' } }));
+  chk('die angelegte schwaechere Nahkampfwaffe schlaegt die beste',
+    A.arenaBesteWaffe(mit, 'Nahkampf').id === 'messer',
+    A.arenaBesteWaffe(mit, 'Nahkampf').id);
+  chk('und das angelegte Wurfmesser die Muskete',
+    A.arenaBesteWaffe(mit, 'Fernkampf').id === 'wurfmesser');
+  const wm = A.arenaWerteAusFigur(mit, 'Mara');
+  chk('das Token traegt damit den Messer-Schaden',
+    wm.waffe === A.AUSR_BY_ID['messer'].schaden, wm.waffe);
+  chk('und die Reichweite des Wurfmessers',
+    wm.reichweite === A.AUSR_BY_ID['wurfmesser'].reichweite, wm.reichweite);
+  const wo = A.arenaWerteAusFigur(ohne, 'Mara');
+  chk('die beiden Faelle fallen nachweislich auseinander',
+    wm.waffe !== wo.waffe && wm.fernwaffe !== wo.fernwaffe,
+    [wm.waffe, wo.waffe, wm.fernwaffe, wo.fernwaffe]);
+
+  /* 3. DIE GEFAEHRLICHSTE RICHTUNG: eine angelegte Waffe, die die Figur
+     nicht TRAEGT. Verkauft, verstaut, von der SL eingezogen - und das
+     Brett darf sie nicht in die Hand geben. Am Tisch faellt so etwas
+     nicht auf: Die Figur stuende mit einer Waffe da, und niemand saehe,
+     woher sie kommt. */
+  const verstaut = A.alsFigur({
+    attr: { 'St\u00e4rke': 3 }, fert: {},
+    ausr: ['messer'], lager: ['saebel', 'muskete'],
+    hand: { 'Nahkampf': 'saebel', 'Fernkampf': 'muskete' }
+  });
+  chk('eine angelegte, aber VERSTAUTE Waffe kommt nicht in die Hand',
+    A.arenaBesteWaffe(verstaut, 'Nahkampf').id === 'messer',
+    A.arenaBesteWaffe(verstaut, 'Nahkampf').id);
+  chk('und eine verstaute Muskete laesst die Figur nicht schiessen',
+    A.arenaBesteWaffe(verstaut, 'Fernkampf') === null);
+
+  // 4. Eine Wahl der falschen Art zaehlt nicht.
+  const quer = A.alsFigur(Object.assign({}, blatt, { hand: { 'Nahkampf': 'muskete' } }));
+  chk('eine Fernkampfwaffe als Nahkampfwahl wird ignoriert',
+    A.arenaBesteWaffe(quer, 'Nahkampf').id === 'saebel');
+
+  /* 5. DIE PRUEFUNG, AN DER AM MEISTEN HAENGT: Die Wahl aendert, was die
+     Arena ERLAUBT. Der Nahschuss gilt nur bis Pistolengroesse - wer die
+     Muskete angelegt hat, darf im Handgemenge nicht abdruecken, wer die
+     Pistole angelegt hat, schon. Beide tragen beides. */
+  const beides = { attr: { 'St\u00e4rke': 3 }, fert: {}, ausr: ['pistole', 'muskete'] };
+  const mitPistole = A.arenaWerteAusFigur(
+    A.alsFigur(Object.assign({}, beides, { hand: { 'Fernkampf': 'pistole' } })), 'P');
+  const mitMuskete = A.arenaWerteAusFigur(
+    A.alsFigur(Object.assign({}, beides, { hand: { 'Fernkampf': 'muskete' } })), 'M');
+  chk('mit angelegter Pistole ist der Nahschuss erlaubt',
+    mitPistole.fernHandlich === true, mitPistole.fernHandlich);
+  chk('mit angelegter Muskete nicht',
+    mitMuskete.fernHandlich === false, mitMuskete.fernHandlich);
+  chk('und ohne Wahl entscheidet weiterhin die beste Waffe - die Muskete',
+    A.arenaWerteAusFigur(A.alsFigur(beides), 'X').fernHandlich === false);
+
+  // 6. Der Umschalter: dieselbe Waffe noch einmal legt sie weg.
+  const um = A.alsFigur(Object.assign({}, blatt));
+  A.handWaehlen(um, 'messer');
+  chk('anlegen setzt die Wahl', um.hand['Nahkampf'] === 'messer', um.hand);
+  A.handWaehlen(um, 'messer');
+  chk('noch einmal legt sie weg', !um.hand['Nahkampf'], um.hand);
+  chk('und danach gilt wieder die beste',
+    A.arenaBesteWaffe(um, 'Nahkampf').id === 'saebel');
+  chk('eine Ruestung laesst sich nicht in die Hand nehmen',
+    A.handWaehlen(um, 'lederwams') === false);
+  chk('und eine Ware, die es nicht gibt, auch nicht',
+    A.handWaehlen(um, 'gibt_es_nicht') === false);
 })();
 
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');

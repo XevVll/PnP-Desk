@@ -1774,7 +1774,7 @@ chk('bogenFelder() nimmt das Lager mit',
      an warenZeile(), wuerde er beim Zurueckstellen in die innere Funktion
      hinter renderAusruestung() beginnen - der Block stiege dann aus, statt den
      Fehler zu zeigen, und die Gegenprobe pruefte den Schnitt statt den Code. */
-  const vonW = BOGEN.indexOf('function warenZeile(id, knoepfe)');
+  const vonW = BOGEN.indexOf('function warenZeile(');
   const vonR = BOGEN.indexOf('function renderAusruestung() {');
   const von = (vonW >= 0 && vonR >= 0) ? Math.min(vonW, vonR) : Math.max(vonW, vonR);
   const bis = BOGEN.indexOf('/* Eine Uebergabe annehmen');
@@ -1800,6 +1800,7 @@ chk('bogenFelder() nimmt das Lager mit',
     ctx.speichern = function () {}; ctx.renderAlles = function () {};
     vm.runInContext(BOGEN.slice(von, bis)
       + '\nthis.__render = renderAusruestung;'
+      + '\nthis.__anlegen = anlegen;'
       + '\nthis.__verstauen = verstauen; this.__holen = hervorholen;', ctx);
     ctx.__knoten = knoten;
     return ctx;
@@ -1848,6 +1849,125 @@ chk('bogenFelder() nimmt das Lager mit',
   chk('der Hinweis nennt die fuenffache Seitenzahl und das Schiff',
     note.indexOf('f\u00fcnfmal') >= 0 && note.indexOf('Schiff') >= 0, note);
 })();
+
+/* ==========================================================
+   WAFFEN ANLEGEN, IM REITER GEZEICHNET (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Vorgabe: "Dann waere es noch gut, wenn man Waffen
+   anlegen kann. Eine Nahkampfwaffe und auch eine
+   Fernkampfwaffe."
+
+   Der Reiter wird WIRKLICH GEZEICHNET und der Knopf WIRKLICH
+   GEDRUECKT - die Lehre von heute Vormittag: Eine Pruefung,
+   die den Zustand prueft und die Anzeige wegstubbt, kann
+   einen Fehler in der Anzeige nicht sehen. Genau so ist der
+   Kisten-Fehler durchgerutscht.
+   ========================================================== */
+(function () {
+  const vonW = BOGEN.indexOf('function warenZeile(');
+  const vonR = BOGEN.indexOf('function renderAusruestung()');
+  const von = (vonW >= 0 && vonR >= 0) ? Math.min(vonW, vonR) : Math.max(vonW, vonR);
+  const bis = BOGEN.indexOf('/* Eine Uebergabe annehmen');
+  chk('der Schnitt findet anlegen() und handZeile()',
+    von >= 0 && bis > von
+    && BOGEN.slice(von, bis).indexOf('function anlegen(') >= 0
+    && BOGEN.slice(von, bis).indexOf('function handZeile(') >= 0, [von, bis]);
+  if (von < 0 || bis < von) return;
+
+  let gespeichert = 0;
+  const ctx = {};
+  vm.createContext(ctx);
+  Object.keys(R).forEach(function (k) { ctx[k] = R[k]; });
+  ctx.F = R.alsFigur({
+    attr: { 'St\u00e4rke': 3 }, fert: {},
+    ausr: ['messer', 'saebel', 'lederwams']
+  });
+  const knoten = {};
+  ctx.document = { getElementById: function (id) {
+    if (!knoten[id]) knoten[id] = { id: id, innerHTML: '', textContent: '', style: {}, className: '' };
+    return knoten[id];
+  } };
+  ctx.esc = function (x) { return String(x); };
+  ctx.muenzenAendern = function () {}; ctx.ladungenAendern = function () {};
+  ctx.speichern = function () { gespeichert++; }; ctx.renderAlles = function () { ctx.__render(); };
+  vm.runInContext(BOGEN.slice(von, bis)
+    + '\nthis.__render = renderAusruestung;'
+    + '\nthis.__anlegen = anlegen;', ctx);
+
+  chk('die Waren dieses Blocks gibt es wirklich',
+    !!R.AUSR_BY_ID['messer'] && !!R.AUSR_BY_ID['saebel'] && !!R.AUSR_BY_ID['lederwams']);
+
+  let wurf = null;
+  try { ctx.__render(); } catch (e) { wurf = (e && e.message) || String(e); }
+  chk('das Zeichnen wirft nicht', wurf === null, wurf);
+
+  const liste = function () { return (knoten['getragen'] || {}).innerHTML || ''; };
+  const hand = function () { return (knoten['inHand'] || {}).innerHTML || ''; };
+
+  chk('die Zeile "In der Hand" wird gezeichnet', hand().length > 0);
+  /* Ohne Wahl liegt die beste in der Hand - und die Zeile sagt AUSDRUECKLICH,
+     dass das von selbst geschah. Ein Spieler muss wissen, womit er zuschlaegt,
+     auch wenn er nie geklickt hat. */
+  chk('sie nennt ohne Wahl den Saebel',
+    hand().indexOf('S\u00e4bel') >= 0, hand());
+  chk('und kennzeichnet ihn als "von selbst"',
+    hand().indexOf('von selbst') >= 0, hand());
+  chk('ohne Fernkampfwaffe sagt sie das, statt zu schweigen',
+    hand().indexOf('nichts') >= 0, hand());
+
+  chk('jede Waffe hat ihren Anlege-Knopf',
+    liste().indexOf('anlegen(0)') >= 0 && liste().indexOf('anlegen(1)') >= 0, liste());
+  /* Eine Ruestung legt man an, aber nicht in die Hand - und ruestbonus()
+     rechnet sie ohnehin schon mit. */
+  chk('das Lederwams hat KEINEN', liste().indexOf('anlegen(2)') < 0, liste());
+  chk('der Saebel ist als "in der Hand" markiert, auch ungewaehlt',
+    liste().indexOf('vonselbst') >= 0);
+
+  // Jetzt wirklich druecken: das Messer anlegen.
+  gespeichert = 0;
+  ctx.__anlegen(0);
+  chk('anlegen setzt die Wahl in der Figur', ctx.F.hand['Nahkampf'] === 'messer', ctx.F.hand);
+  chk('und speichert sie', gespeichert === 1, gespeichert);
+  chk('die Zeile oben nennt danach das Messer',
+    hand().indexOf('Messer') >= 0 && hand().indexOf('von selbst') < 0, hand());
+  chk('und der Knopf am Messer heisst jetzt "weglegen"',
+    liste().indexOf('weglegen') >= 0, liste());
+  chk('das Brett wuerde dieselbe Waffe nehmen',
+    R.waffeInHand(ctx.F, 'Nahkampf').id === 'messer');
+
+  // Noch einmal: weglegen, zurueck zum Rueckfall.
+  ctx.__anlegen(0);
+  chk('noch einmal legt es weg', !ctx.F.hand['Nahkampf'], ctx.F.hand);
+  chk('und die Zeile nennt wieder den Saebel von selbst',
+    hand().indexOf('S\u00e4bel') >= 0 && hand().indexOf('von selbst') >= 0, hand());
+
+  /* VERSTAUEN DARF DIE WAHL NICHT VERLIEREN: Wer seinen Saebel in die Kiste
+     legt und wieder herausholt, hat ihn danach wieder in der Hand. Darum
+     loescht der Bogen die Wahl nicht - waffeInHand() prueft sie ohnehin
+     jedes Mal gegen das Getragene. */
+  ctx.__anlegen(1);                               // Saebel anlegen
+  chk('der Saebel ist angelegt', ctx.F.hand['Nahkampf'] === 'saebel');
+  ctx.F.ausr = ['messer', 'lederwams'];
+  ctx.F.lager = ['saebel'];
+  ctx.__render();
+  chk('verstaut liegt er NICHT in der Hand',
+    R.waffeInHand(ctx.F, 'Nahkampf').id === 'messer');
+  chk('die Zeile oben luegt deshalb nicht', hand().indexOf('Messer') >= 0, hand());
+  ctx.F.ausr = ['messer', 'saebel', 'lederwams'];
+  ctx.F.lager = [];
+  chk('wieder hervorgeholt liegt er wieder in der Hand',
+    R.waffeInHand(ctx.F, 'Nahkampf').id === 'saebel');
+
+  // Ein Griff ins Leere bricht nichts.
+  ctx.__anlegen(99);
+  chk('ein Klick auf nichts bricht nichts', true);
+})();
+
+/* Ein Feld, das die Figur kennt und der Bogen nicht hochschreibt, ist der
+   haeufigste stille Datenverlust in diesem Projekt - die angelegte Waffe
+   wuerde beim naechsten Oeffnen lautlos auf "die beste" zurueckfallen. */
+chk('bogenFelder() nimmt die angelegten Waffen mit',
+  /lager:\s*F\.lager,\s*hand:\s*F\.hand/.test(BOGEN), 'in bogenFelder()');
 
 setTimeout(function () {
   chk('beim Öffnen kommt das Bild zurück',

@@ -1679,6 +1679,155 @@ chk('und die beiden unterscheiden sich wirklich - sonst prueft das hier nichts',
   fernGegen7 && nahGegen7 && fernGegen7.v.mod !== nahGegen7.v.mod,
   [fernGegen7 && fernGegen7.v.mod, nahGegen7 && nahGegen7.v.mod]);
 
+
+/* ==========================================================
+   DER KAMPFMODUS NIMMT DIE ANGELEGTE WAFFE (04.11.2026)
+   ----------------------------------------------------------
+   GEMESSEN VOR DEM BAU, und das war der eigentliche Befund:
+   Diese Seite hatte DREI eigene Waffenwahlen, die Arena eine
+   vierte - und sie waren uneinig. Eine Figur mit Wurfmesser
+   und Muskete schoss in der Arena mit der MUSKETE und hier
+   mit dem WURFMESSER, weil die eine Fassung nach Schaden
+   sortierte und die andere das erste Fundstueck nahm:
+
+       ARENA nimmt      : Muskete
+       KAMPFMODUS nimmt : Wurfmesser (waffen[0], ungesortiert)
+
+   Am Tisch faellt so etwas nicht auf, es rechnet nur anders.
+   Jetzt beantwortet waffeInHand() (js/regelwerk.js) die Frage
+   ein einziges Mal, und diese Pruefungen gehen durch die
+   SEITE - eine nachgebaute Kopie wuerde genau das nicht
+   pruefen, worum es geht.
+
+   Eigene Umgebung am Dateiende, damit der Block keinem
+   anderen den Zustand umwirft (Lehre vom 17.10.2026).
+   ========================================================== */
+const AW = bau();
+const AW_FIG = JSON.parse(JSON.stringify(FIGUREN));
+/* Vier Waffen, und angelegt sind bewusst die SCHWAECHEREN - sonst faellt
+   "angelegt" mit "die beste" zusammen und der Block prueft nichts. */
+AW_FIG.dora.ausr = ['saebel', 'messer', 'muskete', 'wurfmesser'];
+AW_FIG.dora.hand = { 'Nahkampf': 'messer', 'Fernkampf': 'wurfmesser' };
+AW_FIG.dora.ladungen = 0;          // und das Wurfmesser braucht kein Pulver
+chk('die vier Waren dieses Blocks gibt es wirklich',
+  ['saebel', 'messer', 'muskete', 'wurfmesser']
+    .every(id => !!RW.AUSR_BY_ID[id]),
+  ['saebel', 'messer', 'muskete', 'wurfmesser'].filter(id => !RW.AUSR_BY_ID[id]));
+chk('und die angelegten sind nachweislich die schwaecheren',
+  RW.AUSR_BY_ID['messer'].schaden < RW.AUSR_BY_ID['saebel'].schaden
+  && RW.AUSR_BY_ID['wurfmesser'].schaden < RW.AUSR_BY_ID['muskete'].schaden);
+
+AW.ctx.module.exports.setFiguren(AW_FIG);
+AW.ctx.module.exports.setzeAnsicht('kampf');
+
+chk('waffeVon() liefert die angelegte Nahkampfwaffe, nicht die beste',
+  (AW.ctx.module.exports.waffeVon({ typ: 'spieler', figur: AW_FIG.dora }) || {}).id === 'messer',
+  AW.ctx.module.exports.waffeVon({ typ: 'spieler', figur: AW_FIG.dora }));
+chk('besteWaffe() ebenso - die Seite rechnet nicht mehr selbst',
+  (AW.ctx.module.exports.nahWaffeVon(AW_FIG.dora) || {}).id === 'messer'
+  && (AW.ctx.module.exports.fernWaffeVon(AW_FIG.dora) || {}).id === 'wurfmesser');
+
+/* Der Schadenswurf: Die Wuerfel muessen die der ANGELEGTEN Waffe sein.
+   Das ist die Stelle, an der die Uneinigkeit am Tisch Schaden angerichtet
+   haette - der Spieler haette mit der falschen Waffe gewuerfelt. */
+AW.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  w1: { name: 'Wache', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 0,
+        extra: true, band: 0, angeschlagen: false, wunden: 0 }
+}, baender: { dora: 0 } });
+AW.schreib.length = 0;
+AW.ctx.module.exports.angriffAnsagen('nah', 'p:dora', 'g:w1');
+/* Die Ansage ZURUECKSPIELEN, wie Firebase es taete - ohne das findet
+   ansageErgebnis() den Wurf nicht, und die Pruefung darunter prueft das
+   Testgeruest statt den Code. */
+const awAnsage = AW.schreib.filter(x => x.p === 'kampf/ansage')[0];
+chk('die Ansage liegt im Kampfstand', !!awAnsage, AW.schreib.map(x => x.p));
+AW.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  w1: { name: 'Wache', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 0,
+        extra: true, band: 0, angeschlagen: false, wunden: 0 }
+}, baender: { dora: 0 }, ansage: awAnsage && awAnsage.v });
+AW.ctx.module.exports.setProtokoll({ x1: { figur: 'Ruth Vane', wert: 'Kämpfen',
+  band: 'erfolg', roh: 7, ts: (awAnsage ? awAnsage.v.ts : 0) + 10 } });
+AW.schreib.length = 0;
+AW.ctx.module.exports.schadenAnfordern();
+const schadBitte = AW.schreib.filter(x => x.p === 'figuren/dora/anfrage')[0];
+chk('der Schadenswurf wird ueberhaupt angefordert', !!schadBitte,
+  AW.schreib.map(x => x.p));
+chk('und er nennt das angelegte Messer, nicht den Saebel',
+  schadBitte && String(schadBitte.v.grund).indexOf('Messer') >= 0
+  && String(schadBitte.v.grund).indexOf('S\u00e4bel') < 0,
+  schadBitte && schadBitte.v.grund);
+
+/* UND DIE SCHAERFERE SEITE: Mit angelegtem Wurfmesser darf Dora schiessen,
+   obwohl sie KEIN PULVER hat - das Pulver gilt der Waffe in der Hand, nicht
+   dem Gepaeck. Vorher sperrte die leere Muskete im Gepaeck auch den Wurf. */
+AW.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  w1: { name: 'Wache', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 0,
+        extra: true, band: 1, angeschlagen: false, wunden: 0 }
+}, baender: { dora: 1 } });
+AW.schreib.length = 0;
+AW.ctx.module.exports.tokenKlick('p:dora');
+AW.ctx.module.exports.tokenKlick('g:w1');
+chk('mit angelegtem Wurfmesser wird ohne Pulver geschossen',
+  AW.schreib.some(x => x.p === 'figuren/dora/anfrage'),
+  AW.nachId['fbNote'] && AW.nachId['fbNote'].textContent);
+
+/* Gegenrichtung, damit die Pruefung nicht aus einem anderen Grund gruen ist:
+   Dieselbe Figur mit angelegter MUSKETE und ohne Pulver schiesst nicht. */
+const AW2 = bau();
+const AW2_FIG = JSON.parse(JSON.stringify(AW_FIG));
+AW2_FIG.dora.hand = { 'Fernkampf': 'muskete' };
+AW2.ctx.module.exports.setFiguren(AW2_FIG);
+AW2.ctx.module.exports.setzeAnsicht('kampf');
+AW2.ctx.module.exports.setKampf({ runde: 1, gegner: {
+  w1: { name: 'Wache', parade: 4, robustheit: 5, kaempfen: 2, schiessen: 0,
+        extra: true, band: 1, angeschlagen: false, wunden: 0 }
+}, baender: { dora: 1 } });
+AW2.schreib.length = 0;
+AW2.ctx.module.exports.tokenKlick('p:dora');
+AW2.ctx.module.exports.tokenKlick('g:w1');
+chk('mit angelegter Muskete und ohne Pulver nicht',
+  AW2.schreib.length === 0
+  && AW2.nachId['fbNote'].textContent.indexOf('kein Pulver') > 0,
+  AW2.nachId['fbNote'].textContent);
+
+
+/* ---- DIE SL SIEHT DIE ANGELEGTE WAFFE ----
+   Ohne diese Anzeige wuesste die Spielleitung im Kampf nicht, womit die
+   Figur zuschlaegt - und bei drei Klingen im Gepaeck sieht man es nicht. */
+const AW3 = bau();
+const AW3_FIG = JSON.parse(JSON.stringify(FIGUREN));
+AW3_FIG.dora.ausr = ['saebel', 'messer', 'lederwams'];
+AW3_FIG.dora.hand = { 'Nahkampf': 'messer' };
+AW3.ctx.module.exports.setFiguren(AW3_FIG);
+const aw3 = AW3.inhalt();
+chk('die Uebersicht nennt die Nahkampfwaffe in der Hand',
+  aw3.indexOf('Nahkampf <b>Messer</b>') >= 0, aw3.indexOf('Nahkampf') >= 0);
+chk('und sagt bei leerer Fernkampfhand etwas, statt zu schweigen',
+  aw3.indexOf('Fernkampf <b>') >= 0);
+chk('der angelegte Chip ist markiert',
+  aw3.indexOf('in der Hand') >= 0);
+/* Die Gegenrichtung: Ohne Wahl nennt sie den Saebel - sonst waere die
+   Pruefung oben aus einem anderen Grund gruen. */
+const AW4 = bau();
+const AW4_FIG = JSON.parse(JSON.stringify(AW3_FIG));
+delete AW4_FIG.dora.hand;
+AW4.ctx.module.exports.setFiguren(AW4_FIG);
+chk('ohne Wahl nennt sie die beste - den Saebel',
+  AW4.inhalt().indexOf('Nahkampf <b>S\u00e4bel</b>') >= 0);
+chk('die beiden Faelle fallen nachweislich auseinander',
+  aw3.indexOf('Nahkampf <b>Messer</b>') >= 0
+  && AW4.inhalt().indexOf('Nahkampf <b>Messer</b>') < 0);
+/* Eine Ruestung liegt nie in der Hand - sonst stuende die Markierung am
+   Lederwams und die Spielleitung las sie als Waffe. GEZAEHLT, nicht
+   gesucht: Dora traegt eine Waffe in der Hand und keine Fernkampfwaffe,
+   also darf die Markierung GENAU EINMAL vorkommen. Eine Pruefung mit
+   einem ODER haette hier nicht fehlschlagen koennen.
+   Das Lederwams steht dabei nachweislich in der Liste. */
+chk('das Lederwams ist ueberhaupt dabei', aw3.indexOf('Lederwams') >= 0);
+chk('und die Markierung steht genau einmal da, nicht an der Ruestung',
+  aw3.split('in der Hand').length - 1 === 1,
+  aw3.split('in der Hand').length - 1);
+
 function schluss() {
 console.log('');
 console.log(f === 0 ? 'OK: ' + anzahl + '   FEHLER: 0' : 'OK: ' + (anzahl - f) + '   FEHLER: ' + f);

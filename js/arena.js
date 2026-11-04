@@ -1122,15 +1122,18 @@ function arenaDienerRunde(tokens, regeln, saebeltraegerId, runde, bonus) {
    Waffe faellt STILL weg. Genau dieselbe Reihenfolge wie in
    heldenbrief.html und regie_figuren.html.
    ========================================================== */
+/* WELCHE WAFFE AUFS BRETT KOMMT, entscheidet die Arena NICHT selbst.
+   waffeInHand() in js/regelwerk.js ist seit dem 04.11.2026 die einzige
+   Aufloesung: die angelegte Waffe, sonst die beste getragene. Vorher stand
+   dieselbe Rechnung hier UND dreimal in regie_figuren.html - und die
+   Fassungen waren uneinig (Muskete hier, Wurfmesser dort). Dieselbe Linie
+   wie beim Regelkern: ein dritter Rechner ist ein dritter Fehler.
+
+   Der Name bleibt, obwohl er nach der Umstellung zu bescheiden ist: Er
+   steht in den Pruefungen und in der Doku. */
 function arenaBesteWaffe(figur, art) {
-  const liste = (figur && figur.ausr) || [];
-  let best = null;
-  liste.forEach(function (id) {
-    const a = (typeof AUSR_BY_ID !== 'undefined') ? AUSR_BY_ID[id] : null;
-    if (!a || a.art !== art) return;
-    if (!best || (a.schaden || 0) > (best.schaden || 0)) best = a;
-  });
-  return best;
+  if (typeof waffeInHand === 'undefined') return null;
+  return waffeInHand(figur, art);
 }
 
 function arenaWerteAusFigur(figur, name) {

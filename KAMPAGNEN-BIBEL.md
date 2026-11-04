@@ -470,6 +470,42 @@ Load Limit = Stärke × 5).
 > Stärke d6 (Traglast 12) war davon schon überladen, bevor sie irgendetwas anderes anfasste.
 > Auf Hendriks Vorgabe („ein wenig erhöhen") auf die Regel gezogen statt auf einen Zwischenwert.
 
+#### Die Waffe in der Hand
+
+**Eine Figur hält eine Nahkampf- und eine Fernkampfwaffe.** Sie legt sie im Heldenbrief an;
+alles andere, was sie trägt, ist Gepäck.
+
+- **Ohne Wahl hält sie die stärkste getragene Waffe ihrer Art.** Das ist der Rückfall, nicht die
+  Ausnahme: Eine Figur, die nie etwas angelegt hat, kämpft mit ihrem besten Stück und nicht mit
+  den Fäusten.
+- **Nur was getragen wird, liegt in der Hand.** Verkauft, verstaut oder von der Spielleitung
+  eingezogen heißt: weg. Die Wahl selbst bleibt dabei gemerkt — wer seinen Säbel in die
+  Seemannskiste legt und wieder herausholt, hat ihn danach wieder in der Hand.
+- **Das Pulver gilt der Waffe in der Hand** (4.5), nicht dem Gepäck: Wer ein Wurfmesser angelegt
+  hat, wirft es auch mit leerem Pulverhorn.
+- Im Handgemenge darf nur abgedrückt werden, was höchstens pistolengroß ist (4.4a) — **und das
+  entscheidet die angelegte Waffe**: mit der Pistole in der Hand ja, mit der Muskete nein.
+- Das **Talent „Beidhändig"** setzt genau diesen Fall voraus — Säbel in der einen, Pistole in der
+  anderen Hand — und nimmt der zweiten Waffe ihren Abzug.
+
+> **ABWEICHUNG, ausdrücklich:** **Savage Worlds kennt keine Ausrüstungs-Slots.** Was eine Figur
+> in der Hand hat, ist dort eine Frage der Hände und wird am Tisch erzählt. Die Festlegung auf
+> genau eine Waffe je Art ist eine **Hausregel** (Hendriks Vorgabe vom 04.11.2026) und dient dem
+> Werkzeug: Arena und Kampfmodus müssen wissen, mit *welcher* Waffe gewürfelt wird.
+>
+> **Das Umhängen kostet nichts.** In Savage Worlds kostet das Ziehen einer Waffe normalerweise
+> eine Handlung (das Talent *Quick Draw* macht es frei); hier ist es ein Klick, auch mitten im
+> Gefecht. Bewusst so: Der Knopf steht im Heldenbrief, nicht auf dem Brett, und eine
+> Handlungs-Buchhaltung dafür wäre am Tisch mehr Aufwand als Gewinn. Wer es streng spielen will,
+> sagt es ab — die Spielleitung sieht die angelegte Waffe in der Übersicht.
+
+> **Nachgetragen am 04.11.2026, und das war wieder der Befund:** Welche von mehreren getragenen
+> Waffen in der Hand liegt, stand hier **nirgends**. Der Code beantwortete es **vierfach** — in
+> `js/arena.js` und dreimal in `regie_figuren.html` — und die Fassungen waren **uneinig**: Eine
+> Figur mit Wurfmesser und Muskete schoss in der Arena mit der **Muskete** und im Kampfmodus mit
+> dem **Wurfmesser**, weil die eine Fassung nach Schaden sortierte und die andere das erste
+> Fundstück nahm. Am Tisch fällt so etwas nicht auf, es rechnet nur anders.
+
 ### 4.6 Ränge und Steigerungen
 
 Novize → Erfahren → Veteran → Heroisch → Legendär, je vier Steigerungen ein Rang. Am Rang

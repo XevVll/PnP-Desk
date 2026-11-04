@@ -125,9 +125,107 @@ Code ist nur die Ausführung — eine Messung an ihm zeigt, *was* er tut, nie *o
 und taugt deshalb nie als Beleg für eine Regel. Erst nachlesen, dann messen, ob die Umsetzung
 dazu passt. Steht eine Regel im Projekt nirgends, ist **das** der Befund: in Bibel §4
 nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen ausdrücklich
-als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
+als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-04 (Fortsetzung 2) — Waffen anlegen, und vier Rechner werden einer
+- **Hendriks Vorgabe:** „Dann wäre es noch gut, wenn man Waffen anlegen kann. Eine Nahkampfwaffe
+  und auch eine Fernkampfwaffe."
+- **ERST GEMESSEN, UND DIE MESSUNG HAT DIE AUFGABE VERDOPPELT.** Die Frage „welche von mehreren
+  getragenen Waffen liegt in der Hand" beantworteten **vier Stellen** eigenständig —
+  `arenaBesteWaffe()` in `js/arena.js`, dazu `besteWaffe()`, der Filter in `fernMoeglich()` und
+  `waffeVon()` in `regie_figuren.html`. **Und sie waren uneinig:**
+
+      ARENA nimmt      : Muskete
+      KAMPFMODUS nimmt : Wurfmesser   (waffen[0], ungesortiert)
+
+  Dieselbe Figur, dieselbe Ausrüstung, zwei Waffen. Die eine Fassung sortierte nach Schaden, die
+  andere nahm das erste Fundstück. **Am Tisch fällt so etwas nicht auf, es rechnet nur anders** —
+  die Spielleitung sah eine andere Waffe als das Brett.
+- **Und die Regel stand nirgends.** Bibel §4 sagte zu dem, was eine Figur in der Hand hält, kein
+  Wort — außer der Tabellenzeile, die ich gestern selbst eingetragen hatte. Derselbe Befund wie
+  bei der Traglast und beim Nahschuss: **in die Bibel nachtragen, nicht über den Code umgehen.**
+  Neu **Bibel 4.5a „Die Waffe in der Hand"**, dazu ein Absatz im handgeschriebenen Spickzettel
+  und ein eigener Abschnitt **4.6** in `ARENA-ENDKAMPF.md`.
+- **Gebaut ist deshalb EINE Auflösung, nicht ein Feature:** `waffeInHand(figur, art)` in
+  `js/regelwerk.js`. Alle vier Stellen rufen sie; `arenaBesteWaffe()` behält nur seinen Namen und
+  reicht weiter. **Damit ist die gemessene Uneinigkeit durch Konstruktion weg**, nicht durch eine
+  zweite Korrektur, die beim nächsten Umbau wieder auseinanderläuft.
+- **DIE RÜCKFALL-REGEL IST DIE WICHTIGERE HÄLFTE**, und sie steht als eigene Prüfung da: Wer
+  nichts angelegt hat, hält weiterhin die **stärkste getragene** Waffe — also genau das Verhalten
+  von vorher. Stünde dort „ohne Wahl keine Waffe", stünde jede Figur, die den neuen Knopf nie
+  gesehen hat, **mit der Faust auf dem Brett**, und am Tisch sähe niemand den Grund. Dieselbe
+  Linie wie bei `arenaDarfSteuern()` am 30.10.
+- **Nur was getragen wird, liegt in der Hand** — und das ist die gefährliche Richtung: Eine
+  angelegte, aber **verstaute** Muskete darf im Endkampf nicht in der Hand liegen. **Die Wahl
+  selbst wird dabei bewusst nicht gelöscht:** Wer seinen Säbel in die Seemannskiste legt und
+  wieder herausholt, hat ihn danach wieder in der Hand — die Auflösung prüft sie ohnehin jedes
+  Mal gegen das Getragene, also kann die Erinnerung nichts kaputtmachen.
+- **Die Wahl ändert, was die Arena ERLAUBT, nicht nur was sie rechnet.** Der Nahschuss gilt bis
+  Pistolengröße (31.10.): Wer die **Pistole** angelegt hat, darf im Handgemenge abdrücken, wer
+  die **Muskete** angelegt hat, nicht — dieselben zwei Waffen im Gepäck, zwei verschiedene
+  Erlaubnisse. Das ist die Prüfung, an der am meisten hängt.
+- **Ein echter Gewinn nebenbei, kein Zufall:** Das Pulver gilt jetzt der Waffe **in der Hand**
+  statt dem ganzen Gepäck. Vorher sperrte eine leere Muskete im Rucksack auch den Wurf mit dem
+  Wurfmesser — das war schlicht falsch und fiel nur niemandem auf.
+- **Im Heldenbrief** hat jede getragene Waffe einen Knopf „anlegen", und **„In der Hand" steht
+  über der Liste** — mit dem Zusatz „von selbst", wenn niemand gewählt hat. Ohne diese Zeile wäre
+  der Rückfall unsichtbar, und ein Spieler könnte nicht wissen, womit er zuschlägt. Anlegen ist
+  ein **Umschalter**: dieselbe Waffe noch einmal legt sie weg, sonst gäbe es keinen Weg zurück zu
+  „nimm die beste". Eine Rüstung bekommt keinen Knopf — `ruestbonus()` rechnet sie ohnehin.
+- **Die SL sieht es auch**, und das war nicht beauftragt, aber nötig: Der angelegte Chip trägt
+  ✋, und unter den Chips steht „Nahkampf **Messer** · Fernkampf **—**". Bei drei Klingen im
+  Gepäck sieht man es sonst nicht, und im Kampf muss die Spielleitung wissen, womit gewürfelt
+  wird.
+- **ZWEI ABWEICHUNGEN, beide ausdrücklich gekennzeichnet** (`ARENA-ENDKAMPF.md` 3.5, jetzt sechs):
+  **Savage Worlds kennt keine Ausrüstungs-Slots** — was in der Hand liegt, ist dort eine Frage
+  der Hände. Die Festlegung auf eine Waffe je Art ist Hendriks Hausregel und dient dem Werkzeug.
+  Und das **Umhängen kostet keine Handlung**, obwohl das Ziehen einer Waffe dort normalerweise
+  eine kostet (*Quick Draw* macht es frei) — der Knopf steht im Bogen, nicht auf dem Brett, und
+  eine Handlungs-Buchhaltung dafür wäre am Tisch mehr Aufwand als Gewinn.
+- **Ein echter Fehler beim Umbau, und es ist zum vierten Mal in fünf Tagen dieselbe Klasse:**
+  Mein Ersatzblock in `fernMoeglich()` ließ in der **Rückgabezeile** ein `waffe: waffen[0]`
+  stehen — eine hängende Referenz auf eine Variable, die es nicht mehr gibt. Sie liegt
+  ausgerechnet im **Erfolgspfad**: Die beiden Fälle „keine Schusswaffe" und „kein Pulver" liefen
+  weiter, und jeder gelungene Schuss hätte geworfen. **Gefunden von den Prüfungen, nicht beim
+  Hinsehen.**
+- **Getestet: 2227 Prüfungen über vierzehn Skripte** (60 neue; `t_arena.js` 408, `t_bogen.js` 357,
+  `t_regie_wuerfel.js` 365), ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit
+  dem 13.10.
+  - **Der Reiter wird GEZEICHNET und der Knopf GEDRÜCKT**, nicht nachgebaut — die Lehre von heute
+    Vormittag: Eine Prüfung, die den Zustand prüft und die Anzeige wegstubbt, kann einen Fehler in
+    der Anzeige nicht sehen.
+  - **Der Kampfmodus wird durch die SEITE geprüft**, inklusive der Ansage, die **zurückgespielt
+    wird, wie Firebase es täte** — ohne das findet `ansageErgebnis()` den Wurf nicht, und die
+    Prüfung prüfte das Testgerüst statt den Code. Genau in diese Falle bin ich dabei auch gelaufen.
+  - **Angelegt sind in jeder Prüfung die SCHWÄCHEREN Waffen.** Sonst fällt „angelegt" mit „die
+    beste" zusammen, und der Block prüft nichts — dieselbe Lehre wie bei der blinden
+    Parade-Prüfung vom 30.10. Dass sich Messer/Säbel und Wurfmesser/Muskete im Schaden
+    unterscheiden, steht als eigene Zeile davor.
+  - **Sieben Gegenproben, jede nennt den Fehler wörtlich:** Wache „nur was getragen wird" entfernt
+    (2) · Wahl ignoriert (6, `"saebel"` statt `"messer"`) · die SL-Seite rechnet wieder selbst
+    (3, `Schaden an Wache · Säbel`) · Pulverregel wieder über das ganze Gepäck (1, `hat kein
+    Pulver mehr`) · Bogen speichert die Wahl nicht (1) · kein Knopf in der Zeile (2) · Zeile
+    unterscheidet „von selbst" nicht (2) · Markierung auch an der Rüstung (1, `3` statt `1`).
+- **Ein Blindgänger in meiner eigenen Prüfung, vor dem Commit gefangen:** „das Lederwams trägt
+  die Markierung nicht" lief über ein `||` mit einem trivial wahren Zweig — sie **konnte nicht
+  fehlschlagen**. Jetzt wird **gezählt**: Die Figur hält eine Waffe und keine Fernkampfwaffe, also
+  darf die Markierung **genau einmal** vorkommen. Dreht man sie an die Rüstung, meldet sie `3`.
+- **Ein zu enger Testanker, meiner von gestern:** Der Schnitt in `t_bogen.js` suchte
+  `function warenZeile(id, knoepfe)` — mit dem neuen dritten Parameter fand er nichts, fiel auf
+  den späteren Anker zurück und **ließ die neuen Funktionen aus dem Schnitt**. Der Lauf meldete
+  dieselbe `ReferenceError`-Klasse wie Hendriks Fehler von heute Vormittag. Der Anker heißt jetzt
+  `function warenZeile(` — **ein Anker, der genauer ist als nötig, bricht bei jeder Änderung.**
+- **Die vm-Falle, zum wiederholten Mal:** `const AUSR_BY_ID` ist von außen nicht als
+  Kontext-Eigenschaft sichtbar (steht als Kommentar an derselben Datei). Über `RW` gelesen.
+- **[OFFEN] Zweihändige Waffen sind nicht abgebildet.** Muskete und Pike wiegen 8 Pfund und wären
+  realistisch zweihändig — die Warenliste hat dafür kein Feld, also kann niemand prüfen, ob Säbel
+  und Muskete gleichzeitig in zwei Händen liegen. Ein Feld dafür wäre eine Regelentscheidung und
+  war nicht beauftragt.
+- **[OFFEN] Die SL kann nicht für den Spieler anlegen.** Sie sieht die Waffe in der Hand, ändern
+  kann sie sie nicht — der Bogen bleibt der einzige Schreiber auf der Figur. Der Weg wäre das
+  Postfach, das `ausr` und `lager` schon kennt.
 
 ### 2026-11-04 (Fortsetzung) — Fehler: das Verstaute kam nicht in der Kiste an
 - **Hendriks Meldung:** „Ich habe gerade etwas verstaut aber es landet nicht in der Kiste."

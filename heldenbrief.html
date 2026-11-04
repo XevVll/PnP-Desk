@@ -136,6 +136,24 @@ textarea:focus{border-color:var(--gold)}
 }
 .holbtn:hover { background: rgba(201,162,75,.28); }
 
+/* ── Angelegte Waffen ── */
+.handbtn {
+  background: transparent; border: 1px solid var(--border); color: var(--gray);
+  border-radius: 4px; font: inherit; font-size: .72rem; padding: .1rem .45rem;
+  cursor: pointer; flex: none;
+}
+.handbtn:hover { border-color: var(--gold); color: var(--gold); }
+.handbtn.an { background: rgba(201,162,75,.2); border-color: var(--gold); color: var(--gold); }
+.inhand { display: flex; align-items: baseline; flex-wrap: wrap; gap: .45rem;
+  padding: .5rem .85rem; border-bottom: 1px solid rgba(201,168,76,.12); }
+.inhand>b { font-family: 'Cinzel',serif; font-size: .66rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gray); }
+.inhand .w { font-size: .8rem; color: var(--gold); }
+.inhand .w em { color: var(--gray); font-size: .7rem; font-style: normal; }
+.inhand .t { flex: 1 1 100%; font-size: .72rem; color: var(--gray); font-style: italic; line-height: 1.5; }
+.handmark { font-size: .62rem; color: var(--gold); margin-left: .35rem; white-space: nowrap; }
+.handmark.vonselbst { color: var(--gray); }
+
 /* ── Ausrüstung ── */
 .trag{height:8px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin:.35rem 0 .2rem}
 .trag i{display:block;height:100%;background:var(--teal);transition:width .25s}
@@ -331,6 +349,7 @@ textarea:focus{border-color:var(--gold)}
     </div>
     <div class="card">
       <div class="card-hdr">Was du trägst</div>
+      <div id="inHand"></div>
       <div id="ladungen"></div>
       <div class="card-body" id="getragen"></div>
     </div>
@@ -542,7 +561,7 @@ function figurLoeschenFragen() {
 
 function bogenFelder() {
   return {
-    ausr: F.ausr, lager: F.lager, muenzen: F.muenzen, ladungen: F.ladungen,
+    ausr: F.ausr, lager: F.lager, hand: F.hand, muenzen: F.muenzen, ladungen: F.ladungen,
     angeschlagen: F.angeschlagen, wunden: F.wunden,
     benniesUebrig: F.benniesUebrig, notizen: F.notizen,
     // Steigerungen aendern auch Werte - die muessen mit.
@@ -1234,7 +1253,7 @@ function steigerungAusfuehren() {
    sichtbar - "ReferenceError: warenZeile is not defined", und zwar genau
    NACH dem Beutel und VOR der Kiste. Der Gegenstand verschwand also aus dem
    Beutel und kam nirgends an (Hendriks Meldung vom 04.11.2026). */
-function warenZeile(id, knoepfe) {
+function warenZeile(id, knoepfe, marke) {
   const a = AUSR_BY_ID[id];
   if (!a) return '';
   const werte = [];
@@ -1244,10 +1263,37 @@ function warenZeile(id, knoepfe) {
   /* Dass die Waffe nach einem Schuss leer ist, stand hier nicht -
      dabei ist genau das die Regel (Bibel 4.5). */
   if (a.schuss) werte.push(a.schuss + ' Schuss');
-  return '<div class="zeile"><div class="n">' + esc(a.n) +
+  return '<div class="zeile"><div class="n">' + esc(a.n) + (marke || '') +
     '<div class="d">' + esc(a.d) + '</div></div>' +
     '<div class="z">' + werte.join(' · ') + (werte.length ? ' · ' : '') + '<b>' + a.gew + '</b> Gew.</div>' +
     knoepfe + '</div>';
+}
+
+/* WAFFEN ANLEGEN (Hendriks Vorgabe vom 04.11.2026): eine Nahkampf- und eine
+   Fernkampfwaffe. Entschieden wird es in waffeInHand()/handWaehlen()
+   (js/regelwerk.js) - dort, wo die Arena und die SL-Uebersicht es ebenfalls
+   lesen. Eine zweite Fassung hier hiesse, dass der Spieler eine andere Waffe
+   sieht als das Brett, und genau das war vorher der Fall. */
+function anlegen(i) {
+  if (!handWaehlen(F, F.ausr[i])) return;
+  speichern();
+  renderAlles();
+}
+
+/* Die Zeile ueber der Liste sagt, was wirklich in der Hand liegt - auch
+   wenn niemand gewaehlt hat. Ohne sie waere der Rueckfall unsichtbar, und
+   ein Spieler koennte nicht wissen, mit welcher Waffe er zuschlaegt. */
+function handZeile() {
+  const arten = [['Nahkampf', 'die Fäuste'], ['Fernkampf', 'nichts']];
+  const teile = arten.map(function (p) {
+    const w = waffeInHand(F, p[0]);
+    const gewaehlt = w && (F.hand || {})[p[0]] === w.id;
+    return '<span class="w">' + esc(w ? w.n : p[1]) +
+      ' <em>' + p[0] + (w && !gewaehlt ? ', von selbst' : '') + '</em></span>';
+  });
+  return '<div class="inhand"><b>In der Hand</b>' + teile.join('') +
+    '<span class="t">Angelegt bleibt angelegt. Ohne Wahl nimmst du die stärkste, ' +
+    'die du trägst — und was in der Kiste liegt, zählt nie.</span></div>';
 }
 
 function renderAusruestung() {
@@ -1291,11 +1337,31 @@ function renderAusruestung() {
       : 'Du trägst keine Schusswaffe. Pulver schadet trotzdem nicht.') +
     '</span></div>';
 
+  document.getElementById('inHand').innerHTML = handZeile();
+
   document.getElementById('getragen').innerHTML = F.ausr.length
     ? F.ausr.map(function (id, i) {
+        const a = AUSR_BY_ID[id];
+        /* Nur Waffen - ein Lederwams legt man an, aber nicht in die Hand,
+           und Rüstung rechnet ruestbonus() ohnehin schon mit. */
+        const waffe = !!(a && a.schaden);
+        const drin = waffe && waffeInHand(F, a.art) === a;
+        const gewaehlt = waffe && (F.hand || {})[a.art] === id;
         return warenZeile(id,
+          (waffe
+            ? '<button class="handbtn' + (gewaehlt ? ' an' : '') + '" title="' +
+              (gewaehlt
+                ? 'weglegen — danach nimmst du wieder die stärkste'
+                : 'als deine ' + a.art + 'waffe in die Hand nehmen') +
+              '" onclick="anlegen(' + i + ')">' +
+              (gewaehlt ? '✋ weglegen' : 'anlegen') + '</button>'
+            : '') +
           '<button class="holbtn" title="auf dem Schiff verstauen" onclick="verstauen(' + i + ')">↓ verstauen</button>' +
-          '<button class="wegbtn" title="ablegen und verkaufen" onclick="ablegen(' + i + ')">✕</button>');
+          '<button class="wegbtn" title="ablegen und verkaufen" onclick="ablegen(' + i + ')">✕</button>',
+          drin
+            ? '<span class="handmark' + (gewaehlt ? '' : ' vonselbst') + '">✋ in der Hand' +
+              (gewaehlt ? '' : ' (von selbst)') + '</span>'
+            : '');
       }).join('')
     : '<div class="leer">Du trägst nichts.</div>';
 

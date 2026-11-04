@@ -1267,10 +1267,14 @@ function kampfLogZeilen() {
 /* Die beste getragene Waffe einer Art. "Beste" heisst hier schlicht:
    der hoechste Schadenswuerfel - wer zwei Klingen traegt, nimmt im Zweifel
    die groessere. */
+/* WAS DIE FIGUR IN DER HAND HAELT, entscheidet waffeInHand() in
+   js/regelwerk.js - die angelegte Waffe, sonst die beste getragene. Diese
+   Seite hatte dafuer bis zum 04.11.2026 DREI eigene Fassungen (hier, im
+   Filter von fernMoeglich() und in waffeVon()), und sie waren uneinig: Eine
+   Figur mit Wurfmesser und Muskete schoss hier mit dem Wurfmesser und in der
+   Arena mit der Muskete. Die SL sah also eine andere Waffe als das Brett. */
 function besteWaffe(blatt, art) {
-  return ((blatt && blatt.ausr) || []).map(function (id) { return AUSR_BY_ID[id]; })
-    .filter(function (a) { return a && a.art === art; })
-    .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); })[0] || null;
+  return waffeInHand(blatt, art);
 }
 function nahWaffeVon(blatt) { return besteWaffe(blatt, 'Nahkampf'); }
 function fernWaffeVon(blatt) { return besteWaffe(blatt, 'Fernkampf'); }
@@ -1289,14 +1293,15 @@ function fernMoeglich(t) {
       ? { ok: true, wert: 'Schießen', stufe: t.schiessen }
       : { ok: false, grund: t.name + ' kann nicht schießen' };
   }
-  const waffen = ((t.figur && t.figur.ausr) || []).map(function (id) { return AUSR_BY_ID[id]; })
-    .filter(function (a) { return a && a.art === 'Fernkampf'; });
-  if (!waffen.length) return { ok: false, grund: t.name + ' trägt keine Schusswaffe' };
-  if (waffen.some(function (a) { return a.schuss; }) && !((t.figur && t.figur.ladungen) || 0)) {
+  const w = waffeInHand(t.figur, 'Fernkampf');
+  if (!w) return { ok: false, grund: t.name + ' trägt keine Schusswaffe' };
+  /* Das Pulver gilt der Waffe IN DER HAND, nicht dem Gepaeck: Wer ein
+     Wurfmesser angelegt hat, wirft es auch mit leerem Pulverhorn. */
+  if (w.schuss && !((t.figur && t.figur.ladungen) || 0)) {
     return { ok: false, grund: t.name + ' hat kein Pulver mehr' };
   }
   return { ok: true, wert: 'Schießen', stufe: (t.figur && t.figur.fert['Schießen']) || 0,
-           waffe: waffen[0] };
+           waffe: w };
 }
 
 /* Womit schlägt er zu? Die beste getragene Nahkampfwaffe - und wenn er
@@ -1304,10 +1309,7 @@ function fernMoeglich(t) {
    aber in neun von zehn Fällen ist es genau das. */
 function waffeVon(t) {
   if (!t || t.typ !== 'spieler' || !t.figur) return null;
-  const waffen = (t.figur.ausr || []).map(function (id) { return AUSR_BY_ID[id]; })
-    .filter(function (a) { return a && a.art === 'Nahkampf'; })
-    .sort(function (a, b) { return (b.schaden || 0) - (a.schaden || 0); });
-  return waffen[0] || AUSR_BY_ID['faust'] || null;
+  return waffeInHand(t.figur, 'Nahkampf') || AUSR_BY_ID['faust'] || null;
 }
 
 /* Die Bitte um den Schadenswurf. Sie geht denselben Weg wie die Probe -
@@ -1931,6 +1933,11 @@ function render() {
       if (a.reichweite) kurz.push('Reichw. ' + a.reichweite);
       if (a.ruest) kurz.push('+' + a.ruest);
       if (a.schuss) kurz.push(a.schuss + ' Schuss');
+      /* Womit die Figur WIRKLICH zuschlaegt - die Spielleitung muss das
+         im Kampf wissen, und bei drei Klingen im Gepaeck sieht man es
+         nicht. Die Markierung gilt auch ohne Wahl: dann liegt die beste
+         von selbst in der Hand (Bibel 4.5a). */
+      if (liste === 'ausr' && a.schaden && waffeInHand(f, a.art) === a) kurz.push('✋ in der Hand');
       const einordnung = a.art + ' · ' + (a.gew || 0) + ' Gew. · ' + (a.preis || 0) + ' M.' +
         (a.vonSl ? ' · von der Spielleitung' : '');
       return markeChip('ausr', id, 'ausr', a.n, einordnung, a.d,
@@ -1953,6 +1960,12 @@ function render() {
       return AUSR_BY_ID[id] && AUSR_BY_ID[id].schuss;
     }).length;
     const lastTeile = ['Gewicht <b>' + getragen(f) + '</b> von ' + traglast(f)];
+    /* Beide Haende als eigene Angabe, auch wenn eine leer ist: "schlaegt mit
+       den Faeusten" ist eine Auskunft, Schweigen ist keine. */
+    ['Nahkampf', 'Fernkampf'].forEach(function (art) {
+      const w = waffeInHand(f, art);
+      lastTeile.push(art + ' <b>' + esc(w ? w.n : (art === 'Nahkampf' ? 'Fäuste' : '—')) + '</b>');
+    });
     /* Bewusst als eigene Angabe HINTER der Traglast, nicht hineingerechnet -
        sonst sieht es aus, als zaehlte die Kiste mit. */
     if (verstaut(f)) lastTeile.push('im Lager <b>' + verstaut(f) + '</b> Gew.');
