@@ -129,6 +129,50 @@ als solche kennzeichnen — die drei der Arena stehen gesammelt in `ARENA-ENDKAM
 
 ## Changelog
 
+### 2026-11-04 (Fortsetzung) — Fehler: das Verstaute kam nicht in der Kiste an
+- **Hendriks Meldung:** „Ich habe gerade etwas verstaut aber es landet nicht in der Kiste."
+- **Nicht geraten, sondern den Render-Weg wirklich ausgeführt** — und die Diagnose nennt den
+  Fehler in drei Zeilen:
+
+      >>> WIRFT: ReferenceError: warenZeile is not defined
+          Beutel war schon gesetzt? true
+          Kiste  war schon gesetzt? false
+
+- **Ursache, und sie ist genau die Fehlerklasse von vorgestern:** `warenZeile()` stand
+  **innerhalb** von `renderAusruestung()`, `renderLager()` ist eine eigene Funktion auf oberster
+  Ebene — und rief sie trotzdem. Als innere Funktion war sie von dort **nicht sichtbar**.
+  - **Geworfen wurde NACH dem Beutel und VOR der Kiste.** Deshalb sah es genau so aus, wie
+    Hendrik es beschreibt: Der Gegenstand verschwand aus dem Beutel und kam nirgends an. Die
+    **Listen waren die ganze Zeit richtig** — nur gezeichnet wurde die Kiste nie.
+  - Dass der Wurf nichts weiter mitnahm, ist Zufall: `renderAusruestung()` ist die letzte Zeile
+    ihres Zweigs in `renderAlles()`. Stünde danach noch etwas, wäre auch das ausgefallen.
+  - **Dieselbe hängende Referenz wie am 31.10.** (`tokens` in `arenaTokenEl()`), über die ich im
+    Changelog einen eigenen Absatz geschrieben habe. Zweimal in vier Tagen.
+- **Behoben:** `warenZeile()` steht jetzt auf **oberster Ebene**, also dort, wo beide sie sehen —
+  genau das, was ihr eigener Kommentar („EINE Zeile für beide Listen") ohnehin behauptete.
+- **WARUM MEINE PRÜFUNG DAS NICHT GESEHEN HAT, und das ist der eigentliche Befund:** Sie hat
+  `verstauen()`/`hervorholen()` aus der Seite geschnitten und `renderAlles()` **gestubbt**. Damit
+  prüfte sie, dass die **Listen** stimmen — und genau das war nie das Problem. **Eine Prüfung,
+  die den Zustand prüft und die Anzeige wegstubbt, kann einen Fehler in der Anzeige nicht
+  sehen.** Dieselbe Lehre wie bei den lügenden Stubs vom 17.10., nur eine Ebene höher.
+- **Neue Prüfung, die den ganzen Reiter ZEICHNET** (12 neue, `t_bogen.js` damit 334): mit
+  DOM-Stub durch `renderAusruestung()`, und **beide** Knoten müssen gefüllt sein. Dazu, dass der
+  Säbel in der Kiste und **nicht** im Beutel steht, die Pistole umgekehrt, beide Richtungen ihren
+  Knopf haben, eine leere Kiste „Nichts verstaut" sagt, und der Weg am Stück läuft: umhängen
+  **und** neu zeichnen.
+- **Zwei eigene Fehler an dieser Prüfung, beide vor dem Commit gefangen:**
+  1. **Die erste Gegenprobe schlug über das FALSCHE Signal an.** Mein Schnitt begann bei
+     `warenZeile`; stellt man die Funktion zurück nach innen, liegt sie **hinter**
+     `renderAusruestung()`, der Block stieg vorher aus und meldete nur „der Schnitt findet
+     nichts". **Eine Gegenprobe, die den Schnitt prüft statt den Code, beweist nichts.** Der
+     Schnitt nimmt jetzt die **frühere** der beiden Stellen — danach schlagen **6** Prüfungen an,
+     und die erste nennt den Fehler wörtlich (`das Zeichnen des Reiters wirft nicht`).
+  2. **`0 > 0` ist falsch.** Der Schnitt *beginnt* bei einer der beiden Fundstellen, dort liefert
+     `indexOf` eine **0** — meine Prüfung verlangte `> 0` und schlug deshalb auf korrektem Code
+     an. `>= 0`.
+- **Getestet: 2167 Prüfungen über vierzehn Skripte**, ein Fehlschlag — der bekannte aus
+  `t_figuren.js`, unverändert seit dem 13.10.
+
 ### 2026-11-04 — Die Traglast folgt der Regel, und das Schiff hat eine Kiste
 - **Hendriks Vorgabe:** „Können wir die Traglast der Spieler ein wenig erhöhen und ein aktives
   (tragendes) und inaktives (auf dem Schiff verstautes) Inventar haben?"

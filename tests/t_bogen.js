@@ -1747,6 +1747,108 @@ chk('bogenFelder() nimmt das Lager mit',
     BOGEN.indexOf("(z.liste === 'lager') ? 'lager' : 'ausr'") > 0);
 })();
 
+/* ==========================================================
+   DER AUSRUESTUNGSREITER WIRD WIRKLICH GEZEICHNET (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Meldung: "Ich habe gerade etwas verstaut aber es
+   landet nicht in der Kiste."
+
+   URSACHE: warenZeile() stand INNERHALB von renderAusruestung(),
+   renderLager() ist eine eigene Funktion auf oberster Ebene und
+   rief sie trotzdem - "ReferenceError: warenZeile is not
+   defined". Geworfen wurde NACH dem Beutel und VOR der Kiste:
+   Der Gegenstand verschwand aus dem Beutel und kam nirgends an.
+
+   WARUM MEINE PRUEFUNG DAS NICHT GESEHEN HAT, und das ist der
+   eigentliche Befund: Sie hat verstauen()/hervorholen()
+   geschnitten und renderAlles() gestubbt. Die LISTEN waren
+   also korrekt - gezeichnet wurde nie. Eine Pruefung, die den
+   Zustand prueft und die Anzeige stubbt, kann einen Fehler in
+   der Anzeige nicht sehen.
+
+   Deshalb laeuft hier der ganze Reiter durch, mit einem
+   DOM-Stub, und BEIDE Knoten muessen gefuellt sein.
+   ========================================================== */
+(function () {
+  /* Geschnitten wird ab der FRUEHEREN der beiden Stellen. Haengte der Schnitt
+     an warenZeile(), wuerde er beim Zurueckstellen in die innere Funktion
+     hinter renderAusruestung() beginnen - der Block stiege dann aus, statt den
+     Fehler zu zeigen, und die Gegenprobe pruefte den Schnitt statt den Code. */
+  const vonW = BOGEN.indexOf('function warenZeile(id, knoepfe)');
+  const vonR = BOGEN.indexOf('function renderAusruestung() {');
+  const von = (vonW >= 0 && vonR >= 0) ? Math.min(vonW, vonR) : Math.max(vonW, vonR);
+  const bis = BOGEN.indexOf('/* Eine Uebergabe annehmen');
+  chk('der Schnitt umfasst warenZeile() UND renderAusruestung()',
+    von > 0 && bis > von
+    && BOGEN.slice(von, bis).indexOf('function renderAusruestung()') >= 0
+    && BOGEN.slice(von, bis).indexOf('function warenZeile(') >= 0,
+    [vonW, vonR, bis]);
+  if (von < 0 || bis < von) return;
+
+  function umgebung(fig) {
+    const ctx = {};
+    vm.createContext(ctx);
+    Object.keys(R).forEach(function (k) { ctx[k] = R[k]; });
+    ctx.F = fig;
+    const knoten = {};
+    ctx.document = { getElementById: function (id) {
+      if (!knoten[id]) knoten[id] = { id: id, innerHTML: '', textContent: '', style: {}, className: '' };
+      return knoten[id];
+    } };
+    ctx.esc = function (x) { return String(x); };
+    ctx.muenzenAendern = function () {}; ctx.ladungenAendern = function () {};
+    ctx.speichern = function () {}; ctx.renderAlles = function () {};
+    vm.runInContext(BOGEN.slice(von, bis)
+      + '\nthis.__render = renderAusruestung;'
+      + '\nthis.__verstauen = verstauen; this.__holen = hervorholen;', ctx);
+    ctx.__knoten = knoten;
+    return ctx;
+  }
+
+  const u = umgebung(R.alsFigur({ attr: { 'St\u00e4rke': 2 }, ausr: ['pistole'], lager: ['saebel'] }));
+  let wurf = null;
+  try { u.__render(); } catch (e) { wurf = (e && e.message) || String(e); }
+  chk('das Zeichnen des Reiters wirft nicht', wurf === null, wurf);
+
+  const beutel = (u.__knoten['getragen'] || {}).innerHTML || '';
+  const kiste = (u.__knoten['lager'] || {}).innerHTML || '';
+  /* DIE PRUEFUNG, DIE GEFEHLT HAT: Die Kiste muss gefuellt sein. Vorher war
+     der Beutel gesetzt und die Kiste leer - genau Hendriks Beobachtung. */
+  chk('die Kiste wird ueberhaupt gezeichnet', kiste.length > 0, kiste);
+  chk('der verstaute Saebel steht in der Kiste und NICHT im Beutel',
+    kiste.indexOf('S\u00e4bel') >= 0 && beutel.indexOf('S\u00e4bel') < 0,
+    { kiste: kiste.slice(0, 120), beutel: beutel.slice(0, 120) });
+  chk('die getragene Pistole steht im Beutel und NICHT in der Kiste',
+    beutel.indexOf('Steinschlosspistole') >= 0 && kiste.indexOf('Steinschlosspistole') < 0);
+  chk('beide Richtungen haben ihren Knopf',
+    beutel.indexOf('verstauen(0)') >= 0 && kiste.indexOf('hervorholen(0)') >= 0);
+  chk('die Kiste nennt ihr Gewicht', kiste.indexOf('Gew.') >= 0);
+  chk('und sagt, dass man nur an Bord daran kommt', kiste.indexOf('an Bord') >= 0);
+
+  /* Der ganze Weg am Stueck: umhaengen UND neu zeichnen. Ohne das zweite
+     haette die Pruefung oben denselben blinden Fleck wie die alte. */
+  u.__verstauen(0);                       // Pistole in die Kiste
+  u.__render();
+  const kiste2 = (u.__knoten['lager'] || {}).innerHTML || '';
+  const beutel2 = (u.__knoten['getragen'] || {}).innerHTML || '';
+  chk('nach dem Verstauen steht es wirklich in der gezeichneten Kiste',
+    kiste2.indexOf('Steinschlosspistole') >= 0, kiste2.slice(0, 160));
+  chk('und der Beutel sagt, dass er leer ist',
+    beutel2.indexOf('Du tr\u00e4gst nichts') >= 0, beutel2.slice(0, 120));
+
+  // Eine leere Kiste sagt das ebenfalls, statt gar nichts zu zeigen.
+  const leer = umgebung(R.alsFigur({ attr: { 'St\u00e4rke': 2 }, ausr: ['messer'], lager: [] }));
+  leer.__render();
+  chk('eine leere Kiste sagt "Nichts verstaut"',
+    ((leer.__knoten['lager'] || {}).innerHTML || '').indexOf('Nichts verstaut') >= 0);
+
+  /* Der Hinweis unter der Traglast-Leiste nennt den neuen Faktor und das
+     Lager - er hat vorher die alte Rechnung behauptet. */
+  const note = (u.__knoten['tragNote'] || {}).textContent || '';
+  chk('der Hinweis nennt die fuenffache Seitenzahl und das Schiff',
+    note.indexOf('f\u00fcnfmal') >= 0 && note.indexOf('Schiff') >= 0, note);
+})();
+
 setTimeout(function () {
   chk('beim Öffnen kommt das Bild zurück',
     bctx.bildStand() === 'data:image/webp;base64,abc', bctx.bildStand());
