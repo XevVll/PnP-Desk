@@ -591,6 +591,49 @@ den Spielern **nirgends angezeigt**:
 
 Beim Weiterbauen daran denken: **jede neue Log-Zeile und jede neue Anzeige muss das einhalten.**
 
+### 4.5a Woher das Brett weiß, wer ihn hält (04.11.2026)
+
+> **Hendriks Auftrag:** „Ich brauche den JaguarSäbel noch als Item, was ich zuweisen
+> kann.“
+
+Der Säbel ist seit dem 04.11.2026 eine **kanonische Ware** in `js/regelwerk.js`
+(`JAGUAR_SAEBEL_ID`), nicht mehr eine von der Spielleitung erfundene. Das war der
+eigentliche Grund der Umstellung: Eine erfundene Ware fällt ohne
+`eigeneWarenSetzen()` **still** weg (4.6) — ausgerechnet bei der Pflichtwaffe.
+
+`arenaWerteAusFigur()` setzt daraus am Token das Feld **`jaguarSaebel`**. Es sagt nur,
+was der **Bogen** sagt, und zählt nur **Getragenes**: Ein Jaguar-Säbel in der
+Seemannskiste bannt niemanden (Bibel 4.5a). Wer ihn auf dem Brett **hält**, steht
+weiterhin in `saebeltraeger` — die Spielleitung setzt es, und den Spielern wird es nie
+angezeigt (4.5).
+
+**`arenaSaebeltraegerAusTokens(tokens, aktuell)` füllt nur die Lücke:**
+
+| Lage | Ergebnis |
+|---|---|
+| `saebeltraeger` gesetzt, Token steht | **bleibt unangetastet** |
+| nichts gesetzt, eine Figur trägt ihn laut Bogen | diese Figur |
+| nichts gesetzt, niemand trägt ihn | nichts |
+| Träger-Token ist weg | neu gesucht |
+| zwei Träger (im Kanon unmöglich) | erste Kennung, reproduzierbar |
+
+**Die erste Zeile ist die wichtigere Hälfte.** Im Finale wird der Säbel
+weitergegeben — an Jessica, an Harwick oder an niemanden (Bibel 12.1, drei Ausgänge).
+Eine Automatik, die ihn stur dem zurückgibt, der ihn laut Bogen trägt, würde genau
+diesen Beat überschreiben. Abgeleitet wird deshalb nur, wo noch **nichts** steht — und
+das sowohl beim Aufbauen (beide Wege) als auch beim Setzen eines Spielers.
+
+Das Auswahlpanel sagt zusätzlich, **was der Bogen sagt**: „Laut Bogen trägt sie den
+Jaguar-Säbel — auf dem Brett hält ihn gerade jemand anderes.“ Bei mehreren Figuren
+sieht man sonst nicht, wer ihn mitgebracht hat, und eine Weitergabe läge nur im
+Firebase-Feld.
+
+**Verkaufen kann der Spieler ihn nicht** (`unverkaeuflich` an der Ware): „Ablegen“
+verkauft im Heldenbrief ohne Rückfrage zum halben Preis, und ein Fehlgriff hätte das
+Finale lautlos unlösbar gemacht. Einziehen kann allein die Spielleitung.
+
+---
+
 ### 4.6 Welche Waffe aufs Brett kommt (04.11.2026)
 
 Hendriks Vorgabe: *„Dann wäre es noch gut, wenn man Waffen anlegen kann. Eine Nahkampfwaffe und

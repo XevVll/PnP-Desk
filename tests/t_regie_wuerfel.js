@@ -364,6 +364,31 @@ chk('und gesagt, dass es nichts kostet', gb.indexOf('kein Kauf') >= 0);
 chk('ohne offene Übergabe kein Hinweis',
   MU.gebenBlock('anna', { muenzen: 0 }).indexOf('liegt bereit') < 0);
 
+/* HENDRIKS BITTE VOM 04.11.2026 WAR GENAU DIESE ZEILE: "Ich brauche den
+   JaguarSaebel noch als Item, was ich zuweisen kann." Er steht in der
+   Auswahl - und zwar unter Nahkampf, nicht unter "Von der Spielleitung":
+   Er gehoert dem Abenteuer, nicht dieser Sitzung. */
+chk('der Jaguar-Säbel steht in der Übergabe-Auswahl',
+  gb.indexOf('value="' + RW.JAGUAR_SAEBEL_ID + '"') >= 0, RW.JAGUAR_SAEBEL_ID);
+chk('und nicht in der Gruppe der erfundenen Waren',
+  gb.indexOf('Von der Spielleitung') < 0);
+/* Er ist unverkaeuflich, also nennt die Auswahl keinen Preis an ihm - "(0 M.)"
+   waere eine falsche Auskunft an der Stelle, an der die SL sie liest. */
+chk('ohne Preisangabe, denn er ist unverkäuflich',
+  gb.indexOf(RW.AUSR_BY_ID[RW.JAGUAR_SAEBEL_ID].n + '</option>') >= 0, 'Preis am Saebel');
+
+u.schreib.length = 0;
+MU.uebergeben('anna', { art: 'gegenstand', id: RW.JAGUAR_SAEBEL_ID });
+chk('die Übergabe läuft über das Postfach wie bei jeder anderen Ware',
+  u.schreib.length === 1 && u.schreib[0].p === 'figuren/anna/zuteilung'
+  && u.schreib[0].v.id === RW.JAGUAR_SAEBEL_ID, u.schreib[0]);
+/* Und einziehen geht auch - der Spieler kann ihn nicht ablegen, die
+   Spielleitung schon. Ohne diesen Weg waere er unverlierbar. */
+u.schreib.length = 0;
+MU.uebergeben('anna', { art: 'nehmen', id: RW.JAGUAR_SAEBEL_ID });
+chk('und die Spielleitung kann ihn wieder einziehen',
+  u.schreib.length === 1 && u.schreib[0].v.art === 'nehmen', u.schreib[0]);
+
 const mitAusr = JSON.parse(JSON.stringify(FIGUREN));
 mitAusr.anna.ausr = ['saebel'];
 mitAusr.anna.lager = ['kettenhemd'];
@@ -1268,7 +1293,7 @@ const lh = () => L.nachId['inhalt']._html + L.nachId['warenListe']._html;
 chk('die Ansicht hat einen eigenen Knopf', L.nachId['btnWaren'].classList.contains('on'));
 chk('ein Suchfeld steht da', L.nachId['inhalt']._html.indexOf('id="warenFeld"') > 0);
 chk('alle Gegenstände sind gelistet',
-  L.nachId['warenZahl'].textContent.indexOf('53') === 0, L.nachId['warenZahl'].textContent);
+  L.nachId['warenZahl'].textContent.indexOf('54') === 0, L.nachId['warenZahl'].textContent);
 chk('nach Warenart gruppiert',
   L.nachId['warenListe']._html.indexOf('Nahkampf') > 0 &&
   L.nachId['warenListe']._html.indexOf('Allerlei') > 0);
@@ -1320,7 +1345,7 @@ chk('ohne Treffer steht da, warum',
   L.nachId['warenListe']._html.indexOf('Nichts gefunden') > 0);
 L.ctx.module.exports.warenSuchen('');
 chk('ein leeres Feld zeigt wieder alles',
-  L.nachId['warenZahl'].textContent.indexOf('53') === 0, L.nachId['warenZahl'].textContent);
+  L.nachId['warenZahl'].textContent.indexOf('54') === 0, L.nachId['warenZahl'].textContent);
 
 /* Das Markieren darf den Text nicht verfaelschen - es laeuft ueber die
    normalisierte Fassung, ausgegeben wird das Original. */

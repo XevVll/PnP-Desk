@@ -425,6 +425,11 @@ aus `js/regie.js`:
   einzige den Jaguar abbildet. In die Vertiefung gedrückt fährt die Klappe auf; dahinter eine
   flache Nische mit einem verzierten Säbel, in dessen Klinge ein Jaguar eingraviert ist — ohne
   jede Erklärung dazu (Bibel 7.4: „ein Vorteil, den die Spieler haben, ohne ihn zu kennen").
+  **Seit dem 04.11.2026 ist der Säbel ein echter Gegenstand** („Jaguar-Säbel" in
+  `js/regelwerk.js`): Die Spielleitung übergibt ihn hier wirklich, über **Übergeben** in
+  `regie_figuren.html`. Danach liegt er in der Ausrüstung des Spielers, das Schlachtfeld des
+  Finales erkennt ihn von selbst, und verkaufen oder ablegen kann der Spieler ihn nicht
+  (Bibel 12.1, `ARENA-ENDKAMPF.md` 4.5a).
   Falscher Stein: ein Knall und ein Fauchen wie von einer Großkatze, aus dem Stein selbst, beliebig
   oft erneut versuchbar — SL-Ermessen koppelt wiederholten Lärm an ein früheres Eintreffen der
   Affen (siehe 6.4).

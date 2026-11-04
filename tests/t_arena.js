@@ -64,7 +64,9 @@ vm.runInContext('this.X = {' + [
   'arenaBesteWaffe', 'arenaWerteAusFigur', 'arenaZustandAusFigur',
   'arenaNahschussMoeglich', 'ARENA_NAHSCHUSS_GEWICHT',
   'alsFigur', 'AUSR_BY_ID', 'eigeneWarenSetzen',
-  'waffeInHand', 'handWaehlen'
+  'waffeInHand', 'handWaehlen',
+  'arenaSaebeltraegerAusTokens', 'JAGUAR_SAEBEL_ID', 'traegtWare',
+  'AUSRUESTUNG', 'istEigeneWare'
 ].join(',') + '};', ctx);
 const A = ctx.X;
 
@@ -1298,11 +1300,18 @@ function held(id, opts) {
    vorhandenen Spielern in dieser Session verknuepfen?"
 
    Der stille Fehlerfall, auf den es hier ankommt: Traegt eine
-   Figur eine von der SL ERFUNDENE Ware - und der Jaguar-Saebel
-   ist genau so eine -, findet AUSR_BY_ID sie nur, wenn die Seite
-   vorher eigeneWarenSetzen() gerufen hat. Sonst faellt die Waffe
-   weg, ohne dass es auffaellt: Die Figur steht mit der Faust auf
-   dem Brett und niemand sieht den Grund.
+   Figur eine von der SL ERFUNDENE Ware, findet AUSR_BY_ID sie
+   nur, wenn die Seite vorher eigeneWarenSetzen() gerufen hat.
+   Sonst faellt die Waffe weg, ohne dass es auffaellt: Die Figur
+   steht mit der Faust auf dem Brett und niemand sieht den Grund.
+
+   HIER STAND BIS ZUM 04.11.2026 "und der Jaguar-Saebel ist
+   genau so eine". Das gilt nicht mehr, und genau dieses Risiko
+   war der Grund: Ausgerechnet die Pflichtwaffe des Finales
+   haette still wegfallen koennen. Er ist jetzt kanonische Ware
+   (JAGUAR_SAEBEL_ID). Das Beispiel hier ist deshalb eine
+   beliebige erfundene Ware - der Mechanismus gilt weiter fuer
+   alles, was die SL selbst anlegt.
    ========================================================== */
 (function () {
   const vorlagen = A.ARENA_SCENES['15.1'].vorlagen;
@@ -1384,20 +1393,25 @@ function held(id, opts) {
   chk('eine unbekannte Ware bricht nichts',
     A.arenaWerteAusFigur(A.alsFigur({ ausr: ['gibt_es_nicht'] }), 'X').waffe === 0);
 
-  /* DER STILLE FALL: der Jaguar-Säbel als erfundene Ware der SL. Vor
-     eigeneWarenSetzen() ist er unbekannt und fällt weg; danach zählt er. */
+  /* DER STILLE FALL: eine erfundene Ware der SL. Vor eigeneWarenSetzen() ist
+     sie unbekannt und fällt weg; danach zählt sie.
+
+     Das Beispiel war bis zum 04.11.2026 der Jaguar-Säbel. Er ist seit
+     damals kanonisch - hätte ich ihn hier gelassen, würde die Prüfung
+     behaupten, die Pflichtwaffe des Finales hänge weiter an einem
+     eigeneWarenSetzen()-Aufruf. Der Mechanismus selbst gilt unverändert. */
   (function () {
-    const traeger = A.alsFigur({ name: 'Träger', attr: { 'Stärke': 3 }, ausr: ['sl_jaguarsaebel'] });
+    const traeger = A.alsFigur({ name: 'Träger', attr: { 'Stärke': 3 }, ausr: ['sl_beutestueck'] });
     chk('vor eigeneWarenSetzen() fällt die erfundene Waffe weg',
       A.arenaWerteAusFigur(traeger, 'Träger').waffe === 0);
     A.eigeneWarenSetzen({
-      k1: { id: 'sl_jaguarsaebel', n: 'Jaguar-Säbel', art: 'Nahkampf', schaden: 3, gew: 3, preis: 0 }
+      k1: { id: 'sl_beutestueck', n: 'Krummschwert aus der Beute', art: 'Nahkampf', schaden: 3, gew: 3, preis: 0 }
     });
     chk('danach zählt sie', A.arenaWerteAusFigur(traeger, 'Träger').waffe === 3,
       A.arenaWerteAusFigur(traeger, 'Träger'));
     chk('und sie schlägt den Säbel aus dem Regelwerk',
       A.arenaWerteAusFigur(
-        A.alsFigur({ ausr: ['saebel', 'sl_jaguarsaebel'] }), 'T').waffe === 3);
+        A.alsFigur({ ausr: ['saebel', 'sl_beutestueck'] }), 'T').waffe === 3);
     A.eigeneWarenSetzen({});   // wieder aufräumen, sonst wirkt sie weiter
     chk('nach dem Aufräumen ist sie wieder unbekannt',
       A.arenaWerteAusFigur(traeger, 'Träger').waffe === 0);
@@ -2455,6 +2469,114 @@ function held(id, opts) {
     chk('tokenEl() greift nicht auf "sel" zu',
       !/[^A-Za-z0-9_]sel[^A-Za-z0-9_]/.test(koerper), koerper.length);
   })();
+})();
+
+
+/* ==========================================================
+   DER JAGUAR-SAEBEL KOMMT AUS DEM BOGEN (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Auftrag: "Ich brauche den JaguarSaebel noch als
+   Item, was ich zuweisen kann."
+
+   DIE WICHTIGERE HAELFTE IST, DASS DIE SL DAS LETZTE WORT
+   BEHAELT: Im Finale wird der Saebel weitergegeben - an
+   Jessica, an Harwick oder an niemanden (Bibel 12.1, drei
+   Ausgaenge). Eine Automatik, die ihn stur dem zurueckgibt,
+   der ihn laut Bogen traegt, wuerde genau diesen Beat
+   ueberschreiben. Abgeleitet wird nur die LUECKE.
+   ========================================================== */
+(function () {
+  const ID = A.JAGUAR_SAEBEL_ID;
+  const blatt = function (ausr, lager) {
+    return A.alsFigur({ name: 'Anna', attr: { 'St\u00e4rke': 2 },
+      fert: { 'K\u00e4mpfen': 2 }, ausr: ausr, lager: lager || [] });
+  };
+
+  /* ---- Das Feld am Token sagt, was der BOGEN sagt ---- */
+  const mitSaebel = A.arenaWerteAusFigur(blatt([ID]), 'Anna');
+  chk('wer ihn traegt, bringt das Feld mit', mitSaebel.jaguarSaebel === true);
+  chk('und schlaegt damit wie mit einem Saebel zu',
+    mitSaebel.waffe === A.AUSR_BY_ID['saebel'].schaden, mitSaebel.waffe);
+  chk('ohne ihn steht das Feld auf false',
+    A.arenaWerteAusFigur(blatt(['saebel']), 'Anna').jaguarSaebel === false);
+  /* DIE GEFAEHRLICHE RICHTUNG: Eine verstaute Pflichtwaffe darf im Endkampf
+     nicht in der Hand liegen - das fiele am Tisch nicht auf, die Figur stuende
+     mit dem Saebel auf dem Brett und niemand saehe, woher er kommt. */
+  chk('verstaut bringt ihn NICHT aufs Brett',
+    A.arenaWerteAusFigur(blatt([], [ID]), 'Anna').jaguarSaebel === false);
+
+  /* ---- Wer ihn auf dem Brett haelt ---- */
+  const brett = { t1: { name: 'A', jaguarSaebel: false }, t2: { name: 'B', jaguarSaebel: true } };
+  chk('steht niemand als Traeger da, bekommt ihn die Figur aus dem Bogen',
+    A.arenaSaebeltraegerAusTokens(brett, null) === 't2');
+  /* DIE TRAGENDE PRUEFUNG: Ein gesetzter Traeger bleibt. Sonst holte die
+     Ableitung den Saebel nach jeder Uebergabe zurueck - und die drei Ausgaenge
+     des Finales haengen genau an dieser Uebergabe. */
+  chk('ein gesetzter Traeger wird NICHT ueberschrieben',
+    A.arenaSaebeltraegerAusTokens(brett, 't1') === 't1');
+  chk('auch dann nicht, wenn er ihn laut Bogen gar nicht hat',
+    A.arenaSaebeltraegerAusTokens({ t1: { jaguarSaebel: false } }, 't1') === 't1');
+  chk('traegt ihn niemand, bleibt es bei nichts',
+    A.arenaSaebeltraegerAusTokens({ t1: { jaguarSaebel: false } }, null) === null);
+  chk('ein Traeger, dessen Token weg ist, wird neu gesucht',
+    A.arenaSaebeltraegerAusTokens(brett, 'weg') === 't2');
+  chk('eine gefallene Figur bekommt ihn nicht',
+    A.arenaSaebeltraegerAusTokens({ t9: { jaguarSaebel: true, tot: true } }, null) === null);
+  /* Zwei Traeger gibt es im Kanon nicht (ein Saebel, eine Grotte). Stehen doch
+     zwei da, gewinnt die erste Kennung - willkuerlich, aber reproduzierbar,
+     wie bei der Diener-Zielwahl. */
+  chk('bei zwei Traegern gewinnt reproduzierbar die erste Kennung',
+    A.arenaSaebeltraegerAusTokens({ b: { jaguarSaebel: true }, a: { jaguarSaebel: true } }, null) === 'a');
+  chk('ein leeres Brett bricht nicht',
+    A.arenaSaebeltraegerAusTokens(null, null) === null);
+
+  /* ---- UND ER WIRKT WIRKLICH ----
+     Ohne diese Pruefung waere das Feld Zierde: Der abgeleitete Traeger muss
+     den Diener endgueltig zerfallen lassen (4.5), ein anderer nicht. */
+  const diener = { id: 'g1', typ: 'diener', x: 6, y: 5, parade: 4, robustheit: 4,
+    kaempfen: 1, wild: false };
+  const held = { id: 't2', typ: 'spieler', x: 5, y: 5, kaempfen: 4, staerke: 3,
+    waffe: 2, parade: 6, robustheit: 6, wild: true, geladen: true, bewegung: 2 };
+  /* DIE KETTE AM STUECK: Bogen -> Token -> Traeger -> Bann. Baute ich den
+     Token hier von Hand mit jaguarSaebel:true, pruefte der Block die eigene
+     Annahme statt die Ableitung - und das Wegwerfen des Feldes faellt dann
+     nur an einer Stelle auf. */
+  const ausBogen = Object.assign({}, held, A.arenaWerteAusFigur(blatt([ID]), 'Anna'));
+  const tok = { t2: ausBogen, g1: diener };
+  chk('der Token kommt aus dem Bogen und traegt den Saebel',
+    ausBogen.jaguarSaebel === true, ausBogen.jaguarSaebel);
+  const traeger = A.arenaSaebeltraegerAusTokens(tok, null);
+  chk('der abgeleitete Traeger ist der Held', traeger === 't2', traeger);
+  const R2 = A.ARENA_SCENES['15.1'].regeln;
+  const mit = A.arenaAngriff(ausBogen, diener, tok, R2, traeger,
+    { probeBand: 'erfolg', schaden: 1 });
+  const ohne = A.arenaAngriff(ausBogen, diener, tok, R2, null,
+    { probeBand: 'erfolg', schaden: 1 });
+  chk('mit ihm zerfaellt der Diener endgueltig',
+    mit.toetet === true && mit.endgueltig === true, mit);
+  chk('ohne ihn wirkt derselbe Treffer gar nicht',
+    ohne.toetet === false && ohne.endgueltig === false, ohne);
+
+  /* ---- BEIDE AUFBAU-WEGE leiten ihn ab ----
+     Zwei Aufbauen-Knoepfe, die den Saebel verschieden behandeln, waeren am
+     Tisch schlimmer als keine Ableitung. */
+  const AD = fs.readFileSync(path.join(WURZEL, 'arena_admin.html'), 'utf8');
+  const RV = fs.readFileSync(path.join(WURZEL, 'js/regie_vault.js'), 'utf8');
+  chk('das Schlachtfeld setzt den Traeger beim Aufbauen',
+    /saebeltraeger: arenaSaebeltraegerAusTokens\(tokens, null\)/.test(AD));
+  chk('das Kompakt-Panel der Regie genauso',
+    /saebeltraeger: arenaSaebeltraegerAusTokens\(tokens, null\)/.test(RV));
+  chk('keines schreibt den Traeger noch stumpf auf null',
+    AD.indexOf('saebeltraeger: null') < 0 && RV.indexOf('saebeltraeger: null') < 0);
+  /* Ein neu gesetzter Spieler fuellt die Luecke, ueberschreibt aber nicht. */
+  chk('ein neu gesetzter Spieler fuellt nur die Luecke',
+    /token\.jaguarSaebel && !\(snap\.saebeltraeger \|\| null\)/.test(AD));
+  chk('das Panel nennt den Saebel laut Bogen', AD.indexOf('Laut Bogen tr') > 0);
+  /* EINE Fassung der Saebel-Zeile, nicht zwei: Der Saebel kann im Finale an
+     Harwick gehen, also braucht der Verbuendeten-Zweig dieselbe Zeile. */
+  chk('und es gibt genau eine Fassung dieser Zeile',
+    AD.split('function saebelZeile(').length === 2
+    && AD.split('saebelZeile(id, sel)').length === 3);
 })();
 
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');

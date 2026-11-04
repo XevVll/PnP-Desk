@@ -275,7 +275,7 @@ Spielleitung etwas, woran sie die Figur aufhängt. 15 der 24 sind von dieser Art
 | **Treu** | Haken | Du lässt niemanden zurück, auch wenn es klüger wäre. Besonders nicht die, die zu dir gehören. |
 | **Stolz** | Haken | Eine Beleidigung deiner Ehre erträgst du nicht schweigend. Widerworte sind das Mindeste. |
 
-## Ausrüstung (53)
+## Ausrüstung (54)
 
 Startgeld 500 Münzen. **Waffen bringen einen eigenen Schadenswürfel**
 mit, keinen Bonus — in diesem System wird nichts addiert. Rüstung hebt die Robustheit.
@@ -295,6 +295,7 @@ auch nicht und liegt nicht in der Hand.
 | **Säbel** | d6 | — | — | 3 | 250 | Die Waffe dessen, der fechten gelernt hat — oder so tun will. |
 | **Enteraxt** | d6 | — | — | 5 | 150 | Öffnet Türen, Luken und Menschen. Nicht elegant. |
 | **Pike** | d6 | — | — | 8 | 100 | Hält den Gegner auf Abstand — an Deck oft im Weg. |
+| **Jaguar-Säbel** | d6 | — | — | 3 | 0 | Ein verzierter Säbel, in die Klinge ein Jaguar eingraviert. Lag hinter der steinernen Klappe in der Grotte. Was in SEINEM Namen geschmiedet ist, schickt zurück; alles andere legt es bloß schlafen. |
 
 ### Fernkampf
 

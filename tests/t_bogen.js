@@ -707,7 +707,7 @@ R.eigeneWarenSetzen({});
 chk('ein leerer Knoten räumt alles weg',
   R.AUSRUESTUNG.filter(a => a.vonSl).length === 0 && R.AUSR_BY_ID[wId] === undefined);
 chk('das Regelwerk selbst ist unversehrt',
-  R.AUSRUESTUNG.length === 53 && !!R.AUSR_BY_ID['saebel'], R.AUSRUESTUNG.length);
+  R.AUSRUESTUNG.length === 54 && !!R.AUSR_BY_ID['saebel'], R.AUSRUESTUNG.length);
 
 console.log('');
 console.log('=== DER KAUF MELDET SICH ===');
@@ -1968,6 +1968,112 @@ chk('bogenFelder() nimmt das Lager mit',
    wuerde beim naechsten Oeffnen lautlos auf "die beste" zurueckfallen. */
 chk('bogenFelder() nimmt die angelegten Waffen mit',
   /lager:\s*F\.lager,\s*hand:\s*F\.hand/.test(BOGEN), 'in bogenFelder()');
+
+
+/* ==========================================================
+   DER JAGUAR-SAEBEL ALS WARE (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Auftrag: "Ich brauche den JaguarSaebel noch als
+   Item, was ich zuweisen kann."
+
+   ER IST KANONISCHE WARE, KEINE ERFUNDENE, und das ist die
+   tragende Entscheidung: Eine eigeneWaren-Ware (sl_...) findet
+   AUSR_BY_ID nur, wenn die Seite vorher eigeneWarenSetzen()
+   gerufen hat - sonst faellt sie STILL weg (ARENA-ENDKAMPF.md
+   4.6). Bei der einen Waffe, ohne die der Endkampf nicht zu
+   gewinnen ist, waere das das teuerste Risiko im Projekt.
+   ========================================================== */
+const JS = R.AUSR_BY_ID[R.JAGUAR_SAEBEL_ID];
+chk('die Ware existiert', !!JS, R.JAGUAR_SAEBEL_ID);
+chk('und zwar kanonisch, nicht von der Spielleitung erfunden',
+  !!JS && !JS.vonSl && !R.istEigeneWare(R.JAGUAR_SAEBEL_ID),
+  { vonSl: JS && JS.vonSl });
+chk('sie ist eine Nahkampfwaffe mit den Werten eines Saebels',
+  JS.art === 'Nahkampf' && JS.schaden === R.AUSR_BY_ID['saebel'].schaden
+  && JS.gew === R.AUSR_BY_ID['saebel'].gew,
+  { art: JS.art, schaden: JS.schaden, gew: JS.gew });
+/* Die Zahl ist ABSICHTLICH keine hoehere: Seine Wirkung ist die Bann-Regel in
+   der Arena, nicht ein groesserer Wuerfel. Ein starker Saebel waere die
+   Fassung, die Hendrik am 18.10.2026 ausdruecklich abgeloest hat. */
+chk('sie ist nicht staerker als ein normaler Saebel',
+  JS.schaden <= R.AUSR_BY_ID['saebel'].schaden);
+
+/* UNVERKAEUFLICH - und das ist keine Kosmetik: ablegen() verkauft ohne
+   Rueckfrage zum halben Preis. Ein Fehlgriff auf das Kreuz haette das Finale
+   lautlos unloesbar gemacht. */
+chk('sie ist unverkaeuflich', JS.unverkaeuflich === true);
+chk('und sie ist die einzige Ware mit diesem Merkmal',
+  R.AUSRUESTUNG.filter(function (a) { return a.unverkaeuflich; }).length === 1,
+  R.AUSRUESTUNG.filter(function (a) { return a.unverkaeuflich; }).map(function (a) { return a.id; }));
+
+/* KEIN HAENDLER FUEHRT SIE. Die Laeden listen ihre Waren einzeln auf, es ist
+   also nichts zu sperren - aber geprueft gehoert es: Eine Pflichtwaffe, die
+   man in Grimsgate kaufen kann, nimmt der Riffinsel ihren Zweck. */
+(function () {
+  const imLaden = alleLaeden.filter(function (e) {
+    return alleWaren(e.l).indexOf(R.JAGUAR_SAEBEL_ID) >= 0;
+  }).map(function (e) { return e.l.name; });
+  chk('kein Laden fuehrt den Jaguar-Saebel', imLaden.length === 0, imLaden);
+})();
+
+/* traegtWare() sieht nur den Beutel, nicht die Kiste - das ist die
+   gefaehrliche Richtung (Bibel 4.5a): Eine verstaute Pflichtwaffe darf im
+   Endkampf nicht in der Hand liegen. */
+chk('getragen zaehlt', R.traegtWare({ ausr: [R.JAGUAR_SAEBEL_ID] }, R.JAGUAR_SAEBEL_ID));
+chk('verstaut zaehlt NICHT',
+  !R.traegtWare({ ausr: [], lager: [R.JAGUAR_SAEBEL_ID] }, R.JAGUAR_SAEBEL_ID));
+chk('und eine Figur ohne alles bricht nicht',
+  !R.traegtWare(null, R.JAGUAR_SAEBEL_ID) && !R.traegtWare({}, null));
+
+/* Der Bogen weigert sich WIRKLICH - geschnitten und ausgefuehrt, nicht im
+   Quelltext gesucht. Die Wache liegt in der Funktion und nicht nur am Knopf:
+   Ein von Hand abgesetzter Aufruf kommt daran nicht vorbei. */
+(function () {
+  const von = BOGEN.indexOf('function lagerVerkaufen(i)');
+  /* Bis zum Banner VOR "START" - der Index von '   START' selbst liegt
+     mitten im Kommentarblock, und der Schnitt waere unparsebar. */
+  const sStart = BOGEN.indexOf('   START');
+  const bis = sStart < 0 ? -1 : BOGEN.lastIndexOf('/*', sStart);
+  chk('der Schnitt findet ablegen()/lagerVerkaufen()', von > 0 && bis > von
+    && BOGEN.slice(von, bis).indexOf('function ablegen(i)') >= 0, [von, bis]);
+  if (von < 0 || bis < von) return;
+
+  const ctx = {};
+  vm.createContext(ctx);
+  Object.keys(R).forEach(function (k) { ctx[k] = R[k]; });
+  let gemeldet = null;
+  ctx.alert = function (t) { gemeldet = t; };
+  ctx.confirm = function () { return true; };
+  ctx.speichern = function () {}; ctx.renderAlles = function () {};
+  ctx.F = { ausr: [R.JAGUAR_SAEBEL_ID, 'saebel'], lager: [R.JAGUAR_SAEBEL_ID], muenzen: 0 };
+  vm.runInContext(BOGEN.slice(von, bis)
+    + String.fromCharCode(10) + 'this.__ablegen = ablegen; this.__verk = lagerVerkaufen;', ctx);
+
+  ctx.__ablegen(0);
+  chk('ablegen() gibt den Jaguar-Saebel nicht her',
+    ctx.F.ausr.indexOf(R.JAGUAR_SAEBEL_ID) >= 0, ctx.F.ausr);
+  chk('und sagt, warum', !!gemeldet && gemeldet.indexOf('Spielleitung') > 0, gemeldet);
+  chk('es wird dabei auch kein Geld gutgeschrieben', ctx.F.muenzen === 0, ctx.F.muenzen);
+  ctx.__verk(0);
+  chk('aus dem Lager verkaufen ebenso nicht',
+    ctx.F.lager.indexOf(R.JAGUAR_SAEBEL_ID) >= 0, ctx.F.lager);
+
+  /* Die GEGENRICHTUNG, sonst waere der Block aus einem anderen Grund gruen:
+     Ein normaler Saebel laesst sich weiterhin ablegen. */
+  ctx.__ablegen(1);
+  chk('ein normaler Saebel geht weiterhin weg',
+    ctx.F.ausr.indexOf('saebel') < 0 && ctx.F.muenzen === 125,
+    { ausr: ctx.F.ausr, m: ctx.F.muenzen });
+})();
+
+/* Und die ANZEIGE: kein Kreuz an der Zeile. Ein Knopf, den die Funktion
+   ablehnt, ist genau der Fehler von heute Mittag (die Oberflaeche fordert zu
+   etwas auf, das nicht geht). */
+chk('die Zeile des Jaguar-Saebels traegt kein Verkaufs-Kreuz',
+  BOGEN.indexOf('a.unverkaeuflich ?') > 0
+  && BOGEN.indexOf('(AUSR_BY_ID[id] || {}).unverkaeuflich ?') > 0);
+chk('und das Overlay behauptet keinen Verkaufswert',
+  MARKEN.indexOf('Nicht zu verkaufen') > 0);
 
 setTimeout(function () {
   chk('beim Öffnen kommt das Bild zurück',

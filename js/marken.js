@@ -162,8 +162,12 @@ function tagModalAuf(chip) {
       ', dann nachladen. Jeder Schuss kostet eine Ladung aus dem Vorrat der Figur.');
     if (x.ruest) z.push('<b>Robustheit:</b> +' + x.ruest + ', solange sie es trägt.');
     if (x.ladungen) z.push('<b>Bringt ' + x.ladungen + ' Ladungen</b> mit.');
-    z.push('<b>Gewicht:</b> ' + (x.gew || 0) + ' · <b>Wert:</b> ' + (x.preis || 0) +
-      ' M. (Verkauf bringt die Hälfte.)');
+    /* Bei einer unverkaeuflichen Ware waere "Wert: 0 M. (Verkauf bringt die
+       Haelfte)" eine falsche Auskunft - man kann sie gar nicht verkaufen. */
+    z.push('<b>Gewicht:</b> ' + (x.gew || 0) + (x.unverkaeuflich
+      ? ' · <b>Nicht zu verkaufen.</b> Kein Händler nimmt sie, und du legst '
+        + 'sie nicht ab — was damit geschieht, entscheidet die Spielleitung.'
+      : ' · <b>Wert:</b> ' + (x.preis || 0) + ' M. (Verkauf bringt die Hälfte.)'));
     if (!x.schaden && !x.ruest && !x.schuss && !x.ladungen) {
       z.push('Mechanisch tut dieser Gegenstand nichts — er wiegt und ' +
         'lässt sich verkaufen. Was sonst daraus wird, entscheidet die ' +

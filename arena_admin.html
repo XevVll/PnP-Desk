@@ -372,7 +372,12 @@
        Ueberfall. Deshalb nur austeilen, nicht landen. */
     const ini = arenaAusteilen(tokens, null, null);
     db.ref(BASIS.slice(0, -1)).set({
-      runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
+      runde: 1, freigegeben: null,
+      /* Wer ihn laut Bogen traegt, haelt ihn auch auf dem Brett. Muesste die
+         SL daran denken, "Saebel geben" zu klicken, waere der Endkampf nach
+         einem vergessenen Klick nicht zu gewinnen - lautlos. */
+      saebeltraeger: arenaSaebeltraegerAusTokens(tokens, null),
+      tokens: tokens,
       initiative: ini,
       log: { start: {
         text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.' +
@@ -563,6 +568,31 @@
   /* Die Ableitung Blatt -> Token liegt in js/arena.js (arenaWerteAusFigur) und
      NICHT hier: Sie gilt fuer NSC-Blaetter und fuer Spielerboegen gleich, und
      eine zweite Fassung lief sonst auseinander. */
+  /* EINE Fassung fuer Spieler UND Verbuendete: Der Saebel kann im Finale an
+     Harwick gehen (Bibel 12.1), also braucht beides dieselbe Zeile - zwei
+     Kopien liefen beim naechsten Umbau auseinander.
+
+     Die Zeile sagt zusaetzlich, was der BOGEN sagt. Bei mehreren Figuren auf
+     dem Brett sieht man sonst nicht, wer ihn mitgebracht hat - und hat die SL
+     ihn weitergegeben, soll der Unterschied dastehen statt nur im
+     Firebase-Feld zu liegen. */
+  function saebelZeile(id, t) {
+    const haelt = id === (snap.saebeltraeger || null);
+    let h = '<div class="zeile"><button class="btn" onclick="saebelSetzen(\''
+      + (haelt ? '' : id) + '\')">'
+      + (haelt ? 'Säbel wegnehmen' : 'Säbel geben') + '</button></div>';
+    if (t.jaguarSaebel && !haelt) {
+      h += '<div class="hinweis">Laut Bogen trägt sie den <b>Jaguar-Säbel</b> — '
+        + 'auf dem Brett hält ihn gerade jemand anderes.</div>';
+    } else if (t.jaguarSaebel) {
+      h += '<div class="hinweis">Trägt ihn auch laut Bogen.</div>';
+    } else if (haelt) {
+      h += '<div class="hinweis">Hält ihn auf dem Brett, laut Bogen gehört er '
+        + 'ihr nicht — in Ordnung, im Finale wird er weitergegeben.</div>';
+    }
+    return h;
+  }
+
   function werteSchreiben(id, werte, pid, zustand, logText) {
     const a = {};
     Object.keys(werte).forEach(function (k) { a['tokens/' + id + '/' + k] = werte[k]; });
@@ -640,7 +670,15 @@
     if (zustand.wunden > 0 || zustand.angeschlagen) {
       text += ' (Zustand aus dem Charakterbogen übernommen.)';
     }
-    schreibe({ ['tokens/' + id]: token }, text);
+    const paket = { ['tokens/' + id]: token };
+    /* Nur, wenn noch NIEMAND ihn haelt: Im Finale wird der Saebel
+       weitergegeben, und eine Automatik, die ihn zurueckholt, wuerde den Beat
+       ueberschreiben (Bibel 12.1). */
+    if (token.jaguarSaebel && !(snap.saebeltraeger || null)) {
+      paket.saebeltraeger = id;
+      text += ' Sie trägt den Jaguar-Säbel.';
+    }
+    schreibe(paket, text);
   }
 
   // Werte neu aus dem Bogen holen - fuer den Fall, dass der Spieler zwischen
@@ -654,8 +692,10 @@
       render();
       return;
     }
-    werteSchreiben(id, arenaWerteAusFigur(eintrag.figur, eintrag.name), t.pid, null,
+    const neu = arenaWerteAusFigur(eintrag.figur, eintrag.name);
+    werteSchreiben(id, neu, t.pid, null,
       eintrag.name + ': Werte aus dem Charakterbogen nachgezogen.');
+    if (neu.jaguarSaebel && !(snap.saebeltraeger || null)) saebelSetzen(id);
   }
 
   /* Einen Spieler einer Figur ZUTEILEN, ohne ihre Werte anzufassen.
@@ -1076,11 +1116,9 @@
     if (sel.typ === 'spieler') {
       html += '<div class="zeile"><button class="btn ' + (istFrei ? 'warn' : 'primary') + '" onclick="freigeben(\'' + (istFrei ? '' : id) + '\')">' +
         (istFrei ? 'Freigabe entziehen' : 'Für Spieler freigeben') + '</button></div>';
-      html += '<div class="zeile"><button class="btn" onclick="saebelSetzen(\'' + (id === (snap.saebeltraeger || null) ? '' : id) + '\')">' +
-        (id === (snap.saebeltraeger || null) ? 'Säbel wegnehmen' : 'Säbel geben') + '</button></div>';
+      html += saebelZeile(id, sel);
     } else if (sel.typ === 'verbuendeter') {
-      html += '<div class="zeile"><button class="btn" onclick="saebelSetzen(\'' + (id === (snap.saebeltraeger || null) ? '' : id) + '\')">' +
-        (id === (snap.saebeltraeger || null) ? 'Säbel wegnehmen' : 'Säbel geben') + '</button></div>';
+      html += saebelZeile(id, sel);
       html += '<div class="hinweis">Verbündeter — steuerst nur du, keine Spieler-Freigabe.</div>';
     } else {
       html += '<div class="hinweis">Gegner — steuerst nur du.</div>';

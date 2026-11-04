@@ -473,6 +473,10 @@ const AUSR_ARTEN = ['Nahkampf', 'Fernkampf', 'Munition', 'Schutz', 'Gerät', 'Al
    Bewusst KEINE Kaliber, keine Fehlzuendungstabelle, kein Rechnen je Waffe:
    Eine Ladung ist eine Ladung. Mehr Buchhaltung wuerde am Tisch nur bremsen,
    und Savage Worlds selbst zaehlt Schuss je Gefecht, nicht je Kampagne. */
+/* Die Kennung der Pflichtwaffe als Konstante: Die Arena fragt danach, und
+   ein String-Literal an zwei Stellen laeuft beim naechsten Umbau auseinander. */
+const JAGUAR_SAEBEL_ID = 'jaguar_saebel';
+
 const LADUNGEN_START = 0;
 const STARTGELD = 500;
 
@@ -492,6 +496,33 @@ const AUSRUESTUNG = [
     d:'Öffnet Türen, Luken und Menschen. Nicht elegant.' },
   { id:'pike',       n:'Pike',              art:'Nahkampf', schaden:2, gew:8,  preis:100,
     d:'Hält den Gegner auf Abstand — an Deck oft im Weg.' },
+
+  /* DER JAGUAR-SAEBEL IST KANONISCHE WARE, KEINE ERFUNDENE (04.11.2026).
+     Er steht in der Bibel (12.1) und ist die Pflichtwaffe des Finales - er
+     gehoert damit dem ABENTEUER, nicht einer Sitzung. Haette ich ihn als
+     eigeneWaren-Eintrag (sl_...) angelegt, traefe ihn genau die Falle, die
+     ARENA-ENDKAMPF.md 4.6 beschreibt: Eine erfundene Ware findet AUSR_BY_ID
+     nur, wenn die Seite vorher eigeneWarenSetzen() gerufen hat - sonst faellt
+     sie STILL weg, und die Figur stuende mit der Faust auf dem Brett. Bei der
+     einen Waffe, ohne die der Endkampf nicht zu gewinnen ist, ist das das
+     teuerste Risiko im ganzen Projekt. Als kanonische Ware kennt ihn jede
+     Seite ohne Vorbedingung.
+
+     Die Werte sind die eines Saebels - seine Wirkung ist keine Zahl, sondern
+     die Bann-Regel in der Arena (ARENA-ENDKAMPF.md 4.5). Ein hoeherer
+     Schadenswuerfel wuerde die Pflichtwaffe in eine starke Waffe verwandeln,
+     und genau das hat Hendrik am 18.10.2026 abgeloest.
+
+     UNVERKAEUFLICH, und das ist kein Schmuck: "ablegen" verkauft ohne
+     Rueckfrage zum halben Preis. Ein Fehlgriff auf das Kreuz haette das
+     Finale lautlos unloesbar gemacht. Er liegt deshalb in keinem Laden
+     (kein Haendler fuehrt ihn) und laesst sich nicht verkaufen. Verstauen
+     geht weiter - das ist umkehrbar. */
+  { id:'jaguar_saebel', n:'Jaguar-Säbel',    art:'Nahkampf', schaden:2, gew:3,  preis:0,
+    unverkaeuflich:true,
+    d:'Ein verzierter Säbel, in die Klinge ein Jaguar eingraviert. Lag hinter '
+      + 'der steinernen Klappe in der Grotte. Was in SEINEM Namen geschmiedet '
+      + 'ist, schickt zurück; alles andere legt es bloß schlafen.' },
 
   /* ---- Fernkampf ---- */
   { id:'wurfmesser', n:'Wurfmesser',        art:'Fernkampf', schaden:1, gew:1, preis:30,  reichweite:3,
@@ -790,6 +821,15 @@ function ruestbonus(figur) {
    der SL eingezogen), zaehlt nicht - dann greift derselbe Rueckfall. Die Wahl
    wird dabei bewusst NICHT geloescht: Wer seinen Saebel in die Kiste legt und
    wieder herausholt, hat ihn danach wieder in der Hand. */
+/* TRAEGT die Figur diese Ware - am Guertel, nicht in der Seemannskiste.
+   Das Lager zaehlt bewusst NICHT (Bibel 4.5a): Ein Jaguar-Saebel unter Deck
+   liegt unter Deck, und genau diese Richtung ist die gefaehrliche - eine
+   verstaute Pflichtwaffe darf im Endkampf nicht in der Hand liegen. */
+function traegtWare(figur, id) {
+  if (!figur || !id) return false;
+  return (figur.ausr || []).indexOf(id) >= 0;
+}
+
 function waffeInHand(figur, art) {
   if (!figur) return null;
   const liste = figur.ausr || [];
@@ -1399,6 +1439,7 @@ if (typeof module !== 'undefined' && module.exports) {
     BENNIES, BEWEGUNG, MAX_WUNDEN, RAENGE, rangVon, rangName, rangJetzt, STECKBRIEF, CREW_STEPS,
     TALENT_KATEGORIEN, TALENTE, HANDICAPS, TAL_BY_ID, HND_BY_ID, talenteDerKategorie,
     AUSRUESTUNG, AUSR_ARTEN, AUSR_BY_ID, STARTGELD, LADUNGEN_START, ausruestungDerArt,
+    JAGUAR_SAEBEL_ID, traegtWare,
     EIGENE_PRAEFIX, EIGENE_WAREN, eigeneWareId, istEigeneWare,
     eigeneWarePruefen, eigeneWareEintragen, eigeneWarenSetzen,
     traglast, getragen, verstaut, warenGewicht, ueberladen, ruestbonus,

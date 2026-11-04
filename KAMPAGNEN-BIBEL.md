@@ -1688,6 +1688,34 @@ wieder auf, der Seelenlose eingeschlossen; solange er nicht gebannt ist, kommen 
 nach. Die Regelabbildung steht in `ARENA-ENDKAMPF.md` 4.5, der Code in `js/arena.js`
 (`arenaBossGebannt()`), die Prüfungen in `tests/t_arena.js`.
 
+**Er ist seit dem 04.11.2026 ein echter Gegenstand** (Hendriks Auftrag: „Ich brauche den
+JaguarSäbel noch als Item, was ich zuweisen kann.“): „Jaguar-Säbel“ in der Warenliste
+von `js/regelwerk.js`, von der Spielleitung über **Übergeben** in `regie_figuren.html` an
+eine Figur zu geben — derselbe Weg wie jede Beute. Drei Entscheidungen dazu:
+
+- **Er ist kanonische Ware, keine von der Spielleitung erfundene.** Eine erfundene Ware
+  (`sl_…`) kennt eine Seite nur, wenn sie vorher `eigeneWarenSetzen()` gerufen hat — sonst
+  fällt sie **still** weg, und die Figur steht mit der Faust auf dem Brett
+  (`ARENA-ENDKAMPF.md` 4.6). Bei der einen Waffe, ohne die der Endkampf nicht zu gewinnen
+  ist, wäre das das teuerste Risiko im Projekt.
+- **Seine Werte sind die eines gewöhnlichen Säbels** (Schaden W6, 3 Pfund). Seine Wirkung
+  ist keine Zahl, sondern die Bann-Regel oben. Ein höherer Schadenswürfel wäre die
+  Fassung, die Hendrik am 18.10.2026 ausdrücklich abgelöst hat — „schlicht eine sehr
+  gute Waffe“.
+- **Der Spieler kann ihn nicht verkaufen und nicht ablegen.** „Ablegen“ verkauft im
+  Heldenbrief ohne Rückfrage zum halben Preis; ein Fehlgriff hätte das Finale lautlos
+  unlösbar gemacht. Kein Händler führt ihn. **Einziehen kann allein die Spielleitung** —
+  und die Weitergabe im Finale (an Jessica, an Harwick, an niemanden) läuft ohnehin über
+  sie. Verstauen darf der Spieler, das ist umkehrbar; eine verstaute Waffe liegt aber
+  nicht in der Hand (4.5a) und bannt deshalb nichts.
+
+Wer ihn laut Bogen trägt, hält ihn beim Aufbauen der Arena **von selbst**
+(`arenaSaebeltraegerAusTokens()`). Musste die Spielleitung daran denken, „Säbel geben“ zu
+klicken, hänge das Finale an einem Klick, den man vergessen kann — und am Tisch sähe
+niemand den Grund. **Ein gesetzter Träger wird dabei nie überschrieben:** Die drei
+Ausgänge des Finales hängen genau an der Übergabe, und eine Automatik, die den Säbel
+zurückholt, würde den Beat aushöhlen.
+
 > **Diese Festlegung löst die vorherige ab**, und zwar in beide Richtungen: Bis zum 17.10. stand
 > hier, der Säbel sei „keine Rätselwaffe und kein Artefakt mit Sonderregel, sondern schlicht eine
 > sehr gute Waffe", die den Endkampf nur *vereinfacht*, und die Gruppe trage ihn „die ganze Zeit

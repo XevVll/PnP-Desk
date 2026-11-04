@@ -610,7 +610,11 @@ function arenaAufbauenMit(sceneId, sz, figuren) {
      die Aufstellung, und ein Dienerangriff vor dem ersten Wort der SL waere
      ein Ueberfall. */
   db.ref(arenaBasis(sceneId).slice(0, -1)).set({
-    runde: 1, freigegeben: null, saebeltraeger: null, tokens: tokens,
+    runde: 1, freigegeben: null,
+    /* Wer ihn laut Bogen traegt, haelt ihn auch auf dem Brett - sonst haengt
+       das Finale an einem Klick, den die SL vergessen kann. */
+    saebeltraeger: arenaSaebeltraegerAusTokens(tokens, null),
+    tokens: tokens,
     initiative: arenaAusteilen(tokens, null, null),
     log: { start: {
       text: 'Der Kampf beginnt. Die Karten sind ausgeteilt.' +

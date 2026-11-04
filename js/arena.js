@@ -1171,12 +1171,19 @@ function arenaDienerRunde(tokens, regeln, saebeltraegerId, runde, bonus) {
    Saebel - auf dem Brett gibt es keine Waffenwahl, und die
    Alternative waere, bei jedem Angriff zu fragen.
 
-   WICHTIG: Traegt die Figur eine von der SL ERFUNDENE Ware
-   (eigeneWaren, z. B. den Jaguar-Saebel), muss die aufrufende
-   Seite sie vorher ueber eigeneWarenSetzen() ins Regelwerk
-   eingetragen haben - sonst findet AUSR_BY_ID sie nicht und die
-   Waffe faellt STILL weg. Genau dieselbe Reihenfolge wie in
-   heldenbrief.html und regie_figuren.html.
+   WICHTIG: Traegt die Figur eine von der SL ERFUNDENEN Ware
+   (eigeneWaren), muss die aufrufende Seite sie vorher ueber
+   eigeneWarenSetzen() ins Regelwerk eingetragen haben - sonst
+   findet AUSR_BY_ID sie nicht und die Waffe faellt STILL weg.
+   Genau dieselbe Reihenfolge wie in heldenbrief.html und
+   regie_figuren.html.
+
+   DER JAGUAR-SAEBEL IST SEIT DEM 04.11.2026 KEINE SOLCHE WARE
+   MEHR, und das war der Grund fuer die Umstellung: Als
+   erfundene Ware haette ausgerechnet die Pflichtwaffe des
+   Finales still wegfallen koennen. Er steht jetzt in
+   js/regelwerk.js (JAGUAR_SAEBEL_ID) und braucht keine
+   Vorbedingung. Frueher stand hier das Gegenteil.
    ========================================================== */
 /* WELCHE WAFFE AUFS BRETT KOMMT, entscheidet die Arena NICHT selbst.
    waffeInHand() in js/regelwerk.js ist seit dem 04.11.2026 die einzige
@@ -1208,12 +1215,47 @@ function arenaWerteAusFigur(figur, name) {
        hoechstens pistolengross. Das Gewicht der Ware traegt diese Grenze
        sauber - Wurfmesser 1, Pistole 3, Donnerbuechse 6, Muskete 8. */
     fernHandlich: !!(fern && (fern.gew || 0) <= ARENA_NAHSCHUSS_GEWICHT),
+    /* TRAEGT sie die Pflichtwaffe? Nur getragen, nicht verstaut - ein
+       Jaguar-Saebel in der Seemannskiste bannt niemanden (Bibel 4.5a).
+       Das Feld sagt nur, was der BOGEN sagt; wer ihn auf dem Brett in der
+       Hand hat, entscheidet weiterhin die Spielleitung (saebeltraeger). */
+    jaguarSaebel: (typeof traegtWare === 'function')
+      ? traegtWare(figur, JAGUAR_SAEBEL_ID) : false,
     parade: parade(figur),
     robustheit: robustheit(figur),
     /* Wild Card: Spielerfiguren immer, NSC laut Blatt. nscAlsFigur() setzt
        das Feld; ein Spielerbogen hat es nicht, und dort ist "true" richtig. */
     wild: (figur.wild === undefined) ? true : !!figur.wild
   };
+}
+
+/* ---------- WER DEN SAEBEL AUF DEM BRETT HAELT ----------
+   Hendriks Auftrag vom 04.11.2026: "Ich brauche den JaguarSaebel noch als
+   Item, was ich zuweisen kann."
+
+   DIE WICHTIGERE HAELFTE IST, DASS DIE SL DAS LETZTE WORT BEHAELT. Im Finale
+   wird der Saebel weitergegeben - an Jessica, an Harwick oder an niemanden
+   (Bibel 12.1, drei Ausgaenge). Eine Automatik, die ihn stur dem zurueckgibt,
+   der ihn laut Bogen traegt, wuerde genau den Beat ueberschreiben, um den es
+   geht. Deshalb: Ein gesetzter Traeger bleibt unangetastet, solange sein
+   Token steht.
+
+   Abgeleitet wird nur die LUECKE: Steht niemand als Traeger da, bekommt ihn
+   die Figur, die ihn laut Bogen bei sich hat. Ohne das muesste die
+   Spielleitung daran denken, "Saebel geben" zu klicken - und vergisst sie es,
+   ist der Endkampf nicht zu gewinnen, ohne dass am Tisch jemand den Grund
+   sieht. Dieselbe Fehlerklasse wie arenaBossLebt() am 18.10.2026.
+
+   Mehrere Traeger gibt es im Kanon nicht (einen Saebel, eine Grotte); stehen
+   doch zwei da, gewinnt die erste Kennung - willkuerlich, aber
+   reproduzierbar, wie bei der Diener-Zielwahl. */
+function arenaSaebeltraegerAusTokens(tokens, aktuell) {
+  const alle = tokens || {};
+  if (aktuell && alle[aktuell]) return aktuell;
+  const ids = Object.keys(alle).filter(function (id) {
+    return alle[id] && alle[id].jaguarSaebel && !alle[id].tot;
+  }).sort();
+  return ids.length ? ids[0] : (aktuell || null);
 }
 
 /* Der ZUSTAND der Figur, getrennt von ihren Werten - damit die SL wahlweise
@@ -1347,7 +1389,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ARENA_NACHBARN,
     arenaDienerZug, arenaDienerRunde,
     arenaIniLanden, arenaIniNeueRunde, arenaMischen,
-    arenaBesteWaffe, arenaWerteAusFigur, arenaZustandAusFigur,
+    arenaBesteWaffe, arenaWerteAusFigur, arenaZustandAusFigur, arenaSaebeltraegerAusTokens,
     arenaNahschussMoeglich, ARENA_NAHSCHUSS_GEWICHT
   };
 }

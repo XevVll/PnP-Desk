@@ -129,6 +129,100 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-04 (Fortsetzung 5) — Der Jaguar-Säbel ist ein Gegenstand
+- **Hendriks Auftrag:** „Ich brauche den JaguarSäbel noch als Item, was ich zuweisen kann."
+- **Neu „Jaguar-Säbel" in `js/regelwerk.js`** (54 statt 53 Waren), in der Übergabe-Auswahl von
+  `regie_figuren.html` unter Nahkampf — derselbe Weg über das Postfach wie jede Beute. Werte wie
+  ein gewöhnlicher Säbel: Schaden W6, 3 Pfund.
+- **DIE TRAGENDE ENTSCHEIDUNG IST, DASS ER KANONISCHE WARE IST UND KEINE ERFUNDENE.** Der
+  bequeme Weg wäre eine `sl_`-Ware über die Werkstatt vom 15.10. gewesen — und genau dort liegt
+  die Falle, die `ARENA-ENDKAMPF.md` 4.6 beschreibt: **Eine erfundene Ware findet `AUSR_BY_ID`
+  nur, wenn die Seite vorher `eigeneWarenSetzen()` gerufen hat, sonst fällt sie STILL weg** —
+  die Figur steht mit der Faust auf dem Brett, und niemand sieht den Grund. Bei der **einen
+  Waffe, ohne die der Endkampf nicht zu gewinnen ist** (Bibel 12.1), ist das das teuerste Risiko
+  im Projekt. Als kanonische Ware kennt ihn jede Seite ohne Vorbedingung.
+  - **In `js/arena.js` stand das Gegenteil, und zwar als Warnung im Dateikopf:** „Traegt die
+    Figur eine von der SL ERFUNDENE Ware (eigeneWaren, **z. B. den Jaguar-Saebel**)…" Nachgezogen
+    — und in `tests/t_arena.js` ebenso, wo der Säbel das **Beispiel** für diesen Fehlerfall war.
+    Eine Prüfung, die ihn weiter als erfundene Ware vorführt, lehrt genau das Falsche; das
+    Beispiel heißt jetzt `sl_beutestueck`, der Mechanismus wird unverändert geprüft.
+- **Seine Werte sind ABSICHTLICH nicht höher.** Seine Wirkung ist keine Zahl, sondern die
+  Bann-Regel der Arena (4.5). Ein größerer Schadenswürfel wäre genau die Fassung, die Hendrik am
+  18.10. abgelöst hat („schlicht eine sehr gute Waffe"). Steht als eigene Prüfung da.
+- **UNVERKAEUFLICH, und das ist kein Schmuck:** `ablegen()` im Heldenbrief verkauft **ohne
+  Rückfrage** zum halben Preis. **Ein Fehlgriff auf das Kreuz hätte das Finale lautlos unlösbar
+  gemacht.** Die Zeile hat deshalb kein Kreuz mehr, kein Händler führt ihn, und die **Wache liegt
+  in der Funktion**, nicht nur am Knopf — ein von Hand abgesetzter Aufruf kommt nicht vorbei
+  (dieselbe Linie wie `arenaDarfSteuern()` am 30.10.).
+  - **Das Merkmal heißt `unverkaeuflich` und nicht „wenn id === jaguar_saebel"**: Ein
+    Sonderfall auf die Kennung wäre die zweite Regelstelle gewesen.
+  - **Verstauen bleibt erlaubt** — das ist umkehrbar. Eine verstaute Waffe liegt aber nicht in
+    der Hand (4.5a) und bannt deshalb nichts; das steht als eigene Prüfung da, weil es die
+    gefährliche Richtung ist.
+  - **Einziehen kann allein die Spielleitung.** Ohne diesen Weg wäre er unverlierbar — und die
+    Weitergabe im Finale läuft ohnehin über sie.
+  - Das Overlay sagt jetzt „Nicht zu verkaufen" statt „Wert: 0 M. (Verkauf bringt die Hälfte.)"
+    — das war an dieser Ware eine falsche Auskunft.
+- **DAMIT ES NICHT NUR SCHMUCK IST, ERKENNT DAS BRETT IHN.** `arenaWerteAusFigur()` setzt am Token
+  das Feld `jaguarSaebel` (nur **getragen**, nicht verstaut), und `arenaSaebeltraegerAusTokens()`
+  setzt beim Aufbauen den Träger. Hätte die SL daran denken müssen, „Säbel geben" zu klicken,
+  hänge das Finale an einem vergessenen Klick — dieselbe Fehlerklasse wie `arenaBossLebt()` am
+  18.10.: eine Pflichtmechanik, die lautlos wirkungslos wird, statt sichtbar zu brechen.
+  - **DIE WICHTIGERE HÄLFTE IST, DASS EIN GESETZTER TRÄGER NIE ÜBERSCHRIEBEN WIRD.** Im Finale
+    wird der Säbel weitergegeben — an Jessica, an Harwick oder an niemanden, und daran hängen
+    die **drei Ausgänge** (Bibel 12.1). Eine Automatik, die ihn stur dem zurückgibt, der ihn
+    laut Bogen trägt, würde genau den Beat überschreiben. Abgeleitet wird nur die **Lücke**.
+  - **Beide Aufbau-Wege leiten ab** (Schlachtfeld und Kompakt-Panel der Regie). Zwei Knöpfe, die
+    den Säbel verschieden behandeln, wären am Tisch schlimmer als keine Ableitung.
+  - **Das Panel sagt, was der BOGEN sagt** („Laut Bogen trägt sie den Jaguar-Säbel — auf dem
+    Brett hält ihn gerade jemand anderes."). Bei mehreren Figuren sieht man sonst nicht, wer ihn
+    mitgebracht hat, und eine Weitergabe läge nur im Firebase-Feld. **Eine** Fassung dieser
+    Zeile für Spieler UND Verbuendete — der Säbel kann an Harwick gehen.
+- **EIN TRIGGER-TEXT LOG SEIT DEM 18.10.** `belohnung_saebel` in `js/regie.js` sagte wortwörtlich
+  „Schlicht eine sehr gute Waffe, keine Sonderregel — vereinfacht später den Endkampf", also
+  genau die Fassung, die Hendriks Festlegung abgelöst hat. **Zweieinhalb Wochen falsche Auskunft
+  an der Stelle, an der die SL sie am Tisch liest** — der Fehler vom 14.10. Jetzt steht dort, dass
+  der Säbel wirklich übergeben wird, dass ohne ihn der Endkampf nicht zu gewinnen ist und dass
+  die Spielleitung genau das **nicht** sagt.
+- **Getestet: 2338 Prüfungen über vierzehn Skripte** (52 neue; `t_arena.js` 481, `t_bogen.js` 375,
+  `t_regie_wuerfel.js` 370), ein Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit
+  dem 13.10.
+  - **Die Kette läuft am Stück: Bogen → Token → Träger → Bann.** Mein erster Anlauf baute den
+    Token im Wirkungs-Block von Hand mit `jaguarSaebel: true` — damit prüfte er die eigene
+    Annahme, und die Gegenprobe ließ nur **eine** Prüfung anschlagen. Jetzt vier, und die letzte
+    nennt den Fehler wörtlich (`mitSaebel: false`).
+  - **Der Bogen weigert sich WIRKLICH** — `ablegen()`/`lagerVerkaufen()` werden aus
+    `heldenbrief.html` geschnitten und ausgeführt, nicht im Quelltext gesucht. Dazu die
+    **Gegenrichtung**: Ein normaler Säbel geht weiterhin weg und bringt seine 125 Münzen —
+    sonst wäre der Block aus einem anderen Grund grün.
+  - **Vier Gegenproben:** `unverkaeuflich` entfernt (6 Prüfungen, darunter
+    `ablegen() gibt den Jaguar-Saebel nicht her` → `["saebel"]`) · Feld am Token weggeworfen (4) ·
+    die Ableitung überschreibt den gesetzten Träger (1, der Finale-Beat) · Aufbauen leitet nicht
+    ab (3).
+- **Ein eigener Fehler, und er ist der gröbste des Tages:** Für die Gegenprobe habe ich
+  `git checkout js/regie_vault.js` benutzt, um meine Testmanipulation zurückzunehmen — und damit
+  **meine eigene Arbeit in dieser Datei mitgelöscht**, weil sie noch nicht committet war. Genau
+  der Befehl, der am 23.10. schon einmal uncommittete Arbeit gekostet hat. Gefallen ist es nur,
+  weil ich danach `git status` gelesen habe. Wieder eingetragen. **Konsequenz: Gegenproben
+  ausschließlich über eine vorher angelegte Kopie zurückdrehen, nie über Git** — bei den drei
+  anderen Dateien hatte ich genau das getan, und dort war nichts verloren.
+- **Zwei Werkzeug-Fallen, beide dokumentiert, beide wieder getreten:**
+  1. **Die Heredoc-Falle, und diesmal hat sie gelogen statt zu brechen:** Ein `\'` in einem
+     Python-Suchtext kam ohne Backslash an, die Suche fand **0 Treffer** auf korrektem Code, und
+     es sah nach einer falschen Datei aus statt nach einem falschen Werkzeug. Erst das Zählen
+     der Varianten hat es gezeigt. Backslashes jetzt über `chr(92)`.
+  2. **Ein Schnitt-Endanker mitten im Kommentarblock:** `BOGEN.indexOf('   START')` trifft die
+     Zeile **innerhalb** des Banners, der Schnitt endete nach `/* ===` und war unparsebar. Jetzt
+     über `lastIndexOf('/*', …)`.
+- **[OFFEN] Ein zweiter Säbel ist technisch möglich.** Die Spielleitung kann ihn mehrfach
+  übergeben; im Kanon gibt es genau einen (eine Grotte, eine Nische). Stehen doch zwei Träger
+  auf dem Brett, gewinnt reproduzierbar die erste Kennung. Eine technische Sperre wäre eine
+  Regelentscheidung und war nicht beauftragt.
+- **[OFFEN] Der Spieler sieht nicht, was der Säbel kann**, und das ist Absicht: Bibel 12.1 sagt,
+  die Gruppe trägt ihn, ohne zu wissen, wozu. Die Beschreibung im Bogen nennt deshalb nur die
+  Randnotiz aus Harwicks Schriften („was in SEINEM Namen geschmiedet ist, schickt zurück") —
+  dieselbe Zeile, die der Spieler beim Bündel-Faden gelesen haben kann.
+
 ### 2026-11-04 (Fortsetzung 4) — Drei Markierungen auf dem Brett
 - **Hendriks Vorgabe:** „Können wir eine Markierung setzen für Nah und Fernkampf Angriff und
   Bewegung?"
