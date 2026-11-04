@@ -190,8 +190,14 @@ function arenaWundenAbzug(t) {
 
 /* Angeschlagen kostet die HANDLUNG, nicht den Wuerfel: bewegen ja,
    angreifen nein. */
+/* "Kann der ueberhaupt angreifen?" - und das heisst JETZT AUCH, dass er
+   es in dieser Runde noch nicht getan hat (04.11.2026). Vorher fehlte
+   hatAngegriffen hier, obwohl arenaAngriff() es direkt danach prueft:
+   Eine Funktion mit diesem Namen, die die Rundenbeschraenkung nicht
+   kennt, laedt jede Oberflaeche dazu ein, sie zu vergessen - genau das
+   ist mir beim Umbau des Spieler-Hinweises passiert. */
 function arenaKannAngreifen(t) {
-  return !!t && !t.tot && !t.angeschlagen;
+  return !!t && !t.tot && !t.angeschlagen && !t.hatAngegriffen;
 }
 
 function arenaZustandText(t) {
@@ -387,9 +393,17 @@ function arenaAngriff(angreifer, ziel, alleTokens, regeln, saebeltraegerId, vorg
      Aufruf kommt daran nicht vorbei.
      arenaKannAngreifen() gab es dafuer schon - sie wurde nirgends gerufen. */
   if (!arenaKannAngreifen(angreifer)) {
-    return { ok: false, grund: (angreifer && angreifer.tot) ? 'tot' : 'angeschlagen' };
+    /* DER GRUND MUSS STIMMEN, nicht nur das Nein: Seit arenaKannAngreifen()
+       auch hatAngegriffen kennt (04.11.2026), faellt ein dritter Fall in
+       diesen Zweig - und mit der alten Zuordnung bekam er den Satz
+       "ist angeschlagen" zu lesen. Seit die Oberflaeche den Grund
+       ANZEIGT, ist eine falsche Kennung eine falsche Auskunft am Tisch. */
+    const grund = !angreifer ? 'tot'
+      : angreifer.tot ? 'tot'
+      : angreifer.hatAngegriffen ? 'schon_angegriffen'
+      : 'angeschlagen';
+    return { ok: false, grund: grund };
   }
-  if (angreifer.hatAngegriffen) return { ok: false, grund: 'schon_angegriffen' };
 
   const art = arenaAngriffsart(angreifer, ziel, regeln, v.art);
   if (!art) return { ok: false, grund: 'ausser_reichweite' };
@@ -980,6 +994,48 @@ function arenaAngriffAenderungen(a, z, erg, runde) {
   return aenderungen;
 }
 
+/* WARUM GEHT ES NICHT? Die Engine nennt sieben Gruende, und beide
+   Ansichten haben sie bis zum 04.11.2026 WEGGEWORFEN - "if (!erg.ok)
+   return;", ohne ein Wort. Man klickte, und nichts geschah.
+
+   Hendriks Meldung: "Ich kann manchmal nicht angreifen. Woran liegt
+   das?" Gemessen: Der haeufigste Fall ist ANGESCHLAGEN - die
+   Spieleransicht schrieb dabei sogar "Gegner anklicken zum Angreifen"
+   und forderte damit zu etwas auf, das die Engine ablehnt.
+
+   Die Saetze stehen HIER und nicht in den Ansichten: Es sind drei
+   (Spielerkarte, Schlachtfeld, Kompakt-Panel), und drei Fassungen
+   derselben Begruendung laufen auseinander. Immer dritte Person mit
+   Namen - auch fuer den Spieler, dessen Hinweisblock seine Figur in
+   den anderen Zweigen ebenfalls beim Namen nennt. */
+function arenaAngriffGrundText(grund, name) {
+  const n = name || 'Die Figur';
+  switch (grund) {
+    case 'angeschlagen':
+      /* Savage Worlds: angeschlagen heisst KEINE Handlung, Bewegung aber
+         schon. Die Arena wuerfelt dafuer keine Willenskraft-Probe
+         (Abweichung 1) - der Rundenwechsel raeumt den Haken ab, und ein
+         Bennie geht ueber "Haken weg" bei der Spielleitung. */
+      return n + ' ist angeschlagen — bewegt sich, greift aber nicht an. '
+        + 'Der Rundenwechsel räumt das ab; ein Bennie auch.';
+    case 'schon_angegriffen':
+      return n + ' hat in dieser Runde schon angegriffen — Bewegung und Angriff je einmal.';
+    case 'tot':
+      return n + ' liegt am Boden.';
+    case 'ziel_liegt':
+      return 'Das Ziel liegt schon am Boden.';
+    case 'nicht_geladen':
+      return 'Die Waffe ist leer — sie lädt bis zur übernächsten Runde (Bibel 4.5).';
+    case 'ausser_reichweite':
+      return 'Zu weit weg: Für den Nahkampf muss ' + n + ' angrenzen, '
+        + 'für einen Schuss braucht sie eine geladene Fernkampfwaffe in Reichweite.';
+    default:
+      /* Kein stilles Schweigen fuer einen Grund, den es heute noch nicht
+         gibt - lieber die rohe Kennung als nichts. */
+      return 'Der Angriff geht nicht' + (grund ? ' (' + grund + ')' : '') + '.';
+  }
+}
+
 /* Die volle Logzeile samt Zusaetzen - arenaLogZeile() bleibt der Kern,
    damit die Regel "der Saebel wird nirgends benannt" eine Stelle hat. */
 function arenaAngriffText(a, z, erg) {
@@ -1283,7 +1339,7 @@ if (typeof module !== 'undefined' && module.exports) {
     arenaSchadensWuerfel, arenaSchadenWerfen,
     arenaAngriff, arenaBewegungErlaubt,
     arenaBossLebt, arenaBossGebannt, arenaRundenwechsel, arenaFreieRandfelder,
-    arenaLogZeile, arenaAngriffAenderungen, arenaAngriffText, arenaAnwenden,
+    arenaLogZeile, arenaAngriffAenderungen, arenaAngriffText, arenaAngriffGrundText, arenaAnwenden,
     ARENA_DIENER_SCHLUESSEL,
     arenaIniEintraege, arenaIniTokens, arenaAusteilen, arenaIniIndex,
     arenaIniAmZug, arenaIniWeiter, arenaIniFreigabe, arenaIniBonus,

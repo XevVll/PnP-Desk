@@ -58,6 +58,7 @@ vm.runInContext('this.X = {' + [
   'arenaFeldFrei', 'arenaNaechstesZiel', 'arenaSchrittZu', 'arenaDienerZug', 'arenaDienerRunde',
   'arenaWeg', 'arenaSchrittGierig', 'ARENA_NACHBARN',
   'arenaAngriffAenderungen', 'arenaAngriffText', 'arenaAnwenden',
+  'arenaAngriffGrundText',
   'arenaIniLanden', 'arenaIniNeueRunde', 'arenaMischen',
   'kartenText', 'kartenVergleich', 'jokerBonus',
   'arenaBesteWaffe', 'arenaWerteAusFigur', 'arenaZustandAusFigur',
@@ -2170,6 +2171,164 @@ function held(id, opts) {
     A.handWaehlen(um, 'lederwams') === false);
   chk('und eine Ware, die es nicht gibt, auch nicht',
     A.handWaehlen(um, 'gibt_es_nicht') === false);
+})();
+
+
+/* ==========================================================
+   WARUM GEHT ES NICHT (04.11.2026)
+   ----------------------------------------------------------
+   Hendriks Meldung: "Ich kann manchmal nicht angreifen.
+   Woran liegt das?"
+
+   GEMESSEN, und es war EIN Fall - der haeufigste: Eine
+   ANGESCHLAGENE Figur las in der Spieleransicht "Gegner
+   anklicken zum Angreifen", und der Klick tat nichts. Der
+   Hinweis prueft nur hatAngegriffen; angeschlagen kam dort
+   gar nicht vor. Dazu warfen BEIDE Ansichten den Grund weg
+   ("if (!erg.ok) return;", ohne ein Wort), obwohl die Engine
+   sieben Gruende nennt.
+
+   DIE TRAGENDE PRUEFUNG IST DIE INVARIANTE darunter:
+   Aufforderung und Ausfuehrung muessen dieselbe Antwort
+   geben. Genau diese Luecke war der Fehler - arenaKannAngreifen()
+   kannte hatAngegriffen nicht, arenaAngriff() lehnte es aber
+   ab, und in die Luecke fiel die Aufforderung.
+   ========================================================== */
+(function () {
+  const mach = function (o) {
+    return Object.assign({ id: 'p1', typ: 'spieler', x: 5, y: 5, kaempfen: 3, schiessen: 3,
+      staerke: 3, waffe: 2, fernwaffe: 0, parade: 6, robustheit: 6, wild: true,
+      geladen: true, bewegung: 2 }, o);
+  };
+  const ziel = { id: 'g1', typ: 'diener', x: 6, y: 5, parade: 4, robustheit: 4,
+    kaempfen: 1, wild: false };
+  const R = A.ARENA_SCENES['15.1'].regeln;
+
+  /* ---- DIE INVARIANTE: Aufforderung == Ausfuehrung ----
+     Ueber alle acht Kombinationen der drei Zustaende. Haette es diese
+     Pruefung gegeben, waere der gemeldete Fehler nie entstanden - und sie
+     ist nicht tautologisch: Sie vergleicht die Funktion, welche die
+     OBERFLAECHE fragt, mit dem, was die ENGINE wirklich tut. */
+  let abweichungen = [];
+  [false, true].forEach(function (tot) {
+    [false, true].forEach(function (angeschlagen) {
+      [false, true].forEach(function (hatAngegriffen) {
+        const a = mach({ tot: tot, angeschlagen: angeschlagen, hatAngegriffen: hatAngegriffen });
+        const darf = A.arenaKannAngreifen(a);
+        const erg = A.arenaAngriff(a, ziel, { p1: a, g1: ziel }, R, null, null, 0);
+        if (darf !== erg.ok) {
+          abweichungen.push({ tot: tot, angeschlagen: angeschlagen,
+            hatAngegriffen: hatAngegriffen, darf: darf, ok: erg.ok });
+        }
+      });
+    });
+  });
+  chk('arenaKannAngreifen() deckt GENAU die Faelle ab, die arenaAngriff() ablehnt',
+    abweichungen.length === 0, abweichungen);
+  /* Und die Gegenrichtung, damit die Pruefung nicht aus einem anderen Grund
+     gruen ist: Die acht Faelle muessen sich wirklich unterscheiden. */
+  chk('eine unversehrte Figur darf, eine angeschlagene nicht',
+    A.arenaKannAngreifen(mach({})) === true
+    && A.arenaKannAngreifen(mach({ angeschlagen: true })) === false);
+  chk('und wer schon angegriffen hat, auch nicht',
+    A.arenaKannAngreifen(mach({ hatAngegriffen: true })) === false);
+  /* Bewegung bleibt erlaubt - das ist die Savage-Worlds-Regel zu
+     angeschlagen (keine HANDLUNG, Bewegung schon), und sie darf beim
+     Nachziehen der Wache nicht mitgenommen werden. */
+  const ang = mach({ angeschlagen: true });
+  chk('eine angeschlagene Figur darf sich weiterhin BEWEGEN',
+    A.arenaBewegungErlaubt(ang, { x: 5, y: 6 }, R, { p1: ang }).ok === true,
+    A.arenaBewegungErlaubt(ang, { x: 5, y: 6 }, R, { p1: ang }));
+
+  /* ---- JEDER GRUND HAT EINEN SATZ ----
+     Keine rohe Kennung am Tisch, und kein leerer Text: Eine Meldung, die
+     nichts sagt, ist so schlecht wie das Schweigen von vorher. */
+  const GRUENDE = ['angeschlagen', 'schon_angegriffen', 'tot', 'ziel_liegt',
+    'nicht_geladen', 'ausser_reichweite'];
+  const texte = GRUENDE.map(function (g) { return A.arenaAngriffGrundText(g, 'Mara Quint'); });
+  chk('jeder Grund hat einen brauchbaren Satz',
+    texte.every(function (t) { return typeof t === 'string' && t.length > 20; }), texte);
+  chk('und keine zwei Gruende sagen dasselbe',
+    new Set(texte).size === GRUENDE.length, texte);
+  /* Gemeint sind die KENNUNGEN mit Unterstrich - "ist angeschlagen" ist
+     dagegen genau das richtige deutsche Wort, und meine erste Fassung
+     dieser Pruefung hat es als Fehler gemeldet. Die Pruefung war falsch,
+     nicht der Text. */
+  chk('keiner reicht eine rohe Kennung durch',
+    texte.every(function (t) { return !/[a-z]+_[a-z]+/.test(t); }), texte);
+  chk('der angeschlagene Satz sagt, dass Bewegung geht',
+    A.arenaAngriffGrundText('angeschlagen', 'Mara').indexOf('bewegt') >= 0);
+  chk('und nennt den Weg heraus - Rundenwechsel oder Bennie',
+    A.arenaAngriffGrundText('angeschlagen', 'Mara').indexOf('Bennie') >= 0);
+  chk('der Name steht im Satz',
+    A.arenaAngriffGrundText('schon_angegriffen', 'Mara Quint').indexOf('Mara Quint') >= 0);
+  chk('ohne Namen bricht er nicht',
+    A.arenaAngriffGrundText('tot', null).length > 5);
+  /* Ein Grund, den es heute noch nicht gibt, bekommt lieber die rohe
+     Kennung als Schweigen - sonst klickt wieder jemand ins Leere. */
+  chk('ein unbekannter Grund schweigt NICHT',
+    A.arenaAngriffGrundText('voellig_neu', 'Mara').indexOf('voellig_neu') >= 0,
+    A.arenaAngriffGrundText('voellig_neu', 'Mara'));
+
+  /* ---- DIE GRUENDE STIMMEN, nicht nur das Nein ----
+     Seit die Oberflaeche sie ANZEIGT, ist eine falsche Kennung eine
+     falsche Auskunft am Tisch. Das war beim Nachziehen der Wache beinahe
+     passiert: hatAngegriffen fiel in den angeschlagen-Zweig. */
+  const faelle = [
+    ['angeschlagen', mach({ angeschlagen: true })],
+    ['schon_angegriffen', mach({ hatAngegriffen: true })],
+    ['tot', mach({ tot: true })],
+    ['nicht_geladen', mach({ fernwaffe: 2, reichweite: 5, geladen: false, x: 1, y: 5 })],
+    ['ausser_reichweite', mach({ x: 1, y: 1 })]
+  ];
+  faelle.forEach(function (p) {
+    const erg = A.arenaAngriff(p[1], ziel, { p1: p[1], g1: ziel }, R, null, null, 0);
+    chk('der Grund fuer "' + p[0] + '" stimmt', erg.grund === p[0], erg);
+  });
+  chk('ein liegendes Ziel nennt seinen eigenen Grund',
+    A.arenaAngriff(mach({}), Object.assign({}, ziel, { tot: true }),
+      { p1: mach({}), g1: ziel }, R, null, null, 0).grund === 'ziel_liegt');
+
+  /* ---- UND DIE ANSICHTEN WERFEN IHN NICHT MEHR WEG ----
+     Quelltext-Pruefung, bewusst: Dass die Meldung ERSCHEINT, haengt an
+     DOM-Elementen, die hier nicht stehen - dass der Grund nicht mehr
+     stillschweigend verworfen wird, ist aber genau die Zeile, die falsch
+     war, und die laesst sich festnageln. */
+  /* OHNE KOMMENTARE gesucht: Meine erste Fassung schlug an ihrem eigenen
+     Erklaertext an, weil der Kommentar die alte Zeile ZITIERT. Dieselbe
+     Falle wie am 30.10.2026 - und die Lehre war, die Pruefung zu
+     SCHAERFEN statt sie fuer den eigenen Text aufzuweichen: Verboten ist
+     die Verwendung, nicht die Erwaehnung. */
+  const ohneKommentare = function (q) {
+    /* Blockkommentare per Regex, ZEILENkommentare von Hand: Ein
+       Backslash-n im Regex kam durch das Bash-Heredoc als echter
+       Zeilenumbruch an und hat diese Datei unparsebar gemacht - die
+       dokumentierte Falle, wieder getreten. Ohne Regex gibt es hier
+       nichts zu maskieren. */
+    return q.replace(/\/\*[\s\S]*?\*\//g, '')
+      .split('\n')
+      .map(function (z) {
+        const p = z.indexOf('//');
+        return p >= 0 ? z.slice(0, p) : z;
+      })
+      .join('\n');
+  };
+  ['karte.html', 'arena_admin.html'].forEach(function (datei) {
+    const q = fs.readFileSync(path.join(WURZEL, datei), 'utf8');
+    chk(datei + ' zeigt den Grund an', q.indexOf('arenaAngriffGrundText') >= 0);
+    chk(datei + ' verwirft ihn nicht mehr stillschweigend',
+      ohneKommentare(q).indexOf('if (!erg.ok) return;') < 0, datei);
+  });
+  /* DER GEMELDETE FEHLER, an seiner Zeile festgenagelt: Die Aufforderung
+     haengt an arenaKannAngreifen() und prueft hatAngegriffen nicht mehr
+     selbst - sonst faellt der naechste Zustand wieder durch. */
+  const karte = fs.readFileSync(path.join(WURZEL, 'karte.html'), 'utf8');
+  chk('die Aufforderung in karte.html fragt arenaKannAngreifen()',
+    karte.indexOf('if (arenaKannAngreifen(frei) && Object.keys(angreifbar).length)') >= 0);
+  chk('und sie prueft hatAngegriffen nicht mehr selbst',
+    karte.indexOf("if (!frei.hatAngegriffen && Object.keys(angreifbar).length)") < 0);
+  chk('der Spieler liest, dass er angeschlagen ist',
+    karte.indexOf('Angeschlagen — du kannst dich bewegen, aber nicht angreifen') >= 0);
 })();
 
 console.log((f ? 'FEHLER: ' + f : 'OK') + ' / ' + anzahl + ' Pruefungen');

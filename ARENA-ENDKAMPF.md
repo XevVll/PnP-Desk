@@ -1011,7 +1011,7 @@ prüfen** — die echte Firebase-Datenbank ist produktiv.
 
 ## 8. Fehlergeschichte
 
-Drei Fehler beim Bau, alle vom Test gefunden:
+Die Fehler beim Bau, alle vom Test gefunden:
 
 1. **TDZ im Adminpanel.** Die neuen `let`-State-Variablen (`arenaStateRef` usw.) standen zunächst
    bei den Arena-Funktionen weiter unten in `js/regie_vault.js`. Der Firebase-Init-catch-Zweig
@@ -1141,6 +1141,36 @@ Drei Fehler beim Bau, alle vom Test gefunden:
     des Zurücksetzens schlug nicht an. Jetzt wird er erst gesetzt; danach schlägt sie an.
     **Eine Gegenprobe, die nicht anschlägt, kann auch eine schlechte Probe sein** (dieselbe Lehre
     wie am 15.10. bei der CSS-Prüfung).
+24. **Der abgelehnte Angriff schwieg.** Hendriks Meldung: *„Ich kann manchmal nicht
+    angreifen. Woran liegt das?"* Die Engine nennt **sieben** Gründe — und beide Ansichten
+    warfen sie weg (`if (!erg.ok) return;`, ohne ein Wort). **Gemessen war es ein Fall, und
+    zwar der häufigste:** Eine **angeschlagene** Figur las in der Spieleransicht *„Gegner
+    anklicken zum Angreifen"*, weil der Hinweisblock nur `hatAngegriffen` prüfte und
+    `angeschlagen` dort **gar nicht vorkam** — die Oberfläche forderte zu etwas auf, das die
+    Engine ablehnt. **Die Regel selbst war richtig** (Bibel 4.4a: angeschlagen heißt Bewegung
+    ja, Angriff nein), und der Code hielt sich daran; falsch war allein die Anzeige. Das ist
+    der Unterschied zu den Befunden der Vortage, wo die Regel nirgends stand.
+    Behoben in zwei Richtungen: Der Grund wird jetzt **vorher** gesagt (die Aufforderung hängt
+    an `arenaKannAngreifen()`, derselben Funktion, die die Engine fragt) **und hinterher**, als
+    Meldung statt Schweigen. Die Sätze stehen in `arenaAngriffGrundText()` in `js/arena.js` —
+    es gibt drei Ansichten, und drei Fassungen derselben Begründung laufen auseinander.
+25. **`arenaKannAngreifen()` beantwortete ihre eigene Frage nicht.** Sie prüfte `tot` und
+    `angeschlagen`, **nicht** `hatAngegriffen` — obwohl `arenaAngriff()` das direkt danach
+    prüfte. Eine Funktion mit diesem Namen, die die Rundenbeschränkung nicht kennt, lädt jede
+    Oberfläche dazu ein, sie zu vergessen, und **genau das ist mir beim Umbau des
+    Spieler-Hinweises passiert**: Mein erster Fix hätte einer Figur, die schon zugeschlagen
+    hat, wieder *„Gegner anklicken"* gezeigt. Jetzt kennt sie alle drei, und die Wache lebt an
+    **einer** Stelle statt an zwei.
+26. **Und der Folgefehler daraus, von der Bestandsprüfung gefangen:** Die Grundzuordnung in
+    `arenaAngriff()` lautete `angreifer.tot ? 'tot' : 'angeschlagen'` — mit der erweiterten
+    Wache fiel `hatAngegriffen` in denselben Zweig und hätte den Satz *„ist angeschlagen"* zu
+    lesen bekommen. **Seit die Oberfläche den Grund anzeigt, ist eine falsche Kennung eine
+    falsche Auskunft am Tisch**, nicht bloß ein internes Detail.
+27. **Eine Prüfung, die an ihrem eigenen Erklärtext anschlug.** „`arena_admin.html` verwirft den
+    Grund nicht mehr stillschweigend" suchte nach `if (!erg.ok) return;` — und fand es im
+    **Kommentar**, der die alte Zeile zitiert. **Geschärft statt gelockert** (dieselbe Lehre wie
+    am 30.10.): Sie blendet Kommentare aus, bevor sie sucht. Verboten ist die *Verwendung*,
+    nicht die Erwähnung.
 
 ---
 

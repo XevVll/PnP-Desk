@@ -1901,6 +1901,10 @@
     const arenaKopfEl = document.getElementById('arenaKopf');
     const arenaIniEl = document.getElementById('arenaIni');
     const arenaHinweisEl = document.getElementById('arenaHinweis');
+    /* Eine abgelehnte Handlung darf nicht schweigen. Der Hinweisblock wird
+       bei jedem Firebase-Lauf neu gesetzt, also liegt die Meldung als
+       eigener, kurzlebiger Zustand daneben statt im Markup. */
+    let arenaMeldung = '', arenaMeldungBis = 0, arenaMeldungTimer = null;
     const arenaFertigEl = document.getElementById('arenaZugFertig');
     const arenaSchussEl = document.getElementById('arenaSchuss');
     /* Der Wunsch gilt nur fuer DIESE Figur: Wechselt die Freigabe, fiele er
@@ -2084,10 +2088,18 @@
       else {
         const teile = [];
         if (!frei.hatGezogen) teile.push('Feld anklicken zum Bewegen (' + (frei.bewegung || r.bewegung) + ')');
-        if (!frei.hatAngegriffen && Object.keys(angreifbar).length) {
+        /* DER FEHLER, DEN HENDRIK GEMELDET HAT: Hier stand nur
+           "!frei.hatAngegriffen" - eine ANGESCHLAGENE Figur las damit
+           "Gegner anklicken zum Angreifen", und der Klick tat nichts.
+           arenaKannAngreifen() ist die Funktion, die die Engine selbst
+           fragt; sie hier zu fragen heisst, dass Aufforderung und
+           Ausfuehrung dieselbe Antwort geben. */
+        if (arenaKannAngreifen(frei) && Object.keys(angreifbar).length) {
           teile.push(arenaNahschuss
             ? 'Gegner anklicken — du schießt aus der Nähe'
             : 'Gegner anklicken zum Angreifen');
+        } else if (frei.angeschlagen && !frei.hatAngegriffen) {
+          teile.push('Angeschlagen — du kannst dich bewegen, aber nicht angreifen');
         }
         // Vorderlader: erst in der UEBERNAECHSTEN Runde wieder bereit (Bibel 4.5).
         if (!frei.geladen) teile.push('Waffe ist leer — lädt bis zur übernächsten Runde');
@@ -2096,6 +2108,12 @@
            die Spielleitung ansagt und nicht ein Spieler nebenbei auslöst. */
         if (reiheDurch) teile.push('Du bist der Letzte in der Reihe — die Spielleitung schließt die Runde ab');
         arenaHinweisEl.textContent = teile.length ? teile.join(' · ') : 'Nichts mehr zu tun in dieser Runde.';
+      }
+      /* Zuletzt, damit sie JEDEN Zweig ueberschreibt: Wer gerade geklickt
+         hat, soll die Antwort auf seinen Klick lesen und nicht den
+         allgemeinen Hinweis. */
+      if (arenaMeldung && Date.now() < arenaMeldungBis) {
+        arenaHinweisEl.textContent = arenaMeldung;
       }
 
       const log = arenaSnap.log || {};
@@ -2215,6 +2233,21 @@
       }, (t.name || id) + ' bewegt sich.');
     }
 
+    /* Fuenf Sekunden: lang genug zum Lesen, kurz genug, dass die Meldung
+       nicht ueber dem naechsten Zug steht. Ein Neuzeichnen durch Firebase
+       darf sie nicht abschneiden - deshalb ein Ablaufzeitpunkt statt eines
+       Flags, und ein Timer, der am Ende EINMAL neu zeichnet. */
+    function arenaMelde(text) {
+      arenaMeldung = text || '';
+      arenaMeldungBis = Date.now() + 5000;
+      if (arenaMeldungTimer) clearTimeout(arenaMeldungTimer);
+      arenaMeldungTimer = setTimeout(function () {
+        arenaMeldungTimer = null;
+        renderArena();
+      }, 5050);
+      renderArena();
+    }
+
     function arenaGreifeAn(angreiferId, zielId, wunsch) {
       const sz = arenaSzene(arenaScene); if (!sz) return;
       const tokens = arenaSnap.tokens || {};
@@ -2225,7 +2258,13 @@
       const bonus = arenaIniBonus(arenaSnap.initiative || null, angreiferId, tokens);
       const erg = arenaAngriff(a, z, tokens, sz.regeln, arenaSnap.saebeltraeger || null,
         wunsch ? { art: wunsch } : null, bonus);
-      if (!erg.ok) return;
+      /* NICHT MEHR STILL: Bis zum 04.11.2026 stand hier "if (!erg.ok)
+         return;" - man klickte, und nichts geschah. Hendriks Meldung: "Ich
+         kann manchmal nicht angreifen. Woran liegt das?" */
+      if (!erg.ok) {
+        arenaMelde(arenaAngriffGrundText(erg.grund, a.name || a.id));
+        return;
+      }
       // Der Wunsch ist mit dem Angriff verbraucht.
       arenaNahschuss = false;
 

@@ -129,6 +129,95 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-04 (Fortsetzung 3) — Fehler: der abgelehnte Angriff schwieg
+- **Hendriks Frage:** „Ich kann manchmal nicht angreifen. Woran liegt das?"
+- **Nicht geraten, sondern alle Wachen durchgerechnet** — und das Ergebnis nennt den Fall:
+
+      Fall                              | Angriff? | Grund
+      unversehrt, angrenzend            | JA       | —
+      ANGESCHLAGEN                      | NEIN     | angeschlagen
+      hat schon angegriffen             | NEIN     | schon_angegriffen
+      zwei Wunden (nicht angeschlagen)  | JA       | —
+      am Boden                          | NEIN     | tot
+      will schiessen, Waffe leer        | NEIN     | nicht_geladen
+      zu weit weg                       | NEIN     | ausser_reichweite
+
+- **DIE REGEL WAR DIESMAL RICHTIG, und das ist der Unterschied zu den Befunden der Vortage.**
+  Bibel 4.4a sagt seit dem 30.10. wörtlich: „Wer angeschlagen ist, darf sich bewegen, aber nicht
+  angreifen." Der Code hielt sich daran. **Falsch war allein die Anzeige** — nichts
+  nachzutragen, nichts umzurechnen.
+- **Der eigentliche Fehler, und er ist der häufigste Fall am Tisch:** Der Hinweisblock in
+  `karte.html` prüfte nur `hatAngegriffen`; **`angeschlagen` kam dort gar nicht vor.** Eine
+  angeschlagene Figur las damit „Gegner anklicken zum Angreifen" — und der Klick tat **nichts**.
+  **Die Oberfläche forderte zu etwas auf, das die Engine ablehnt.** Und angeschlagen ist kein
+  Randfall: Jeder Treffer, der die Robustheit erreicht, ohne eine Wunde zu machen, erzeugt ihn.
+- **Dazu warfen BEIDE Ansichten den Grund weg.** Die Engine nennt **sieben**, und in
+  `karte.html` wie `arena_admin.html` stand `if (!erg.ok) return;` — **ohne ein Wort.** Man
+  klickte, und nichts geschah.
+- **Behoben in zwei Richtungen, und die erste trägt die Last: der Grund wird VORHER gesagt.**
+  Ein Hinweis, der zu etwas auffordert, das nicht geht, ist der Fehler — eine Fehlermeldung
+  danach wäre nur das Pflaster.
+  - Die Aufforderung hängt jetzt an **`arenaKannAngreifen()`**, also an derselben Funktion, die
+    die Engine fragt. Damit geben Aufforderung und Ausführung dieselbe Antwort, und der nächste
+    Zustand fällt nicht wieder durch.
+  - Geht es nicht, steht dort **warum**: „Angeschlagen — du kannst dich bewegen, aber nicht
+    angreifen." Im Schlachtfeld dasselbe als Panel-Zeile, wie beim Nahschuss am 31.10.
+  - **Und hinterher trotzdem eine Meldung**, für den Klick, der an einem veralteten Stand
+    scheitert — fünf Sekunden, mit Ablaufzeitpunkt statt Flag, weil der Firebase-Lauscher nach
+    jedem Schreibvorgang neu zeichnet und eine Meldung sonst abgeschnitten wird.
+- **Die Sätze stehen in `js/arena.js`** (`arenaAngriffGrundText()`), nicht in den Ansichten: Es
+  sind drei, und drei Fassungen derselben Begründung laufen auseinander. Immer dritte Person mit
+  Namen — auch für den Spieler, dessen Hinweisblock seine Figur in den anderen Zweigen ebenfalls
+  beim Namen nennt. **Ein Grund, den es heute noch nicht gibt, bekommt lieber die rohe Kennung
+  als Schweigen.**
+- **ZWEI WEITERE FEHLER, beide beim Bauen gefunden und beide schwerer als der gemeldete:**
+  1. **`arenaKannAngreifen()` beantwortete ihre eigene Frage nicht.** Sie prüfte `tot` und
+     `angeschlagen`, **nicht** `hatAngegriffen` — obwohl `arenaAngriff()` das direkt danach
+     prüfte. Eine Funktion mit diesem Namen, die die Rundenbeschränkung nicht kennt, lädt jede
+     Oberfläche dazu ein, sie zu vergessen, und **genau das ist mir sofort passiert**: Mein
+     erster Fix hätte einer Figur, die schon zugeschlagen hat, wieder „Gegner anklicken"
+     gezeigt. Jetzt kennt sie alle drei, und die Wache lebt an **einer** Stelle statt an zwei.
+  2. **Der Folgefehler daraus, von der Bestandsprüfung gefangen:** Die Grundzuordnung lautete
+     `angreifer.tot ? 'tot' : 'angeschlagen'`. Mit der erweiterten Wache fiel `hatAngegriffen`
+     in denselben Zweig und hätte den Satz „ist angeschlagen" zu lesen bekommen. **Seit die
+     Oberfläche den Grund anzeigt, ist eine falsche Kennung eine falsche Auskunft am Tisch**,
+     nicht bloß ein internes Detail.
+- **Getestet: 2252 Prüfungen über vierzehn Skripte** (25 neue, `t_arena.js` damit 433), ein
+  Fehlschlag — der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.
+  - **Die tragende Prüfung ist die INVARIANTE, nicht der Text:** Über **alle acht**
+    Kombinationen der drei Zustände muss `arenaKannAngreifen()` genau die Fälle abdecken, die
+    `arenaAngriff()` ablehnt. **Hätte es diese Prüfung gegeben, wäre der gemeldete Fehler nie
+    entstanden** — er bestand genau aus dieser Lücke.
+  - Dazu, dass eine angeschlagene Figur sich **weiterhin bewegen** darf: Beim Nachziehen der
+    Wache hätte man das leicht mitgenommen, und es ist die Savage-Worlds-Regel.
+  - **Jeder der sieben Gründe hat einen eigenen Satz**, keine zwei sagen dasselbe, keiner reicht
+    eine rohe Kennung durch, und ein **unbekannter** Grund schweigt nachweislich nicht.
+  - **Drei Gegenproben, und die erste ist die aufschlussreichste:** Dreht man die Wache zurück,
+    greift die Figur nicht nur mit falschem Grund — sie greift **wirklich ein zweites Mal an**
+    (`ok:true` samt vollem Schadenswurf). Dazu: die Aufforderung prüft wieder nur
+    `hatAngegriffen` (2 Prüfungen) · das Schlachtfeld schweigt wieder (1).
+- **Zwei eigene Fehler an den Prüfungen selbst:**
+  1. **„Keiner nennt die rohe Kennung" schlug auf korrektem Text an** — der Satz „ist
+     angeschlagen" enthält das Wort, und die Kennung heißt genauso. Gemeint waren die Kennungen
+     **mit Unterstrich**; die Prüfung war falsch, nicht der Text.
+  2. **Eine Prüfung schlug an ihrem EIGENEN Erklärtext an:** Sie verbot `if (!erg.ok) return;`
+     und fand es im Kommentar, der die alte Zeile zitiert. **Geschärft statt gelockert** (Lehre
+     vom 30.10.): Sie blendet Kommentare aus, bevor sie sucht — verboten ist die *Verwendung*,
+     nicht die Erwähnung.
+- **Zwei Werkzeug-Fallen, beide dokumentiert und beide wieder getreten:**
+  1. **Mein Messbefehl hat gelogen, nicht die Datei.** `grep -c $'\r'` ließ `arena_admin.html`
+     als CRLF erscheinen; in Python nachgesehen ist sie **komplett LF** — als einzige Datei des
+     Projekts. Mein Helfer normalisierte stumpf auf CRLF, und jeder Suchtext lief ins Leere.
+     Er **misst** das Zeilenende jetzt. Merke: Zeilenenden nicht mit `grep` zählen.
+  2. **Die Heredoc-Falle:** Ein `\n` im Regex kam als echter Zeilenumbruch an und hat
+     `tests/t_arena.js` unparsebar gemacht. Beim zweiten Anlauf den vermerkten Weg genommen
+     (Write-Werkzeug) — und den Zeilenkommentar **ohne Regex** behandelt, dann gibt es nichts zu
+     maskieren.
+- **[OFFEN] Die Willenskraft-Probe gegen „angeschlagen" fehlt weiter** (Abweichung 1, seit dem
+  30.10.). Sie ist der eigentliche Weg des Regelwerks aus dem Zustand heraus; hier räumt ihn der
+  Rundenwechsel ab, und ein Bennie geht über „Haken weg" bei der Spielleitung. Der neue Satz
+  nennt beide Wege ausdrücklich — vorher wusste das niemand, der nicht die Bibel gelesen hatte.
+
 ### 2026-11-04 (Fortsetzung 2) — Waffen anlegen, und vier Rechner werden einer
 - **Hendriks Vorgabe:** „Dann wäre es noch gut, wenn man Waffen anlegen kann. Eine Nahkampfwaffe
   und auch eine Fernkampfwaffe."

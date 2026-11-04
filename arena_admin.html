@@ -218,6 +218,8 @@
   // "logText" darf seit dem 30.10.2026 auch eine LISTE sein: Die
   // Diener-Automatik erzeugt in einem Zug mehrere Zeilen, und die sollen
   // nicht zu einem Klumpen zusammengezogen werden.
+  let meldung = '', meldungBis = 0, meldungTimer = null;
+
   function schreibe(aenderungen, logText) {
     if (!db) return;
     const paket = {};
@@ -416,6 +418,17 @@
       (t.name || id) + ' bewegt sich.');
   }
 
+  /* Fuenf Sekunden, mit Ablaufzeitpunkt statt Flag: Der Firebase-Lauscher
+     zeichnet nach jedem Schreibvorgang neu, und eine Meldung, die das
+     naechste Neuzeichnen abschneidet, ist am Tisch nicht zu lesen. */
+  function melde(text) {
+    meldung = text || '';
+    meldungBis = Date.now() + 5000;
+    if (meldungTimer) clearTimeout(meldungTimer);
+    meldungTimer = setTimeout(function () { meldungTimer = null; render(); }, 5050);
+    render();
+  }
+
   function greifeAn(angreiferId, zielId, wunsch) {
     const tokens = snap.tokens || {};
     const a = Object.assign({ id: angreiferId }, tokens[angreiferId] || {});
@@ -424,7 +437,14 @@
     const bonus = arenaIniBonus(snap.initiative || null, angreiferId, tokens);
     const erg = arenaAngriff(a, z, tokens, R, snap.saebeltraeger || null,
       wunsch ? { art: wunsch } : null, bonus);
-    if (!erg.ok) return;
+    /* NICHT MEHR STILL (04.11.2026): Hier stand "if (!erg.ok) return;" -
+       die Engine nennt sieben Gruende, und das Schlachtfeld warf sie weg.
+       Die Meldung geht ins Panel und NICHT ins Kampflog: Das Log erzaehlt
+       das Gefecht, nicht die Bedienung. */
+    if (!erg.ok) {
+      melde(arenaAngriffGrundText(erg.grund, a.name || angreiferId));
+      return;
+    }
     nahschuss = false;                       // der Wunsch ist verbraucht
     /* Aenderungen UND Logzeile kommen aus js/arena.js - beides stand bis zum
        30.10.2026 wortgleich hier und in karte.html, und die Diener-Automatik
@@ -894,6 +914,17 @@
 
     let html = '<div class="zeile"><b>' + (sel.symbol || '') + ' ' + (sel.name || id) + '</b> <span style="color:var(--ink-faint)">(' + sel.typ + ')</span></div>';
     if (zustand.length) html += '<div class="zeile" style="color:var(--ink-faint)">' + zustand.join(' · ') + '</div>';
+    /* VORHER sagen, nicht hinterher: "angegriffen" stand oben schon als Wort
+       in der Zustandszeile - dass daran der Angriff haengt, stand nirgends.
+       arenaKannAngreifen() ist dieselbe Funktion, die die Engine fragt. */
+    if (!sel.tot && !arenaKannAngreifen(sel)) {
+      html += '<div class="hinweis">' +
+        arenaAngriffGrundText(sel.hatAngegriffen ? 'schon_angegriffen' : 'angeschlagen',
+          sel.name || id) + '</div>';
+    }
+    if (meldung && Date.now() < meldungBis) {
+      html += '<div class="hinweis">' + meldung + '</div>';
+    }
     const maxW = arenaWundenMax(sel);
     html += '<div class="zeile">' + arenaZustandText(sel) +
       ' <button class="btn" onclick="wundenAendern(\'' + id + '\', -1)">−1</button>' +
