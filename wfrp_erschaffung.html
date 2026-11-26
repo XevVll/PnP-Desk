@@ -388,14 +388,22 @@ function zAttribute(offen) {
   // Schicksal und Zaehigkeit
   const extra = W.extraS === null ? null : +W.extraS;
   h += '<div class="card" style="margin-top:.9rem"><div class="card-hdr">Schicksal und Zähigkeit <span class="card-hdr-sub">' +
-    sp.extra + ' Extrapunkte</span></div><div class="card-body"><div class="row">';
+    sp.extra + ' Extrapunkte zu verteilen</span></div><div class="card-body">' +
+    '<div class="hint" style="margin:0 0 .5rem">' + esc(sp.n) + ': Schicksal ' + sp.schicksal + ' und Zähigkeit ' + sp.zaehigkeit +
+    ' als Grundwert, dazu ' + sp.extra + ' Extrapunkte, die du auf beide verteilst.</div><div class="row">';
   for (let i = 0; i <= sp.extra; i++) {
     h += '<button class="chip' + (extra === i ? ' on' : '') + '" onclick="extraSetzen(' + i + ')">Schicksal ' + (sp.schicksal + i) +
       ' · Zähigkeit ' + (sp.zaehigkeit + sp.extra - i) + '</button>';
   }
-  h += '</div><div class="hint"><b>Schicksal</b> ist dein Geschick, <b>Glück</b> der Vorrat daraus: Mit einem Glückspunkt wiederholst du eine ' +
-    'misslungene Probe oder legst +1 EG drauf. Ein Schicksalspunkt rettet dich einmal vor dem Tod. ' +
-    '<b>Zähigkeit</b> ist dein innerer Halt, <b>Entschlossenheit</b> der Vorrat daraus: Damit trotzt du Furcht oder schüttelst einen Zustand ab.</div>' +
+  /* Beide Paare gleich gebaut (Regelwerk S. 170 f.): erst der Vorrat, der
+     sich wieder fuellt, dann was ein DAUERHAFT ausgegebener Punkt bewirkt. */
+  h += '</div><div class="hint"><b>Schicksal</b> ist dein Geschick. Daraus speist sich dein <b>Glück</b>: Zu Beginn jeder Sitzung ' +
+    'hast du so viele Glückspunkte, wie dein Schicksal hoch ist. Mit einem wiederholst du eine misslungene Probe, legst +1 EG drauf ' +
+    'oder handelst in einer Runde, wann du willst. Einen Schicksalspunkt gibst du für immer aus, um dem Tod zu entgehen.</div>' +
+    '<div class="hint"><b>Zähigkeit</b> ist dein innerer Halt. Daraus speist sich deine <b>Entschlossenheit</b>, die du zurückbekommst, ' +
+    'wenn du nach deiner Motivation handelst. Mit einem Punkt trotzt du eine Runde lang der Furcht, übergehst die Folgen kritischer Wunden ' +
+    'oder schüttelst einen Zustand ab. Einen Zähigkeitspunkt gibst du für immer aus, um eine Probe nicht zu verfehlen — du bestimmst ' +
+    'das Ergebnis selbst — oder um einer Mutation zu widerstehen.</div>' +
     '<div class="feld" style="margin-top:.7rem"><label>Motivation</label><input type="text" maxlength="80" value="' + esc(W.motivation) +
     '" placeholder="z. B. Abenteuerlust, Rache, die Schwachen schützen" onchange="detail(\'motivation\',this.value)"></div>' +
     '<div class="hint">Ein Wort oder ein kurzer Satz: wofür deine Figur lebt. Handelst du danach, bekommst du Entschlossenheit zurück.</div>' +
