@@ -1112,6 +1112,8 @@
   <script src="js/identitaet.js"></script>
   <script src="js/regelwerk.js"></script>
   <script src="js/kampf.js"></script>
+  <script src="js/wfrp_daten.js"></script>
+  <script src="js/wfrp_regelwerk.js"></script>
   <script src="js/dice.js"></script>
   <!-- Die Wuerfelkoerper: nur die Karte zeichnet sie, die Regie nicht. -->
   <script src="js/dice3d.js"></script>
@@ -1356,6 +1358,17 @@
         const roh = snap.val();
         if (!roh || typeof istFigurEcht !== 'function' || !istFigurEcht(roh)) {
           meineFigur = null;
+        } else if (typeof wfrpIstWfrp === 'function' && wfrpIstWfrp(roh)) {
+          /* Eine WFRP-Figur (seit 26.11.2026): W100-Werte statt Wuerfelstufen.
+             Die Leiste erkennt sie am Feld wfrp und wuerfelt nach wfrpProbe. */
+          const wf = wfrpAlsFigur(roh);
+          meineFigur = {
+            schluessel: k, name: roh.name || '', wfrp: true,
+            werte: WFRP_ATTR_IDS.map(function (a) { return { n: WFRP_ATTR_BY_ID[a].n, wert: wfrpAttrWert(wf, a) }; }),
+            fertigkeiten: wfrpFertigkeitenListe(wf).filter(function (x) { return x.steig > 0; })
+              .map(function (x) { return { n: wfrpKeyText(x.key), wert: x.wert }; }),
+            attr: {}, fert: {}, muenzen: 0, ausr: [], lager: [], abzug: 0
+          };
         } else {
           const fig = (typeof alsFigur === 'function') ? alsFigur(roh) : roh;
           meineFigur = {
@@ -2671,6 +2684,15 @@
         ladenFuerMarker = marker.id || null;
       }
 
+      /* Der Laden fuehrt Savage-Worlds-Waren und verbucht ueber das Postfach
+         des SW-Bogens. Eine WFRP-Figur haette davon nichts - ihre Ausruestung
+         fuehrt sie im eigenen Heldenbrief. */
+      if (meineFigur && meineFigur.wfrp) {
+        box.innerHTML = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
+          '<div class="was">' + escHtml(l.was || '') + '</div>' +
+          '<div class="hinw">Was du hier kaufst, trägst du selbst in deinen Heldenbrief ein.</div>';
+        return;
+      }
       if (!meineFigur) {
         box.innerHTML = '<h3>' + escHtml(l.name || 'Laden') + '</h3>' +
           '<div class="was">' + escHtml(l.was || '') + '</div>' +
@@ -3113,7 +3135,9 @@
     function wuerfelAnzeige(roll) {
       // Eine Probe: Zahl gross, Band klein darunter.
       if (roll.probe && roll.band) {
-        const gut = roll.band.indexOf('Erfolg') === 0;
+        /* Ein WFRP-Wurf traegt "gut" selbst: "Knapper Erfolg" faengt nicht
+           mit "Erfolg" an und waere sonst rot. */
+        const gut = (typeof roll.gut === 'boolean') ? roll.gut : roll.band.indexOf('Erfolg') === 0;
         return { zahl: roll.ergebnis, text: roll.probe + ' — ' + roll.band,
                  klasse: gut ? 'gut' : 'schlecht' };
       }
@@ -3177,6 +3201,15 @@
           schluss += ' (nötig war ' + w.ziel + ')';
         }
         return { zeilen: z, schluss: schluss };
+      }
+
+      /* Ein W100-Wurf (Warhammer): Zehner des Werts minus Zehner des Wurfs. */
+      if (w && w.art === 'w100') {
+        z.push({ t: 'W100: ' + (w.wurf >= 100 ? '00' : w.wurf) + ' gegen ' + w.ziel +
+                    (w.mod ? ' (' + w.basis + ' ' + (w.mod > 0 ? '+' : '') + w.mod + ')' : ''), aus: false });
+        if (w.auto) z.push({ t: w.auto === 'erfolg' ? '01–05 gelingt immer.' : '96–00 misslingt immer.', aus: true });
+        if (w.pasch) z.push({ t: 'Pasch — im Kampf ' + (w.ok ? 'ein kritischer Treffer.' : 'ein Patzer.'), aus: false });
+        return { zeilen: z, schluss: roll.band || '' };
       }
 
       if (w && w.art === 'schaden') {

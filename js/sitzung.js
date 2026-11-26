@@ -446,6 +446,9 @@ function istFigurEcht(roh) {
   if (!roh || typeof roh !== 'object') return false;
 
   if (String(roh.name || '').trim()) return true;
+  /* Eine WFRP-Figur (seit 26.11.2026) traegt andere Felder. Sobald
+     Spezies oder Karriere gewaehlt sind, hat jemand angefangen. */
+  if (roh.regelwerk === 'wfrp4') return !!(roh.spezies || roh.karriere);
   /* "lager" zaehlt mit: Eine Figur, die nur eine Kiste auf dem Schiff hat,
      ist trotzdem eine Figur (Feld seit 04.11.2026). */
   if (laenge(roh.tal) || laenge(roh.hnd) || laenge(roh.ausr) || laenge(roh.lager)) return true;
@@ -563,6 +566,75 @@ function figurUmzug(db, sid, schluessel, fertig) {
 
 
 /* ==========================================================
+   WELCHES REGELWERK?
+   ----------------------------------------------------------
+   Seit dem 26.11.2026 kann eine Sitzung nach Savage Worlds ODER
+   nach Warhammer Fantasy (4. Edition) laufen. Das Regelwerk steht
+   im meta der Sitzung (meta.regelwerk) und wird beim Anlegen im
+   Regie-Hub gewaehlt. Fehlt es, ist es Savage Worlds - so liefen
+   alle Sitzungen vor diesem Tag.
+
+   Die Figurenseiten gibt es je Regelwerk einmal. Jede prueft beim
+   Laden, ob sie die richtige ist, und leitet sonst weiter - so
+   bleiben alle Links im Projekt (Hub, Karte, Sperren) wie sie sind.
+
+   Die Weiterleitung muss VOR dem ersten Schreibzugriff stehen:
+   Eine Savage-Worlds-Seite, die eine WFRP-Figur liest, wuerde
+   ihre eigenen Felder hineinschreiben, und die Figur waere fuer
+   beide Seiten kaputt.
+   ========================================================== */
+var REGELWERKE = {
+  savage: { n: 'Savage Worlds', erschaffung: 'charaktererstellung.html', bogen: 'heldenbrief.html' },
+  wfrp4:  { n: 'Warhammer Fantasy (4. Edition)', erschaffung: 'wfrp_erschaffung.html', bogen: 'wfrp_heldenbrief.html' }
+};
+var REGELWERK_VORGABE = 'savage';
+
+function regelwerkVon(meta) {
+  var r = meta && meta.regelwerk;
+  return REGELWERKE[r] ? r : REGELWERK_VORGABE;
+}
+function regelwerkCacheKey(sid) { return 'pnp_regelwerk_' + (sid || SITZUNG_VORGABE); }
+function regelwerkAusCache(sid) {
+  try { var r = localStorage.getItem(regelwerkCacheKey(sid)); return REGELWERKE[r] ? r : null; }
+  catch (e) { return null; }
+}
+
+/* Einmal nachsehen, dann cb(regelwerk). Ohne Verbindung gilt, was
+   dieser Browser zuletzt gesehen hat - sonst die Vorgabe. */
+function regelwerkPruefen(db, cb) {
+  var sid = (db && db.sitzung) || sitzungFest() || SITZUNG_VORGABE;
+  var echt = db && (db.echt || db);
+  var fertig = false;
+  function antwort(r) { if (fertig) return; fertig = true; cb(r); }
+  if (!echt || !echt.ref) { antwort(regelwerkAusCache(sid) || REGELWERK_VORGABE); return; }
+  try {
+    echt.ref(SITZUNG_WURZEL + '/' + sid + '/meta/regelwerk').once('value').then(function (s) {
+      var r = REGELWERKE[s.val()] ? s.val() : REGELWERK_VORGABE;
+      try { localStorage.setItem(regelwerkCacheKey(sid), r); } catch (e) {}
+      antwort(r);
+    }).catch(function () { antwort(regelwerkAusCache(sid) || REGELWERK_VORGABE); });
+  } catch (e) { antwort(regelwerkAusCache(sid) || REGELWERK_VORGABE); }
+}
+
+/* Die Seite, die fuer dieses Regelwerk zustaendig ist. */
+function regelwerkSeite(regelwerk, art) {
+  var r = REGELWERKE[regelwerk] || REGELWERKE[REGELWERK_VORGABE];
+  return r[art];
+}
+
+/* Ist diese Seite die falsche, wird ersetzt (nicht navigiert - der
+   Zurueck-Knopf soll nicht auf eine Seite fuehren, die sofort wieder
+   weiterleitet). Die Adresszusaetze gehen mit. Gibt true zurueck,
+   wenn weitergeleitet wird; dann darf die Seite nichts mehr tun. */
+function regelwerkWeiter(eigenes, regelwerk, art) {
+  if (regelwerk === eigenes) return false;
+  try {
+    location.replace(regelwerkSeite(regelwerk, art) + (location.search || '') + (location.hash || ''));
+  } catch (e) {}
+  return true;
+}
+
+/* ==========================================================
    WO BIN ICH?
    ----------------------------------------------------------
    Diese Anzeige stand bis zum 15.10.2026 nur in
@@ -614,6 +686,8 @@ if (typeof module !== 'undefined' && module.exports) {
     setzeFigurCode, vergissFigurCode, spielerKennung,
     figurSchluessel, istAltSchluessel, figurUmzug, figurLoeschen, istFigurEcht,
     figurCacheKey, figurCacheUebernehmen,
-    sitzungAusCache, sitzungInCache, sitzungsDbJetzt
+    sitzungAusCache, sitzungInCache, sitzungsDbJetzt,
+    REGELWERKE, REGELWERK_VORGABE, regelwerkVon, regelwerkCacheKey, regelwerkAusCache,
+    regelwerkPruefen, regelwerkSeite, regelwerkWeiter
   };
 }

@@ -647,6 +647,11 @@ function initFirebase() {
     // nach acht Sekunden wird geschrieben, was der Spieler aendert.
     // Die Frist wird abgeraeumt, sobald gelesen ODER gesperrt ist - sonst
     // gaebe sie das Schreiben nach einer Sperre wieder frei.
+    // Erst das Regelwerk der Sitzung (seit 26.11.2026): Eine WFRP-Figur
+    // gehoert dem WFRP-Bogen. Die Frist startet erst danach - sonst gaebe
+    // sie das Schreiben frei, waehrend die Seite noch weiterleitet.
+    regelwerkPruefen(db, function (rw) {
+    if (regelwerkWeiter('savage', rw, 'bogen')) { syncBereit = false; return; }
     const ladeFrist = setTimeout(function () { ladeBereit = true; }, 8000);
     figurUmzug(db, (db && db.sitzung) || SITZUNG_VORGABE, codeJetzt(), function () {
       db.ref('figuren/' + codeJetzt()).once('value').then(function (s) {
@@ -679,6 +684,7 @@ function initFirebase() {
           + 'Erschaffe sie zuerst — danach steht dein Heldenbrief bereit.',
           'Figur erschaffen', 'charaktererstellung.html');
       }).catch(function () { clearTimeout(ladeFrist); ladeBereit = true; });
+    });
     });
   } catch (e) {
     syncBereit = false;

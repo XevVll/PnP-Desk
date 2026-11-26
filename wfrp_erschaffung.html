@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warhammer — Figur erschaffen</title>
+<style>
+:root{
+  --bg:#1b1714;--surface:rgba(255,255,255,.045);--border:rgba(196,160,92,.24);
+  --dark:#231d19;--teal:#5f9e8f;--gold:#c4a05c;--lgold:rgba(196,160,92,.12);
+  --ink:#f6f0e6;--gray:#9c9080;--red:#a33a2a;--green:#4d8a5b;--amber:#c9792b;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:5rem}
+a{color:var(--gold)}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(27,23,20,.97);border-bottom:1px solid var(--border)}
+.tbin{max-width:1000px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.imRahmen .tbin{padding-right:3.2rem}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.92rem;letter-spacing:.12em}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.1rem .55rem;white-space:nowrap}
+.badge.gold{border-color:var(--gold);color:var(--gold)}
+.sp{flex:1}
+.schritte{display:flex;gap:.2rem;max-width:1000px;margin:0 auto;padding:0 1rem .45rem;flex-wrap:wrap}
+.schritt{flex:1;min-width:84px;text-align:center;font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.07em;color:var(--gray);padding:.3rem .2rem;border-bottom:2px solid rgba(196,160,92,.18);cursor:pointer;text-transform:uppercase}
+.schritt:hover{color:var(--gold)}
+.schritt.on{color:var(--gold);border-bottom-color:var(--gold)}
+.schritt.ok::after{content:' ✓';color:var(--green)}
+.wrap{max-width:1000px;margin:0 auto;padding:1rem}
+h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.15rem;letter-spacing:.05em;margin-bottom:.35rem}
+.lead{font-size:.84rem;color:#d8cfbf;line-height:1.7;margin-bottom:.9rem}
+.lead b{color:var(--gold)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.9rem;overflow:hidden}
+.card-hdr{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.14em;color:var(--gold);padding:.45rem .9rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.card-hdr-sub{font-size:.62rem;color:var(--gray);font-family:'Libre Baskerville',serif;letter-spacing:0;font-style:italic;text-transform:none}
+.card-body{padding:.75rem .9rem}
+.hint{font-size:.74rem;color:var(--gray);font-style:italic;line-height:1.6;margin-top:.4rem}
+.btn{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;padding:.42rem .9rem;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--gray);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-gold{border-color:var(--gold);color:var(--gold)}
+.btn-gold:hover:not(:disabled){background:var(--lgold)}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.55rem}
+.wahl{border:1px solid var(--border);border-radius:7px;padding:.6rem .7rem;cursor:pointer;background:rgba(255,255,255,.025);transition:all .15s}
+.wahl:hover{border-color:var(--gold)}
+.wahl.on{border-color:var(--teal);background:rgba(95,158,143,.13)}
+.wahl.aus{opacity:.45}
+.wahl-n{font-family:'Cinzel',serif;color:var(--gold);font-size:.86rem}
+.wahl-d{font-size:.7rem;color:#cfc6b6;line-height:1.5;margin-top:.2rem}
+.wurf{border:1px solid var(--gold);background:var(--lgold);border-radius:6px;padding:.55rem .8rem;margin:.6rem 0;font-size:.8rem;line-height:1.6}
+.wurf b{font-family:'Cinzel',serif;color:var(--gold)}
+.meld{font-size:.76rem;margin-top:.5rem;line-height:1.5;min-height:1rem}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;text-align:left;padding:.25rem .35rem;border-bottom:1px solid var(--border)}
+td{padding:.3rem .35rem;border-bottom:1px solid rgba(196,160,92,.08);vertical-align:middle}
+td.z{font-family:'Cinzel',serif;color:var(--gold);font-weight:700;text-align:right;width:3.2rem}
+td.m{text-align:center;color:#cfc6b6}
+.tausch{cursor:pointer;border:1px dashed var(--border);border-radius:4px;padding:.05rem .45rem;display:inline-block;min-width:2.3rem;text-align:center}
+.tausch:hover{border-color:var(--gold)}
+.tausch.on{background:var(--teal);border-style:solid;color:#fff}
+.step{display:inline-flex;align-items:center;gap:.25rem}
+.step button{width:22px;height:21px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--gold);cursor:pointer;font-family:'Cinzel',serif;line-height:1}
+.step button:disabled{opacity:.25;cursor:default}
+.step span{min-width:1.6rem;text-align:center;font-family:'Cinzel',serif}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem}
+.chip{border:1px solid var(--border);border-radius:12px;padding:.14rem .6rem;font-size:.72rem;color:#cfc6b6;cursor:pointer;background:transparent;font-family:inherit}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.chip.on{border-color:var(--teal);background:rgba(95,158,143,.2);color:#bfe6dc}
+.chip:disabled{opacity:.35;cursor:default}
+.tag{display:inline-block;font-size:.7rem;border:1px solid rgba(95,158,143,.5);color:#bfe6dc;border-radius:11px;padding:.06rem .5rem;margin:.1rem .15rem .1rem 0}
+input[type=text],select,textarea{background:var(--dark);border:1px solid var(--border);border-radius:5px;color:var(--ink);padding:.35rem .5rem;font-family:inherit;font-size:.8rem;outline:none}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{width:100%;min-height:70px;resize:vertical;line-height:1.55}
+.feld{margin-bottom:.6rem}
+.feld label{display:block;font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:.2rem}
+.feld input[type=text]{width:100%}
+.offen{border:1px solid rgba(201,121,43,.5);border-radius:6px;padding:.5rem .7rem;margin-bottom:.9rem;font-size:.76rem;color:#e7b383;line-height:1.6}
+.offen.alles{border-color:rgba(77,138,91,.6);color:#a5d6ae}
+.stufen{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.5rem}
+.stufe{border:1px solid var(--border);border-radius:6px;padding:.5rem .6rem;font-size:.72rem;line-height:1.55;color:#cfc6b6}
+.stufe b{font-family:'Cinzel',serif;color:var(--gold);font-size:.78rem}
+.stufe i{color:var(--gray)}
+.klasse-h{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;color:var(--teal);text-transform:uppercase;margin:.8rem 0 .3rem}
+.fuss{position:fixed;left:0;right:0;bottom:0;background:rgba(27,23,20,.97);border-top:1px solid var(--border);z-index:40}
+.fuss-in{max-width:1000px;margin:0 auto;padding:.55rem 1rem;display:flex;gap:.6rem;align-items:center}
+.dv-row{display:flex;gap:.45rem;flex-wrap:wrap}
+.dv{flex:1;min-width:90px;border:1px solid var(--border);border-radius:6px;text-align:center;padding:.4rem .3rem}
+.dv-l{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase}
+.dv-v{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:700;color:var(--gold)}
+.gesperrt{max-width:34rem;margin:3rem auto;text-align:center;line-height:1.7;font-size:.9rem;color:#d8cfbf}
+.gesperrt h2{margin-bottom:.8rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tbin">
+    <a class="badge" href="index.html" target="_top">← Hub</a>
+    <span class="brand">Figur erschaffen</span>
+    <span class="badge">Warhammer Fantasy</span>
+    <span class="sp"></span>
+    <span class="badge gold" id="epBadge">0 EP</span>
+    <span class="badge" id="syncBadge">—</span>
+  </div>
+  <div class="schritte" id="schritte"></div>
+</div>
+
+<div class="wrap" id="inhalt"></div>
+
+<div class="fuss" id="fuss">
+  <div class="fuss-in">
+    <button class="btn" id="zurueck" onclick="geheZu(W.schritt - 1)">‹ Zurück</button>
+    <span class="sp"></span>
+    <span class="hint" id="fussHinweis" style="margin:0"></span>
+    <button class="btn btn-gold" id="weiter" onclick="geheZu(W.schritt + 1)">Weiter ›</button>
+  </div>
+</div>
+
+<datalist id="dl-gott"><option value="Sigmar"><option value="Ulric"><option value="Taal"><option value="Rhya"><option value="Manann"><option value="Morr"><option value="Myrmidia"><option value="Ranald"><option value="Shallya"><option value="Verena"></datalist>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
+<script src="js/identitaet.js"></script>
+<script src="js/wfrp_daten.js"></script>
+<script src="js/wfrp_regelwerk.js"></script>
+<script src="js/wfrp_erschaffung.js"></script>
+<script>
+/* ==========================================================
+   WFRP — FIGUR ERSCHAFFEN
+   ----------------------------------------------------------
+   Die Seite zeichnet nur. Was gerechnet wird, steht in
+   js/wfrp_erschaffung.js und js/wfrp_regelwerk.js.
+
+   Gespeichert wird unter figuren/{Name}, wie bei Savage Worlds:
+   die fertig gerechnete Figur UND der Zustand des Assistenten.
+   Der Zustand geht als JSON-Text hinein (erschaffungJson): Seine
+   Schluessel ("wissen/*") enthalten Schraegstriche, und die
+   liest Firebase als Pfad.
+
+   Ist die Figur abgeschlossen (fertig: true), gehoert sie dem
+   Heldenbrief. Diese Seite fasst sie dann nicht mehr an - sonst
+   wuerde ein zweites Oeffnen gekaufte Steigerungen ueberschreiben.
+   ========================================================== */
+let W = wfrpErsLeer();
+let db = null, syncBereit = false, ladeBereit = false, syncTimer = null, angefangen = false;
+let tauschA = null;      // gewaehltes Attribut beim Tauschen
+
+if (window.top !== window.self) document.documentElement.classList.add('imRahmen');
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function el(id) { return document.getElementById(id); }
+function schluessel() { return figurSchluessel(spielerName()); }
+function cacheKey() { return 'kors_wfrp_ers_' + (sitzungFest() || SITZUNG_VORGABE); }
+
+/* ---------------- Speichern ---------------- */
+function speichern() {
+  angefangen = angefangen || !!W.spezies;
+  try { localStorage.setItem(cacheKey(), JSON.stringify(W)); } catch (e) {}
+  if (!db || !syncBereit || !ladeBereit || !angefangen) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(nachFirebase, 700);
+}
+function figurPaket() {
+  const F = wfrpErsFigur(W, { spieler: spielerName() });
+  const p = {};
+  Object.keys(F).forEach(function (k) { p[k] = F[k]; });
+  p.regelwerk = WFRP_REGELWERK;
+  p.fertig = false;
+  p.erschaffungJson = JSON.stringify(W);
+  p.geaendert = Date.now();
+  return p;
+}
+function nachFirebase() {
+  if (!db || !syncBereit) return;
+  try {
+    db.ref('figuren/' + schluessel()).update(figurPaket())
+      .then(function () { sync('gespeichert', 'var(--green)'); })
+      .catch(function (e) { sync('nur lokal', 'var(--gray)'); console.warn(e); });
+  } catch (e) { sync('nur lokal', 'var(--gray)'); }
+}
+function sync(t, f) { const b = el('syncBadge'); b.textContent = t; b.style.color = f; b.style.borderColor = f; }
+
+function aendern(fn) { fn(); speichern(); zeichne(); }
+
+/* ---------------- Navigation ---------------- */
+function geheZu(i) {
+  W.schritt = Math.max(0, Math.min(WFRP_ERS_SCHRITTE.length - 1, i));
+  speichern(); zeichne(); window.scrollTo(0, 0);
+}
+
+function zeichne() {
+  const offen = wfrpErsOffen(W);
+  el('schritte').innerHTML = WFRP_ERS_SCHRITTE.map(function (s, i) {
+    return '<div class="schritt' + (i === W.schritt ? ' on' : '') +
+      (s.id !== 'fertig' && !offen[s.id].length ? ' ok' : '') + '" onclick="geheZu(' + i + ')">' +
+      (i + 1) + ' ' + s.n + '</div>';
+  }).join('');
+  const ep = wfrpErsEp(W);
+  el('epBadge').textContent = ep.summe + ' EP';
+  el('epBadge').title = 'Bonus-Erfahrung aus der Erschaffung: Spezies ' + ep.spezies +
+    ', Karriere ' + ep.karriere + ', Attribute ' + ep.attribute + '. Ausgegeben wird sie im Heldenbrief.';
+  el('zurueck').disabled = W.schritt === 0;
+  el('weiter').style.display = W.schritt === WFRP_ERS_SCHRITTE.length - 1 ? 'none' : '';
+  const id = WFRP_ERS_SCHRITTE[W.schritt].id;
+  el('fussHinweis').textContent = (offen[id] && offen[id].length) ? offen[id][0] : '';
+  const f = { spezies: zSpezies, karriere: zKarriere, attribute: zAttribute, spezies2: zHerkunft,
+              karriere2: zAusbildung, ausr: zAusruestung, details: zDetails, fertig: zFertig }[id];
+  el('inhalt').innerHTML = f(offen[id] || []);
+}
+
+function offenBox(liste) {
+  if (!liste.length) return '';
+  return '<div class="offen">' + liste.map(esc).join('<br>') + '</div>';
+}
+
+/* ---------------- 1 Spezies ---------------- */
+function zSpezies(offen) {
+  const ep = wfrpErsEp(W);
+  let h = '<h2>Spezies</h2><p class="lead">Mensch, Zwerg, Halbling, Hoch- oder Waldelf. ' +
+    'Du kannst wählen — oder würfeln: Behältst du das Ergebnis, bekommst du <b>+20 EP</b>. ' +
+    'Die Würfel des Chaos lieben den, der sich ihnen fügt.</p>' + offenBox(offen);
+  if (W.speziesWurf === null) {
+    h += '<div class="row" style="margin-bottom:.8rem"><button class="btn btn-gold" onclick="speziesWuerfeln()">W100 würfeln (+20 EP)</button></div>';
+  } else {
+    const sid = wfrpSpeziesAusWurf(W.speziesWurf);
+    h += '<div class="wurf">Gewürfelt: <b>' + W.speziesWurf + '</b> — ' + esc(WFRP_SPEZIES[sid].n) +
+      (ep.spezies ? ' · <b>+20 EP</b>' : ' · gewählt hast du etwas anderes, also kein Bonus') + '</div>';
+  }
+  h += '<div class="grid">';
+  Object.keys(WFRP_SPEZIES).forEach(function (k) {
+    const s = WFRP_SPEZIES[k];
+    const stark = WFRP_ATTR_IDS.filter(function (a) { return s.attr[a] >= 30; }).map(function (a) { return WFRP_ATTR_BY_ID[a].k; });
+    const schwach = WFRP_ATTR_IDS.filter(function (a) { return s.attr[a] <= 10; }).map(function (a) { return WFRP_ATTR_BY_ID[a].k; });
+    h += '<div class="wahl' + (W.spezies === k ? ' on' : '') + '" onclick="speziesWaehlen(\'' + k + '\')">' +
+      '<div class="wahl-n">' + esc(s.n) + '</div><div class="wahl-d">' +
+      'Bewegung ' + s.bewegung + ' · Schicksal ' + s.schicksal + ' · Zähigkeit ' + s.zaehigkeit + ' · +' + s.extra + ' frei' +
+      (stark.length ? '<br>stark: ' + stark.join(', ') : '') + (schwach.length ? '<br>schwach: ' + schwach.join(', ') : '') +
+      '<br><i>W100: ' + (s.w100[0] === s.w100[1] ? pad(s.w100[0]) : pad(s.w100[0]) + '–' + pad(s.w100[1])) + '</i></div></div>';
+  });
+  return h + '</div>';
+}
+function pad(n) { return n >= 100 ? '00' : (n < 10 ? '0' + n : String(n)); }
+function speziesWuerfeln() {
+  aendern(function () { W.speziesWurf = wfrpW100(); speziesSetzen(wfrpSpeziesAusWurf(W.speziesWurf)); });
+}
+function speziesWaehlen(k) { aendern(function () { speziesSetzen(k); }); }
+/* Was an der Spezies haengt, faellt beim Wechsel weg - sonst traegt
+   ein Zwerg die Zufallstalente des Menschen, der er eben noch war. */
+function speziesSetzen(k) {
+  if (W.spezies === k) return;
+  W.spezies = k;
+  W.spFert5 = []; W.spFert3 = []; W.spTalWahl = {}; W.zufall = []; W.extraS = null;
+}
+
+/* ---------------- 2 Karriere ---------------- */
+function zKarriere(offen) {
+  if (!W.spezies) return '<h2>Karriere</h2><p class="lead">Wähle zuerst eine Spezies — die Wurftabelle hängt an ihr.</p>';
+  const ep = wfrpErsEp(W);
+  let h = '<h2>Klasse und Karriere</h2><p class="lead">Deine Karriere ist dein Broterwerb, wenn du nicht gerade ' +
+    'in Abenteuer stolperst. Du beginnst immer auf ihrer <b>ersten Stufe</b>. Würfeln: Behältst du den ersten Wurf, ' +
+    'gibt es <b>+50 EP</b>. Sonst darfst du zweimal nachwürfeln und aus den dreien wählen (<b>+25 EP</b>). ' +
+    'Oder du wählst frei, ohne Bonus.</p>' + offenBox(offen);
+  if (!W.karrWuerfe.length) {
+    h += '<div class="row"><button class="btn btn-gold" onclick="karriereWuerfeln()">W100 würfeln (+50 EP)</button></div>';
+  } else {
+    h += '<div class="wurf">' + W.karrWuerfe.map(function (k, i) {
+      return (i ? ' · ' : 'Gewürfelt: ') + '<b>' + esc(WFRP_KARR_BY_ID[k].n) + '</b>';
+    }).join('') + (ep.karriere ? ' — <b>+' + ep.karriere + ' EP</b>' : ' — frei gewählt, kein Bonus') + '</div>';
+    if (W.karrWuerfe.length === 1) {
+      h += '<div class="row"><button class="btn" onclick="karriereNachwuerfeln()">Zweimal nachwürfeln (eine der drei: +25 EP)</button></div>';
+    } else {
+      h += '<div class="row">' + W.karrWuerfe.map(function (k) {
+        return '<button class="chip' + (W.karriere === k ? ' on' : '') + '" onclick="karriereWaehlen(\'' + k + '\')">' + esc(WFRP_KARR_BY_ID[k].n) + '</button>';
+      }).join('') + '</div>';
+    }
+  }
+  const k = wfrpErsKarriere(W);
+  if (k) h += karriereDetail(k);
+  WFRP_KLASSEN.forEach(function (kl) {
+    h += '<div class="klasse-h">' + esc(kl.n) + '</div><div class="grid">';
+    WFRP_KARRIEREN.filter(function (x) { return x.klasse === kl.id; }).forEach(function (x) {
+      const darf = x.spezies.indexOf(W.spezies) >= 0;
+      const s1 = x.stufen[0];
+      h += '<div class="wahl' + (W.karriere === x.id ? ' on' : '') + (darf ? '' : ' aus') + '" onclick="karriereWaehlen(\'' + x.id + '\')"' +
+        (darf ? '' : ' title="Steht deiner Spezies normalerweise nicht offen — nur mit der Spielleitung."') + '>' +
+        '<div class="wahl-n">' + esc(x.n) + '</div><div class="wahl-d">' + esc(s1.n) + ' · ' + esc(wfrpStatusText(s1)) +
+        (x.wurf[W.spezies] ? '<br><i>W100 ' + pad(x.wurf[W.spezies][0]) + (x.wurf[W.spezies][1] !== x.wurf[W.spezies][0] ? '–' + pad(x.wurf[W.spezies][1]) : '') + '</i>' : '') +
+        '</div></div>';
+    });
+    h += '</div>';
+  });
+  return h;
+}
+function karriereDetail(k) {
+  const schema = WFRP_ATTR_IDS.filter(function (a) { return k.schema[a]; })
+    .sort(function (a, b) { return k.schema[a] - k.schema[b]; })
+    .map(function (a) { return WFRP_ATTR_BY_ID[a].k + ' ab Stufe ' + k.schema[a]; }).join(' · ');
+  let h = '<div class="card"><div class="card-hdr">' + esc(k.n) + ' <span class="card-hdr-sub">' + esc(k.en) + ' · ' +
+    esc(WFRP_KLASSE_BY_ID[k.klasse].n) + '</span></div><div class="card-body"><div class="hint" style="margin:0 0 .5rem">' +
+    'Steigerbare Attribute: ' + esc(schema) + '</div><div class="stufen">';
+  k.stufen.forEach(function (s, i) {
+    h += '<div class="stufe"><b>' + (i + 1) + '. ' + esc(s.n) + '</b> <i>' + esc(wfrpStatusText(s)) + '</i><br>' +
+      '<i>Fertigkeiten:</i> ' + esc(s.fert.map(wfrpRefText).join(', ')) + '<br>' +
+      '<i>Talente:</i> ' + esc(s.tal.map(wfrpRefText).join(', ')) + '<br>' +
+      '<i>Ausrüstung:</i> ' + esc(s.ausr.join(', ')) + '</div>';
+  });
+  return h + '</div></div></div>';
+}
+function karriereWuerfeln() {
+  aendern(function () {
+    const k = wfrpKarriereAusWurf(W.spezies, wfrpW100());
+    W.karrWuerfe = [k]; W.karrModus = 'erster'; karriereSetzen(k);
+  });
+}
+/* Zwei weitere - doppelte werden neu gewuerfelt, sonst haette man
+   keine echte Auswahl aus dreien. */
+function karriereNachwuerfeln() {
+  aendern(function () {
+    let n = 0;
+    while (W.karrWuerfe.length < 3 && n++ < 200) {
+      const k = wfrpKarriereAusWurf(W.spezies, wfrpW100());
+      if (W.karrWuerfe.indexOf(k) < 0) W.karrWuerfe.push(k);
+    }
+    W.karrModus = 'drei';
+  });
+}
+function karriereWaehlen(k) { aendern(function () { karriereSetzen(k); }); }
+function karriereSetzen(k) {
+  if (W.karriere === k) return;
+  W.karriere = k;
+  W.attrKarr = {}; W.karrFert = {}; W.karrTal = ''; W.geld = null;
+}
+
+/* ---------------- 3 Attribute ---------------- */
+function zAttribute(offen) {
+  const sp = wfrpErsSpezies(W);
+  if (!sp) return '<h2>Attribute</h2><p class="lead">Wähle zuerst eine Spezies.</p>';
+  const ep = wfrpErsEp(W);
+  let h = '<h2>Attribute</h2><p class="lead">Zehn Attribute, je <b>2W10 plus der Grundwert deiner Spezies</b>. ' +
+    'Behältst du die Würfe, wie sie fallen: <b>+50 EP</b>. Tauschst du Ergebnisse untereinander: <b>+25 EP</b>. ' +
+    'Neu würfeln oder 100 Punkte frei verteilen (je 4 bis 18) geht auch — ohne Bonus.</p>' + offenBox(offen);
+  if (W.attrModus !== 'punkte') {
+    h += '<div class="row" style="margin-bottom:.6rem">';
+    if (!W.attrWuerfe) h += '<button class="btn btn-gold" onclick="attrWuerfeln()">Würfeln (+50 EP)</button>';
+    else h += '<button class="btn" onclick="attrNeu()">Ganz neu würfeln (kein Bonus)</button>';
+    h += '<button class="btn" onclick="attrPunkteModus()">Punkte verteilen statt würfeln</button></div>';
+    if (W.attrWuerfe) h += '<div class="hint" style="margin:-.2rem 0 .6rem">Zum Tauschen auf zwei Würfe klicken. ' +
+      (ep.attribute === 50 ? 'Jetzt noch +50 EP — ein Tausch macht daraus +25.' : ep.attribute === 25 ? 'Getauscht: +25 EP.' : 'Neu gewürfelt: kein Bonus mehr.') + '</div>';
+  } else {
+    h += '<div class="row" style="margin-bottom:.6rem"><button class="btn" onclick="attrZurueckWuerfeln()">Doch würfeln</button>' +
+      '<span class="hint" style="margin:0">Verteilt: <b>' + wfrpErsPunkteSumme(W) + '</b> von 100</span></div>';
+  }
+  const roh = wfrpErsAttrRoh(W), anf = wfrpErsAttrAnfang(W);
+  const karrA = wfrpErsKarrAttr(W);
+  const F = wfrpErsFigur(W);
+  h += '<div class="card"><table><tr><th>Attribut</th><th>Spezies</th><th>' + (W.attrModus === 'punkte' ? 'Punkte' : 'Wurf') +
+    '</th><th>Anfang</th><th>Karriere</th><th style="text-align:right">Wert</th><th>Bonus</th></tr>';
+  WFRP_ATTR_IDS.forEach(function (a) {
+    const def = WFRP_ATTR_BY_ID[a];
+    let mitte;
+    if (W.attrModus === 'punkte') {
+      const v = +((W.attrPunkte || {})[a]) || 0;
+      mitte = '<span class="step"><button onclick="punkte(\'' + a + '\',-1)"' + (v <= WFRP_PUNKTE_MIN ? ' disabled' : '') + '>−</button>' +
+        '<span>' + v + '</span><button onclick="punkte(\'' + a + '\',1)"' + (v >= WFRP_PUNKTE_MAX || wfrpErsPunkteSumme(W) >= 100 ? ' disabled' : '') + '>+</button></span>';
+    } else if (roh[a] !== null) {
+      mitte = '<span class="tausch' + (tauschA === a ? ' on' : '') + '" onclick="tausch(\'' + a + '\')">' + roh[a] + '</span>';
+    } else mitte = '–';
+    const imK = karrA.indexOf(a) >= 0;
+    const k = +W.attrKarr[a] || 0;
+    const karr = imK ? '<span class="step"><button onclick="karrAttr(\'' + a + '\',-1)"' + (k <= 0 ? ' disabled' : '') + '>−</button><span>' + k +
+      '</span><button onclick="karrAttr(\'' + a + '\',1)"' + (wfrpErsSumme(W.attrKarr) >= 5 ? ' disabled' : '') + '>+</button></span>' : '';
+    const wert = anf[a] === null ? null : wfrpAttrWert(F, a);
+    h += '<tr><td title="' + esc(def.en) + '">' + esc(def.n) + ' <span class="hint">' + def.k + '</span></td>' +
+      '<td class="m">' + sp.attr[a] + '</td><td class="m">' + mitte + '</td><td class="m">' + (anf[a] === null ? '–' : anf[a]) +
+      '</td><td class="m">' + karr + '</td><td class="z">' + (wert === null ? '–' : wert) +
+      '</td><td class="m">' + (wert === null ? '' : wfrpBonus(wert)) + '</td></tr>';
+  });
+  h += '</table></div>';
+  h += '<div class="hint">„Karriere“: Deine Karriere erlaubt auf Stufe 1 drei Attribute — darauf verteilst du 5 Steigerungen. ' +
+    'Talente wie „Gewitzt“ geben später noch +5, ohne als Steigerung zu zählen.</div>';
+
+  // Schicksal und Zaehigkeit
+  const extra = W.extraS === null ? null : +W.extraS;
+  h += '<div class="card" style="margin-top:.9rem"><div class="card-hdr">Schicksal und Zähigkeit <span class="card-hdr-sub">' +
+    sp.extra + ' Extrapunkte</span></div><div class="card-body"><div class="row">';
+  for (let i = 0; i <= sp.extra; i++) {
+    h += '<button class="chip' + (extra === i ? ' on' : '') + '" onclick="extraSetzen(' + i + ')">Schicksal ' + (sp.schicksal + i) +
+      ' · Zähigkeit ' + (sp.zaehigkeit + sp.extra - i) + '</button>';
+  }
+  h += '</div><div class="hint"><b>Schicksal</b> ist dein Geschick, <b>Glück</b> der Vorrat daraus: Mit einem Glückspunkt wiederholst du eine ' +
+    'misslungene Probe oder legst +1 EG drauf. Ein Schicksalspunkt rettet dich einmal vor dem Tod. ' +
+    '<b>Zähigkeit</b> ist dein innerer Halt, <b>Entschlossenheit</b> der Vorrat daraus: Damit trotzt du Furcht oder schüttelst einen Zustand ab.</div>' +
+    '<div class="feld" style="margin-top:.7rem"><label>Motivation</label><input type="text" maxlength="80" value="' + esc(W.motivation) +
+    '" placeholder="z. B. Abenteuerlust, Rache, die Schwachen schützen" onchange="detail(\'motivation\',this.value)"></div>' +
+    '<div class="hint">Ein Wort oder ein kurzer Satz: wofür deine Figur lebt. Handelst du danach, bekommst du Entschlossenheit zurück.</div>' +
+    '</div></div>';
+  h += '<div class="dv-row"><div class="dv"><div class="dv-l">Lebenspunkte</div><div class="dv-v">' + (anf.wi === null ? '–' : wfrpWundenMax(F)) +
+    '</div></div><div class="dv"><div class="dv-l">Bewegung</div><div class="dv-v">' + wfrpBewegung(F).bewegung + '</div></div></div>';
+  return h;
+}
+function attrWuerfeln() {
+  aendern(function () {
+    W.attrWuerfe = wfrpAttributWuerfe(); W.attrZuord = null; W.attrModus = 'gewuerfelt'; W.attrPunkte = null; tauschA = null;
+  });
+}
+function attrNeu() {
+  if (!confirm('Neu würfeln kostet den EP-Bonus der Attribute. Trotzdem?')) return;
+  aendern(function () { W.attrWuerfe = wfrpAttributWuerfe(); W.attrZuord = null; W.attrModus = 'neu'; tauschA = null; });
+}
+function attrPunkteModus() {
+  aendern(function () {
+    W.attrModus = 'punkte'; W.attrPunkte = W.attrPunkte || {};
+    WFRP_ATTR_IDS.forEach(function (a) { if (!W.attrPunkte[a]) W.attrPunkte[a] = 10; });
+  });
+}
+/* Zurueck zu den Wuerfen: Wer schon gewuerfelt hatte, behaelt die Wuerfe -
+   aber nicht mehr den vollen Bonus. Sonst liesse sich der Bonus durch
+   Hin- und Herschalten zurueckholen. */
+function attrZurueckWuerfeln() {
+  aendern(function () { W.attrModus = W.attrWuerfe ? 'neu' : ''; });
+}
+function punkte(a, d) {
+  aendern(function () {
+    const v = (+W.attrPunkte[a] || 0) + d;
+    if (v < WFRP_PUNKTE_MIN || v > WFRP_PUNKTE_MAX) return;
+    if (d > 0 && wfrpErsPunkteSumme(W) >= WFRP_PUNKTE_SUMME) return;
+    W.attrPunkte[a] = v;
+  });
+}
+function tausch(a) {
+  if (!tauschA) { tauschA = a; zeichne(); return; }
+  if (tauschA === a) { tauschA = null; zeichne(); return; }
+  const b = tauschA; tauschA = null;
+  aendern(function () {
+    if (!W.attrZuord) { W.attrZuord = {}; WFRP_ATTR_IDS.forEach(function (x, i) { W.attrZuord[x] = i; }); }
+    const t = W.attrZuord[a]; W.attrZuord[a] = W.attrZuord[b]; W.attrZuord[b] = t;
+    if (W.attrModus === 'gewuerfelt') W.attrModus = 'getauscht';
+  });
+}
+function karrAttr(a, d) {
+  aendern(function () {
+    const v = (+W.attrKarr[a] || 0) + d;
+    if (v < 0 || (d > 0 && wfrpErsSumme(W.attrKarr) >= 5)) return;
+    W.attrKarr[a] = v;
+  });
+}
+function extraSetzen(i) { aendern(function () { W.extraS = i; }); }
+
+/* ---------------- Spezialisierung waehlen ---------------- */
+/* Ein Feld fuer "wissen/*" (frei mit Vorschlaegen) oder eine Auswahl
+   fuer "schleichen/Land|Stadt". */
+function spezFeld(ref, karte, fnName) {
+  const r = wfrpRefTeile(ref);
+  const jetzt = (karte || {})[ref] || '';
+  if (Array.isArray(r.spez)) {
+    return '<select onchange="' + fnName + '(\'' + ref + '\',this.value)"><option value="">wählen …</option>' +
+      r.spez.map(function (s) { return '<option' + (s === jetzt ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '</select>';
+  }
+  const def = WFRP_FERT_BY_ID[r.id];
+  const liste = def ? 'dl-f-' + r.id : (r.id === 'segnen' || r.id === 'anrufen' ? 'dl-gott' : '');
+  return '<input type="text" maxlength="40" style="width:11rem" placeholder="welche?" value="' + esc(jetzt) + '"' +
+    (liste ? ' list="' + liste + '"' : '') + ' onchange="' + fnName + '(\'' + ref + '\',this.value)">';
+}
+function fertSpez(ref, v) { aendern(function () { W.spez[ref] = spezSauber(v); }); }
+function talSpez(ref, v) { aendern(function () { W.tSpez[ref] = spezSauber(v); }); }
+
+/* Vorschlagslisten fuer jede gruppierte Fertigkeit, einmal angelegt. */
+(function () {
+  let h = '';
+  WFRP_FERTIGKEITEN.forEach(function (f) {
+    if (!f.gruppe) return;
+    h += '<datalist id="dl-f-' + f.id + '">' + f.spez.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist>';
+  });
+  document.body.insertAdjacentHTML('beforeend', h);
+})();
+
+function fertAnzeige(F, ref) {
+  const key = wfrpErsKey(W, ref);
+  if (!key) return '–';
+  const w = wfrpFertWert(F, key);
+  return w ? (w.kann ? w.wert : '–') : '–';
+}
+
+/* ---------------- 4 Herkunft (Spezies) ---------------- */
+function zHerkunft(offen) {
+  const sp = wfrpErsSpezies(W);
+  if (!sp) return '<h2>Herkunft</h2><p class="lead">Wähle zuerst eine Spezies.</p>';
+  const F = wfrpErsFigur(W);
+  let h = '<h2>Herkunft</h2><p class="lead">Was du als ' + esc(sp.n) + ' mitbringst. Aus den zwölf Fertigkeiten deiner Spezies ' +
+    'wählst du <b>drei mit +5</b> und <b>drei mit +3</b> Steigerungen. Dazu kommen die Talente deiner Spezies. ' +
+    'Reikspiel sprichst du ohnehin — dafür brauchst du keine Fertigkeit.</p>' + offenBox(offen);
+  h += '<div class="card"><div class="card-hdr">Fertigkeiten <span class="card-hdr-sub">+5: ' + W.spFert5.length +
+    '/3 · +3: ' + W.spFert3.length + '/3</span></div><table><tr><th>Fertigkeit</th><th></th><th>Steigerung</th><th style="text-align:right">Wert</th></tr>';
+  sp.fert.forEach(function (ref) {
+    const in5 = W.spFert5.indexOf(ref) >= 0, in3 = W.spFert3.indexOf(ref) >= 0;
+    const def = WFRP_FERT_BY_ID[wfrpRefTeile(ref).id];
+    h += '<tr><td>' + esc(wfrpRefText(ref)) + ' <span class="hint">' + WFRP_ATTR_BY_ID[def.attr].k + (def.basis ? '' : ' · fortgeschritten') + '</span></td>' +
+      '<td>' + (wfrpErsBrauchtWahl(ref) && (in5 || in3) ? spezFeld(ref, W.spez, 'fertSpez') : '') + '</td>' +
+      '<td><button class="chip' + (in5 ? ' on' : '') + '" onclick="spFert(\'' + ref + '\',5)"' + (!in5 && W.spFert5.length >= 3 ? ' disabled' : '') + '>+5</button> ' +
+      '<button class="chip' + (in3 ? ' on' : '') + '" onclick="spFert(\'' + ref + '\',3)"' + (!in3 && W.spFert3.length >= 3 ? ' disabled' : '') + '>+3</button></td>' +
+      '<td class="z">' + fertAnzeige(F, ref) + '</td></tr>';
+  });
+  h += '</table></div>';
+
+  h += '<div class="card"><div class="card-hdr">Talente deiner Spezies</div><div class="card-body">';
+  sp.tal.forEach(function (t, i) {
+    if (Array.isArray(t)) {
+      h += '<div style="margin-bottom:.5rem">Wähle eins: ' + t.map(function (ref) {
+        return '<button class="chip' + (W.spTalWahl[i] === ref ? ' on' : '') + '" onclick="spTal(' + i + ',\'' + ref + '\')">' + esc(wfrpRefText(ref)) + '</button>';
+      }).join(' ') + '</div>';
+      if (W.spTalWahl[i]) h += talentZeile(W.spTalWahl[i]);
+    } else h += talentZeile(t);
+  });
+  if (sp.zufall) {
+    h += '<div style="margin-top:.6rem">Zufallstalente: ' + (W.zufall || []).length + ' von ' + sp.zufall + ' ';
+    if ((W.zufall || []).length < sp.zufall) h += '<button class="btn btn-gold" onclick="zufallsTalent()">W100 würfeln</button>';
+    h += '</div>';
+    (W.zufall || []).forEach(function (ref) { h += talentZeile(ref); });
+  }
+  return h + '</div></div>';
+}
+function talentZeile(ref) {
+  const t = WFRP_TAL_BY_ID[wfrpRefTeile(ref).id];
+  return '<div style="margin:.35rem 0;font-size:.78rem;line-height:1.5"><span class="tag">' + esc(wfrpRefText(ref)) + '</span> ' +
+    (wfrpErsBrauchtWahl(ref) ? spezFeld(ref, W.tSpez, 'talSpez') + ' ' : '') +
+    '<span style="color:#cfc6b6">' + esc(t ? t.d : '') + '</span></div>';
+}
+function spFert(ref, n) {
+  aendern(function () {
+    const a = n === 5 ? W.spFert5 : W.spFert3, b = n === 5 ? W.spFert3 : W.spFert5;
+    const i = a.indexOf(ref);
+    if (i >= 0) { a.splice(i, 1); return; }
+    if (a.length >= 3) return;
+    const j = b.indexOf(ref); if (j >= 0) b.splice(j, 1);
+    a.push(ref);
+  });
+}
+function spTal(i, ref) { aendern(function () { W.spTalWahl[i] = ref; }); }
+/* Ein Talent, das man schon hat, darf neu gewuerfelt werden (S. 36) -
+   das tut die Seite gleich selbst. */
+function zufallsTalent() {
+  aendern(function () {
+    // Nicht mehr, als die Spezies hergibt - auch nicht bei einem Doppelklick.
+    if ((W.zufall || []).length >= (wfrpErsSpezies(W) || {}).zufall) return;
+    const schon = wfrpErsSpeziesTalente(W).concat(W.zufall || []).filter(Boolean).map(function (r) { return wfrpRefTeile(r).id; });
+    for (let n = 0; n < 200; n++) {
+      const ref = wfrpZufallsTalent(wfrpW100());
+      if (schon.indexOf(wfrpRefTeile(ref).id) < 0) { W.zufall = (W.zufall || []).concat([ref]); return; }
+    }
+  });
+}
+
+/* ---------------- 5 Ausbildung (Karriere) ---------------- */
+function zAusbildung(offen) {
+  const k = wfrpErsKarriere(W);
+  if (!k) return '<h2>Ausbildung</h2><p class="lead">Wähle zuerst eine Karriere.</p>';
+  const s1 = k.stufen[0], F = wfrpErsFigur(W);
+  const summe = wfrpErsSumme(W.karrFert);
+  let h = '<h2>Ausbildung: ' + esc(s1.n) + '</h2><p class="lead">Die acht Fertigkeiten deiner ersten Karrierestufe. ' +
+    'Verteile <b>40 Steigerungen</b>, höchstens 10 auf eine. Fünf auf jede ist genau, was du später brauchst, um ' +
+    'die Stufe abzuschließen — aber niemand zwingt dich. Dazu wählst du <b>ein Talent</b>.</p>' + offenBox(offen);
+  h += '<div class="card"><div class="card-hdr">Fertigkeiten <span class="card-hdr-sub">' + summe + ' von 40</span></div>' +
+    '<table><tr><th>Fertigkeit</th><th></th><th>Steigerungen</th><th style="text-align:right">Wert</th></tr>';
+  s1.fert.forEach(function (ref) {
+    const n = +W.karrFert[ref] || 0;
+    const def = WFRP_FERT_BY_ID[wfrpRefTeile(ref).id];
+    h += '<tr><td>' + esc(wfrpRefText(ref)) + ' <span class="hint">' + WFRP_ATTR_BY_ID[def.attr].k + (def.basis ? '' : ' · fortgeschritten') + '</span></td>' +
+      '<td>' + (wfrpErsBrauchtWahl(ref) && n > 0 ? spezFeld(ref, W.spez, 'fertSpez') : '') + '</td>' +
+      '<td><span class="step"><button onclick="karrFert(\'' + ref + '\',-1)"' + (n <= 0 ? ' disabled' : '') + '>−</button><span>' + n +
+      '</span><button onclick="karrFert(\'' + ref + '\',1)"' + (n >= 10 || summe >= 40 ? ' disabled' : '') + '>+</button></span> ' +
+      '<button class="chip" onclick="karrFertSetzen(\'' + ref + '\',5)">5</button></td>' +
+      '<td class="z">' + fertAnzeige(F, ref) + '</td></tr>';
+  });
+  h += '</table></div><div class="card"><div class="card-hdr">Ein Talent</div><div class="card-body">';
+  /* Was die Figur OHNE das Karrietalent schon hat - ein Talent, das sie
+     schon so oft hat wie erlaubt, steht gedaempft da und sagt es. */
+  const ohne = wfrpErsFigur(Object.assign({}, W, { karrTal: '' }));
+  s1.tal.forEach(function (ref) {
+    const t = WFRP_TAL_BY_ID[wfrpRefTeile(ref).id];
+    const key = wfrpErsBrauchtWahl(ref) ? null : wfrpErsTalKey(W, ref);
+    const max = key ? wfrpTalentMax(ohne, key) : null;
+    const voll = key && max !== null && (ohne.tal[key] || 0) >= max;
+    h += '<div class="wahl' + (W.karrTal === ref ? ' on' : '') + (voll ? ' aus' : '') + '" style="margin-bottom:.4rem" onclick="karrTal(\'' + ref + '\')">' +
+      '<div class="wahl-n">' + esc(wfrpRefText(ref)) + (voll ? ' <span class="hint">— hast du schon</span>' : '') + '</div>' +
+      '<div class="wahl-d">' + esc(t ? t.d : '') + '</div></div>';
+  });
+  if (W.karrTal && wfrpErsBrauchtWahl(W.karrTal)) h += '<div class="row">Spezialisierung: ' + spezFeld(W.karrTal, W.tSpez, 'talSpez') + '</div>';
+  return h + '</div></div>';
+}
+function karrFert(ref, d) {
+  aendern(function () {
+    const v = (+W.karrFert[ref] || 0) + d;
+    if (v < 0 || v > 10 || (d > 0 && wfrpErsSumme(W.karrFert) >= 40)) return;
+    W.karrFert[ref] = v;
+  });
+}
+function karrFertSetzen(ref, n) {
+  aendern(function () {
+    const rest = 40 - wfrpErsSumme(W.karrFert) + (+W.karrFert[ref] || 0);
+    W.karrFert[ref] = Math.min(n, rest, 10);
+  });
+}
+function karrTal(ref) { aendern(function () { W.karrTal = ref; }); }
+
+/* ---------------- 6 Ausruestung ---------------- */
+function zAusruestung(offen) {
+  const k = wfrpErsKarriere(W);
+  if (!k) return '<h2>Ausrüstung</h2><p class="lead">Wähle zuerst eine Karriere.</p>';
+  const kl = WFRP_KLASSE_BY_ID[k.klasse], s1 = k.stufen[0];
+  let h = '<h2>Ausrüstung und Geld</h2><p class="lead">Was jede Figur deiner Klasse hat, dazu die Ausrüstung deiner ' +
+    'ersten Karrierestufe. Dein <b>Status</b> (' + esc(wfrpStatusText(s1)) + ') bestimmt dein Startgeld: Messing bringt 2W10 Pfennige, ' +
+    'Silber 1W10 Schillinge, Gold eine Krone — je Stufe der Stellung.</p>' + offenBox(offen);
+  h += '<div class="card"><div class="card-hdr">' + esc(kl.n) + '</div><div class="card-body">' + kl.ausr.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div></div>';
+  h += '<div class="card"><div class="card-hdr">' + esc(s1.n) + '</div><div class="card-body">' + s1.ausr.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div></div>';
+  h += '<div class="card"><div class="card-hdr">Startgeld</div><div class="card-body">';
+  if (!W.geld) h += '<button class="btn btn-gold" onclick="geldWuerfeln()">Würfeln</button>';
+  else h += '<div class="wurf"><b>' + esc(wfrpGeldText(W.geld)) + '</b> — GK Goldkronen, S Silberschillinge, P Messingpfennige. ' +
+    '1 GK = 20 S = 240 P.</div>';
+  return h + '<div class="hint">Mehr kaufen oder etwas verkaufen kannst du später im Heldenbrief festhalten.</div></div></div>';
+}
+function geldWuerfeln() { aendern(function () { W.geld = wfrpStartgeld(wfrpErsKarriere(W).stufen[0]); }); }
+
+/* ---------------- 7 Details ---------------- */
+function zDetails(offen) {
+  const sp = wfrpErsSpezies(W);
+  let h = '<h2>Details</h2><p class="lead">Name, Aussehen, Ziele. Alter, Größe, Augen und Haare kannst du würfeln ' +
+    'oder einfach hinschreiben. Die <b>Ambitionen</b> sprichst du mit der Spielleitung ab — eine kurzfristige erreichst ' +
+    'du in ein paar Sitzungen (+50 EP), eine langfristige vielleicht nie (+500 EP).</p>' + offenBox(offen);
+  function feld(k, label, ph, wurfFn) {
+    return '<div class="feld"><label>' + label + '</label><div class="row"><input type="text" maxlength="80" style="flex:1" value="' + esc(W[k]) +
+      '" placeholder="' + esc(ph) + '" onchange="detail(\'' + k + '\',this.value)">' +
+      (wurfFn && sp ? '<button class="btn" onclick="' + wurfFn + '()">würfeln</button>' : '') + '</div></div>';
+  }
+  h += '<div class="card"><div class="card-body">' +
+    feld('name', 'Name', 'z. B. Wilhelm von Auerswald') +
+    feld('alter', 'Alter', '', 'alterWuerfeln') + feld('groesse', 'Größe', '', 'groesseWuerfeln') +
+    feld('augen', 'Augen', '', 'augenWuerfeln') + feld('haare', 'Haare', '', 'haareWuerfeln') +
+    feld('ambKurz', 'Kurzfristige Ambition', 'z. B. den Ruf eines Rivalen ruinieren') +
+    feld('ambLang', 'Langfristige Ambition', 'z. B. ein eigenes Gasthaus besitzen') +
+    '<div class="feld"><label>Hintergrund</label><textarea onchange="detail(\'hintergrund\',this.value)" placeholder="Woher kommst du, was hat dich geprägt, warum gehst du auf Reisen?">' +
+    esc(W.hintergrund) + '</textarea></div></div></div>';
+  return h;
+}
+function detail(k, v) { aendern(function () { W[k] = String(v || '').trim(); }); }
+function summeW(anz, seiten) { let s = 0; for (let i = 0; i < anz; i++) s += wfrpW(seiten); return s; }
+function alterWuerfeln() {
+  const a = wfrpErsSpezies(W).alter;
+  detail('alter', (a.basis + summeW(a.anzahl, a.seiten)) + ' Jahre');
+}
+/* Das Buch rechnet in Fuss und Zoll - hier steht es in Zentimetern. */
+function groesseWuerfeln() {
+  const g = wfrpErsSpezies(W).groesse;
+  const zoll = g.zoll + summeW(g.w10, 10);
+  detail('groesse', Math.round(zoll * 2.54) + ' cm');
+}
+function ausTab(tab) { const w = summeW(2, 10); return wfrpAusTabelle(w, tab); }
+function augenWuerfeln() { detail('augen', ausTab(wfrpErsSpezies(W).augen)); }
+function haareWuerfeln() { detail('haare', ausTab(wfrpErsSpezies(W).haare)); }
+
+/* ---------------- 8 Fertig ---------------- */
+function zFertig() {
+  const offen = wfrpErsOffen(W);
+  const alle = [];
+  WFRP_ERS_SCHRITTE.forEach(function (s, i) {
+    (offen[s.id] || []).forEach(function (t) { alle.push('<a href="#" onclick="geheZu(' + i + ');return false">' + esc(s.n) + '</a>: ' + esc(t)); });
+  });
+  const F = wfrpErsFigur(W, { spieler: spielerName() });
+  const k = wfrpErsKarriere(W), sp = wfrpErsSpezies(W);
+  let h = '<h2>' + esc(W.name || 'Deine Figur') + '</h2><p class="lead">' +
+    (sp ? esc(sp.n) : '') + (k ? ' · ' + esc(k.stufen[0].n) + ' (' + esc(k.n) + ') · ' + esc(wfrpStatusText(k.stufen[0])) : '') + '</p>';
+  h += alle.length ? '<div class="offen">Noch offen:<br>' + alle.join('<br>') + '</div>'
+                   : '<div class="offen alles">Alles beisammen. Mit „Abschließen“ wird die Figur fertig und gehört ab dann deinem Heldenbrief.</div>';
+  if (sp) {
+    h += '<div class="card"><table><tr>' + WFRP_ATTR_IDS.map(function (a) { return '<th>' + WFRP_ATTR_BY_ID[a].k + '</th>'; }).join('') + '</tr><tr>' +
+      WFRP_ATTR_IDS.map(function (a) { return '<td class="m">' + wfrpAttrWert(F, a) + '</td>'; }).join('') + '</tr></table></div>';
+    h += '<div class="dv-row" style="margin-bottom:.9rem">' +
+      dv('Lebenspunkte', wfrpWundenMax(F)) + dv('Bewegung', wfrpBewegung(F).bewegung) +
+      dv('Schicksal', F.schicksal) + dv('Zähigkeit', F.zaehigkeit) + dv('EP', F.epGesamt) + '</div>';
+    const fk = Object.keys(F.fert).filter(function (x) { return F.fert[x] > 0; });
+    h += '<div class="card"><div class="card-hdr">Fertigkeiten</div><div class="card-body">' +
+      fk.map(function (x) { const w = wfrpFertWert(F, x); return '<span class="tag">' + esc(wfrpKeyText(x)) + ' ' + w.wert + '</span>'; }).join('') + '</div></div>';
+    h += '<div class="card"><div class="card-hdr">Talente</div><div class="card-body">' +
+      Object.keys(F.tal).map(function (x) { return '<span class="tag">' + esc(wfrpKeyText(x)) + '</span>'; }).join('') + '</div></div>';
+    h += '<div class="card"><div class="card-hdr">Ausrüstung · ' + esc(wfrpGeldText(F.geld)) + '</div><div class="card-body">' +
+      F.ausr.map(function (x) { return '<span class="tag">' + esc(x) + '</span>'; }).join('') + '</div></div>';
+  }
+  h += '<div class="row"><button class="btn btn-gold" onclick="abschliessen()"' + (alle.length ? ' disabled' : '') + '>Abschließen</button>' +
+    '<button class="btn" onclick="verwerfen()">Verwerfen und neu anfangen</button></div>' +
+    '<p class="hint">Deine ' + F.epGesamt + ' Bonus-EP gibst du im Heldenbrief aus — auf die drei Attribute, acht Fertigkeiten ' +
+    'und vier Talente deiner Karrierestufe.</p><div class="meld" id="meld"></div>';
+  return h;
+}
+function dv(l, v) { return '<div class="dv"><div class="dv-l">' + l + '</div><div class="dv-v">' + v + '</div></div>'; }
+
+function abschliessen() {
+  if (!wfrpErsFertig(W)) return;
+  if (!db || !syncBereit) { el('meld').textContent = 'Ohne Verbindung kann die Figur nicht abgeschlossen werden.'; return; }
+  clearTimeout(syncTimer);
+  const p = figurPaket();
+  p.fertig = true;
+  p.erstellt = Date.now();
+  el('meld').textContent = 'Wird gespeichert …';
+  db.ref('figuren/' + schluessel()).update(p).then(function () {
+    try { localStorage.removeItem(cacheKey()); } catch (e) {}
+    location.replace(regelwerkSeite(WFRP_REGELWERK, 'bogen') + (location.search || ''));
+  }).catch(function (e) {
+    el('meld').textContent = 'Ging nicht: ' + (e && e.code ? e.code : e) + ' — versuch es gleich noch einmal.';
+  });
+}
+
+/* Zwei Schritte, wie in Savage Worlds: An einer Figur haengt Arbeit,
+   und es gibt kein Backup. */
+function verwerfen() {
+  if (!confirm('Die Figur ganz verwerfen und von vorn beginnen?')) return;
+  const n = W.name || 'verwerfen';
+  if (prompt('Zur Sicherheit: Tippe „' + n + '“ ein.') !== n) { alert('Das stimmt nicht überein — es wurde nichts gelöscht.'); return; }
+  clearTimeout(syncTimer);
+  try { localStorage.removeItem(cacheKey()); } catch (e) {}
+  const fertig = function () { W = wfrpErsLeer(); angefangen = false; zeichne(); };
+  if (db) figurLoeschen(db, (db && db.sitzung) || SITZUNG_VORGABE, schluessel(), fertig); else fertig();
+}
+
+/* ---------------- Start ---------------- */
+function ausLokal() {
+  try {
+    const d = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
+    if (d && typeof d === 'object') W = Object.assign(wfrpErsLeer(), d);
+  } catch (e) {}
+}
+
+function sperre(titel, text, links) {
+  el('fuss').style.display = 'none';
+  el('schritte').innerHTML = '';
+  el('inhalt').innerHTML = '<div class="gesperrt"><h2>' + esc(titel) + '</h2><p>' + text + '</p><div class="row" style="justify-content:center;margin-top:1rem">' +
+    (links || '') + '</div></div>';
+}
+
+function start() {
+  if (!hatSitzung()) {
+    sitzungsSperre('Noch keine Sitzung', 'Um eine Figur zu erschaffen, musst du erst einer Sitzung beitreten. ' +
+      'Die Sitzungs-ID bekommst du von deiner Spielleitung.', 'Zum Hub', 'index.html');
+    return;
+  }
+  if (!schluessel()) {
+    sitzungsSperre('Noch kein Name', 'Deine Figur hängt an deinem Namen und dieser Sitzung. ' +
+      'Melde dich dafür einmal im Hub mit deinem Namen an.', 'Zum Hub', 'index.html');
+    return;
+  }
+  ausLokal();
+  angefangen = !!W.spezies;
+  zeichne();
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = sitzungsDbJetzt(firebase.database());
+    syncBereit = true;
+    sync('verbinde …', 'var(--gray)');
+    db.ref('.info/connected').on('value', function (s) {
+      if (s.val()) sync('verbunden', 'var(--teal)'); else sync('offline', 'var(--gray)');
+    });
+    regelwerkPruefen(db, function (rw) {
+      if (regelwerkWeiter(WFRP_REGELWERK, rw, 'erschaffung')) { syncBereit = false; return; }
+      db.ref('figuren/' + schluessel()).once('value').then(function (s) {
+        const roh = s.val();
+        if (roh && !wfrpIstWfrp(roh) && istFigurEcht(roh)) {
+          syncBereit = false;
+          sperre('Hier liegt schon eine Figur', 'Unter deinem Namen liegt in dieser Sitzung eine Figur nach einem anderen Regelwerk. ' +
+            'Sprich mit deiner Spielleitung — sie kann sie im Regie-Hub löschen.', '<a class="btn" href="index.html" target="_top">Zum Hub</a>');
+          return;
+        }
+        if (roh && wfrpIstWfrp(roh) && roh.fertig) {
+          syncBereit = false;
+          sperre('Deine Figur ist fertig', esc(roh.name || 'Deine Figur') + ' ist abgeschlossen und gehört jetzt deinem Heldenbrief. ' +
+            'Dort steigerst du sie, würfelst und führst sie durch das Abenteuer.',
+            '<a class="btn btn-gold" href="' + regelwerkSeite(WFRP_REGELWERK, 'bogen') + '">Zum Heldenbrief</a>');
+          return;
+        }
+        if (roh && wfrpIstWfrp(roh) && roh.erschaffungJson) {
+          try { W = Object.assign(wfrpErsLeer(), JSON.parse(roh.erschaffungJson)); angefangen = true; } catch (e) {}
+        }
+        ladeBereit = true;
+        zeichne();
+        if (angefangen) speichern();
+      }).catch(function () { ladeBereit = true; });
+    });
+  } catch (e) {
+    syncBereit = false;
+    sync('nur lokal', 'var(--gray)');
+    console.warn('Firebase nicht erreichbar:', e);
+  }
+}
+start();
+</script>
+</body>
+</html>

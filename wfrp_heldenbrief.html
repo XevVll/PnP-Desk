@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warhammer — Heldenbrief</title>
+<style>
+:root{
+  --bg:#1b1714;--surface:rgba(255,255,255,.045);--border:rgba(196,160,92,.24);
+  --dark:#231d19;--teal:#5f9e8f;--gold:#c4a05c;--lgold:rgba(196,160,92,.12);
+  --ink:#f6f0e6;--gray:#9c9080;--red:#a33a2a;--green:#4d8a5b;--amber:#c9792b;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:2rem}
+a{color:var(--gold)}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(27,23,20,.97);border-bottom:1px solid var(--border)}
+.tbin{max-width:980px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.imRahmen .tbin{padding-right:3.2rem}
+.brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.92rem;letter-spacing:.12em}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;border:1px solid var(--border);color:var(--gray);border-radius:10px;padding:.1rem .55rem;white-space:nowrap;text-decoration:none}
+.badge.gold{border-color:var(--gold);color:var(--gold)}
+.sp{flex:1}
+.tabs{display:flex;gap:.25rem;max-width:980px;margin:0 auto;padding:0 1rem .45rem}
+.tab{flex:1;text-align:center;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;color:var(--gray);padding:.32rem .2rem;border-bottom:2px solid rgba(196,160,92,.18);cursor:pointer;text-transform:uppercase}
+.tab:hover{color:var(--gold)}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.wrap{max-width:980px;margin:0 auto;padding:1rem}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.9rem;overflow:hidden}
+.card-hdr{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.14em;color:var(--gold);padding:.45rem .9rem;background:var(--lgold);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.card-hdr-sub{font-size:.62rem;color:var(--gray);font-family:'Libre Baskerville',serif;letter-spacing:0;font-style:italic;text-transform:none}
+.card-body{padding:.75rem .9rem}
+.kopf{margin-bottom:.8rem}
+.kopf-n{font-family:'Cinzel',serif;font-size:1.5rem;color:var(--gold);letter-spacing:.04em;line-height:1.2}
+.kopf-s{font-size:.76rem;color:var(--gray);font-style:italic;line-height:1.6}
+.hint{font-size:.74rem;color:var(--gray);font-style:italic;line-height:1.6;margin-top:.4rem}
+.btn{font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.07em;padding:.38rem .8rem;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--gray);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-gold{border-color:var(--gold);color:var(--gold)}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.dv-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.9rem}
+.dv{flex:1;min-width:100px;border:1px solid var(--border);border-radius:6px;text-align:center;padding:.4rem .3rem;background:rgba(255,255,255,.02)}
+.dv-l{font-family:'Cinzel',serif;font-size:.5rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase}
+.dv-v{font-family:'Cinzel',serif;font-size:1.25rem;font-weight:700;color:var(--gold);line-height:1.25}
+.dv-v small{font-size:.7rem;color:var(--gray);font-weight:400}
+.mini{display:flex;gap:.25rem;justify-content:center;margin-top:.2rem}
+.mini button{min-width:22px;height:20px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--gold);cursor:pointer;font-size:.72rem;line-height:1;font-family:'Cinzel',serif;padding:0 .3rem}
+.mini button:disabled{opacity:.25;cursor:default}
+.schwer{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.8rem}
+.chip{border:1px solid var(--border);border-radius:12px;padding:.14rem .6rem;font-size:.72rem;color:#cfc6b6;cursor:pointer;background:transparent;font-family:inherit}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.chip.on{border-color:var(--teal);background:rgba(95,158,143,.2);color:#bfe6dc}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;text-align:left;padding:.25rem .35rem;border-bottom:1px solid var(--border)}
+td{padding:.28rem .35rem;border-bottom:1px solid rgba(196,160,92,.08);vertical-align:middle}
+td.m{text-align:center;color:#cfc6b6}
+.wert{font-family:'Cinzel',serif;font-weight:700;color:var(--gold);border:1px solid var(--border);border-radius:5px;padding:.1rem .5rem;cursor:pointer;background:transparent;font-size:.82rem;min-width:2.8rem}
+.wert:hover{background:var(--lgold);border-color:var(--gold)}
+.fliste{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.3rem}
+.fz{display:flex;align-items:center;justify-content:space-between;gap:.4rem;border:1px solid rgba(196,160,92,.12);border-radius:5px;padding:.2rem .45rem;font-size:.76rem}
+.fz .a{font-size:.6rem;color:var(--gray);font-family:'Cinzel',serif}
+.fz.karr{border-color:rgba(95,158,143,.45)}
+.wurf{border:1px solid var(--gold);background:var(--lgold);border-radius:6px;padding:.7rem .9rem;margin-bottom:.9rem;display:none}
+.wurf.on{display:block}
+.wurf-k{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase}
+.wurf-b{font-family:'Cinzel',serif;font-size:1.25rem;margin:.1rem 0 .25rem}
+.wurf-b.gut{color:#8fd1a0}.wurf-b.schlecht{color:#e08a7a}
+.wurf-d{font-size:.8rem;color:#d8cfbf;line-height:1.6}
+.wurf-d b{color:var(--gold);font-family:'Cinzel',serif}
+.tag{display:inline-block;font-size:.72rem;border:1px solid rgba(95,158,143,.5);color:#bfe6dc;border-radius:11px;padding:.06rem .55rem;margin:.12rem .15rem .12rem 0;cursor:help}
+.st-z{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid rgba(196,160,92,.08);font-size:.78rem;flex-wrap:wrap}
+.st-z .n{flex:1;min-width:10rem}
+.st-z .k{font-family:'Cinzel',serif;font-size:.66rem;color:var(--gray);min-width:4.5rem;text-align:right}
+.st-z .v{font-family:'Cinzel',serif;color:var(--gold);min-width:2.4rem;text-align:right}
+.st-grund{font-size:.66rem;color:var(--amber);font-family:'Cinzel',serif}
+input[type=text],input[type=number],select,textarea{background:var(--dark);border:1px solid var(--border);border-radius:5px;color:var(--ink);padding:.32rem .5rem;font-family:inherit;font-size:.8rem;outline:none}
+input[type=number]{width:5.5rem}
+textarea{width:100%;min-height:90px;resize:vertical;line-height:1.55}
+.ok{color:#8fd1a0}.warn{color:#e7b383}
+.meld{font-size:.76rem;margin-top:.4rem;min-height:1rem}
+.zeile{display:flex;align-items:center;gap:.4rem;padding:.2rem 0;font-size:.8rem;border-bottom:1px solid rgba(196,160,92,.08)}
+.zeile .n{flex:1}
+.x{background:transparent;border:none;color:var(--gray);cursor:pointer;font-size:.9rem}
+.x:hover{color:#e08a7a}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tbin">
+    <a class="badge" href="index.html" target="_top">← Hub</a>
+    <span class="brand">Heldenbrief</span>
+    <span class="badge">Warhammer Fantasy</span>
+    <span class="sp"></span>
+    <span class="badge gold" id="epBadge">— EP</span>
+    <span class="badge" id="syncBadge">—</span>
+  </div>
+  <div class="tabs">
+    <div class="tab on" onclick="zeigeTab(0,this)">Bogen</div>
+    <div class="tab" onclick="zeigeTab(1,this)">Steigerung</div>
+    <div class="tab" onclick="zeigeTab(2,this)">Ausrüstung</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="panel on" id="p0">
+    <div class="kopf" id="kopf"></div>
+    <div class="wurf" id="wurf"></div>
+    <div class="card"><div class="card-hdr">Schwierigkeit <span class="card-hdr-sub">gilt für den nächsten Wurf</span></div>
+      <div class="card-body"><div class="schwer" id="schwer" style="margin:0"></div></div></div>
+    <div class="dv-row" id="zustand"></div>
+    <div class="card"><div class="card-hdr">Attribute <span class="card-hdr-sub">Wert anklicken zum Würfeln</span></div>
+      <table id="attr"></table></div>
+    <div class="card"><div class="card-hdr">Fertigkeiten <span class="card-hdr-sub">grün umrandet: in deiner Karriere</span></div>
+      <div class="card-body"><div class="fliste" id="fert"></div>
+      <div class="hint">Grundfertigkeiten darf jeder prüfen, am Attribut. Fortgeschrittene erst ab der ersten Steigerung.</div></div></div>
+    <div class="card"><div class="card-hdr">Talente</div><div class="card-body" id="tal"></div></div>
+    <div class="card"><div class="card-hdr">Ambitionen und Aussehen</div><div class="card-body" id="amb"></div></div>
+  </div>
+
+  <div class="panel" id="p1">
+    <div class="dv-row" id="epStand"></div>
+    <div class="card"><div class="card-hdr">Erfahrung erhalten</div><div class="card-body">
+      <div class="row"><input type="number" id="epNeu" min="1" max="2000" placeholder="EP">
+        <button class="btn btn-gold" onclick="epDazu(1)">gutschreiben</button>
+        <button class="btn" onclick="epDazu(-1)">abziehen</button></div>
+      <div class="hint">Die Spielleitung sagt nach der Sitzung, wie viel es gibt. Abziehen ist für Tippfehler — Ausgegebenes bleibt ausgegeben.</div>
+    </div></div>
+    <div class="card"><div class="card-hdr">Karriere <span class="card-hdr-sub" id="karrSub"></span></div><div class="card-body" id="karr"></div></div>
+    <div class="card"><div class="card-hdr">Attribute steigern</div><div class="card-body" id="stAttr"></div></div>
+    <div class="card"><div class="card-hdr">Fertigkeiten steigern</div><div class="card-body" id="stFert"></div></div>
+    <div class="card"><div class="card-hdr">Talente lernen <span class="card-hdr-sub">nur die der aktuellen Stufe</span></div><div class="card-body" id="stTal"></div></div>
+    <div class="card"><div class="card-hdr">Außerhalb der Karriere <span class="card-hdr-sub">doppelter Preis, mit Zustimmung der Spielleitung</span></div><div class="card-body" id="stAus"></div></div>
+    <div class="card"><div class="card-hdr">Karriere wechseln</div><div class="card-body" id="wechsel"></div></div>
+    <div class="meld" id="stMeld"></div>
+  </div>
+
+  <div class="panel" id="p2">
+    <div class="card"><div class="card-hdr">Geld</div><div class="card-body" id="geld"></div></div>
+    <div class="card"><div class="card-hdr">Ausrüstung <span class="card-hdr-sub" id="tragSub"></span></div><div class="card-body">
+      <div id="ausr"></div>
+      <div class="row" style="margin-top:.5rem"><input type="text" id="ausrNeu" maxlength="80" placeholder="Gegenstand" style="flex:1">
+        <button class="btn btn-gold" onclick="ausrDazu()">hinzufügen</button></div>
+    </div></div>
+    <div class="card"><div class="card-hdr">Notizen <span class="card-hdr-sub">nur für dich</span></div><div class="card-body">
+      <textarea id="notizen" oninput="notizenSetzen(this.value)" placeholder="Was du dir merken willst …"></textarea></div></div>
+    <div class="row"><button class="btn" onclick="figurWeg()">Figur löschen</button></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/sitzung.js"></script>
+<script src="js/identitaet.js"></script>
+<script src="js/wfrp_daten.js"></script>
+<script src="js/wfrp_regelwerk.js"></script>
+<script>
+/* ==========================================================
+   WFRP — HELDENBRIEF
+   ----------------------------------------------------------
+   Das Blatt zum Fuehren einer fertigen Figur. Gerechnet wird in
+   js/wfrp_regelwerk.js; hier wird nur gezeichnet und gespeichert.
+
+   Dieser Bogen ist der EINZIGE Schreiber auf einer fertigen Figur
+   (dieselbe Regel wie in Savage Worlds). Gelesen wird einmal,
+   danach schreibt er seine Fassung hoch.
+
+   ---- Proben ----
+   W100 gegen den Wert plus Schwierigkeit. Das Ergebnis geht in den
+   Wuerfel-Feed (diceRolls) - mit "gut" als eigenem Feld, weil
+   "Knapper Erfolg" nicht mit "Erfolg" anfaengt und die Karte sonst
+   einen gelungenen Wurf rot einfaerbt.
+   Glueck (Fortune, S. 170): einen misslungenen Wurf wiederholen
+   ODER +1 EG nach dem Wurf - je Probe einmal.
+   ========================================================== */
+let F = wfrpLeereFigur();
+let db = null, syncBereit = false, ladeBereit = false, syncTimer = null, geloescht = false;
+let mod = 0;             // gewaehlte Schwierigkeit
+let letzter = null;      // { name, ziel, r, glueck: 'neu'|'eg'|null, r2 }
+
+if (window.top !== window.self) document.documentElement.classList.add('imRahmen');
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function el(id) { return document.getElementById(id); }
+function schluessel() { return figurSchluessel(spielerName()); }
+function cacheKey() { return 'kors_wfrp_' + (sitzungFest() || SITZUNG_VORGABE); }
+
+/* ---------------- Speichern ---------------- */
+function speichern() {
+  try { localStorage.setItem(cacheKey(), JSON.stringify(F)); } catch (e) {}
+  if (!db || !syncBereit || !ladeBereit || geloescht) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(nachFirebase, 700);
+}
+/* Alles ausser dem Zustand des Assistenten - der bleibt, wie er ist. */
+function paket() {
+  const p = {};
+  Object.keys(F).forEach(function (k) { if (k !== 'erschaffungJson') p[k] = F[k]; });
+  p.regelwerk = WFRP_REGELWERK;
+  p.geaendert = Date.now();
+  return p;
+}
+function nachFirebase() {
+  if (!db || !syncBereit || geloescht) return;
+  try {
+    db.ref('figuren/' + schluessel()).update(paket())
+      .then(function () { sync('gespeichert', 'var(--green)'); })
+      .catch(function () { sync('nur lokal', 'var(--gray)'); });
+  } catch (e) { sync('nur lokal', 'var(--gray)'); }
+}
+function sync(t, f) { const b = el('syncBadge'); b.textContent = t; b.style.color = f; b.style.borderColor = f; }
+function aendern(fn) { fn(); speichern(); zeichne(); }
+
+function zeigeTab(i, t) {
+  for (let n = 0; n < 3; n++) el('p' + n).classList.toggle('on', n === i);
+  document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+  t.classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+/* ---------------- Zeichnen ---------------- */
+function zeichne() {
+  zKopf(); zSchwer(); zZustand(); zAttr(); zFert(); zTal(); zAmb();
+  zEp(); zKarr(); zStAttr(); zStFert(); zStTal(); zStAus(); zWechsel();
+  zGeld(); zAusr();
+  el('epBadge').textContent = wfrpEpFrei(F) + ' EP frei';
+  if (document.activeElement !== el('notizen')) el('notizen').value = F.notizen || '';
+}
+
+function zKopf() {
+  const sp = WFRP_SPEZIES[F.spezies], k = wfrpKarriere(F), s = wfrpStufe(F);
+  el('kopf').innerHTML = '<div class="kopf-n">' + esc(F.name || 'Ohne Namen') + '</div><div class="kopf-s">' +
+    (sp ? esc(sp.n) : '') + (s ? ' · ' + esc(s.n) + ' (' + esc(k.n) + ', Stufe ' + F.stufe + ') · Status ' + esc(wfrpStatusText(s)) : '') +
+    (k ? ' · ' + esc(WFRP_KLASSE_BY_ID[k.klasse].n) : '') +
+    (F.motivation ? '<br>Motivation: <b>' + esc(F.motivation) + '</b>' : '') + '</div>';
+}
+
+function zSchwer() {
+  el('schwer').innerHTML = WFRP_SCHWIERIGKEITEN.map(function (s) {
+    return '<button class="chip' + (mod === s.mod ? ' on' : '') + '" onclick="setzeMod(' + s.mod + ')" title="' + esc(s.en) + '">' +
+      esc(s.n) + ' ' + (s.mod > 0 ? '+' : '') + (s.mod || '±0') + '</button>';
+  }).join('');
+}
+function setzeMod(m) { mod = m; zSchwer(); }
+
+function vorrat(label, wert, max, fn, extra) {
+  return '<div class="dv"><div class="dv-l">' + label + '</div><div class="dv-v">' + wert + (max !== null ? '<small> / ' + max + '</small>' : '') +
+    '</div><div class="mini"><button onclick="' + fn + '(-1)"' + (wert <= 0 ? ' disabled' : '') + '>−</button>' +
+    '<button onclick="' + fn + '(1)"' + (max !== null && wert >= max ? ' disabled' : '') + '>+</button>' + (extra || '') + '</div></div>';
+}
+function zZustand() {
+  const wm = wfrpWundenMax(F), b = wfrpBewegung(F);
+  const lp = (F.wunden === null || F.wunden === undefined) ? wm : Math.min(+F.wunden, wm);
+  el('zustand').innerHTML =
+    vorrat('Lebenspunkte', lp, wm, 'lpAendern') +
+    vorrat('Glück', +F.glueck || 0, wfrpGlueckMax(F), 'glueckAendern', '<button onclick="glueckVoll()" title="Zu Beginn jeder Sitzung">voll</button>') +
+    vorrat('Schicksal', +F.schicksal || 0, null, 'schicksalAendern') +
+    vorrat('Entschlossenh.', +F.entschlossenheit || 0, wfrpEntschlossenheitMax(F), 'entschAendern') +
+    vorrat('Zähigkeit', +F.zaehigkeit || 0, null, 'zaehAendern') +
+    '<div class="dv"><div class="dv-l">Bewegung</div><div class="dv-v">' + b.bewegung + '</div><div class="hint" style="margin:0">gehen ' + b.gehen + ' · rennen ' + b.rennen + '</div></div>';
+}
+function lpAendern(d) { aendern(function () { const m = wfrpWundenMax(F); const v = (F.wunden === null || F.wunden === undefined) ? m : +F.wunden; F.wunden = Math.max(0, Math.min(m, v + d)); }); }
+function glueckAendern(d) { aendern(function () { F.glueck = Math.max(0, Math.min(wfrpGlueckMax(F), (+F.glueck || 0) + d)); }); }
+function glueckVoll() { aendern(function () { F.glueck = wfrpGlueckMax(F); }); }
+/* Schicksal und Zaehigkeit sinken, wenn man sie AUSGIBT (dem Tod
+   entgehen, "Ich werde nicht scheitern!") - und mit ihnen der Vorrat. */
+function schicksalAendern(d) {
+  if (d < 0 && !confirm('Einen Schicksalspunkt dauerhaft ausgeben? Er rettet dich vor dem Tod — und ist danach weg.')) return;
+  aendern(function () { F.schicksal = Math.max(0, (+F.schicksal || 0) + d); F.glueck = Math.min(+F.glueck || 0, wfrpGlueckMax(F)); });
+}
+function zaehAendern(d) {
+  if (d < 0 && !confirm('Einen Zähigkeitspunkt dauerhaft ausgeben?')) return;
+  aendern(function () { F.zaehigkeit = Math.max(0, (+F.zaehigkeit || 0) + d); F.entschlossenheit = Math.min(+F.entschlossenheit || 0, wfrpEntschlossenheitMax(F)); });
+}
+function entschAendern(d) { aendern(function () { F.entschlossenheit = Math.max(0, Math.min(wfrpEntschlossenheitMax(F), (+F.entschlossenheit || 0) + d)); }); }
+
+function zAttr() {
+  const v = wfrpVerfuegbar(F).attr;
+  let h = '<tr><th>Attribut</th><th>Anfang</th><th>Steig.</th><th>Wert</th><th>Bonus</th></tr>';
+  WFRP_ATTR_IDS.forEach(function (a) {
+    const d = WFRP_ATTR_BY_ID[a], w = wfrpAttrWert(F, a);
+    h += '<tr><td title="' + esc(d.en) + '">' + esc(d.n) + ' <span class="hint">' + d.k + '</span>' + (v.indexOf(a) >= 0 ? ' <span class="ok" title="in deiner Karriere">●</span>' : '') + '</td>' +
+      '<td class="m">' + (+F.attrAnfang[a] || 0) + '</td><td class="m">' + (+F.attrSteig[a] || 0) + '</td>' +
+      '<td><button class="wert" onclick="probeAttr(this.dataset.k)" data-k="' + a + '">' + w + '</button></td><td class="m">' + wfrpBonus(w) + '</td></tr>';
+  });
+  el('attr').innerHTML = h;
+}
+function zFert() {
+  el('fert').innerHTML = wfrpFertigkeitenListe(F).map(function (f) {
+    const karr = wfrpFertImKarriere(F, f.key);
+    const name = wfrpKeyText(f.key);
+    return '<div class="fz' + (karr ? ' karr' : '') + '"><span>' + esc(name) + ' <span class="a">' + WFRP_ATTR_BY_ID[f.attr].k +
+      (f.steig ? ' +' + f.steig : '') + '</span></span><button class="wert" onclick="probeFert(this.dataset.k)" data-k="' + esc(f.key) + '">' + f.wert + '</button></div>';
+  }).join('');
+}
+function zTal() {
+  const keys = Object.keys(F.tal || {}).filter(function (k) { return (+F.tal[k] || 0) > 0; });
+  el('tal').innerHTML = keys.length ? keys.sort().map(function (k) {
+    const t = WFRP_TAL_BY_ID[wfrpKeyTeile(k).id];
+    return '<span class="tag" title="' + esc((t ? t.d : '') + (t ? ' (' + t.en + ')' : '')) + '">' + esc(wfrpKeyText(k)) +
+      (F.tal[k] > 1 ? ' ×' + F.tal[k] : '') + '</span>';
+  }).join('') + '<div class="hint">Mit der Maus auf ein Talent zeigen: Dann steht da, was es tut.</div>' : '<span class="hint">Noch keine.</span>';
+}
+function zAmb() {
+  el('amb').innerHTML =
+    '<div class="row" style="align-items:flex-start"><div style="flex:1;min-width:14rem"><b class="hint" style="font-style:normal">Kurzfristig</b><br>' +
+    '<input type="text" style="width:100%" maxlength="120" value="' + esc(F.ambKurz) + '" onchange="feld(\'ambKurz\',this.value)"></div>' +
+    '<div style="flex:1;min-width:14rem"><b class="hint" style="font-style:normal">Langfristig</b><br>' +
+    '<input type="text" style="width:100%" maxlength="120" value="' + esc(F.ambLang) + '" onchange="feld(\'ambLang\',this.value)"></div></div>' +
+    '<div class="hint">' + [F.alter, F.groesse, F.augen ? 'Augen ' + F.augen : '', F.haare ? 'Haare ' + F.haare : ''].filter(Boolean).map(esc).join(' · ') + '</div>';
+}
+function feld(k, v) { aendern(function () { F[k] = String(v || '').trim(); }); }
+
+/* ---------------- Probe ---------------- */
+/* Der Schluessel kommt aus einem data-Attribut, nicht aus einem
+   onclick-Text: Eine selbst eingetippte Spezialisierung mit einem
+   Apostroph haette den Aufruf sonst zerbrochen. */
+function probeAttr(a) { probe(WFRP_ATTR_BY_ID[a].n, wfrpAttrWert(F, a)); }
+function probeFert(key) {
+  const w = wfrpFertWert(F, key);
+  if (w && w.kann) probe(wfrpKeyText(key), w.wert);
+}
+function probe(name, wert) {
+  const r = wfrpProbe(wert, { mod: mod });
+  letzter = { name: name, wert: wert, r: r, glueck: null, r2: null };
+  zeigeWurf();
+  meldeWurf(name, r);
+}
+function egZeile(r) {
+  return 'Wurf <b>' + pad(r.wurf) + '</b> gegen <b>' + r.ziel + '</b>' + (r.mod ? ' (' + r.basis + ' ' + (r.mod > 0 ? '+' : '') + r.mod + ')' : '') +
+    ' — <b>' + wfrpEgText(r.eg, r.ok) + ' EG</b>' + (r.auto ? ' · ' + (r.auto === 'erfolg' ? '01–05 gelingt immer' : '96–00 misslingt immer') : '');
+}
+function pad(n) { return n >= 100 ? '00' : (n < 10 ? '0' + n : String(n)); }
+function zaehlt() {
+  const l = letzter;
+  if (!l) return null;
+  if (l.glueck === 'neu') return l.r2;
+  if (l.glueck === 'eg') return Object.assign({}, l.r, { eg: l.r.eg + 1, stufe: wfrpErgebnisStufe(l.r.eg + 1, l.r.ok) });
+  return l.r;
+}
+function zeigeWurf() {
+  const l = letzter, box = el('wurf');
+  if (!l) { box.classList.remove('on'); return; }
+  const z = zaehlt();
+  let h = '<div class="wurf-k">' + esc(l.name) + '</div><div class="wurf-b ' + z.stufe.klasse + '">' + esc(z.stufe.n) + ' — ' + esc(z.stufe.d) + '</div>' +
+    '<div class="wurf-d">' + egZeile(l.r) + '</div>';
+  if (l.glueck === 'neu') h += '<div class="wurf-d">Mit Glück neu gewürfelt: ' + egZeile(l.r2) + '</div>';
+  if (l.glueck === 'eg') h += '<div class="wurf-d">Mit Glück +1 EG: jetzt <b>' + wfrpEgText(z.eg, z.ok) + ' EG</b></div>';
+  if (z.pasch) {
+    const zone = wfrpTrefferzone(z.wurf);
+    h += '<div class="wurf-d">Pasch! Im Kampf ' + (z.ok ? '<b>kritischer Treffer</b>' : '<b>Patzer</b>') + '.' +
+      (z.ok ? ' Trefferzone: ' + esc(zone.n) + ' (' + pad(zone.wurf) + ').' : '') + '</div>';
+  } else if (z.ok) {
+    const zone = wfrpTrefferzone(z.wurf);
+    h += '<div class="hint" style="margin:.2rem 0 0">Als Angriff: Trefferzone ' + esc(zone.n) + ' (' + pad(zone.wurf) + ').</div>';
+  }
+  if (!l.glueck && (+F.glueck || 0) > 0) {
+    h += '<div class="row" style="margin-top:.5rem">' +
+      (!l.r.ok ? '<button class="btn btn-gold" onclick="mitGlueck(\'neu\')">Glück: neu würfeln</button>' : '') +
+      '<button class="btn btn-gold" onclick="mitGlueck(\'eg\')">Glück: +1 EG</button>' +
+      '<span class="hint" style="margin:0">Noch ' + F.glueck + ' Glück.</span></div>';
+  }
+  box.innerHTML = h;
+  box.classList.add('on');
+}
+/* Erst den Punkt abziehen, dann werfen - wie beim Bennie: Bricht
+   etwas dazwischen ab, ist lieber ein Punkt zu viel weg. */
+function mitGlueck(art) {
+  if (!letzter || letzter.glueck || (+F.glueck || 0) <= 0) return;
+  if (art === 'neu' && letzter.r.ok) return;
+  F.glueck = (+F.glueck || 0) - 1;
+  speichern();
+  letzter.glueck = art;
+  if (art === 'neu') letzter.r2 = wfrpProbe(letzter.wert, { mod: letzter.r.mod });
+  zeigeWurf(); zZustand();
+  meldeWurf(letzter.name + ' (Glück)', zaehlt());
+}
+function meldeWurf(name, r) {
+  if (!db || !syncBereit) return;
+  try {
+    db.ref('diceRolls').push({
+      name: spielerName() || 'Jemand', figur: F.name || '',
+      probe: name, band: r.stufe.n + ' ' + wfrpEgText(r.eg, r.ok) + ' EG', gut: !!r.ok,
+      ergebnis: r.wurf, ziel: r.ziel, total: r.wurf, seiten: 10,
+      weg: { art: 'w100', wurf: r.wurf, ziel: r.ziel, basis: r.basis, mod: r.mod, eg: r.eg, ok: r.ok,
+             pasch: r.pasch, auto: r.auto || null },
+      ts: firebase.database.ServerValue.TIMESTAMP
+    }).catch(function () {});
+  } catch (e) {}
+}
+
+/* ---------------- Steigerung ---------------- */
+function zEp() {
+  el('epStand').innerHTML =
+    '<div class="dv"><div class="dv-l">Erhalten</div><div class="dv-v">' + (+F.epGesamt || 0) + '</div></div>' +
+    '<div class="dv"><div class="dv-l">Ausgegeben</div><div class="dv-v">' + (+F.epAusgegeben || 0) + '</div></div>' +
+    '<div class="dv"><div class="dv-l">Frei</div><div class="dv-v">' + wfrpEpFrei(F) + '</div></div>';
+}
+function epDazu(vz) {
+  const n = Math.round(+el('epNeu').value || 0);
+  if (n <= 0) return;
+  aendern(function () {
+    F.epGesamt = Math.max(+F.epAusgegeben || 0, (+F.epGesamt || 0) + vz * n);
+    el('epNeu').value = '';
+  });
+}
+function zKarr() {
+  const k = wfrpKarriere(F);
+  if (!k) { el('karr').innerHTML = '<span class="hint">Keine Karriere.</span>'; return; }
+  const ab = wfrpKarriereAbgeschlossen(F);
+  el('karrSub').textContent = k.n + ' · Stufe ' + F.stufe + ' von 4';
+  el('karr').innerHTML = '<div><b>' + esc(wfrpStufe(F).n) + '</b> · ' + esc(wfrpStatusText(wfrpStufe(F))) + '</div>' +
+    (ab.ok ? '<div class="ok" style="margin-top:.3rem">Stufe abgeschlossen — ein Wechsel kostet nur 100 EP.</div>'
+           : '<div class="warn" style="margin-top:.3rem;font-size:.78rem">Für den Abschluss fehlt: ' + esc(ab.fehlt.join(' · ')) + '</div>') +
+    '<div class="hint">Abschließen heißt: alle Attribute dieser Stufe und acht ihrer Fertigkeiten mit je ' + ab.soll +
+    ' Steigerungen, dazu ein Talent der Stufe.</div>' +
+    ((F.verlauf || []).length ? '<div class="hint">Vorher: ' + F.verlauf.map(function (v) {
+      const kk = WFRP_KARR_BY_ID[v.karriere]; return kk ? esc(kk.stufen[v.stufe - 1].n) : esc(v.karriere);
+    }).join(' → ') + '</div>' : '');
+}
+function stZeile(n, steig, art, key, extra) {
+  const k = wfrpSteigerKosten(F, art, key);
+  const frei = wfrpEpFrei(F);
+  const kann = k.kosten !== null && frei >= k.kosten;
+  return '<div class="st-z"><span class="n">' + n + (extra || '') + '</span><span class="v">' + steig + '</span>' +
+    '<span class="k">' + (k.kosten !== null ? k.kosten + ' EP' : '') + '</span>' +
+    (k.kosten === null ? '<span class="st-grund">' + esc(k.grund || '') + '</span>'
+      : '<button class="btn' + (kann ? ' btn-gold' : '') + '" onclick="steigern(this.dataset.a, this.dataset.k)" data-a="' + art +
+        '" data-k="' + esc(key) + '"' + (kann ? '' : ' disabled') + '>+1</button>') + '</div>';
+}
+function zStAttr() {
+  const v = wfrpVerfuegbar(F);
+  el('stAttr').innerHTML = v.attr.map(function (a) {
+    return stZeile(esc(WFRP_ATTR_BY_ID[a].n) + ' <span class="hint">' + wfrpAttrWert(F, a) + '</span>', +F.attrSteig[a] || 0, 'attr', a);
+  }).join('') || '<span class="hint">—</span>';
+}
+/* Ein Bezug mit Wahl ("wissen/*") steht so oft da, wie die Figur
+   Spezialisierungen davon hat - plus ein Feld fuer eine neue. */
+function zStFert() {
+  const v = wfrpVerfuegbar(F);
+  const gesehen = {};
+  let h = '';
+  v.fert.forEach(function (ref) {
+    const r = wfrpRefTeile(ref);
+    const treffer = Object.keys(F.fert || {}).filter(function (k) { return wfrpRefPasst(ref, k) && !gesehen[k]; });
+    if (!r.spez || (Array.isArray(r.spez) && r.spez.length === 1)) {
+      const key = r.spez ? wfrpKey(r.id, r.spez[0]) : r.id;
+      if (gesehen[key]) return;
+      gesehen[key] = true;
+      const w = wfrpFertWert(F, key);
+      h += stZeile(esc(wfrpKeyText(key)) + ' <span class="hint">' + (w.kann ? w.wert : '–') + '</span>', +F.fert[key] || 0, 'fert', key);
+      return;
+    }
+    treffer.forEach(function (key) {
+      gesehen[key] = true;
+      const w = wfrpFertWert(F, key);
+      h += stZeile(esc(wfrpKeyText(key)) + ' <span class="hint">' + w.wert + '</span>', +F.fert[key] || 0, 'fert', key);
+    });
+    h += '<div class="st-z"><span class="n">' + esc(wfrpRefText(ref)) + ' — neu: ' + spezEingabe(ref) + '</span>' +
+      '<button class="btn" onclick="neueSpez(\'' + esc(ref) + '\',\'fert\')">+1</button></div>';
+  });
+  el('stFert').innerHTML = h || '<span class="hint">—</span>';
+}
+function spezEingabe(ref) {
+  const r = wfrpRefTeile(ref);
+  const id = 'spez-' + ref.replace(/[^a-z0-9]/gi, '_');
+  if (Array.isArray(r.spez)) return '<select id="' + id + '">' + r.spez.map(function (s) { return '<option>' + esc(s) + '</option>'; }).join('') + '</select>';
+  const def = WFRP_FERT_BY_ID[r.id];
+  return '<input type="text" id="' + id + '" maxlength="40" style="width:9rem" placeholder="welche?"' + (def ? ' list="dl-f-' + r.id + '"' : '') + '>';
+}
+function neueSpez(ref, art) {
+  const e = el('spez-' + ref.replace(/[^a-z0-9]/gi, '_'));
+  const s = spezSauber(e && e.value);
+  if (!s) { meld('Welche Spezialisierung?'); return; }
+  steigern(art, wfrpKey(wfrpRefTeile(ref).id, s));
+}
+function zStTal() {
+  const v = wfrpVerfuegbar(F);
+  let h = '';
+  v.tal.forEach(function (ref) {
+    const r = wfrpRefTeile(ref);
+    const t = WFRP_TAL_BY_ID[r.id];
+    const titel = ' title="' + esc(t ? t.d : '') + '"';
+    if (!r.spez || (Array.isArray(r.spez) && r.spez.length === 1)) {
+      const key = r.spez ? wfrpKey(r.id, r.spez[0]) : r.id;
+      const max = wfrpTalentMax(F, key);
+      h += stZeile('<span' + titel + '>' + esc(wfrpKeyText(key)) + '</span> <span class="hint">' + (max === null ? '' : 'max ' + max) + '</span>', +F.tal[key] || 0, 'tal', key);
+      return;
+    }
+    Object.keys(F.tal || {}).filter(function (k) { return wfrpRefPasst(ref, k); }).forEach(function (key) {
+      h += stZeile('<span' + titel + '>' + esc(wfrpKeyText(key)) + '</span>', +F.tal[key] || 0, 'tal', key);
+    });
+    h += '<div class="st-z"><span class="n"' + titel + '>' + esc(wfrpRefText(ref)) + ' — neu: ' + spezEingabe(ref) + '</span>' +
+      '<button class="btn" onclick="neueSpez(\'' + esc(ref) + '\',\'tal\')">lernen</button></div>';
+  });
+  el('stTal').innerHTML = h + '<div class="hint">Ein Talent kostet 100 EP, jedes weitere Mal 100 mehr. Mit der Maus auf den Namen zeigen: Dann steht da, was es tut.</div>';
+}
+function zStAus() {
+  const v = wfrpVerfuegbar(F);
+  const attr = WFRP_ATTR_IDS.filter(function (a) { return v.attr.indexOf(a) < 0; });
+  el('stAus').innerHTML = '<div class="row"><select id="ausArt">' +
+    attr.map(function (a) { return '<option value="attr|' + a + '">' + esc(WFRP_ATTR_BY_ID[a].n) + ' (' + (+F.attrSteig[a] || 0) + ')</option>'; }).join('') +
+    WFRP_FERTIGKEITEN.map(function (f) {
+      return f.gruppe ? '' : '<option value="fert|' + f.id + '">' + esc(f.n) + ' (' + (+F.fert[f.id] || 0) + ')</option>';
+    }).join('') + '</select><input type="text" id="ausSpez" maxlength="40" placeholder="oder gruppiert: z. B. Wissen (Geschichte)" style="width:15rem">' +
+    '<button class="btn" onclick="ausserhalb()">+1 zum doppelten Preis</button></div>' +
+    '<div class="hint">Talente außerhalb der Karriere gibt es nur über besondere Lehrmeister — das regelt die Spielleitung.</div>';
+}
+/* "Wissen (Geschichte)" -> wissen:Geschichte. Der deutsche Name muss
+   passen; sonst sagt die Seite, dass sie ihn nicht kennt. */
+function ausserhalb() {
+  let art, key;
+  const frei = String(el('ausSpez').value || '').trim();
+  if (frei) {
+    const m = frei.match(/^(.+?)\s*\((.+)\)\s*$/);
+    const f = m && WFRP_FERTIGKEITEN.filter(function (x) { return x.n.toLowerCase() === m[1].trim().toLowerCase(); })[0];
+    if (!f) { meld('„' + frei + '“ kenne ich nicht. Schreib es wie „Wissen (Geschichte)“.'); return; }
+    art = 'fert'; key = wfrpKey(f.id, spezSauber(m[2]));
+  } else {
+    const t = el('ausArt').value.split('|'); art = t[0]; key = t[1];
+  }
+  const k = wfrpSteigerKosten(F, art, key);
+  if (!confirm((art === 'attr' ? WFRP_ATTR_BY_ID[key].n : wfrpKeyText(key)) + ' außerhalb deiner Karriere steigern, für ' + k.kosten +
+    ' EP? Das braucht die Zustimmung deiner Spielleitung.')) return;
+  steigern(art, key, true);
+}
+function steigern(art, key, ausser) {
+  const r = wfrpSteigern(F, art, key, { ausserhalb: !!ausser });
+  if (!r.ok) { meld(r.grund + (r.kosten ? ' (' + r.kosten + ' EP)' : '')); return; }
+  speichern(); zeichne(); meld('Gesteigert für ' + r.kosten + ' EP.');
+}
+function meld(t) { el('stMeld').textContent = t; }
+
+function zWechsel() {
+  const k = wfrpKarriere(F);
+  if (!k) { el('wechsel').innerHTML = ''; return; }
+  let h = '';
+  if (F.stufe < 4) {
+    const c = wfrpWechselKosten(F, k.id);
+    h += '<div class="st-z"><span class="n">Aufsteigen zu <b>' + esc(k.stufen[F.stufe].n) + '</b> (' + esc(wfrpStatusText(k.stufen[F.stufe])) + ')</span>' +
+      '<span class="k">' + c.kosten + ' EP</span><button class="btn btn-gold" onclick="wechseln(\'' + k.id + '\',' + (F.stufe + 1) + ')"' +
+      (wfrpEpFrei(F) >= c.kosten ? '' : ' disabled') + '>aufsteigen</button></div>';
+  }
+  h += '<div class="row" style="margin-top:.5rem"><select id="wkKarr">' + WFRP_KLASSEN.map(function (kl) {
+    return '<optgroup label="' + esc(kl.n) + '">' + WFRP_KARRIEREN.filter(function (x) { return x.klasse === kl.id; }).map(function (x) {
+      return '<option value="' + x.id + '"' + (x.id === k.id ? ' selected' : '') + '>' + esc(x.n) + '</option>';
+    }).join('') + '</optgroup>';
+  }).join('') + '</select><select id="wkStufe"><option value="1">Stufe 1</option><option value="2">Stufe 2</option>' +
+    '<option value="3">Stufe 3</option><option value="4">Stufe 4</option></select>' +
+    '<button class="btn" onclick="wechselnWahl()">wechseln</button></div>' +
+    '<div class="hint">100 EP, wenn deine Stufe abgeschlossen ist, sonst 200. In eine andere Klasse 100 mehr. ' +
+    'Eine höhere Stufe als 1 einer fremden Karriere nur mit der Spielleitung — meist aus der Geschichte heraus.</div>';
+  el('wechsel').innerHTML = h;
+}
+function wechselnWahl() { wechseln(el('wkKarr').value, +el('wkStufe').value); }
+function wechseln(id, stufe) {
+  const z = WFRP_KARR_BY_ID[id];
+  const c = wfrpWechselKosten(F, id);
+  if (!confirm('Zu ' + z.stufen[stufe - 1].n + ' (' + z.n + ') wechseln, für ' + c.kosten + ' EP?')) return;
+  const r = wfrpWechseln(F, id, stufe);
+  if (!r.ok) { meld(r.grund); return; }
+  speichern(); zeichne(); meld('Gewechselt für ' + r.kosten + ' EP. Willkommen als ' + z.stufen[stufe - 1].n + '.');
+}
+
+/* ---------------- Ausruestung ---------------- */
+function zGeld() {
+  const g = F.geld || {};
+  function feldG(k, n) {
+    return '<div class="dv"><div class="dv-l">' + n + '</div><div class="dv-v">' + (+g[k] || 0) + '</div><div class="mini">' +
+      '<button onclick="geld(\'' + k + '\',-1)">−</button><button onclick="geld(\'' + k + '\',1)">+</button>' +
+      '<button onclick="geldFrei(\'' + k + '\')">…</button></div></div>';
+  }
+  el('geld').innerHTML = '<div class="dv-row" style="margin:0">' + feldG('gk', 'Goldkronen') + feldG('s', 'Silberschillinge') + feldG('d', 'Messingpfennige') +
+    '</div><div class="hint">1 Goldkrone = 20 Schillinge = 240 Pfennige.</div>';
+}
+function geld(k, d) { aendern(function () { F.geld = F.geld || {}; F.geld[k] = Math.max(0, (+F.geld[k] || 0) + d); }); }
+function geldFrei(k) {
+  const v = prompt('Neuer Betrag:', (F.geld || {})[k] || 0);
+  if (v === null) return;
+  aendern(function () { F.geld = F.geld || {}; F.geld[k] = Math.max(0, Math.round(+v || 0)); });
+}
+function zAusr() {
+  el('ausr').innerHTML = (F.ausr || []).length ? F.ausr.map(function (a, i) {
+    return '<div class="zeile"><span class="n">' + esc(a) + '</span><button class="x" onclick="ausrWeg(' + i + ')" title="entfernen">×</button></div>';
+  }).join('') : '<span class="hint">Nichts.</span>';
+  el('tragSub').textContent = 'Traglast ' + wfrpTraglast(F) + ' (ST-Bonus + WI-Bonus)';
+}
+function ausrDazu() {
+  const v = String(el('ausrNeu').value || '').trim();
+  if (!v) return;
+  aendern(function () { F.ausr = (F.ausr || []).concat([v.slice(0, 80)]); el('ausrNeu').value = ''; });
+}
+function ausrWeg(i) {
+  if (!confirm('„' + F.ausr[i] + '“ entfernen?')) return;
+  aendern(function () { F.ausr.splice(i, 1); });
+}
+let notizTimer = null;
+function notizenSetzen(v) { F.notizen = v; clearTimeout(notizTimer); notizTimer = setTimeout(speichern, 500); }
+
+function figurWeg() {
+  if (!confirm((F.name || 'Diese Figur') + ' endgültig löschen? Das lässt sich nicht rückgängig machen.')) return;
+  const n = F.name || 'löschen';
+  if (prompt('Zur Sicherheit: Tippe „' + n + '“ ein.') !== n) { alert('Das stimmt nicht überein — es wurde nichts gelöscht.'); return; }
+  clearTimeout(syncTimer); geloescht = true;
+  try { localStorage.removeItem(cacheKey()); } catch (e) {}
+  figurLoeschen(db, (db && db.sitzung) || SITZUNG_VORGABE, schluessel(), function (e) {
+    if (e) { geloescht = false; alert('Löschen ging nicht: ' + (e.message || e)); return; }
+    location.replace(regelwerkSeite(WFRP_REGELWERK, 'erschaffung'));
+  });
+}
+
+/* Vorschlagslisten fuer Spezialisierungen */
+(function () {
+  let h = '';
+  WFRP_FERTIGKEITEN.forEach(function (f) {
+    if (f.gruppe) h += '<datalist id="dl-f-' + f.id + '">' + f.spez.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist>';
+  });
+  document.body.insertAdjacentHTML('beforeend', h);
+})();
+
+/* ---------------- Start ---------------- */
+function start() {
+  if (!hatSitzung()) {
+    sitzungsSperre('Noch keine Sitzung', 'Um deinen Heldenbrief zu öffnen, musst du erst einer Sitzung beitreten.', 'Zum Hub', 'index.html');
+    return;
+  }
+  if (!schluessel()) {
+    sitzungsSperre('Noch kein Name', 'Dein Heldenbrief hängt an deinem Namen und dieser Sitzung. Melde dich einmal im Hub an.', 'Zum Hub', 'index.html');
+    return;
+  }
+  try {
+    const d = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
+    if (d && d.regelwerk === WFRP_REGELWERK) F = wfrpAlsFigur(d);
+  } catch (e) {}
+  zeichne();
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = sitzungsDbJetzt(firebase.database());
+    syncBereit = true;
+    sync('verbinde …', 'var(--gray)');
+    db.ref('.info/connected').on('value', function (s) { if (s.val()) sync('verbunden', 'var(--teal)'); else sync('offline', 'var(--gray)'); });
+    regelwerkPruefen(db, function (rw) {
+      if (regelwerkWeiter(WFRP_REGELWERK, rw, 'bogen')) { syncBereit = false; return; }
+      db.ref('figuren/' + schluessel()).once('value').then(function (s) {
+        const roh = s.val();
+        if (roh && wfrpIstWfrp(roh) && roh.fertig) {
+          F = wfrpAlsFigur(roh);
+          ladeBereit = true;
+          zeichne();
+          return;
+        }
+        syncBereit = false;
+        sitzungsSperre(roh && wfrpIstWfrp(roh) ? 'Deine Figur ist noch nicht fertig' : 'Noch keine Figur',
+          roh && wfrpIstWfrp(roh) ? 'Schließ die Erschaffung ab — danach steht dein Heldenbrief bereit.'
+                                  : 'In dieser Sitzung liegt unter deinem Namen keine Figur. Erschaffe sie zuerst.',
+          'Figur erschaffen', regelwerkSeite(WFRP_REGELWERK, 'erschaffung'));
+      }).catch(function () { ladeBereit = true; });
+    });
+  } catch (e) {
+    syncBereit = false;
+    sync('nur lokal', 'var(--gray)');
+  }
+}
+start();
+</script>
+</body>
+</html>

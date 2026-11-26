@@ -13,6 +13,10 @@ Für die **Kampf-Arena des Endkampfs** (`15.1`) gibt es das ebenso ausführliche
 **[ARENA-ENDKAMPF.md](ARENA-ENDKAMPF.md)** — Regelabbildung, Datenmodell, offene Punkte und die
 zentrale Design-Regel, dass die Arena nur bestimmt, *wie teuer* der Weg wird, nicht *ob* die
 Kernbeats des Finales geschehen. Vor jeder Arbeit an der Arena lesen.
+Seit dem 26.11.2026 kann eine Sitzung auch nach **Warhammer Fantasy (4. Ed.)** laufen — alles
+dazu (Dateien, Weiche, Herkunft der Daten, Übersetzung, offene Etappen) in
+**[WFRP-REGELWERK.md](WFRP-REGELWERK.md)**. Regelfragen zu WFRP gehen gegen das **WFRP-Regelwerk**
+(PDF im Ordner `PNP/Warhammer Fantasy/01 Regelwerk`), nicht gegen Savage Worlds.
 
 > **Würfelsystem fertig (14.10.2026):** Leiste beim Spieler, Anforderung und Protokoll in der
 > Regie, Würfe im Session-Export. **Die Arena ist seit dem 30.10.2026 mit umgestellt** — damit
@@ -128,6 +132,50 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-26 — Warhammer Fantasy als zweites Regelwerk (Etappe A)
+- **Hendriks Auftrag:** das WFRP-Regelwerk (4. Ed.) systemisch einarbeiten, „die Charaktererstellung,
+  Würfellogiken etc.“, Begriffe auf **Deutsch**. Abenteuer bewusst aufgeschoben. Alles Weitere steht
+  in **`WFRP-REGELWERK.md`**.
+- **Das Regelwerk hängt an der Sitzung** (`meta.regelwerk`, Auswahl im Regie-Hub, umstellbar bis zur
+  ersten Figur). Die Figurenseiten gibt es je Regelwerk einmal; jede prüft beim Laden und **leitet
+  weiter, bevor sie schreibt** (`regelwerkPruefen`/`regelwerkWeiter` in `js/sitzung.js`). Damit
+  bleiben alle Links im Projekt, wie sie sind, und keine Savage-Worlds-Seite schreibt in eine
+  WFRP-Figur. Kein neuer Firebase-Pfad.
+- **Neu:** `js/wfrp_daten.js` (64 Karrieren × 4 Stufen, 167 Talente, 45 Fertigkeiten, Spezies,
+  Tabellen), `js/wfrp_regelwerk.js` (Probe, EG, Trefferzone, EP, Karriere), `js/wfrp_erschaffung.js`,
+  `wfrp_erschaffung.html` (8 Schritte, alle EP-Boni des Buchs), `wfrp_heldenbrief.html` (Proben mit
+  Schwierigkeit, Glück, Steigerung, Karrierewechsel, Ausrüstung, Geld). Die Würfelleiste würfelt
+  bei einer WFRP-Figur W100 gegen den Wert, die Karte zeigt den Würfelweg, die Regie eine WFRP-Karte.
+  Arena und Kampfmodus lassen WFRP-Figuren draußen (sie rechnen Savage Worlds).
+- **Die Daten sind aus dem PDF gelesen und gegen das Buch gesichert, nicht gegen sich selbst:** Die
+  Attributsschemata stehen dort nur als farbige Symbole und wurden über die Zellenfarbe bestimmt
+  (drei Karrieren von Hand gegen das Bild geprüft). Jede Wurftabelle muss 01–00 genau einmal abdecken,
+  jedes Schema dreimal Stufe 1 und je einmal 2/3/4 haben. Die Probe-Beispiele des Buchs (S. 152–154)
+  und die EP-Rechnung (S. 47) stehen wörtlich als Prüfungen da.
+- **Urheberrecht:** Mechanik und Namen ja, Buchtext nein. Die Talentbeschreibungen sind eigene
+  Kurzfassungen. Das Ausleseskript blieb im Scratchpad.
+- **Getestet: 2529 Prüfungen über sechzehn Skripte** (`t_wfrp.js` 114, `t_wfrp_seiten.js` 65 neu),
+  ein Fehlschlag – der bekannte aus `t_figuren.js`, unverändert seit dem 13.10.
+  - **Gegenproben:** eine verrutschte Wurfzeile und ein falsches Schema (2 Prüfungen, nennen beide
+    die Karriere), Autoerfolg ohne Mindest-EG und falsche Preisstufe (3), Weiche entfernt (1).
+- **Zwei echte Fehler, beide von der ausgeführten Seite gefunden, nicht beim Lesen:**
+  1. „Zufallstalent würfeln“ hörte bei der erlaubten Zahl nicht auf, ein Doppelklick gab einem
+     Menschen ein viertes Talent.
+  2. Ein Zufallstalent kann dasselbe sein wie das Karrieretalent („Lesen und Schreiben“ steht in
+     beiden). Die Figur trug es dann zweimal, obwohl es nur einmal geht. Jetzt meldet der Schritt das,
+     und die Wahl steht gedämpft da. Gefunden hat es eine **flackernde** Prüfung, die nur bei
+     bestimmten Würfen fiel. Die Prüfung ist jetzt deterministisch und prüft genau diesen Fall.
+- **Drei bestehende Prüfungen nachgezogen, keine gelockert:** `t_wuerfel` zählt jetzt vier
+  Wurfarten, die die Figur mitschreiben (vorher drei). `t_figuren` lädt `js/sitzung.js` echt, statt
+  `zeichneStartRang`/`briefKachel` ohne Regelwerk auszuführen, und prüft den WFRP-Fall mit. `t_bogen`
+  hat zu Recht angeschlagen: Meine WFRP-Karte in der Regie benutzte den nativen `title`, den das
+  Projekt dort am 15.10. durch das Klick-Overlay ersetzt hat. Jetzt läuft sie über `markeChip`.
+- **Die Heredoc-Falle, zweimal:** Backslashes in Python-Ersetzungen kamen nicht an. Beim ersten Mal
+  schrieb das Skript `regelwerkSetzen('' + id + '')` und `t_syntax` meldete es sofort, beim zweiten
+  Mal brach das `assert` vorher ab. Danach mit dem Edit-Werkzeug gearbeitet.
+- **[OFFEN]** Kampf (Etappe B), Magie und Glaube (C), WFRP-Würfe im Protokoll, Anforderung durch die
+  Spielleitung, Abgleich der Begriffe mit der deutschen Ausgabe – siehe `WFRP-REGELWERK.md`.
 
 ### 2026-11-04 (Fortsetzung 5) — Der Jaguar-Säbel ist ein Gegenstand
 - **Hendriks Auftrag:** „Ich brauche den JaguarSäbel noch als Item, was ich zuweisen kann."

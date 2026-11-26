@@ -475,8 +475,11 @@ const wAlt = fctx.formatRollText({
 chk('ein alter Eintrag bleibt unveraendert', wAlt.indexOf('Peter — Kämpfen') === 0, wAlt);
 
 /* Und geschrieben wird es auch wirklich - an allen drei Stellen. */
+/* Seit dem 26.11.2026 VIER Stellen: die Warhammer-Probe (wuerfleWfrp)
+   schreibt die Figur ebenso mit. Gezaehlt wird weiter genau, damit eine
+   neue Wurfart, die sie vergisst, auffaellt. */
 chk('die Probe schreibt die Figur mit',
-  (DICE.match(/figur: figurName\(\)/g) || []).length === 3,
+  (DICE.match(/figur: figurName\(\)/g) || []).length === 4,
   (DICE.match(/figur: figurName\(\)/g) || []).length);
 
 

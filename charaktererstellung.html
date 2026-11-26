@@ -988,7 +988,14 @@ function initFirebase() {
     // von einer fertigen Figur nie etwas, solange ihr Spieler nichts mehr
     // anfasst - wer seine Figur fertig baut, den Tab schliesst und spaeter
     // wieder oeffnet, blieb bisher unsichtbar.
-    startUebernahme();
+    //
+    // Erst das Regelwerk der Sitzung klaeren (seit 26.11.2026): In einer
+    // WFRP-Sitzung gehoert die Figur der WFRP-Erschaffung. Diese Seite
+    // wuerde sonst ihre Savage-Worlds-Felder in eine fremde Figur schreiben.
+    regelwerkPruefen(db, function (rw) {
+      if (regelwerkWeiter('savage', rw, 'erschaffung')) { syncBereit = false; return; }
+      startUebernahme();
+    });
   } catch (e) {
     syncBereit = false;
     setzeSync('nur lokal', 'var(--gray)');
