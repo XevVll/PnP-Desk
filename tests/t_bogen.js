@@ -805,7 +805,14 @@ console.log('=== DAS CHARAKTERBILD DES SPIELERS ===');
    wird aus heldenbrief.html geschnitten und mit einer gefaelschten
    Leinwand und einer gefaelschten Datenbank laufen gelassen. Eine
    nachgebaute Kopie wuerde genau das nicht pruefen. */
-const bildCode = schnitt('const BILD_B = 450', '/* ==========');
+/* Seit dem 26.11.2026 steht der Block in js/charakterbild.js - beide Boegen
+   (Savage Worlds und Warhammer) laden ihn. Geprueft wird die Datei ganz. */
+const bildCode = fs.readFileSync(path.join(__dirname, '..', 'js', 'charakterbild.js'), 'utf8');
+chk('beide Bögen laden den gemeinsamen Bild-Block',
+  BOGEN.indexOf('<script src="js/charakterbild.js">') > 0 &&
+  fs.readFileSync(path.join(__dirname, '..', 'wfrp_heldenbrief.html'), 'utf8').indexOf('<script src="js/charakterbild.js">') > 0);
+chk('… und keiner bringt eine eigene Kopie mit', BOGEN.indexOf('function bildVerkleinern(') < 0 &&
+  fs.readFileSync(path.join(__dirname, '..', 'wfrp_heldenbrief.html'), 'utf8').indexOf('function bildVerkleinern(') < 0);
 
 /* Die GROESSTE Gefahr zuerst, und sie ist kein Schoenheitsfehler:
    bogenFelder() geht bei JEDER Aenderung hoch, entprellt mit 800 ms.

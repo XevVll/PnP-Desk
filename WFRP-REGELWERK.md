@@ -19,6 +19,8 @@ Figur existiert, lässt es sich dort umstellen.
 | `tests/t_wfrp.js` | Regelkern und Daten gegen das Buch |
 | `tests/t_wfrp_seiten.js` | beide Seiten und die Würfelleiste wirklich ausgeführt |
 
+Gemeinsam mit Savage Worlds: `js/charakterbild.js` (Bild-Upload, beide Bögen laden ihn). Die Würfelleiste erkennt das Regelwerk an der **Sitzung** (auch für die Spielleitung ohne Figur) und bietet dann nur **W10 und W100**, ohne Explodieren — W4–W12 gibt es in WFRP nicht, Schaden wird dort nicht gewürfelt.
+
 Angepasst wurden außerdem: `js/sitzung.js` (Regelwerk der Sitzung, Weiche), `regie_hub.html`
 (Auswahl), `index.html` (Kacheln), `charaktererstellung.html` / `heldenbrief.html` (Weiche),
 `js/dice.js` (W100-Modus der Leiste), `karte.html` (WFRP-Figur, Würfelweg, Laden),

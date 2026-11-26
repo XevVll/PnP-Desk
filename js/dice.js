@@ -193,7 +193,12 @@ function initDiceRoller(db, options) {
      mit einer Schwierigkeit davor. Die Savage-Worlds-Haelfte bleibt
      unberuehrt - eine Figur ist das eine oder das andere. */
   let wfrpMod = 0;
-  function wfrpModus() { const f = holeFigur(); return !!(f && f.wfrp); }
+  /* Das Regelwerk kommt von der SITZUNG, nicht erst von der Figur - sonst
+     wuerfelte die Spielleitung (sie hat keine Figur) in einer WFRP-Runde mit
+     den Savage-Worlds-Wuerfeln. Zuerst aus dem Cache, dann nachgesehen. */
+  let sitzungWfrp = (typeof regelwerkAusCache === 'function' && db.sitzung)
+    ? regelwerkAusCache(db.sitzung) === 'wfrp4' : false;
+  function wfrpModus() { const f = holeFigur(); return !!(f && f.wfrp) || sitzungWfrp; }
 
   /* ---------- Spielername ---------- */
   function getSavedName() {
@@ -226,7 +231,8 @@ function initDiceRoller(db, options) {
   /* ---------- Würfeln ---------- */
   // Ein freier Würfel explodiert genau wie eine Probe, wenn eingeschaltet.
   function freierWurf(seiten) {
-    if (!explodiert) return { summe: 1 + Math.floor(Math.random() * seiten), teile: null };
+    // In Warhammer explodiert kein Wuerfel.
+    if (!explodiert || wfrpModus()) return { summe: 1 + Math.floor(Math.random() * seiten), teile: null };
     const teile = [];
     let t;
     do { t = 1 + Math.floor(Math.random() * seiten); teile.push(t); }
@@ -451,12 +457,18 @@ function initDiceRoller(db, options) {
       '<button type="button" data-anz="-1" aria-label="weniger">−</button>' +
       '<span>' + anzahl + '×</span>' +
       '<button type="button" data-anz="1" aria-label="mehr">+</button></span>';
-    [4, 6, 8, 10, 12].forEach(function (s) { h += wuerfelSymbol(s); });
-    if (wfrpModus()) h += '<button type="button" class="wl-ex" data-frei="100" title="W100 werfen">W100</button>';
-    h += '<button type="button" class="wl-ex" data-ex="1" aria-pressed="' +
-      (explodiert ? 'true' : 'false') +
-      '" title="Höchste Zahl wirft erneut — richtig für Schaden, falsch für Zufallstabellen">' +
-      'explodiert</button>';
+    /* Warhammer kennt nur W10 (2W10 fuer Attribute, Tabellen, Startgeld)
+       und W100 (jede Probe). W4-W12 und das Explodieren sind Savage Worlds. */
+    if (wfrpModus()) {
+      h += wuerfelSymbol(10);
+      h += '<button type="button" class="wl-ex" data-frei="100" title="W100 werfen">W100</button>';
+    } else {
+      [4, 6, 8, 10, 12].forEach(function (s) { h += wuerfelSymbol(s); });
+      h += '<button type="button" class="wl-ex" data-ex="1" aria-pressed="' +
+        (explodiert ? 'true' : 'false') +
+        '" title="Höchste Zahl wirft erneut — richtig für Schaden, falsch für Zufallstabellen">' +
+        'explodiert</button>';
+    }
     if (allowPrivate) {
       h += '<label class="wl-priv" title="Bleibt in diesem Browser, geht nie über die Datenbank">' +
         '<input type="checkbox" id="dicePrivate"' + (privat ? ' checked' : '') +
@@ -769,6 +781,12 @@ function initDiceRoller(db, options) {
   });
 
   zeichneLeiste();
+  if (typeof regelwerkPruefen === 'function' && db.sitzung) {
+    regelwerkPruefen(db, function (rw) {
+      const neu = rw === 'wfrp4';
+      if (neu !== sitzungWfrp) { sitzungWfrp = neu; zeichneLeiste(); }
+    });
+  }
 
   // Die Seite ruft das auf, wenn sich Figur, Szene oder Ort geändert haben.
   return { neuZeichnen: zeichneLeiste };

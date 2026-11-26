@@ -99,7 +99,8 @@ function seite(datei, db, speicher, antworten) {
   };
   ctx.window = ctx; ctx.window.top = ctx; ctx.window.self = ctx;
   vm.createContext(ctx);
-  ['js/sitzung.js', 'js/identitaet.js', 'js/wfrp_daten.js', 'js/wfrp_regelwerk.js', 'js/wfrp_erschaffung.js'].forEach(p => {
+  ['js/sitzung.js', 'js/identitaet.js', 'js/wfrp_daten.js', 'js/wfrp_regelwerk.js', 'js/wfrp_erschaffung.js',
+   'js/charakterbild.js'].forEach(p => {
     if (html.indexOf(p) > 0) vm.runInContext(fs.readFileSync(path.join(WURZEL, p), 'utf8'), ctx, { filename: p });
   });
   bloecke.forEach((b, i) => vm.runInContext(b, ctx, { filename: datei + '#' + i }));
@@ -197,6 +198,13 @@ function lauf(s, code) { return vm.runInContext(code, s.ctx); }
   catch (e) { chk('der Heldenbrief lädt ohne Fehler', false, e.message); return fertig(); }
   await warte(30);
   chk('… und liest die Figur', lauf(H, 'F.name') === 'Molli Krumbiegel');
+  chk('der WFRP-Bogen hat den Bild-Upload', H.el('bildStand').textContent.indexOf('Noch keins') === 0,
+    H.el('bildStand').textContent);
+  lauf(H, 'meinBild = "data:image/webp;base64,xyz"; bildHoch()');
+  await warte(10);
+  const bildPost = db.log.filter(l => l[0] === 'update' && /pcLeiste\/anna$/.test(l[1])).pop();
+  chk('… schreibt neben die Figur, mit dem Namen der Figur',
+    !!bildPost && bildPost[2].name === 'Molli Krumbiegel' && bildPost[2].bild === 'data:image/webp;base64,xyz', bildPost);
   chk('der Kopf nennt Karrierestufe und Status', H.el('kopf').innerHTML.indexOf('Rechtsstudent') > 0 && H.el('kopf').innerHTML.indexOf('Messing 4') > 0);
   chk('Attributwerte sind anklickbar', (H.el('attr').innerHTML.match(/probeAttr/g) || []).length === 10);
 
@@ -306,7 +314,46 @@ function lauf(s, code) { return vm.runInContext(code, s.ctx); }
     klick({ frei: '100' });
     const q = dbL.log.filter(l => l[0] === 'push').pop();
     chk('der freie W100 explodiert nicht', q && q[2].sides === 100 && q[2].total >= 1 && q[2].total <= 100 && !q[2].explodiert, q && q[2]);
+    chk('nur W10 und W100, keine Savage-Worlds-Würfel',
+      leiste.innerHTML.indexOf('data-frei="10"') > 0 && leiste.innerHTML.indexOf('data-frei="12"') < 0 &&
+      leiste.innerHTML.indexOf('data-frei="6"') < 0, leiste.innerHTML.match(/data-frei="\d+"/g));
+    chk('… und nichts, was explodiert', leiste.innerHTML.indexOf('data-ex=') < 0);
   }
+
+  /* Die SPIELLEITUNG hat keine Figur - die Leiste muss das Regelwerk an der
+     Sitzung erkennen. Und die Gegenprobe: eine Savage-Worlds-Sitzung behaelt
+     ihre Wuerfel. */
+  async function leisteOhneFigur(regelwerk) {
+    const meta = regelwerk ? { name: 'X', regelwerk } : { name: 'X' };
+    const dbS = fakeDb({ sitzungen: { s1: { meta } } });
+    dbS.sitzung = 's1'; dbS.echt = dbS;
+    const leiste = Object.assign(knoten(), { addEventListener() {} });
+    let erste = false;
+    const c = {
+      console, JSON, Math, Date, Promise, Object, Array, String, Number, parseInt, setTimeout: () => 0,
+      localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+      firebase: { database: { ServerValue: { TIMESTAMP: 0 } } },
+      document: {
+        createElement: (t) => (t === 'div' && !erste ? (erste = true, leiste) : knoten()),
+        getElementById: (id) => (id === 'wuerfelLeiste' ? leiste : null), head: knoten(), body: knoten()
+      }
+    };
+    c.window = c;
+    vm.createContext(c);
+    ['js/sitzung.js', 'js/regelwerk.js', 'js/wfrp_daten.js', 'js/wfrp_regelwerk.js', 'js/dice.js'].forEach(p =>
+      vm.runInContext(fs.readFileSync(path.join(WURZEL, p), 'utf8'), c, { filename: p }));
+    c.DB = dbS;
+    vm.runInContext('initDiceRoller(DB, { allowPrivate: true, holeFigur: function () { return null; } })', c);
+    await warte(10);
+    return leiste.innerHTML;
+  }
+  const slW = await leisteOhneFigur('wfrp4');
+  chk('die Spielleitung würfelt in einer WFRP-Sitzung W10 und W100',
+    slW.indexOf('data-frei="100"') > 0 && slW.indexOf('data-frei="12"') < 0, slW.match(/data-frei="\d+"/g));
+  const slS = await leisteOhneFigur(null);
+  chk('… in einer Savage-Worlds-Sitzung weiter W4 bis W12 mit Explodieren',
+    slS.indexOf('data-frei="12"') > 0 && slS.indexOf('data-frei="100"') < 0 && slS.indexOf('data-ex=') > 0,
+    slS.match(/data-frei="\d+"/g));
 
   fertig();
 })().catch(e => { chk('Ablauf ohne Ausnahme', false, e.stack); fertig(); });

@@ -133,6 +133,17 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-26 (Fortsetzung 2) — WFRP: Bild-Upload und die richtigen Würfel
+- **Hendriks Meldung:** Im WFRP-Bogen fehlte das Charakterbild, und die Würfelleiste bot W4–W12 an.
+- **Bild:** Der Upload-Block stand nur im Savage-Worlds-Bogen. Er liegt jetzt in
+  **`js/charakterbild.js`** und wird von beiden Bögen geladen, statt im WFRP-Bogen ein zweites Mal
+  zu stehen. `t_bogen` liest ihn von dort und prüft, dass keiner der Bögen eine eigene Kopie hat.
+- **Würfel:** WFRP kennt nur den W100 (jede Probe) und den W10 (2W10, Tabellen, Startgeld). Schaden
+  wird dort nicht gewürfelt, und es explodiert nichts. Die Leiste erkennt das Regelwerk jetzt an der
+  **Sitzung**, nicht erst an der Figur. Sonst hätte die Spielleitung, die keine Figur hat, in einer
+  WFRP-Runde weiter W4–W12 bekommen. Gegenprobe: Ohne die Sitzungs-Erkennung schlägt die Prüfung an
+  und nennt die fünf Savage-Worlds-Würfel.
+
 ### 2026-11-26 (Fortsetzung) — Warhammer-Eigennamen bleiben im Original
 - **Hendriks Entscheidung:** Wortschöpfungen der Spielwelt werden nicht übersetzt, nur allgemeine
   Begriffe. Zurückgedreht: Wurzelrausch → Weirdroot, Herztod → Heartkill, Halbgreif → Demigryph,
