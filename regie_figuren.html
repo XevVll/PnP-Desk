@@ -277,6 +277,8 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
 <script src="js/marken.js"></script>
 <script src="js/npcs.js"></script>
 <script src="js/kampf.js"></script>
+<script src="js/wfrp_daten.js"></script>
+<script src="js/wfrp_regelwerk.js"></script>
 <!-- Nur fuer die Klartext-Namen im Protokoll: ein Wurf traegt "4.1" und
      "schiffswrack", vorlesbar ist aber erst "Schatzinsel - Die gestrandete
      Golden Lion". -->
@@ -507,6 +509,7 @@ function anfrageWeg(pid) {
    wer es nicht kann, wuerfelt d4-2. Ausser Gefecht wird uebersprungen. */
 function gruppe() {
   return Object.keys(figuren).filter(function (pid) {
+    if (istWfrpFigur(pid)) return false;   // fordert nach Savage-Worlds-Regeln an
     const f = alsFigur(figuren[pid] || {});
     return !ausserGefecht(f);
   });
@@ -782,7 +785,7 @@ function warenListeZeichnen() {
 
 function renderWaren() {
   document.getElementById('anzahl').textContent = AUSRUESTUNG.length + ' Gegenstände';
-  const figOpt = Object.keys(figuren).map(function (pid) {
+  const figOpt = Object.keys(figuren).filter(function (pid) { return !istWfrpFigur(pid); }).map(function (pid) {
     const n = (figuren[pid] && figuren[pid].name) || pid;
     return '<option value="' + esc(pid) + '"' + (pid === warenZiel ? ' selected' : '') +
       '>' + esc(n) + '</option>';
@@ -848,7 +851,9 @@ function kampfRef(teil) {
    bekommen dieselbe Form, damit Reihenfolge und Angriff nicht zwei
    Faelle unterscheiden muessen. */
 function kampfSpieler() {
-  return Object.keys(figuren).map(function (pid) {
+  /* Der Kampfmodus rechnet Savage Worlds. Eine Warhammer-Figur bleibt
+     draussen, bis es den Kampf fuer WFRP gibt (Etappe B). */
+  return Object.keys(figuren).filter(function (pid) { return !istWfrpFigur(pid); }).map(function (pid) {
     const f = alsFigur(figuren[pid] || {});
     return {
       id: 'p:' + pid, pid: pid, typ: 'spieler',
@@ -1849,6 +1854,53 @@ function renderProtokoll() {
   }
 }
 
+function istWfrpFigur(pid) {
+  return typeof wfrpIstWfrp === 'function' && wfrpIstWfrp(figuren[pid]);
+}
+
+/* ---------- Warhammer-Figur (seit 26.11.2026) ----------
+   Nur lesend, wie alles auf dieser Seite. Was die Spielleitung am
+   Tisch braucht: Werte, Lebenspunkte, Glueck und Entschlossenheit,
+   Karrierestufe und Status. */
+function wfrpKarte(pid, roh) {
+  const F = wfrpAlsFigur(roh);
+  const k = wfrpKarriere(F), st = wfrpStufe(F), sp = WFRP_SPEZIES[F.spezies];
+  const wm = wfrpWundenMax(F);
+  const lp = (F.wunden === null || F.wunden === undefined) ? wm : Math.min(+F.wunden, wm);
+  const attr = WFRP_ATTR_IDS.map(function (a) {
+    return '<span class="tag" title="' + esc(WFRP_ATTR_BY_ID[a].n) + '">' + WFRP_ATTR_BY_ID[a].k + ' <b>' + wfrpAttrWert(F, a) + '</b></span>';
+  }).join('');
+  const fert = wfrpFertigkeitenListe(F).filter(function (x) { return zeigeAlle || x.steig > 0; }).map(function (x) {
+    return '<span class="tag">' + esc(wfrpKeyText(x.key)) + ' <b>' + x.wert + '</b></span>';
+  }).join('') || '<span class="brief fehlt" style="font-size:.72rem">nichts gelernt</span>';
+  const tal = Object.keys(F.tal).filter(function (t) { return F.tal[t] > 0; }).map(function (t) {
+    const d = WFRP_TAL_BY_ID[wfrpKeyTeile(t).id];
+    /* Dieselbe Mechanik wie bei Savage Worlds (js/marken.js): Klicken
+       oeffnet die Erklaerung - auch am Tablet, wo es kein Hovern gibt.
+       Die Art "wtal" kennt marken.js nicht und zeigt deshalb genau das,
+       was hier mitgegeben wird: Name, Einordnung, Wirkung. */
+    return markeChip('pos', t, 'wtal', wfrpKeyText(t) + (F.tal[t] > 1 ? ' ×' + F.tal[t] : ''),
+      'Talent' + (d ? ' · ' + d.en : ''), d ? d.d : '');
+  }).join('');
+  const dv = function (l, v, m) {
+    return '<div class="dv"><div class="dv-l">' + l + '</div><div class="dv-v">' + v +
+      (m !== undefined ? '<span style="font-size:.6rem;color:var(--gray)"> / ' + m + '</span>' : '') + '</div></div>';
+  };
+  return '<div class="fig"><div class="fig-h"><div class="fig-n">' + (esc(roh.name) || '<span style="color:var(--gray)">ohne Namen</span>') + '</div>' +
+    '<div class="fig-s"><span>' + (esc(roh.spieler) || '—') + '</span><span>' + (sp ? esc(sp.n) : '') + '</span>' +
+    '<span>' + (st ? esc(st.n) + ' · ' + esc(wfrpStatusText(st)) : '') + '</span>' +
+    (roh.fertig ? '' : '<span style="color:#ca6702">wird noch erschaffen</span>') + '</div></div>' +
+    '<div class="fig-b"><div class="dv-row">' + dv('Lebenspunkte', lp, wm) + dv('Glück', +F.glueck || 0, wfrpGlueckMax(F)) +
+      dv('Entschl.', +F.entschlossenheit || 0, wfrpEntschlossenheitMax(F)) + dv('Bewegung', wfrpBewegung(F).bewegung) +
+      dv('EP frei', wfrpEpFrei(F)) + '</div>' +
+    '<div class="sl">Attribute</div><div class="tags">' + attr + '</div>' +
+    '<div class="sl">Fertigkeiten</div><div class="tags">' + fert + '</div>' +
+    (tal ? '<div class="sl">Talente</div><div class="tags">' + tal + '</div>' : '') +
+    (k ? '<div class="sl">Karriere</div><div class="brief"><span>' + esc(k.n) + ', Stufe ' + F.stufe +
+      (F.motivation ? ' · Motivation: ' + esc(F.motivation) : '') + '</span></div>' : '') +
+    '</div></div>';
+}
+
 function render() {
   zeichneErschwernis();
   if (ansicht === 'protokoll') { renderProtokoll(); return; }
@@ -1868,6 +1920,9 @@ function render() {
 
   document.getElementById('inhalt').innerHTML = '<div class="grid">' + ids.map(function (pid) {
     const roh = figuren[pid] || {};
+    // Eine Warhammer-Figur (seit 26.11.2026) traegt andere Felder - durch
+    // alsFigur() gelesen, stuende sie mit lauter d4 da.
+    if (typeof wfrpIstWfrp === 'function' && wfrpIstWfrp(roh)) return wfrpKarte(pid, roh);
     const f = alsFigur(roh);
 
     const attr = ATTRIBUTE.map(function (a) { return wertChip(a.name, f.attr[a.name] || 1, pid); }).join('');

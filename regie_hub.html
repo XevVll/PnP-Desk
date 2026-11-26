@@ -184,6 +184,10 @@ button.gefahr{border-color:#c05555;color:#c05555}
       <div class="row">
         <input type="text" id="sitzName" placeholder="Name der Sitzung" maxlength="60">
         <select id="sitzSpiel"></select>
+        <select id="sitzRegel" title="Nach welchen Regeln diese Runde spielt">
+          <option value="savage">Savage Worlds</option>
+          <option value="wfrp4">Warhammer Fantasy (4. Ed.)</option>
+        </select>
         <input type="text" id="sitzPw" placeholder="Passwort (optional)" maxlength="40">
         <button onclick="sitzungAnlegen()">+ Sitzung anlegen</button>
       </div>
@@ -274,11 +278,12 @@ function sitzungAnlegen() {
   const name = el('sitzName').value.trim();
   const spiel = el('sitzSpiel').value;
   const pw = el('sitzPw').value.trim();
+  const regel = REGELWERKE[el('sitzRegel').value] ? el('sitzRegel').value : REGELWERK_VORGABE;
   if (!name)  { meld('sitzMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
   if (!spiel) { meld('sitzMeld', 'Lege zuerst ein Spiel an.', 'var(--amber)'); return; }
   const id = freieKennung(name, sitzungen);
   const paket = {};
-  paket['sitzungen/' + id + '/meta'] = { name: name, spiel: spiel, angelegt: Date.now() };
+  paket['sitzungen/' + id + '/meta'] = { name: name, spiel: spiel, regelwerk: regel, angelegt: Date.now() };
   if (pw) paket['geheimnisse/' + id + '/pw'] = pw;
   db.ref().update(paket)
     .then(function () {
@@ -655,8 +660,36 @@ function startRangSetzen(id, wert) {
    festen Eintraegen waere das zu viel Ladelast. */
 const RANG_NAMEN = ['Novize', 'Erfahren', 'Veteran', 'Heroisch', 'Legendär'];
 
+/* Das Regelwerk der Sitzung (seit 26.11.2026). Umstellen nur, solange
+   noch keine Figur existiert: Eine fertige Savage-Worlds-Figur in einer
+   WFRP-Sitzung waere fuer beide Bogenseiten Unsinn, und niemand saehe,
+   woran es liegt. */
+function zeichneRegelwerk(id) {
+  const sit = sitzungen[id] || {};
+  const rw = regelwerkVon(sit.meta);
+  const figuren = Object.keys((sit.stand && sit.stand.figuren) || {}).length;
+  if (figuren) {
+    return '<div class="srang" onclick="event.stopPropagation()"><span class="srang-l">Regelwerk</span>' +
+      '<span class="srang-h"><b>' + esc(REGELWERKE[rw].n) + '</b> — fest, weil es schon Figuren gibt.</span></div>';
+  }
+  const opt = Object.keys(REGELWERKE).map(function (k) {
+    return '<option value="' + k + '"' + (k === rw ? ' selected' : '') + '>' + esc(REGELWERKE[k].n) + '</option>';
+  }).join('');
+  return '<div class="srang" onclick="event.stopPropagation()"><span class="srang-l">Regelwerk</span>' +
+    '<select onchange="regelwerkSetzen(\'' + id + '\',this.value)">' + opt + '</select>' +
+    '<span class="srang-h">Lässt sich ändern, bis die erste Figur angelegt ist.</span></div>';
+}
+function regelwerkSetzen(id, rw) {
+  if (!REGELWERKE[rw]) return;
+  db.ref('sitzungen/' + id + '/meta/regelwerk').set(rw)
+    .then(function () { meld('sitzMeld', 'Regelwerk: ' + REGELWERKE[rw].n, 'var(--teal)'); })
+    .catch(function (e) { meld('sitzMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+}
+
 function zeichneStartRang(id) {
   const sit = sitzungen[id] || {};
+  // Raenge gibt es nur in Savage Worlds - WFRP kennt Karrierestufen.
+  if (regelwerkVon(sit.meta) !== 'savage') return '';
   const jetzt = Math.max(0, Math.min(4, +((sit.meta || {}).startRang) || 0));
   const opt = RANG_NAMEN.map(function (n, r) {
     return '<option value="' + r + '"' + (r === jetzt ? ' selected' : '') + '>' + n + '</option>';
@@ -911,6 +944,7 @@ function zeichneSitzungen() {
           (geist ? 'Kein Eintrag — vermutlich ein Rest einer gelöschten Sitzung. Kann weg. · '
                  : '') +
           esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
+          ' · ' + esc(REGELWERKE[regelwerkVon(m)].n) +
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
           (Object.keys(figuren).filter(function (k) { return istAltSchluessel(k); }).length
@@ -931,6 +965,7 @@ function zeichneSitzungen() {
         '<button class="klein gefahr" onclick="loeschen(\'' + id + '\')">löschen</button>' +
       '</div></div>' +
       '<div class="spieler">' + (chips || '<span class="leer">Noch keine Spieler eingetragen.</span>') + '</div>' +
+      zeichneRegelwerk(id) +
       zeichneStartRang(id) +
       zeichneFiguren(id) +
       zeichneTermine(id) +

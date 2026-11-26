@@ -499,7 +499,8 @@ function kachelPruefen() {
       kb.indexOf('setAttribute(\'title\'') > 0 && kb.indexOf('noch keine Figur') > 0);
     t('mit Figur wird alles zurueckgenommen',
       kb.indexOf("opacity = ''") > 0 && kb.indexOf("pointerEvents = ''") > 0 &&
-      kb.indexOf("setAttribute('href', 'heldenbrief.html')") > 0);
+      /* Seit dem 26.11.2026 haengt das Ziel am Regelwerk der Sitzung. */
+      kb.indexOf("setAttribute('href', regelwerkSeite(regelwerk, 'bogen'))") > 0);
     t('der Name der Figur steht in der Kachel', kb.indexOf('wie') > 0);
   })();
 
@@ -549,6 +550,11 @@ function kachelPruefen() {
   }
   const ctx = { console, document: { getElementById: el } };
   vm.createContext(ctx);
+  /* regelwerkSeite() kommt echt aus js/sitzung.js, das Regelwerk der
+     Sitzung ist zunaechst die Vorgabe (Savage Worlds). */
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'sitzung.js'), 'utf8'), ctx,
+    { filename: 'js/sitzung.js' });
+  vm.runInContext('var regelwerk = REGELWERK_VORGABE;', ctx);
   (function () {
     const i = iC.indexOf('function briefKachel(');
     let j = iC.indexOf('{', i), tief = 0, ende = -1;
@@ -584,6 +590,16 @@ function kachelPruefen() {
   // Und wieder zu, wenn die Figur geloescht wird.
   ctx.briefKachel(false, '');
   t('nach dem Loeschen geht die Kachel wieder zu', k.style.opacity === '.4');
+
+  /* Eine Warhammer-Sitzung: dieselbe Kachel fuehrt zum WFRP-Bogen und
+     verspricht keine Bennies. */
+  vm.runInContext('regelwerk = "wfrp4";', ctx);
+  ctx.briefKachel(true, 'Molli');
+  t('Warhammer: die Kachel führt zum WFRP-Bogen', k.getAttribute('href') === 'wfrp_heldenbrief.html',
+    k.getAttribute('href'));
+  t('Warhammer: keine Rede von Bennies', !/Bennies/.test(el('kachelBriefText').textContent),
+    el('kachelBriefText').textContent);
+  vm.runInContext('regelwerk = REGELWERK_VORGABE;', ctx);
 
   /* Die Beschreibung der Erschaffungs-Kachel nennt die zwei Regelsaetze
      nicht mehr - die Wahl ist im September entfallen. */
@@ -799,6 +815,11 @@ function rangPruefen() {
     sitzungen: {}, meld() {}, db: { ref() { return { set() { return Promise.resolve(); } }; } }
   };
   vm.createContext(rctx);
+  /* Seit dem 26.11.2026 fragt zeichneStartRang() das Regelwerk der Sitzung
+     (regelwerkVon aus js/sitzung.js) - Raenge gibt es nur in Savage Worlds.
+     Die Funktion kommt deshalb echt aus der Datei, nicht als Attrappe. */
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'sitzung.js'), 'utf8'), rctx,
+    { filename: 'js/sitzung.js' });
   const konst = rC2.slice(rC2.indexOf('const RANG_NAMEN'),
     rC2.indexOf(';', rC2.indexOf('const RANG_NAMEN')) + 1);
   new vm.Script([konst, schneide(rC2, 'zeichneStartRang')].join(String.fromCharCode(10)),
@@ -810,6 +831,8 @@ function rangPruefen() {
   t('mit Vorgabe steht der freigegebene Rang gewählt', oB.indexOf('value="2" selected') > 0);
   t('und es wird erklärt, dass niedriger auch geht', oB.indexOf('niedriger geht auch') > 0);
   t('alle fünf Ränge stehen zur Wahl', (oA.match(/<option/g) || []).length === 5);
+  rctx.sitzungen.wf = { meta: { name: 'W', regelwerk: 'wfrp4', startRang: 2 } };
+  t('eine Warhammer-Sitzung zeigt keinen Startrang', rctx.zeichneStartRang('wf') === '');
   rctx.sitzungen.kaputt = { meta: { startRang: 99 } };
   t('Unsinn im meta bricht nichts',
     (function () { try { rctx.zeichneStartRang('kaputt'); return true; } catch (e) { return false; } })());

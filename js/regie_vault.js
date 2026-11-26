@@ -571,7 +571,11 @@ function arenaAufbauenMit(sceneId, sz, figuren) {
      (Harwick, Cormac, Wat, ...), nicht die Spielercharaktere - ein frueher
      Entwurf zog diese Namen und stellte damit NSC als Spielerfiguren auf
      ("James Harwick schiesst auf Der Seelenlose"). */
-  const echte = Object.keys(figuren || {}).map(function (pid) {
+  /* Die Arena rechnet Savage Worlds - eine Warhammer-Figur (seit
+     26.11.2026) stuende sonst mit lauter d4 auf dem Brett. */
+  const echte = Object.keys(figuren || {}).filter(function (pid) {
+    return (figuren[pid] || {}).regelwerk !== 'wfrp4';
+  }).map(function (pid) {
     const roh = figuren[pid] || {};
     return {
       pid: pid,

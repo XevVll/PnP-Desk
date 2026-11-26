@@ -188,6 +188,12 @@ function initDiceRoller(db, options) {
   let anfrage = null;           // Bitte der Spielleitung, aus Firebase
   let anfrageSchluessel = null; // Figurenschlüssel, auf dem der Lauscher hängt
   let anfrageRef = null;
+  /* Warhammer (seit 26.11.2026): Traegt die Figur das Feld wfrp, wuerfelt
+     die Leiste W100 gegen den Wert (wfrpProbe aus js/wfrp_regelwerk.js),
+     mit einer Schwierigkeit davor. Die Savage-Worlds-Haelfte bleibt
+     unberuehrt - eine Figur ist das eine oder das andere. */
+  let wfrpMod = 0;
+  function wfrpModus() { const f = holeFigur(); return !!(f && f.wfrp); }
 
   /* ---------- Spielername ---------- */
   function getSavedName() {
@@ -317,13 +323,34 @@ function initDiceRoller(db, options) {
     zeichneLeiste();
   }
 
+  /* Eine Warhammer-Probe. Derselbe Feed, dieselbe Wartezeit wie in Savage
+     Worlds - nur die Rechnung ist eine andere, und die steht in
+     js/wfrp_regelwerk.js, nicht hier. "gut" geht als eigenes Feld mit:
+     "Knapper Erfolg" faengt nicht mit "Erfolg" an. */
+  function wuerfleWfrp(wertName, wert) {
+    const name = ensurePlayerName();
+    if (!name || typeof wfrpProbe !== 'function') return;
+    const r = wfrpProbe(wert, { mod: wfrpMod });
+    letztes = { wfrp: true, wert: wertName, r: r, ab: Date.now() + DICE_ANIM_MS };
+    setTimeout(zeichneLeiste, DICE_ANIM_MS + 20);
+    schreibeFeed({
+      name: name, figur: figurName(), probe: wertName,
+      band: r.stufe.n + ' ' + wfrpEgText(r.eg, r.ok) + ' EG', gut: !!r.ok,
+      ergebnis: r.wurf, ziel: r.ziel, total: r.wurf, seiten: 10,
+      weg: { art: 'w100', wurf: r.wurf, ziel: r.ziel, basis: r.basis, mod: r.mod, eg: r.eg,
+             ok: r.ok, pasch: r.pasch, auto: r.auto || null }
+    });
+    zeichneLeiste();
+  }
+
   function wuerfleFrei(seiten) {
     const name = ensurePlayerName();
     if (!name) return;
     const wuerfe = [];
     let summe = 0, knallte = false;
     for (let i = 0; i < anzahl; i++) {
-      const w = freierWurf(seiten);
+      // Ein W100 explodiert nie - er ist eine Tabelle, kein Schaden.
+      const w = seiten === 100 ? { summe: 1 + Math.floor(Math.random() * 100), teile: null } : freierWurf(seiten);
       if (w.teile) knallte = true;
       wuerfe.push(w); summe += w.summe;
     }
@@ -425,6 +452,7 @@ function initDiceRoller(db, options) {
       '<span>' + anzahl + '×</span>' +
       '<button type="button" data-anz="1" aria-label="mehr">+</button></span>';
     [4, 6, 8, 10, 12].forEach(function (s) { h += wuerfelSymbol(s); });
+    if (wfrpModus()) h += '<button type="button" class="wl-ex" data-frei="100" title="W100 werfen">W100</button>';
     h += '<button type="button" class="wl-ex" data-ex="1" aria-pressed="' +
       (explodiert ? 'true' : 'false') +
       '" title="Höchste Zahl wirft erneut — richtig für Schaden, falsch für Zufallstabellen">' +
@@ -451,7 +479,24 @@ function initDiceRoller(db, options) {
       '" data-stufe="' + stufe + '">' + esc(name) +
       ' <s class="wl-s' + stufe + '">' + DLBL[stufe] + '</s></button>';
   }
+  function wfrpErgebnisBlock() {
+    if (letztes.ab && Date.now() < letztes.ab) {
+      return '<div class="wl-erg"><div class="wl-probe">' + esc(letztes.wert) + '</div>' +
+        '<div class="wl-warte">würfelt …</div></div>';
+    }
+    const r = letztes.r;
+    const w = r.wurf >= 100 ? '00' : (r.wurf < 10 ? '0' + r.wurf : String(r.wurf));
+    return '<div class="wl-erg"><div class="wl-probe">' + esc(letztes.wert) + ' · Ziel ' + r.ziel +
+      (r.mod ? ' (' + r.basis + ' ' + (r.mod > 0 ? '+' : '') + r.mod + ')' : '') + '</div>' +
+      '<div class="wl-band ' + (r.ok ? 'wl-b-erfolg' : 'wl-b-miss') + '">' + esc(r.stufe.n) + ' ' +
+        wfrpEgText(r.eg, r.ok) + ' EG</div>' +
+      '<div class="wl-zeile">W100: <em>' + w + '</em>' +
+        (r.auto ? ' — ' + (r.auto === 'erfolg' ? '01–05 gelingt immer' : '96–00 misslingt immer') : '') +
+        (r.pasch ? ' — Pasch: im Kampf ' + (r.ok ? 'kritisch' : 'ein Patzer') : '') + '</div>' +
+      '<div class="wl-deut">' + esc(r.stufe.d) + '</div></div>';
+  }
   function ergebnisBlock() {
+    if (letztes.wfrp) return wfrpErgebnisBlock();
     /* Solange der Wuerfel rollt, steht hier dasselbe wie im Portraet.
        Ein alter Eintrag ohne `ab` (oder ein Bennie-Wurf, der den Wert
        nicht neu setzt) zeigt sofort - kein Warten auf etwas, das
@@ -516,6 +561,33 @@ function initDiceRoller(db, options) {
     if (f && f.abzug) h += ' <span class="wl-abzug">−' + f.abzug + '</span>';
     h += '</div>' + (f ? '<button type="button" class="wl-zu" data-zu="1">einklappen</button>' : '') +
       '</div>';
+
+    if (f && f.wfrp) {
+      if (letztes) h += ergebnisBlock();
+      h += '<div class="wl-gruppe"><div class="wl-gl">Schwierigkeit</div><div class="wl-chips">';
+      (typeof WFRP_SCHWIERIGKEITEN !== 'undefined' ? WFRP_SCHWIERIGKEITEN : []).forEach(function (s) {
+        h += '<button type="button" class="wl-ex" data-wmod="' + s.mod + '" aria-pressed="' +
+          (s.mod === wfrpMod ? 'true' : 'false') + '" title="' + esc(s.n) + '">' +
+          (s.mod > 0 ? '+' : '') + (s.mod || '±0') + '</button>';
+      });
+      h += '</div></div><div class="wl-gruppe"><div class="wl-gl">Attribute</div><div class="wl-chips">';
+      (f.werte || []).forEach(function (w) {
+        h += '<button type="button" class="wl-chip" data-wwert="' + w.wert + '" data-wname="' + esc(w.n) + '">' +
+          esc(w.n) + ' <s class="wl-s3">' + w.wert + '</s></button>';
+      });
+      h += '</div></div>';
+      if ((f.fertigkeiten || []).length) {
+        h += '<div class="wl-gruppe"><div class="wl-gl">Fertigkeiten</div><div class="wl-chips">';
+        f.fertigkeiten.forEach(function (w) {
+          h += '<button type="button" class="wl-chip" data-wwert="' + w.wert + '" data-wname="' + esc(w.n) + '">' +
+            esc(w.n) + ' <s class="wl-s3">' + w.wert + '</s></button>';
+        });
+        h += '</div></div>';
+      }
+      h += '<div class="wl-trenn"></div><div class="wl-gruppe"><div class="wl-gl">Frei</div>' + freiZeile() + '</div>';
+      el.innerHTML = h;
+      return;
+    }
 
     if (anfrage && f) {
       /* Der Grund steht DRIN, nicht daneben: "Kämpfen, nötig 4" sagt nicht,
@@ -605,6 +677,8 @@ function initDiceRoller(db, options) {
       zeichneLeiste(); return;
     }
     if (t.dataset.frei) { wuerfleFrei(parseInt(t.dataset.frei, 10)); return; }
+    if (t.dataset.wmod !== undefined) { wfrpMod = parseInt(t.dataset.wmod, 10) || 0; zeichneLeiste(); return; }
+    if (t.dataset.wwert !== undefined) { wuerfleWfrp(t.dataset.wname || '', parseInt(t.dataset.wwert, 10)); return; }
     if (t.dataset.schaden) { wuerfleSchaden(); return; }
     if (t.dataset.bitte) {
       const f = holeFigur();

@@ -169,7 +169,7 @@ body{font-family:'Libre Baskerville',Georgia,serif;background:var(--bg);color:va
           <div class="tile-n">Heldenbrief</div>
           <div class="tile-d" id="kachelBriefText">Deine fertige Figur am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.</div>
         </a>
-        <a class="tile" href="charaktererstellung.html">
+        <a class="tile" id="kachelNeu" href="charaktererstellung.html">
           <div class="tile-i">🧭</div>
           <div class="tile-n">Figur erschaffen</div>
           <div class="tile-d" id="kachelNeuText">Schritt für Schritt zur neuen Figur — erst wer du bist, dann was daraus folgt. Je Name und Sitzung gibt es genau eine.</div>
@@ -360,6 +360,8 @@ function sitzungVerloren(name) {
   }
 }
 
+let regelwerk = REGELWERK_VORGABE;
+
 function initFirebase() {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -372,6 +374,13 @@ function initFirebase() {
   const gemerkt = sitzungFest();
   echteDb.ref('sitzungen/' + gemerkt + '/meta').once('value').then(function (s) {
     if (!s.val()) { sitzungVerloren(gemerkt); return; }
+    /* Das Regelwerk der Sitzung (seit 26.11.2026). Die Kacheln fuehren
+       damit gleich auf die richtige Seite; die Seiten selbst pruefen es
+       trotzdem noch einmal, weil man sie auch direkt aufrufen kann. */
+    regelwerk = regelwerkVon(s.val());
+    try { localStorage.setItem(regelwerkCacheKey(gemerkt), regelwerk); } catch (e) {}
+    const neu = document.getElementById('kachelNeu');
+    if (neu) neu.setAttribute('href', regelwerkSeite(regelwerk, 'erschaffung'));
     sitzungStarten();
   }).catch(function () {
     // Regeln oder Netz - hier NICHT einfach weitermachen: Ein
@@ -652,10 +661,13 @@ function briefKachel(hatFigur, wie) {
   if (hatFigur) {
     kachel.style.opacity = ''; kachel.style.pointerEvents = '';
     kachel.removeAttribute('title');
-    kachel.setAttribute('href', 'heldenbrief.html');
+    kachel.setAttribute('href', regelwerkSeite(regelwerk, 'bogen'));
+    const was = regelwerk === 'wfrp4'
+      ? 'Lebenspunkte, Glück, Würfeln, Erfahrung, Karriere.'
+      : 'Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.';
     if (text) text.textContent = wie
-      ? '„' + wie + '" am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.'
-      : 'Deine Figur am Tisch führen: Wunden, Bennies, Ausrüstung, Würfeln, Steigerungen.';
+      ? '„' + wie + '" am Tisch führen: ' + was
+      : 'Deine Figur am Tisch führen: ' + was;
     if (neuText) neuText.textContent = 'Deine Figur ändern oder verwerfen und neu anfangen. ' +
       'Je Name und Sitzung gibt es genau eine.';
   } else {

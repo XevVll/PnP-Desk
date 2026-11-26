@@ -627,7 +627,11 @@
      Brett; was in den Bogen soll, geht ueber das Postfach in
      regie_figuren.html. */
   function spielerListe() {
-    return Object.keys(figuren).map(function (pid) {
+    /* Die Arena rechnet Savage Worlds - eine Warhammer-Figur (seit
+       26.11.2026) stuende sonst mit lauter d4 auf dem Brett. */
+    return Object.keys(figuren).filter(function (pid) {
+      return (figuren[pid] || {}).regelwerk !== 'wfrp4';
+    }).map(function (pid) {
       const roh = figuren[pid] || {};
       const fig = alsFigur(roh);
       return {
