@@ -189,6 +189,19 @@ const chk = (n, c, x) => {
   chk('45 Fertigkeiten', R.WFRP_FERTIGKEITEN.length === 45);
   chk('jede Fertigkeit hängt an einem Attribut', R.WFRP_FERTIGKEITEN.every(f => R.WFRP_ATTR_BY_ID[f.attr]));
 
+  /* Warhammer-Eigennamen bleiben im Original (Hendrik, 26.11.2026). Eine
+     Uebersetzung, die beim naechsten Umbau zurueckkommt, soll auffallen. */
+  const alles = JSON.stringify([R.WFRP_FERTIGKEITEN, R.WFRP_KARRIEREN, R.WFRP_SPEZIES]);
+  const eigen = ['Weirdroot', 'Heartkill', 'Demigryph', 'Great Wolf', 'Wolfship', 'Grey Order',
+    'Shipsword', 'Huffer', 'Greenfish', 'Battle Tongue', 'Wastelander', 'Mootish'];
+  chk('Warhammer-Eigennamen stehen im Original da', eigen.every(n => alles.indexOf(n) >= 0),
+    eigen.filter(n => alles.indexOf(n) < 0));
+  const deutsch = ['Wurzelrausch', 'Herztod', 'Halbgreif', 'Großwolf', 'Wolfsschiff', 'Grauer Orden',
+    'Schiffsschwert', 'Flusslotse', 'Grünfisch', 'Schlachtsprache', 'Ödländisch', 'Mootisch'];
+  chk('… und keine eingedeutschte Fassung davon', deutsch.every(n => alles.indexOf(n) < 0),
+    deutsch.filter(n => alles.indexOf(n) >= 0));
+  chk('Ländersprachen bleiben deutsch', ['Bretonisch', 'Tileanisch', 'Estalisch'].every(n => alles.indexOf(n) >= 0));
+
   // Errata vom 28.02. (stichprobenhaft): sie muessen eingearbeitet sein.
   const st = (id, n) => R.WFRP_KARR_BY_ID[id].stufen[n];
   chk('Errata: Kaufmann steigert KG ab Stufe 2, WK ab Stufe 1',

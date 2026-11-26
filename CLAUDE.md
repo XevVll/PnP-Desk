@@ -133,6 +133,15 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-26 (Fortsetzung) — Warhammer-Eigennamen bleiben im Original
+- **Hendriks Entscheidung:** Wortschöpfungen der Spielwelt werden nicht übersetzt, nur allgemeine
+  Begriffe. Zurückgedreht: Wurzelrausch → Weirdroot, Herztod → Heartkill, Halbgreif → Demigryph,
+  Großwolf → Great Wolf, Wolfsschiff → Wolfship, Grauer Orden → Grey Order, Schiffsschwert(meister)
+  → Shipsword (Master), Flusslotse → Huffer, Grünfisch → Greenfish, Schlachtsprache → Battle Tongue,
+  Ödländisch → Wastelander, Mootisch → Mootish. Bretonisch, Tileanisch, Estalisch bleiben deutsch.
+- **Kennungen unverändert** (die Huffer-Karriere heißt intern weiter `lotse`) – Figuren hängen daran.
+- Neue Prüfung in `t_wfrp.js`: die Eigennamen stehen da, die eingedeutschten Fassungen nicht.
+
 ### 2026-11-26 — Warhammer Fantasy als zweites Regelwerk (Etappe A)
 - **Hendriks Auftrag:** das WFRP-Regelwerk (4. Ed.) systemisch einarbeiten, „die Charaktererstellung,
   Würfellogiken etc.“, Begriffe auf **Deutsch**. Abenteuer bewusst aufgeschoben. Alles Weitere steht

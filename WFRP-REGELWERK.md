@@ -77,6 +77,13 @@ nachschlagen kann. Abweichungen zur offiziellen Ausgabe sind eine Zeile in `js/w
 | WK | Willenskraft | WP |
 | CH | Charisma | Fel |
 
+**Warhammer-Eigennamen bleiben im Original** (Hendriks Entscheidung, ebenfalls 26.11.2026):
+Wortschöpfungen der Spielwelt werden nicht übersetzt – Weirdroot, Heartkill, Demigryph, Great Wolf,
+Wolfship, Grey Order, Shipsword, Huffer, Greenfish, Battle Tongue, Wastelander, Mootish, dazu
+ohnehin Altdorf, Reikland, Khazalid, Eltharin, die Winde der Magie, Wyrd, Slayer. Deutsch sind nur
+allgemeine Begriffe (Kampfgeschick, Schleichen, Advokat) und Ländersprachen (Bretonisch,
+Tileanisch, Estalisch). `tests/t_wfrp.js` prüft, dass die Eigennamen so bleiben.
+
 Weitere Begriffe: Erfolgsgrade (EG) = Success Levels, Lebenspunkte = Wounds, Schicksal/Glück =
 Fate/Fortune, Zähigkeit/Entschlossenheit = Resilience/Resolve, Status Messing/Silber/Gold =
 Brass/Silver/Gold, Währung GK/S/P = Goldkrone/Silberschilling/Messingpfennig.
