@@ -7,8 +7,11 @@
    in der Szenenliste jeder Korsaren-Runde aufgetaucht.
 
    Jetzt gilt:
-     SPIEL  (spiele/{id})          traegt das Feld "abenteuer".
-     SITZUNG (sitzungen/{sid}/meta) zeigt per "spiel" auf ein Spiel.
+     REGELWERK  traegt Abenteuer (ABENTEUER[x].regelwerk).
+     SPIEL  (spiele/{id})          traegt "regelwerk" und "abenteuer" -
+                                   gewaehlt in dieser Reihenfolge.
+     SITZUNG (sitzungen/{sid}/meta) zeigt per "spiel" auf ein Spiel und
+                                   uebernimmt beim Anlegen dessen Regelwerk.
    Regie und Karte zeigen nur die Szenen DIESES Abenteuers.
 
    ---- Korsaren bleibt, wo es ist ----
@@ -68,9 +71,35 @@ function abenteuerVonSzene(sceneId) {
   return ABENTEUER_VORGABE;
 }
 
+/* ---------- Regelwerk zuerst (27.11.2026) ----------
+   Ein Abenteuer gehoert zu genau einem Regelwerk. Ein Spiel waehlt
+   erst das Regelwerk, dann eines SEINER Abenteuer; die Sitzung
+   uebernimmt das Regelwerk vom Spiel. So kann keine Runde ein
+   WFRP-Abenteuer nach Savage Worlds spielen. */
+function abenteuerDesRegelwerks(rw) {
+  return Object.keys(ABENTEUER).filter(function (k) { return ABENTEUER[k].regelwerk === rw; });
+}
+function regelwerkBekannt(rw) {
+  return Object.keys(ABENTEUER).some(function (k) { return ABENTEUER[k].regelwerk === rw; });
+}
+
+/* Das Abenteuer eines Spiels. Ohne Feld: das erste Abenteuer seines
+   Regelwerks, und ohne beides Korsaren - so bleiben die Spiele von
+   vor dem 27.11.2026, wie sie waren. Ein Abenteuer, das nicht zum
+   gespeicherten Regelwerk passt, gilt nicht. */
 function abenteuerVon(spiel) {
-  var a = spiel && spiel.abenteuer;
+  var a = spiel && spiel.abenteuer, rw = spiel && spiel.regelwerk;
+  if (regelwerkBekannt(rw)) {
+    if (ABENTEUER[a] && ABENTEUER[a].regelwerk === rw) return a;
+    return abenteuerDesRegelwerks(rw)[0];
+  }
   return ABENTEUER[a] ? a : ABENTEUER_VORGABE;
+}
+
+/* Das Regelwerk eines Spiels: gespeichert, sonst das seines Abenteuers. */
+function regelwerkVonSpiel(spiel) {
+  var rw = spiel && spiel.regelwerk;
+  return regelwerkBekannt(rw) ? rw : ABENTEUER[abenteuerVon(spiel)].regelwerk;
 }
 
 /* ---------- Welches Abenteuer laeuft hier? ---------- */
@@ -124,6 +153,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ABENTEUER, ABENTEUER_VORGABE, ABENTEUER_SZENEN,
     abenteuerSzenenRegistrieren, abenteuerSzene, abenteuerVonSzene, abenteuerVon,
+    abenteuerDesRegelwerks, regelwerkBekannt, regelwerkVonSpiel,
     abenteuerCacheKey, abenteuerAusCache, abenteuerInCache, aktivesAbenteuer,
     abenteuerPruefen, abenteuerAbgleichen
   };

@@ -55,6 +55,9 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
   `<script>`-Tags. Welches Abenteuer eine Sitzung spielt, steht am **Spiel**
   (`spiele/{id}/abenteuer`, Auswahl im Regie-Hub); Regie und Karte zeigen nur dessen Szenen.
   Korsaren bleibt, wie es ist: alles Nicht-Angemeldete und jedes Spiel ohne Feld ist Korsaren.
+  **Ein Abenteuer gehört zu einem Regelwerk:** Das Spiel wählt erst das Regelwerk
+  (`spiele/{id}/regelwerk`), dann eines seiner Abenteuer, und die Sitzung übernimmt das
+  Regelwerk beim Anlegen nach `meta.regelwerk` (dort lesen es die Figurenseiten).
   Jede Kennung eines neuen Abenteuers trägt ein Präfix (`hk1.1`, `hk_kueche`). Wie man ein
   PDF-Abenteuer umsetzt, sammelt `ABENTEUER-AUS-PDF.md`.
 - **MAP_REGISTRY-/`getAllSceneEntries()`-Muster:** Jede Karte/Örtlichkeit (Grimsgate-Stadt,
@@ -141,6 +144,22 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-27 (Fortsetzung) — Erst das Regelwerk, dann das Abenteuer
+- **Hendriks Einwand:** „Die Abenteuer sollten doch dem Regelwerk zugeordnet sein.“ Im ersten
+  Anlauf wählte das Spiel das Abenteuer und die Sitzung das Regelwerk, nur mit einem Vorschlag.
+  Damit ließ sich die Hartsklein-Schleuse nach Savage Worlds spielen.
+- **Jetzt:** Beim Spiel erst das Regelwerk, dann nur dessen Abenteuer. Die Sitzung hat keine
+  eigene Regelwahl mehr und schreibt das Regelwerk des Spiels nach `meta.regelwerk`.
+  `abenteuerVon()` lässt ein Abenteuer, das nicht zum Regelwerk passt, nicht gelten.
+- **Hendriks Testsitzung `test` lief schon nach WFRP**, ihr Spiel trug aber noch kein Feld und
+  galt damit als Korsaren. Statt das still zu übergehen, sagt die Sitzung das, und das Spiel
+  bietet **„Spiel angleichen“** an. Das geht nur, wenn alle Sitzungen des Spiels einig sind;
+  sonst würde eine von ihnen falsch.
+- **Getestet: `t_abenteuer.js` 67 Prüfungen** (18 neue, die Hub-Funktionen werden geschnitten
+  und ausgeführt). Gegenproben: Formular listet alle Abenteuer (1), Sitzung nimmt fest
+  Savage Worlds (1). Alle übrigen Skripte unverändert, bis auf den bekannten Fehlschlag in
+  `t_figuren.js`.
 
 ### 2026-11-27 — Abenteuer getrennt, Pilot „Hartsklein-Schleuse“ angelegt
 - **Hendriks Auftrag:** einen Skill bauen, mit dem aus einem PDF-Abenteuer ein PnP-Desk-Abenteuer

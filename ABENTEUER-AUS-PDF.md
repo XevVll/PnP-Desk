@@ -12,6 +12,9 @@ Pilot steht und ein zweites Abenteuer ihn bestätigt hat, wird daraus ein Skill.
 - **Jedes Abenteuer liegt getrennt** in `abenteuer/{id}/` und ist mit `js/abenteuer.js`
   angemeldet. Eine Sitzung sieht nur die Szenen ihres Abenteuers. Das Abenteuer hängt am
   **Spiel** (`spiele/{id}/abenteuer`), nicht an der Sitzung. Ein Spiel ohne Feld ist Korsaren.
+- **Jedes Abenteuer gehört zu genau einem Regelwerk** (`ABENTEUER[id].regelwerk`). Ein Spiel
+  wählt erst das Regelwerk, dann eines seiner Abenteuer; die Sitzung übernimmt das Regelwerk
+  vom Spiel und hat keine eigene Wahl mehr (Hendrik, 27.11.2026).
 - **Jede Kennung trägt ein Präfix** (`hk1.1`, `hk_kueche`). Ein Zusammenstoß mit einem
   anderen Abenteuer bricht beim Laden ab, statt still zu überschreiben.
 - **Eine Örtlichkeit, Zustände über live verborgene Marker** (etwa das Grab, bis der Boden

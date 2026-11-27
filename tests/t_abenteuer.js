@@ -200,7 +200,96 @@ function pruefe(daten, fehlschlag, cache) {
   /* ---------- 6. Der Regie-Hub ---------- */
   const HUB = lies('regie_hub.html');
   chk('Hub lädt js/abenteuer.js', HUB.indexOf('<script src="js/abenteuer.js"></script>') >= 0);
-  chk('Spiel anlegen schreibt das Abenteuer mit', /set\(\{ name: name, abenteuer: abenteuer,/.test(HUB));
+
+  /* ---------- 6a. Erst das Regelwerk, dann das Abenteuer ----------
+     Hendrik, 27.11.2026: „Die Abenteuer sollten doch dem Regelwerk
+     zugeordnet sein." Die Prüfungen führen die Hub-Funktionen aus. */
+  {
+    const rctx = neuerKontext();
+    const r = vm.runInContext(`({
+      sw: abenteuerDesRegelwerks('savage'), wf: abenteuerDesRegelwerks('wfrp4'),
+      alt: abenteuerVon({}), altRw: regelwerkVonSpiel({}),
+      nurRw: abenteuerVon({ regelwerk: 'wfrp4' }),
+      falsch: abenteuerVon({ regelwerk: 'wfrp4', abenteuer: 'korsaren' }),
+      hk: regelwerkVonSpiel({ abenteuer: 'hartsklein' })
+    })`, rctx);
+    chk('Savage Worlds führt Korsaren, nicht Hartsklein', r.sw.indexOf('korsaren') >= 0 && r.sw.indexOf('hartsklein') < 0, r.sw);
+    chk('WFRP führt Hartsklein, nicht Korsaren', r.wf.indexOf('hartsklein') >= 0 && r.wf.indexOf('korsaren') < 0, r.wf);
+    chk('ein Spiel von vorher bleibt Korsaren / Savage Worlds', r.alt === 'korsaren' && r.altRw === 'savage', r);
+    chk('ein WFRP-Spiel ohne Abenteuer nimmt ein WFRP-Abenteuer', r.nurRw === 'hartsklein', r);
+    chk('ein unpassendes Abenteuer gilt nicht (Korsaren unter WFRP)', r.falsch === 'hartsklein', r);
+    chk('ohne gespeichertes Regelwerk gilt das des Abenteuers', r.hk === 'wfrp4', r);
+
+    /* Die Hub-Funktionen selbst, geschnitten und ausgeführt. */
+    const knoten = {};
+    const el = id => knoten[id] || (knoten[id] = { value: '', innerHTML: '', textContent: '', options: [] });
+    const geschrieben = [];
+    const meldungen = [];
+    const fakeDb = {
+      ref(p) { return {
+        set(v) { geschrieben.push([p || '', v]); return Promise.resolve(); },
+        update(v) { geschrieben.push([p || '', v]); return Promise.resolve(); }
+      }; }
+    };
+    Object.assign(rctx, { el, db: fakeDb, esc: x => String(x),
+      meld: (id, t) => meldungen.push(t),
+      freieKennung: n => n.toLowerCase(), spiele: {}, sitzungen: {} });
+    vm.runInContext(schnitt(HUB, 'function spielAnlegen()', '/* ---------- Steuern'), rctx);
+    vm.runInContext(schnitt(HUB, 'function zeichneRegelwerk(', 'function zeichneStartRang('), rctx);
+    vm.runInContext(schnitt(HUB, 'function abenteuerFeld(', 'function zeichneSpiele('), rctx);
+
+    // Formular: WFRP gewählt -> nur WFRP-Abenteuer in der Liste
+    el('spielRegel').value = 'wfrp4';
+    vm.runInContext('abenteuerAuswahl()', rctx);
+    chk('Formular: WFRP listet Hartsklein', /hartsklein/.test(el('spielAbenteuer').innerHTML), el('spielAbenteuer').innerHTML);
+    chk('Formular: WFRP listet KEIN Korsaren', !/korsaren/.test(el('spielAbenteuer').innerHTML), el('spielAbenteuer').innerHTML);
+
+    // Anlegen schreibt Regelwerk und Abenteuer
+    el('spielName').value = 'Schleuse'; el('spielAbenteuer').value = 'hartsklein';
+    vm.runInContext('spielAnlegen()', rctx);
+    const sp = geschrieben.pop();
+    chk('Spiel anlegen schreibt Regelwerk und Abenteuer', sp && sp[0] === 'spiele/schleuse' && sp[1].regelwerk === 'wfrp4' && sp[1].abenteuer === 'hartsklein', sp);
+
+    // Unpassend: Savage Worlds + Hartsklein wird abgelehnt
+    el('spielRegel').value = 'savage'; el('spielName').value = 'Falsch'; el('spielAbenteuer').value = 'hartsklein';
+    const vorher = geschrieben.length;
+    vm.runInContext('spielAnlegen()', rctx);
+    chk('Savage Worlds mit Hartsklein wird NICHT angelegt', geschrieben.length === vorher, geschrieben.slice(vorher));
+
+    // Sitzung übernimmt das Regelwerk vom Spiel
+    rctx.spiele = { schleuse: { name: 'Schleuse', regelwerk: 'wfrp4', abenteuer: 'hartsklein' } };
+    vm.runInContext('spiele = this.spiele', rctx);
+    el('sitzName').value = 'Runde'; el('sitzSpiel').value = 'schleuse'; el('sitzPw').value = '';
+    vm.runInContext('sitzungAnlegen()', rctx);
+    const paket = geschrieben.pop();
+    const meta = paket && paket[1]['sitzungen/runde/meta'];
+    chk('Sitzung übernimmt WFRP vom Spiel', meta && meta.regelwerk === 'wfrp4', paket);
+    chk('der Hub hat kein eigenes Regelwerk-Feld für die Sitzung mehr', HUB.indexOf('<select id="sitzRegel"') < 0);
+
+    // Hendriks Testspiel: altes Spiel ohne Felder, Sitzung aber WFRP
+    vm.runInContext(`spiele = { test: { name: 'Test' } };
+      sitzungen = { test: { meta: { spiel: 'test', regelwerk: 'wfrp4' }, stand: { figuren: { sl: {} } } } };`, rctx);
+    const warn = vm.runInContext('zeichneRegelwerk("test")', rctx);
+    chk('Sitzung, die vom Spiel abweicht, sagt das', /läuft nach Savage Worlds/.test(warn), warn);
+    const feld = vm.runInContext('regelwerkFeld("test", spiele.test, ["test"])', rctx);
+    chk('das Spiel bietet „angleichen" an WFRP an', /Spiel angleichen/.test(feld) && /wfrp4/.test(feld), feld);
+    vm.runInContext('spielRegelSetzen("test", "wfrp4")', rctx);
+    const angl = geschrieben.pop();
+    chk('angleichen setzt Regelwerk UND ein passendes Abenteuer', angl && angl[0] === 'spiele/test' && angl[1].regelwerk === 'wfrp4' && angl[1].abenteuer === 'hartsklein', angl);
+    vm.runInContext("spiele.test.regelwerk = 'wfrp4'; spiele.test.abenteuer = 'hartsklein';", rctx);
+    chk('danach keine Warnung mehr', !/läuft nach/.test(vm.runInContext('zeichneRegelwerk("test")', rctx)));
+    chk('danach kein Angleichen-Knopf mehr', !/angleichen/.test(vm.runInContext('regelwerkFeld("test", spiele.test, ["test"])', rctx)));
+
+    // Uneinige Sitzungen: kein Angleichen, sonst würde eine davon falsch
+    vm.runInContext(`spiele.u = { name: 'U' };
+      sitzungen.a = { meta: { spiel: 'u', regelwerk: 'wfrp4' } };
+      sitzungen.b = { meta: { spiel: 'u', regelwerk: 'savage' } };`, rctx);
+    chk('uneinige Sitzungen: kein Angleichen-Knopf', !/angleichen/.test(vm.runInContext('regelwerkFeld("u", spiele.u, ["a","b"])', rctx)));
+
+    // Abenteuer-Feld eines ungenutzten WFRP-Spiels listet nur WFRP
+    const af = vm.runInContext("abenteuerFeld('s', { regelwerk: 'wfrp4', abenteuer: 'hartsklein' }, 0)", rctx);
+    chk('Abenteuer-Feld eines WFRP-Spiels ohne Korsaren', /hartsklein/.test(af) && !/korsaren/.test(af), af);
+  }
   const feld = schnitt(HUB, 'function abenteuerFeld(', 'function spielAbenteuerSetzen(');
   const hctx = neuerKontext();
   hctx.esc = s => String(s);

@@ -168,9 +168,12 @@ button.gefahr{border-color:#c05555;color:#c05555}
     <div class="card-hdr">Spiele</div>
     <div class="card-body">
       <p class="hint">Ein Spiel ist das Abenteuer selbst — der Inhalt. Eine Sitzung ist eine
-        Gruppe, die es spielt. Dasselbe Spiel kann mehrfach laufen, mit verschiedenen Leuten.</p>
+        Gruppe, die es spielt. Dasselbe Spiel kann mehrfach laufen, mit verschiedenen Leuten.
+        Erst das Regelwerk, dann eines seiner Abenteuer — die Sitzungen übernehmen das Regelwerk
+        vom Spiel.</p>
       <div class="row" style="margin-top:.7rem">
         <input type="text" id="spielName" placeholder="Name des Spiels" maxlength="60">
+        <select id="spielRegel" onchange="abenteuerAuswahl()" title="Nach welchen Regeln dieses Spiel läuft"></select>
         <select id="spielAbenteuer" title="Welcher Inhalt in diesem Spiel steckt"></select>
         <button onclick="spielAnlegen()">+ Spiel anlegen</button>
       </div>
@@ -184,11 +187,8 @@ button.gefahr{border-color:#c05555;color:#c05555}
     <div class="card-body">
       <div class="row">
         <input type="text" id="sitzName" placeholder="Name der Sitzung" maxlength="60">
-        <select id="sitzSpiel" onchange="regelwerkVorschlagen()"></select>
-        <select id="sitzRegel" title="Nach welchen Regeln diese Runde spielt">
-          <option value="savage">Savage Worlds</option>
-          <option value="wfrp4">Warhammer Fantasy (4. Ed.)</option>
-        </select>
+        <select id="sitzSpiel" onchange="sitzRegelZeigen()"></select>
+        <span class="hint" id="sitzRegel"></span>
         <input type="text" id="sitzPw" placeholder="Passwort (optional)" maxlength="40">
         <button onclick="sitzungAnlegen()">+ Sitzung anlegen</button>
       </div>
@@ -271,8 +271,12 @@ function spielAnlegen() {
   const name = el('spielName').value.trim();
   if (!name) { meld('spielMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
   const id = freieKennung(name, spiele);
-  const abenteuer = ABENTEUER[el('spielAbenteuer').value] ? el('spielAbenteuer').value : ABENTEUER_VORGABE;
-  db.ref('spiele/' + id).set({ name: name, abenteuer: abenteuer, angelegt: Date.now() })
+  const regel = REGELWERKE[el('spielRegel').value] ? el('spielRegel').value : REGELWERK_VORGABE;
+  const abenteuer = el('spielAbenteuer').value;
+  if (abenteuerDesRegelwerks(regel).indexOf(abenteuer) < 0) {
+    meld('spielMeld', 'Für ' + REGELWERKE[regel].n + ' gibt es dieses Abenteuer nicht.', 'var(--amber)'); return;
+  }
+  db.ref('spiele/' + id).set({ name: name, regelwerk: regel, abenteuer: abenteuer, angelegt: Date.now() })
     .then(function () { el('spielName').value = ''; meld('spielMeld', 'Angelegt: ' + name, '#4caf7d'); })
     .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
 }
@@ -281,9 +285,11 @@ function sitzungAnlegen() {
   const name = el('sitzName').value.trim();
   const spiel = el('sitzSpiel').value;
   const pw = el('sitzPw').value.trim();
-  const regel = REGELWERKE[el('sitzRegel').value] ? el('sitzRegel').value : REGELWERK_VORGABE;
   if (!name)  { meld('sitzMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
   if (!spiel) { meld('sitzMeld', 'Lege zuerst ein Spiel an.', 'var(--amber)'); return; }
+  // Das Regelwerk kommt vom Spiel. Es steht trotzdem in meta, weil alle
+  // Figurenseiten es dort lesen (regelwerkPruefen in js/sitzung.js).
+  const regel = regelwerkVonSpiel(spiele[spiel]);
   const id = freieKennung(name, sitzungen);
   const paket = {};
   paket['sitzungen/' + id + '/meta'] = { name: name, spiel: spiel, regelwerk: regel, angelegt: Date.now() };
@@ -663,30 +669,21 @@ function startRangSetzen(id, wert) {
    festen Eintraegen waere das zu viel Ladelast. */
 const RANG_NAMEN = ['Novize', 'Erfahren', 'Veteran', 'Heroisch', 'Legendär'];
 
-/* Das Regelwerk der Sitzung (seit 26.11.2026). Umstellen nur, solange
-   noch keine Figur existiert: Eine fertige Savage-Worlds-Figur in einer
-   WFRP-Sitzung waere fuer beide Bogenseiten Unsinn, und niemand saehe,
-   woran es liegt. */
+/* Das Regelwerk der Sitzung. Seit dem 27.11.2026 waehlt es das SPIEL
+   (erst Regelwerk, dann Abenteuer); hier steht es nur noch zur Ansicht.
+   Weicht die Sitzung vom Spiel ab (Sitzungen von davor), steht es da,
+   statt still nach dem einen zu rechnen und das andere zu zeigen. */
 function zeichneRegelwerk(id) {
   const sit = sitzungen[id] || {};
   const rw = regelwerkVon(sit.meta);
-  const figuren = Object.keys((sit.stand && sit.stand.figuren) || {}).length;
-  if (figuren) {
-    return '<div class="srang" onclick="event.stopPropagation()"><span class="srang-l">Regelwerk</span>' +
-      '<span class="srang-h"><b>' + esc(REGELWERKE[rw].n) + '</b> — fest, weil es schon Figuren gibt.</span></div>';
-  }
-  const opt = Object.keys(REGELWERKE).map(function (k) {
-    return '<option value="' + k + '"' + (k === rw ? ' selected' : '') + '>' + esc(REGELWERKE[k].n) + '</option>';
-  }).join('');
+  const sp = spiele[(sit.meta || {}).spiel];
+  const soll = sp ? regelwerkVonSpiel(sp) : rw;
   return '<div class="srang" onclick="event.stopPropagation()"><span class="srang-l">Regelwerk</span>' +
-    '<select onchange="regelwerkSetzen(\'' + id + '\',this.value)">' + opt + '</select>' +
-    '<span class="srang-h">Lässt sich ändern, bis die erste Figur angelegt ist.</span></div>';
-}
-function regelwerkSetzen(id, rw) {
-  if (!REGELWERKE[rw]) return;
-  db.ref('sitzungen/' + id + '/meta/regelwerk').set(rw)
-    .then(function () { meld('sitzMeld', 'Regelwerk: ' + REGELWERKE[rw].n, 'var(--teal)'); })
-    .catch(function (e) { meld('sitzMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+    '<span class="srang-h"><b>' + esc(REGELWERKE[rw].n) + '</b>' +
+    (soll !== rw
+      ? ' — <span style="color:#ca6702">das Spiel läuft nach ' + esc(REGELWERKE[soll].n) +
+        '. Stell beim Spiel das Regelwerk dieser Sitzung ein.</span>'
+      : ' — kommt vom Spiel.') + '</span></div>';
 }
 
 function zeichneStartRang(id) {
@@ -890,35 +887,73 @@ function abenteuerFeld(id, spiel, genutzt) {
   const a = abenteuerVon(spiel);
   if (genutzt) return '<b>' + esc(ABENTEUER[a].n) + '</b>';
   return '<select onchange="spielAbenteuerSetzen(\'' + esc(id) + '\',this.value)">' +
-    Object.keys(ABENTEUER).map(function (k) {
+    abenteuerDesRegelwerks(regelwerkVonSpiel(spiel)).map(function (k) {
       return '<option value="' + k + '"' + (k === a ? ' selected' : '') + '>' + esc(ABENTEUER[k].n) + '</option>';
     }).join('') + '</select>';
 }
 function spielAbenteuerSetzen(id, a) {
   if (!ABENTEUER[a]) return;
-  db.ref('spiele/' + id + '/abenteuer').set(a)
+  db.ref('spiele/' + id).update({ regelwerk: ABENTEUER[a].regelwerk, abenteuer: a })
     .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
 }
-/* Beim Anlegen einer Sitzung: das Regelwerk des Abenteuers vorschlagen.
-   Ueberschreibbar - es ist ein Vorschlag, keine Sperre. */
-function regelwerkVorschlagen() {
+
+/* Das Regelwerk eines Spiels. Umstellbar, solange keine Sitzung daran
+   haengt. Mit Sitzungen nur noch dann, wenn ALLE Sitzungen schon nach
+   dem anderen Regelwerk laufen - dann richtet sich das Spiel nach
+   ihnen, und keine Figur wird dabei falsch. Das ist der Weg fuer
+   Spiele von vor dem 27.11.2026, die noch kein Regelwerk trugen. */
+function regelwerkFeld(id, spiel, sitzIds) {
+  const rw = regelwerkVonSpiel(spiel);
+  if (!sitzIds.length) {
+    return '<select onchange="spielRegelSetzen(\'' + esc(id) + '\',this.value)">' +
+      Object.keys(REGELWERKE).filter(regelwerkBekannt).map(function (k) {
+        return '<option value="' + k + '"' + (k === rw ? ' selected' : '') + '>' + esc(REGELWERKE[k].n) + '</option>';
+      }).join('') + '</select>';
+  }
+  const ihre = sitzIds.map(function (sid) { return regelwerkVon(sitzungen[sid].meta); });
+  const einig = ihre.every(function (r) { return r === ihre[0]; });
+  if (einig && ihre[0] !== rw && regelwerkBekannt(ihre[0])) {
+    return '<b>' + esc(REGELWERKE[rw].n) + '</b> <span style="color:#ca6702">— die Sitzungen laufen nach ' +
+      esc(REGELWERKE[ihre[0]].n) + '.</span> <button class="klein" onclick="spielRegelSetzen(\'' +
+      esc(id) + '\',\'' + ihre[0] + '\')">Spiel angleichen</button>';
+  }
+  return '<b>' + esc(REGELWERKE[rw].n) + '</b>';
+}
+function spielRegelSetzen(id, rw) {
+  const liste = abenteuerDesRegelwerks(rw);
+  if (!REGELWERKE[rw] || !liste.length) return;
+  db.ref('spiele/' + id).update({ regelwerk: rw, abenteuer: liste[0] })
+    .then(function () { meld('spielMeld', 'Regelwerk: ' + REGELWERKE[rw].n + ' · Abenteuer: ' + ABENTEUER[liste[0]].n, 'var(--teal)'); })
+    .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+}
+
+/* Formular: Abenteuer-Liste nach dem gewaehlten Regelwerk. */
+function abenteuerAuswahl() {
+  const rw = el('spielRegel').value;
+  el('spielAbenteuer').innerHTML = abenteuerDesRegelwerks(rw).map(function (k) {
+    return '<option value="' + k + '">' + esc(ABENTEUER[k].n) + '</option>';
+  }).join('');
+}
+/* Formular Sitzung: zeigen, nach welchen Regeln das gewaehlte Spiel laeuft. */
+function sitzRegelZeigen() {
   const sp = spiele[el('sitzSpiel').value];
-  if (!sp) return;
-  const rw = ABENTEUER[abenteuerVon(sp)].regelwerk;
-  if (REGELWERKE[rw]) el('sitzRegel').value = rw;
+  el('sitzRegel').textContent = sp
+    ? REGELWERKE[regelwerkVonSpiel(sp)].n + ' · ' + ABENTEUER[abenteuerVon(sp)].n : '';
 }
 
 function zeichneSpiele() {
   const ids = Object.keys(spiele);
   el('spielListe').innerHTML = ids.length ? ids.map(function (id) {
     const s = spiele[id] || {};
-    const genutzt = Object.keys(sitzungen).filter(function (sid) {
+    const sitzIds = Object.keys(sitzungen).filter(function (sid) {
       return sitzungen[sid].meta && sitzungen[sid].meta.spiel === id;
-    }).length;
+    });
+    const genutzt = sitzIds.length;
     return '<div class="eintrag"><div class="e-kopf"><div>' +
       '<div class="e-name">' + esc(s.name || id) + '</div>' +
       '<div class="e-sub">' + esc(id) + ' · ' +
         (genutzt ? genutzt + ' Sitzung' + (genutzt > 1 ? 'en' : '') : 'noch keine Sitzung') + '</div>' +
+      '<div class="e-sub">Regelwerk: ' + regelwerkFeld(id, s, sitzIds) + '</div>' +
       '<div class="e-sub">Abenteuer: ' + abenteuerFeld(id, s, genutzt) + '</div>' +
       '</div></div></div>';
   }).join('') : '<div class="leer">Noch kein Spiel angelegt.</div>';
@@ -929,13 +964,14 @@ function zeichneSpiele() {
     ? ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(spiele[id].name || id) + '</option>'; }).join('')
     : '<option value="">— erst ein Spiel anlegen —</option>';
   if (vorher && ids.indexOf(vorher) >= 0) w.value = vorher;
-  else regelwerkVorschlagen();
+  sitzRegelZeigen();
 
-  const wa = el('spielAbenteuer');
-  if (!wa.options.length) {
-    wa.innerHTML = Object.keys(ABENTEUER).map(function (k) {
-      return '<option value="' + k + '">' + esc(ABENTEUER[k].n) + '</option>';
+  const wr = el('spielRegel');
+  if (!wr.options.length) {
+    wr.innerHTML = Object.keys(REGELWERKE).filter(regelwerkBekannt).map(function (k) {
+      return '<option value="' + k + '">' + esc(REGELWERKE[k].n) + '</option>';
     }).join('');
+    abenteuerAuswahl();
   }
 }
 
