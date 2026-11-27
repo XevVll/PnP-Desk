@@ -48,6 +48,15 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
 
 ## Architektur-Muster (Details: Bibel 13.2)
 
+- **Abenteuer sind getrennt (seit 27.11.2026):** Ein neues Abenteuer liegt in
+  `abenteuer/{id}/` (`szenen.js` für Karte und Regie, `regie.js` für Orte und Szenenziel) und
+  meldet seine Szenen über `abenteuerSzenenRegistrieren()` in **`js/abenteuer.js`** an. Es
+  braucht damit KEINEN Eintrag in `MAP_REGISTRY` oder `getAllSceneEntries()`, nur die
+  `<script>`-Tags. Welches Abenteuer eine Sitzung spielt, steht am **Spiel**
+  (`spiele/{id}/abenteuer`, Auswahl im Regie-Hub); Regie und Karte zeigen nur dessen Szenen.
+  Korsaren bleibt, wie es ist: alles Nicht-Angemeldete und jedes Spiel ohne Feld ist Korsaren.
+  Jede Kennung eines neuen Abenteuers trägt ein Präfix (`hk1.1`, `hk_kueche`). Wie man ein
+  PDF-Abenteuer umsetzt, sammelt `ABENTEUER-AUS-PDF.md`.
 - **MAP_REGISTRY-/`getAllSceneEntries()`-Muster:** Jede Karte/Örtlichkeit (Grimsgate-Stadt,
   Golden-Lion-Schiff, Schatzinsel) ist eine eigene Datei (`js/scenes.js`,
   `js/golden_lion_scenes.js`, `js/schatzinsel_scenes.js`) mit direkten Funktionsreferenzen statt
@@ -132,6 +141,35 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-27 — Abenteuer getrennt, Pilot „Hartsklein-Schleuse“ angelegt
+- **Hendriks Auftrag:** einen Skill bauen, mit dem aus einem PDF-Abenteuer ein PnP-Desk-Abenteuer
+  wird. Vorgehen: erst ein Abenteuer von Hand umsetzen, dann daraus den Skill. Pilot ist das
+  kürzeste Abenteuer im Ordner, *Come Drown With Me* (One Shots of the Reikland, S. 4–9,
+  rund 3.900 Wörter). **Wir schreiben es auf Deutsch um, ohne Buchtext.**
+- **Erst gemessen:** Das PnP-Desk kannte genau ein Abenteuer. Ein zweites wäre in der
+  Szenenliste der Korsaren-Runde gelandet. Hendrik: „Das müssen wir natürlich getrennt
+  voneinander aufnehmen.“
+- **Neu `js/abenteuer.js`:** Abenteuer melden ihre Szenen an, die Sitzung findet ihr Abenteuer
+  über ihr Spiel. Der Stand kommt synchron aus dem Cache und wird nachgeprüft, eine Abweichung
+  kostet einen Reload, dasselbe Muster wie bei der Sitzung. Der Regie-Hub merkt sich das
+  Abenteuer jeder Sitzung schon beim Zeichnen, damit beim Öffnen nichts nachlädt.
+- **Regie und Karte filtern**, statt eine neue Weiche je Szenendatei zu bekommen. Eine
+  Live-Szene aus einem fremden Abenteuer gilt nicht, dann gilt der Start des eigenen.
+- **Regie-Hub:** Ein Spiel bekommt beim Anlegen sein Abenteuer. Umstellbar nur, solange keine
+  Sitzung daran hängt, weil deren Spielstand sonst verwaist. Das Regelwerk einer neuen
+  Sitzung wird aus dem Abenteuer vorgeschlagen und bleibt überschreibbar.
+- **Ein Zusammenstoß bricht laut ab:** `abenteuer/hartsklein/regie.js` trägt in `ORTE` und
+  `SZENEN_REGIE` ein und wirft, wenn es eine Kennung schon gibt.
+- **Neu `tests/t_abenteuer.js`, 49 Prüfungen.** Es führt den geschnittenen Code aus Regie, Karte
+  und Hub aus. Zwei Gegenproben schlagen an: Filter weg (2 Prüfungen, die Liste nennt `hk1.1`
+  zwischen den Korsaren-Szenen), Karte ignoriert den Start (1). `t_syntax.js` prüft jetzt auch
+  `abenteuer/*/` und den Export von `js/abenteuer.js`.
+- **Bekannte Falle wieder getreten:** Die Heredoc-Falle hat ein `\'` im Regie-Hub verschluckt
+  (und beim Schreiben dieses Eintrags gleich noch einmal),
+  `t_syntax.js` hat es sofort gemeldet.
+- **[OFFEN]** Der Inhalt der Hartsklein-Schleuse (das Gerüst steht leer), NSC-Blätter im
+  WFRP-Format, ein Ort für Belohnungen, die Bilderfrage. Alles in `ABENTEUER-AUS-PDF.md`.
 
 ### 2026-11-26 (Fortsetzung 2) — WFRP: Bild-Upload und die richtigen Würfel
 - **Hendriks Meldung:** Im WFRP-Bogen fehlte das Charakterbild, und die Würfelleiste bot W4–W12 an.

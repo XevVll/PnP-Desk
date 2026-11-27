@@ -70,6 +70,18 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
 const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1', '14.1', '15.1'];
 
+/* Welches Abenteuer diese Sitzung spielt (js/abenteuer.js). Die Regie
+   zeigt nur dessen Szenen - sonst stuende die Hartsklein-Schleuse in
+   der Szenenliste der Korsaren-Runde. Aus demselben TDZ-Grund wie
+   SCENE_ORDER hier oben; gesetzt wird es nach dem Aufbau der Datenbank. */
+let aktivAbenteuer = (typeof ABENTEUER_VORGABE !== 'undefined') ? ABENTEUER_VORGABE : 'korsaren';
+function szeneImAbenteuer(sceneId) {
+  return typeof abenteuerVonSzene !== 'function' || abenteuerVonSzene(sceneId) === aktivAbenteuer;
+}
+function startSzene() {
+  return (typeof ABENTEUER !== 'undefined' && ABENTEUER[aktivAbenteuer]) ? ABENTEUER[aktivAbenteuer].start : DEFAULT_SCENE;
+}
+
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
   const toggle = document.getElementById('previewToggle');
@@ -101,6 +113,10 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = sitzungsDbJetzt(firebase.database());
   zeigeSitzung();
+  if (typeof aktivesAbenteuer === 'function') {
+    aktivAbenteuer = aktivesAbenteuer(db.sitzung);
+    abenteuerAbgleichen(db, aktivAbenteuer);
+  }
   // Die Spielleitung hat keine eigene Figur - sie fordert Proben an, statt
   // sie zu werfen (siehe regie_figuren.html). Hier bleiben die freien Würfel
   // für Statisten, Schaden und Zufallstabellen, dazu der Privat-Haken.
@@ -112,7 +128,10 @@ try {
   });
 
   db.ref('currentScene').on('value', function (snapshot) {
-    liveScene = snapshot.val() || DEFAULT_SCENE;
+    // Eine Szene aus einem anderen Abenteuer (etwa der Stand einer Sitzung,
+    // deren Spiel umgestellt wurde) gilt hier nicht - dann der Start.
+    const wert = snapshot.val();
+    liveScene = (wert && szeneImAbenteuer(wert)) ? wert : startSzene();
     if (!viewState.szene) {
       viewState.szene = liveScene;
       paneA = { type: 'ort', sceneId: viewState.szene, ortId: firstOrtOf(viewState.szene) };
@@ -145,7 +164,7 @@ try {
 } catch (e) {
   statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft. Bitte js/firebase-config.js prüfen.';
   statusEl.className = 'status error';
-  viewState.szene = DEFAULT_SCENE;
+  viewState.szene = startSzene();
   paneA = { type: 'ort', sceneId: viewState.szene, ortId: firstOrtOf(viewState.szene) };
   vOpenNodes.add('scene:' + viewState.szene);
   vOpenNodes.add('scene:' + viewState.szene + ':orte');
@@ -193,12 +212,27 @@ function getAllSceneEntries() {
   if (typeof ARENA_SCENES !== 'undefined') {
     Object.keys(ARENA_SCENES).forEach(function (id) { bySource[id] = { label: ARENA_SCENES[id].label, source: 'arena' }; });
   }
-  const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
-  const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  // Angemeldete Abenteuer (js/abenteuer.js) in ihrer Anmelde-Reihenfolge.
+  const angemeldet = [];
+  if (typeof ABENTEUER_SZENEN !== 'undefined') {
+    Object.keys(ABENTEUER_SZENEN).forEach(function (a) {
+      Object.keys(ABENTEUER_SZENEN[a]).forEach(function (id) {
+        bySource[id] = { label: ABENTEUER_SZENEN[a][id].label, source: a };
+        angemeldet.push(id);
+      });
+    });
+  }
+  // Nur das Abenteuer dieser Sitzung.
+  Object.keys(bySource).forEach(function (id) { if (!szeneImAbenteuer(id)) delete bySource[id]; });
+  const reihe = SCENE_ORDER.concat(angemeldet);
+  const ordered = reihe.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  const remaining = Object.keys(bySource).filter(function (id) { return reihe.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   return ordered.concat(remaining);
 }
 
 function getSceneLabel(sceneId) {
+  const angemeldet = (typeof abenteuerSzene === 'function') ? abenteuerSzene(sceneId) : null;
+  if (angemeldet) return angemeldet.label;
   if (SCENES[sceneId]) return SCENES[sceneId].label;
   if (typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return GOLDEN_LION_SCENES[sceneId].label;
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].label;
@@ -213,6 +247,8 @@ function getSceneLabel(sceneId) {
 }
 
 function getMarkersForScene(sceneId) {
+  const angemeldet = (typeof abenteuerSzene === 'function') ? abenteuerSzene(sceneId) : null;
+  if (angemeldet) return angemeldet.markers || [];
   if (SCENES[sceneId]) return SCENES[sceneId].markers;
   if (typeof getGoldenLionMarkers === 'function' && typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return getGoldenLionMarkers(sceneId);
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].markers;

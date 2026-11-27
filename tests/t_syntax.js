@@ -63,8 +63,23 @@ const jss = fs.readdirSync(jsdir).filter(f => f.endsWith('.js'));
 if (!jss.length) { console.log('FEHLER: keine .js-Datei gefunden'); process.exit(1); }
 for (const f of jss) check('js/' + f, fs.readFileSync(path.join(jsdir, f), 'utf8'));
 
+/* Seit dem 27.11.2026 liegen Abenteuer in abenteuer/{id}/ - die
+   Dateien werden genauso per <script src> geladen. */
+const abDir = path.join(ROOT, 'abenteuer');
+let abJs = 0;
+if (fs.existsSync(abDir)) {
+  for (const a of fs.readdirSync(abDir)) {
+    const d = path.join(abDir, a);
+    if (!fs.statSync(d).isDirectory()) continue;
+    for (const f of fs.readdirSync(d).filter(x => x.endsWith('.js'))) {
+      check('abenteuer/' + a + '/' + f, fs.readFileSync(path.join(d, f), 'utf8'));
+      abJs++;
+    }
+  }
+}
+
 console.log('Inline-Blocks: ' + blocks + ' aus ' + htmls.length + ' HTML-Seiten · ' +
-            '.js-Dateien: ' + jss.length);
+            '.js-Dateien: ' + jss.length + ' · Abenteuer-Dateien: ' + abJs);
 
 /* ==========================================================
    HAENGENDE REFERENZEN
@@ -80,7 +95,7 @@ console.log('Inline-Blocks: ' + blocks + ' aus ' + htmls.length + ' HTML-Seiten 
    ausgefuehrt, und ein unbekannter Name wirft sofort. Geprueft
    werden die Module, die ohne Browser laden koennen.
    ========================================================== */
-const MODULE = ['regelwerk', 'sitzung', 'termine', 'arena', 'kampf', 'npcs', 'marken'];
+const MODULE = ['regelwerk', 'sitzung', 'termine', 'arena', 'kampf', 'npcs', 'marken', 'abenteuer'];
 let mOk = 0;
 for (const name of MODULE) {
   const p = path.join(jsdir, name + '.js');

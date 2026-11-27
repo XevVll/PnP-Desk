@@ -171,6 +171,7 @@ button.gefahr{border-color:#c05555;color:#c05555}
         Gruppe, die es spielt. Dasselbe Spiel kann mehrfach laufen, mit verschiedenen Leuten.</p>
       <div class="row" style="margin-top:.7rem">
         <input type="text" id="spielName" placeholder="Name des Spiels" maxlength="60">
+        <select id="spielAbenteuer" title="Welcher Inhalt in diesem Spiel steckt"></select>
         <button onclick="spielAnlegen()">+ Spiel anlegen</button>
       </div>
       <div class="liste" id="spielListe"></div>
@@ -183,7 +184,7 @@ button.gefahr{border-color:#c05555;color:#c05555}
     <div class="card-body">
       <div class="row">
         <input type="text" id="sitzName" placeholder="Name der Sitzung" maxlength="60">
-        <select id="sitzSpiel"></select>
+        <select id="sitzSpiel" onchange="regelwerkVorschlagen()"></select>
         <select id="sitzRegel" title="Nach welchen Regeln diese Runde spielt">
           <option value="savage">Savage Worlds</option>
           <option value="wfrp4">Warhammer Fantasy (4. Ed.)</option>
@@ -213,6 +214,7 @@ button.gefahr{border-color:#c05555;color:#c05555}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/sitzung.js"></script>
+<script src="js/abenteuer.js"></script>
 <script src="js/termine.js"></script>
 <script>
 /* ==========================================================
@@ -269,7 +271,8 @@ function spielAnlegen() {
   const name = el('spielName').value.trim();
   if (!name) { meld('spielMeld', 'Bitte einen Namen eingeben.', 'var(--amber)'); return; }
   const id = freieKennung(name, spiele);
-  db.ref('spiele/' + id).set({ name: name, angelegt: Date.now() })
+  const abenteuer = ABENTEUER[el('spielAbenteuer').value] ? el('spielAbenteuer').value : ABENTEUER_VORGABE;
+  db.ref('spiele/' + id).set({ name: name, abenteuer: abenteuer, angelegt: Date.now() })
     .then(function () { el('spielName').value = ''; meld('spielMeld', 'Angelegt: ' + name, '#4caf7d'); })
     .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
 }
@@ -879,6 +882,32 @@ function zeichneTermine(id) {
   return h + '</div></div>';
 }
 
+/* Das Abenteuer eines Spiels. Umstellbar nur, solange keine Sitzung
+   daran haengt: Deren Szenen-Stand (currentScene, questDone ...) gehoert
+   zum alten Abenteuer und waere danach verwaist. Ein Spiel ohne Feld
+   ist Korsaren - so blieben alle Spiele von vor dem 27.11.2026, wie sie waren. */
+function abenteuerFeld(id, spiel, genutzt) {
+  const a = abenteuerVon(spiel);
+  if (genutzt) return '<b>' + esc(ABENTEUER[a].n) + '</b>';
+  return '<select onchange="spielAbenteuerSetzen(\'' + esc(id) + '\',this.value)">' +
+    Object.keys(ABENTEUER).map(function (k) {
+      return '<option value="' + k + '"' + (k === a ? ' selected' : '') + '>' + esc(ABENTEUER[k].n) + '</option>';
+    }).join('') + '</select>';
+}
+function spielAbenteuerSetzen(id, a) {
+  if (!ABENTEUER[a]) return;
+  db.ref('spiele/' + id + '/abenteuer').set(a)
+    .catch(function (e) { meld('spielMeld', 'Ging nicht: ' + (e && e.code ? e.code : e), '#e05555'); });
+}
+/* Beim Anlegen einer Sitzung: das Regelwerk des Abenteuers vorschlagen.
+   Ueberschreibbar - es ist ein Vorschlag, keine Sperre. */
+function regelwerkVorschlagen() {
+  const sp = spiele[el('sitzSpiel').value];
+  if (!sp) return;
+  const rw = ABENTEUER[abenteuerVon(sp)].regelwerk;
+  if (REGELWERKE[rw]) el('sitzRegel').value = rw;
+}
+
 function zeichneSpiele() {
   const ids = Object.keys(spiele);
   el('spielListe').innerHTML = ids.length ? ids.map(function (id) {
@@ -890,6 +919,7 @@ function zeichneSpiele() {
       '<div class="e-name">' + esc(s.name || id) + '</div>' +
       '<div class="e-sub">' + esc(id) + ' · ' +
         (genutzt ? genutzt + ' Sitzung' + (genutzt > 1 ? 'en' : '') : 'noch keine Sitzung') + '</div>' +
+      '<div class="e-sub">Abenteuer: ' + abenteuerFeld(id, s, genutzt) + '</div>' +
       '</div></div></div>';
   }).join('') : '<div class="leer">Noch kein Spiel angelegt.</div>';
 
@@ -899,6 +929,14 @@ function zeichneSpiele() {
     ? ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(spiele[id].name || id) + '</option>'; }).join('')
     : '<option value="">— erst ein Spiel anlegen —</option>';
   if (vorher && ids.indexOf(vorher) >= 0) w.value = vorher;
+  else regelwerkVorschlagen();
+
+  const wa = el('spielAbenteuer');
+  if (!wa.options.length) {
+    wa.innerHTML = Object.keys(ABENTEUER).map(function (k) {
+      return '<option value="' + k + '">' + esc(ABENTEUER[k].n) + '</option>';
+    }).join('');
+  }
 }
 
 function zeichneSitzungen() {
@@ -910,6 +948,9 @@ function zeichneSitzungen() {
 
   el('sitzListe').innerHTML = ids.length ? ids.map(function (id) {
     const s = sitzungen[id] || {}, m = s.meta || {};
+    // Der Hub kennt Spiel und Abenteuer schon - gleich vormerken, dann
+    // muss die Regie beim Oeffnen nicht erst nachsehen und neu laden.
+    if (m.angelegt) abenteuerInCache(id, abenteuerVon(spiele[m.spiel]));
     const istAktiv = (id === aktiv), beendet = !!m.beendet;
     // Nicht dasselbe wie "laeuft": hierhin fuehren die Werkzeug-Links.
     const istFest = (id === sitzungFest());
@@ -944,6 +985,7 @@ function zeichneSitzungen() {
           (geist ? 'Kein Eintrag — vermutlich ein Rest einer gelöschten Sitzung. Kann weg. · '
                  : '') +
           esc((spiele[m.spiel] && spiele[m.spiel].name) || m.spiel || 'ohne Spiel') +
+          ' · ' + esc(ABENTEUER[abenteuerVon(spiele[m.spiel])].n) +
           ' · ' + esc(REGELWERKE[regelwerkVon(m)].n) +
           ' · angelegt ' + datum(m.angelegt) +
           ' · ' + Object.keys(figuren).length + ' Figur(en)' +
