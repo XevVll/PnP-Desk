@@ -71,6 +71,39 @@ function abenteuerVonSzene(sceneId) {
   return ABENTEUER_VORGABE;
 }
 
+/* ---------- Die Figuren eines Abenteuers (28.11.2026) ----------
+   Die Charakterleiste der Regie (Ruf, Trigger) und die Portraitleiste
+   der Karte kannten nur die Korsaren-Crew (CREW, MANIFEST_EXTRA,
+   CHARACTERS). In einem anderen Abenteuer standen damit Harwick und
+   Cormac neben Henrietta. Ein Abenteuer meldet seine Figuren deshalb
+   an; Korsaren bleibt bei seinen Listen.
+     figuren:   [{ id, name, role, triggers: [...] }]  wie CREW
+     portraits: [{ id, name, img }]                    wie CHARACTERS */
+var ABENTEUER_FIGUREN = {};
+
+function abenteuerFigurenRegistrieren(abenteuer, daten) {
+  if (!ABENTEUER[abenteuer]) throw new Error('Unbekanntes Abenteuer: ' + abenteuer);
+  if (abenteuer === ABENTEUER_VORGABE) throw new Error('Korsaren meldet seine Figuren nicht an.');
+  if (ABENTEUER_FIGUREN[abenteuer]) throw new Error('Figuren doppelt angemeldet: ' + abenteuer);
+  ABENTEUER_FIGUREN[abenteuer] = {
+    figuren: (daten && daten.figuren) || [],
+    portraits: (daten && daten.portraits) || []
+  };
+}
+function figurenDesAbenteuers(a) {
+  if (a === ABENTEUER_VORGABE || !ABENTEUER[a]) return typeof CREW !== 'undefined' ? CREW : [];
+  return ABENTEUER_FIGUREN[a] ? ABENTEUER_FIGUREN[a].figuren : [];
+}
+/* Die Zusatzfiguren ueber "+" gibt es nur bei Korsaren. */
+function zusatzFigurenDesAbenteuers(a) {
+  if (a === ABENTEUER_VORGABE || !ABENTEUER[a]) return typeof MANIFEST_EXTRA !== 'undefined' ? MANIFEST_EXTRA : [];
+  return [];
+}
+function portraitsDesAbenteuers(a) {
+  if (a === ABENTEUER_VORGABE || !ABENTEUER[a]) return typeof CHARACTERS !== 'undefined' ? CHARACTERS : [];
+  return ABENTEUER_FIGUREN[a] ? ABENTEUER_FIGUREN[a].portraits : [];
+}
+
 /* ---------- Regelwerk zuerst (27.11.2026) ----------
    Ein Abenteuer gehoert zu genau einem Regelwerk. Ein Spiel waehlt
    erst das Regelwerk, dann eines SEINER Abenteuer; die Sitzung
@@ -178,6 +211,8 @@ if (typeof module !== 'undefined' && module.exports) {
     abenteuerSzenenRegistrieren, abenteuerSzene, abenteuerVonSzene, abenteuerVon,
     abenteuerDesRegelwerks, regelwerkBekannt, regelwerkVonSpiel,
     markerVerborgen, markerSichtbarkeitUmschalten,
+    ABENTEUER_FIGUREN, abenteuerFigurenRegistrieren, figurenDesAbenteuers,
+    zusatzFigurenDesAbenteuers, portraitsDesAbenteuers,
     abenteuerCacheKey, abenteuerAusCache, abenteuerInCache, aktivesAbenteuer,
     abenteuerPruefen, abenteuerAbgleichen
   };

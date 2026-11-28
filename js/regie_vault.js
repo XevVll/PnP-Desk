@@ -78,6 +78,21 @@ let aktivAbenteuer = (typeof ABENTEUER_VORGABE !== 'undefined') ? ABENTEUER_VORG
 function szeneImAbenteuer(sceneId) {
   return typeof abenteuerVonSzene !== 'function' || abenteuerVonSzene(sceneId) === aktivAbenteuer;
 }
+/* Die Figuren des laufenden Abenteuers (js/abenteuer.js). Vorher stand
+   hier fest die Korsaren-Crew - auch in der Hartsklein-Schleuse. */
+function crewAktiv() {
+  return typeof figurenDesAbenteuers === 'function' ? figurenDesAbenteuers(aktivAbenteuer) : CREW;
+}
+function zusatzAktiv() {
+  return typeof zusatzFigurenDesAbenteuers === 'function' ? zusatzFigurenDesAbenteuers(aktivAbenteuer) : MANIFEST_EXTRA;
+}
+function portraitsAktiv() {
+  return typeof portraitsDesAbenteuers === 'function' ? portraitsDesAbenteuers(aktivAbenteuer)
+    : (typeof CHARACTERS !== 'undefined' ? CHARACTERS : []);
+}
+function istKorsaren() {
+  return aktivAbenteuer === ((typeof ABENTEUER_VORGABE !== 'undefined') ? ABENTEUER_VORGABE : 'korsaren');
+}
 function startSzene() {
   return (typeof ABENTEUER !== 'undefined' && ABENTEUER[aktivAbenteuer]) ? ABENTEUER[aktivAbenteuer].start : DEFAULT_SCENE;
 }
@@ -1011,18 +1026,19 @@ function ghostsOfScene(sceneId) {
   return base.concat(extraList);
 }
 function ghostById(sceneId, ghostId) { return ghostsOfScene(sceneId).find(function (g) { return g.id === ghostId; }); }
-function npcRecord(npcId) { return CREW.find(function (c) { return c.id === npcId; }) || MANIFEST_EXTRA.find(function (m) { return m.id === npcId; }); }
+function npcRecord(npcId) { return crewAktiv().find(function (c) { return c.id === npcId; }) || zusatzAktiv().find(function (m) { return m.id === npcId; }); }
 function trackableNpcs() {
-  return CREW.concat(MANIFEST_EXTRA.filter(function (m) { return extraNpcIds[m.id]; })).concat([{ id: 'crew_allgemein', name: 'Die Crew allgemein' }]);
+  const basis = crewAktiv().concat(zusatzAktiv().filter(function (m) { return extraNpcIds[m.id]; }));
+  return istKorsaren() ? basis.concat([{ id: 'crew_allgemein', name: 'Die Crew allgemein' }]) : basis;
 }
 // Backlinks für eine Interaktion: welche Crew/Zusatz-NPCs/Ghosts der Szene
 // im Interaktionstext namentlich vorkommen - automatisch berechnet, nicht
 // von Hand gepflegt (wie Obsidians "Linked mentions").
 function backlinksForIa(ort, sceneId, iaId) {
   const text = textOfIa(ort, iaId);
-  const crewHits = CREW.filter(function (c) { return text.indexOf(c.name.split(' ')[0]) !== -1 || text.indexOf(c.name) !== -1; })
+  const crewHits = crewAktiv().filter(function (c) { return text.indexOf(c.name.split(' ')[0]) !== -1 || text.indexOf(c.name) !== -1; })
     .map(function (c) { return { label: c.name, sub: '👤 Crew', ref: { type: 'npc', npcId: c.id } }; });
-  const extraHits = MANIFEST_EXTRA.filter(function (m) { return extraNpcIds[m.id] && text.indexOf(m.name) !== -1; })
+  const extraHits = zusatzAktiv().filter(function (m) { return extraNpcIds[m.id] && text.indexOf(m.name) !== -1; })
     .map(function (m) { return { label: m.name, sub: '👤 Crew', ref: { type: 'npc', npcId: m.id } }; });
   const ghostHits = ghostsOfScene(sceneId).filter(function (g) { return text.indexOf(g.name) !== -1; })
     .map(function (g) { return { label: g.name, sub: '👻 Ghost', ref: { type: 'ghost', sceneId: sceneId, ghostId: g.id } }; });
@@ -1052,6 +1068,7 @@ function iaMentioningNpc(npcName) {
     Object.keys(ort.interaktionen || {}).forEach(function (iaId) {
       if (textOfIa(ort, iaId).indexOf(npcName) === -1) return;
       const sceneId = firstSceneShowingIa(ortId, ort, iaId);
+      if (!sceneId && !istKorsaren()) return;   // Ort eines anderen Abenteuers
       const marker = sceneId ? (getMarkersForScene(sceneId) || []).find(function (mk) { return mk.id === ortId; }) : null;
       hits.push({ ortId: ortId, iaId: iaId, sceneId: sceneId, title: ort.interaktionen[iaId].title, ortTitle: marker ? marker.title : ortId });
     });
@@ -1492,15 +1509,15 @@ function vRailItem(ref, label, icon) {
 }
 function renderRail() {
   const el = document.getElementById('v-rail');
-  const npcs = CREW.concat(MANIFEST_EXTRA.filter(function (m) { return extraNpcIds[m.id]; }));
+  const npcs = crewAktiv().concat(zusatzAktiv().filter(function (m) { return extraNpcIds[m.id]; }));
   const focusScene = currentFocusSceneId();
   const ghosts = focusScene ? ghostsOfScene(focusScene) : [];
   const pcs = Object.keys(players).map(function (id) { return Object.assign({ id: id }, players[id]); });
 
   let html = '<div class="v-rail-head">Charaktere</div>';
-  html += '<div class="v-rail-sub v-folder-row"><span class="v-rail-sub-label">NPCs</span><button class="v-add-btn" onclick="vToggleAdd(\'npc\')" title="NPC hinzufügen">+</button></div>';
+  html += '<div class="v-rail-sub v-folder-row"><span class="v-rail-sub-label">NPCs</span>' + (zusatzAktiv().length ? '<button class="v-add-btn" onclick="vToggleAdd(\'npc\')" title="NPC hinzufügen">+</button>' : '') + '</div>';
   if (vShowAdd === 'npc') {
-    const avail = MANIFEST_EXTRA.filter(function (m) { return !extraNpcIds[m.id]; });
+    const avail = zusatzAktiv().filter(function (m) { return !extraNpcIds[m.id]; });
     html += '<div class="v-add-panel"><div class="v-add-sub">Aus dem Crew-Manifest</div>' +
       (avail.length ? avail.map(function (m) { return '<button class="v-add-item" onclick="vAddManifest(\'' + m.id + '\')">+ ' + m.name + ' <i>(' + m.role + ')</i></button>'; }).join('') : '<div class="v-empty">alle bereits hinzugefügt</div>') +
       '</div>';
@@ -2002,17 +2019,18 @@ function saveSoundLink() {
 function renderCharBar() {
   charBarScene = viewState.szene;
   charCheckboxesEl.innerHTML = '';
-  if (typeof CHARACTERS === 'undefined' || !charBarScene) return;
+  const CHARS = portraitsAktiv();
+  if (!CHARS.length || !charBarScene) return;
   const szeneRegie = (typeof SZENEN_REGIE !== 'undefined') ? SZENEN_REGIE[charBarScene] : null;
   const relevant = (szeneRegie && Array.isArray(szeneRegie.charaktere)) ? szeneRegie.charaktere : null;
   function renderList(active, showAll) {
     charCheckboxesEl.innerHTML = '';
-    const primary = (relevant && !showAll) ? CHARACTERS.filter(function (ch) { return relevant.indexOf(ch.id) !== -1 || !!active[ch.id]; }) : CHARACTERS;
+    const primary = (relevant && !showAll) ? CHARS.filter(function (ch) { return relevant.indexOf(ch.id) !== -1 || !!active[ch.id]; }) : CHARS;
     primary.forEach(function (ch) { charCheckboxesEl.appendChild(buildCharToggle(ch, !!active[ch.id])); });
-    if (relevant && !showAll && primary.length < CHARACTERS.length) {
+    if (relevant && !showAll && primary.length < CHARS.length) {
       const moreBtn = document.createElement('button');
       moreBtn.type = 'button'; moreBtn.className = 'char-more-btn';
-      moreBtn.textContent = '+ weitere (' + (CHARACTERS.length - primary.length) + ')';
+      moreBtn.textContent = '+ weitere (' + (CHARS.length - primary.length) + ')';
       moreBtn.onclick = function () { renderList(active, true); };
       charCheckboxesEl.appendChild(moreBtn);
     }

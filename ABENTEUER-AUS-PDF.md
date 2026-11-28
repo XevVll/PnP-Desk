@@ -84,6 +84,8 @@ Pilot steht und ein zweites Abenteuer ihn bestätigt hat, wird daraus ein Skill.
 | Probe | Text „Fertigkeit, Schwierigkeit (+n)“, Namen aus `js/wfrp_daten.js` |
 | NSC | `npcs` am Ort, mit Feld `wfrp` (Profil, Eigenschaften, Fertigkeiten, Zauber, Besitz); einmal als Variable, an mehreren Orten verwendet |
 | Belohnungen | eine Interaktion „Ausgang und Belohnung“, jede EP-Zeile ein Trigger zum Abhaken |
+| „Getting Started“, Zusammenfassung | **erste Interaktion am Startort** „Einleitung: Worum es geht“: was wirklich los ist (nur SL), der Ablauf in einem Satz, Gründe für die Anwesenheit der Gruppe, ein Einstieg zum Vorlesen |
+| benannte NSC mit Beziehung | `abenteuerFigurenRegistrieren(id, { figuren, portraits })` am Ende von `regie.js`. Sonst zeigt die Charakterleiste der Regie die Korsaren-Crew. Gegner ohne Ruf (Zombies, Raben) gehören nicht hinein |
 | Hintergrund, Druck | `uebergeordnetesZiel` (kurz!), `stimmung`, `ortHinweis` |
 
 ## Schritt 5: Prüfen
@@ -98,5 +100,5 @@ nennt eine echte WFRP-Fertigkeit mit der richtigen Zahl** zur Schwierigkeit.
   die Seiten nur die Dateien des laufenden laden.
 - **Kein Probekampf in WFRP:** Arena und Kampfmodus rechnen Savage Worlds. Kämpfe gegen die
   Toten und Kurgorn laufen am Tisch, die Werte stehen im Steckbrief.
-- **Die Figurenleiste** (Porträts am rechten Rand) ist Korsaren. Henrietta und Kurgorn haben
-  kein Porträt im PDF.
+- **Keine Porträts für Henrietta und Kurgorn**, das PDF hat keine. Die Porträtleiste der
+  Spielerkarte bleibt in der Hartsklein-Schleuse deshalb leer.

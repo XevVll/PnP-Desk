@@ -3063,12 +3063,15 @@
       }
       charRailEl.innerHTML = '';
 
-      if (typeof CHARACTERS === 'undefined' || !db) return;
+      // Nur die Portraits des laufenden Abenteuers (js/abenteuer.js).
+      const CHARS = (typeof portraitsDesAbenteuers === 'function') ? portraitsDesAbenteuers(kartenAbenteuer)
+        : (typeof CHARACTERS !== 'undefined' ? CHARACTERS : []);
+      if (!CHARS.length || !db) return;
 
       charRailRef = db.ref('sceneCharacters/' + fbKey(sceneId));
       charRailListener = charRailRef.on('value', function (snap) {
         const active = snap.val() || {};
-        const activeChars = CHARACTERS.filter(function (ch) { return !!active[ch.id]; });
+        const activeChars = CHARS.filter(function (ch) { return !!active[ch.id]; });
 
         charRailEl.innerHTML = '';
         activeChars.forEach(function (ch) {

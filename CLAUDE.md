@@ -150,6 +150,23 @@ als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md
 
 ## Changelog
 
+### 2026-11-28 (Fortsetzung) — Eigene Figuren je Abenteuer, Einleitung, Spiele löschen
+- **Hendriks Fund am Bildschirm:** In der Hartsklein-Schleuse stand die ganze Korsaren-Crew in
+  der Charakterleiste der Regie, und eine Einleitung fehlte. Dazu: Spiele ließen sich nicht löschen.
+- **Neu in `js/abenteuer.js`:** `abenteuerFigurenRegistrieren()` und `figurenDesAbenteuers()` /
+  `zusatzFigurenDesAbenteuers()` / `portraitsDesAbenteuers()`. Korsaren behält `CREW`,
+  `MANIFEST_EXTRA` und `CHARACTERS`; jedes andere Abenteuer zeigt nur, was es anmeldet. Die Regie
+  fragt über `crewAktiv()`/`zusatzAktiv()`/`portraitsAktiv()`, die Karte über
+  `portraitsDesAbenteuers(kartenAbenteuer)`. „Die Crew allgemein“ und das „+“ fürs Manifest gibt
+  es nur bei Korsaren; „Erwähnt in“ nennt keine Orte fremder Abenteuer mehr.
+- **Hartsklein meldet Henrietta und Kurgorn an**, mit Triggern aus dem Abenteuer. Die Toten und
+  die Raben bewusst nicht: Gegner ohne Ruf. Porträts gibt es im PDF keine.
+- **Neue erste Interaktion `hk_einleitung`** an der Schleuse: der Hintergrund für die SL, der
+  Ablauf in einem Satz, die Reisegründe aus „Getting Started“ und ein eigener Vorlesetext.
+- **Regie-Hub: Spiele löschen**, nur solange keine Sitzung daran hängt (Wache in der Funktion).
+- **Getestet: `t_abenteuer.js` 115 Prüfungen** (12 neue). Gegenprobe: liefert
+  `figurenDesAbenteuers` wieder die Crew, schlagen 2 an und nennen Harwick, Cormac und Co.
+
 ### 2026-11-28 — Die Hartsklein-Schleuse ist spielbar <!-- MARKE_HK_INHALT -->
 - **Hendriks Auftrag:** „Mach das erst mal vollständig eigenständig. Ich möchte aber auch die
   Bilder/Szene extrahiert haben, damit diese genutzt werden.“ Damit ist die offene Bilderfrage

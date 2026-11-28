@@ -447,6 +447,45 @@ function pruefe(daten, fehlschlag, cache) {
     chk('Karte ohne WFRP-Feld bleibt wie bisher (keine Tabelle)', karteOhne.indexOf('<table') < 0);
   }
 
+  /* ---------- 10. Jedes Abenteuer hat seine eigenen Figuren (28.11.2026) ----------
+     Hendriks Fund: In der Hartsklein-Schleuse standen Harwick, Cormac und
+     die ganze Korsaren-Crew in der Charakterleiste. */
+  {
+    const fctx = neuerKontext(['js/characters.js', 'js/npc_roster.js', 'js/regie.js', 'abenteuer/hartsklein/regie.js']);
+    const F = vm.runInContext('({ hk: figurenDesAbenteuers("hartsklein").map(function (n) { return n.id; }),' +
+      ' ko: figurenDesAbenteuers("korsaren").map(function (n) { return n.id; }),' +
+      ' hkExtra: zusatzFigurenDesAbenteuers("hartsklein").length, koExtra: zusatzFigurenDesAbenteuers("korsaren").length,' +
+      ' hkPort: portraitsDesAbenteuers("hartsklein").length, koPort: portraitsDesAbenteuers("korsaren").length,' +
+      ' crew: CREW.length, chars: CHARACTERS.length })', fctx);
+    chk('Hartsklein: Henrietta und Kurgorn in der Leiste', JSON.stringify(F.hk) === '["hk_henrietta","hk_kurgorn"]', F.hk);
+    chk('Hartsklein: keine Korsaren-Figur', F.hk.indexOf('harwick') < 0 && F.hk.indexOf('cormac') < 0, F.hk);
+    chk('Hartsklein: keine Zusatz-NPC aus dem Crew-Manifest', F.hkExtra === 0, F.hkExtra);
+    chk('Hartsklein: keine Korsaren-Portraits', F.hkPort === 0, F.hkPort);
+    chk('Korsaren behaelt seine Crew', F.ko.length === F.crew && F.ko.indexOf('harwick') >= 0, F.ko);
+    chk('Korsaren behaelt Manifest und Portraits', F.koExtra > 0 && F.koPort === F.chars, F);
+    const hkFig = vm.runInContext('figurenDesAbenteuers("hartsklein")', fctx);
+    chk('jede Hartsklein-Figur hat Name, Rolle und Trigger',
+      hkFig.every(n => n.name && n.role && Array.isArray(n.triggers) && n.triggers.length), hkFig.map(n => n.id));
+    let doppelt = '';
+    try { vm.runInContext('abenteuerFigurenRegistrieren("hartsklein", { figuren: [] })', fctx); } catch (e) { doppelt = e.message; }
+    chk('zweite Anmeldung bricht laut ab', /doppelt/.test(doppelt), doppelt);
+
+    // Die Regie fragt die Figuren beim laufenden Abenteuer, nicht fest bei CREW.
+    const VAULT = lies('js/regie_vault.js');
+    chk('Regie: kein festes CREW/MANIFEST_EXTRA/CHARACTERS ausser im Rueckfall',
+      (VAULT.match(/\bCREW\b/g) || []).length === 1 && (VAULT.match(/\bMANIFEST_EXTRA\b/g) || []).length === 1 &&
+      (VAULT.match(/\bCHARACTERS\b/g) || []).length === 2,
+      { crew: (VAULT.match(/\bCREW\b/g) || []).length, me: (VAULT.match(/\bMANIFEST_EXTRA\b/g) || []).length });
+    const KARTE = lies('karte.html');
+    chk('Karte: Portraitleiste fragt das laufende Abenteuer', /portraitsDesAbenteuers\(kartenAbenteuer\)/.test(KARTE));
+
+    // Die Einleitung steht vorn an der Schleuse.
+    const ORTE_ = vm.runInContext('ORTE', fctx);
+    const erste = Object.keys(ORTE_.hk_schleuse.interaktionen)[0];
+    chk('Einleitung ist die erste Interaktion an der Schleuse', erste === 'hk_einleitung', erste);
+    chk('Einleitung hat einen Vorlesetext', /VORLESEN/.test(ORTE_.hk_schleuse.interaktionen.hk_einleitung.details));
+  }
+
   console.log('\nOK: ' + (anzahl - f) + '   FEHLER: ' + f);
   process.exitCode = f ? 1 : 0;
 })();

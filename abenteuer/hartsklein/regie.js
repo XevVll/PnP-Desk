@@ -91,6 +91,16 @@
       ortHinweis: 'Das Bild der Schleuse umschalten, sobald die Toten aufsteigen („Die Toten steigen auf“). Wer zu Fuß fliehen will, landet im Nebel nach ein paar Augenblicken wieder hier.',
       npcs: [HENRIETTA, TOTE],
       interaktionen: {
+        'hk_einleitung': {
+          title: 'Einleitung: Worum es geht',
+          kurz: 'Vor dem Spiel lesen. Was unter der Schleuse liegt, warum die Gruppe auf dem Kanal ist, und ein Einstieg zum Vorlesen.',
+          details: 'WAS WIRKLICH LOS IST (nur für dich): Tief unter dem frisch gegrabenen Weissbruck-Kanal liegt seit Jahrhunderten Kurgorn Three-Eyes begraben, ein Häuptling der Unberogen. Der Kanal wurde haarscharf an seinem Grab vorbeigebaut. Seitdem hebt und senkt sich das Wasser der Hartsklein-Schleuse, Tag für Tag, und hat die Erde über der Kammer langsam aufgeweicht. Jetzt ist sie durchgebrochen, und Kanalwasser läuft in das Grab.\n\nKurgorn ist davon aufgewacht, und er ist wütend. Sein Fluch hat das Schleusenhaus und die Schleuse aus der Welt der Lebenden gerissen und mit Zorn und Tod getränkt. Wer hier ist, kommt nicht weg, bis Kurgorn wieder schläft oder vernichtet ist. Sein Grab liegt genau unter Henriettas Haus.\n\nDER ABLAUF IN EINEM SATZ: Die Gruppe verlässt die Schleuse, kommt wieder an derselben Schleuse an, die Toten steigen aus dem Wasser, die Gruppe flieht ins Haus, das Haus wendet sich gegen sie, und der Ausweg führt unter die Treppe ins Grab.\n\nWARUM DIE GRUPPE AUF DEM KANAL IST: Der Weissbruck-Kanal verbindet den Bögen mit dem Reik, und wer ihn nimmt, spart sich die Zölle von Carroburg. Entsprechend viel ist los. Ein Grund nach den Karrieren der Figuren genügt:\n— eine Pilgerfahrt nach Altdorf,\n— Arbeit in den Minen der Skaag Hills, wo der Kanal hinaufführt,\n— als Wache auf einem der vielen Handelskähne,\n— oder, in einer laufenden Kampagne, schlicht auf dem Weg nach Altdorf.\n\nDie Gruppe ist mit einem Lastkahn unterwegs. Ob es ihr eigener ist oder sie nur mitfahren, ist gleich; wichtig ist nur, dass sie an Bord sind, wenn er ablegt.\n\nVORLESEN (Einstieg):\n„Seit dem Morgengrauen liegt der Nebel so dicht auf dem Weissbruck-Kanal, dass der Kahn nur im Schritttempo vorankommt. Kein Wind, kein Vogel, nur das Tropfen vom Tauwerk und das Knarren des Rumpfes. Vor euch taucht ein dunkler Umriss aus dem Grau: zwei schwere Holztore, eine gemauerte Kammer, daneben ein kleines Haus mit einem Türmchen und Rauch aus dem Schornstein. Die Hartsklein-Schleuse. Am Tor steht eine winzige, gebückte Gestalt mit Hut und Pfeife, winkt mit dem ganzen Arm und ruft euch schon von Weitem etwas zu, das im Nebel untergeht.“\n\nDanach weiter mit „Ein langer Abschied“: Die Gruppe hat ihre Zeit an der Schleuse hinter sich, Henrietta verabschiedet sie.',
+          trigger: [
+            { id: 'hintergrund_gelesen', label: 'Hintergrund gelesen: Kurgorns Grab unter dem Haus', info: 'Nur für die Spielleitung. Die Gruppe erfährt es erst nach und nach.' },
+            { id: 'grund_gewaehlt', label: 'Grund für die Reise gewählt', info: 'Pilgerfahrt nach Altdorf, Arbeit in den Skaag Hills, Wache auf einem Handelskahn — oder unterwegs in der laufenden Kampagne.' },
+            { id: 'einstieg_vorgelesen', label: 'Einstieg vorgelesen', info: 'Nebel, die Schleuse taucht auf, Henrietta winkt. Weiter mit „Ein langer Abschied“.' }
+          ]
+        },
         'hk_abschied': {
           title: 'Ein langer Abschied',
           kurz: 'Kalter Nebelmorgen. Henrietta redet ohne Pause, schenkt eine Gemüsepastete und winkt der Gruppe hinterher.',
@@ -468,4 +478,37 @@
       stimmung: 'Kalter Nebel über dem Weissbruck-Kanal, so dicht, dass das nächste Tor nur zu ahnen ist. Das Schleusenhaus ist gemütlich und eng, für einen Halbling gebaut: niedrige Türen, knarrende Dielen, Pfeifenrauch, Pastetenduft. Draußen das Stöhnen der Toten und, später, das Krächzen der Raben.'
     }
   }, 'SZENEN_REGIE');
+
+  /* ---------- Die Charakterleiste der Regie ----------
+     Statt der Korsaren-Crew stehen hier die beiden Figuren, zu denen die
+     Gruppe ein Verhaeltnis aufbauen kann. Die Toten und die Rabenschar
+     sind Gegner ohne Ruf; ihre Werte stehen an den Orten.
+     Portraits gibt es im PDF fuer keine von beiden - die Leiste auf der
+     Spielerkarte bleibt deshalb leer. */
+  abenteuerFigurenRegistrieren('hartsklein', {
+    figuren: [
+      {
+        id: 'hk_henrietta', name: 'Henrietta Garland', role: 'Schleusenwärterin, Halbling',
+        triggers: [
+          'Spieler hilft ihr an den schweren Toren → sie schenkt ihm eine Gemüsepastete und mag ihn',
+          'Spieler hört ihr geduldig zu, statt sie abzuwürgen → sie erzählt mehr, auch die Gerüchte über alte Gräber beim Kanalbau',
+          'Spieler beschädigt ihr Haus oder reißt den Boden auf, ohne es zu erklären → Entsetzen; mit guter Begründung lässt sie es widerwillig zu',
+          'Spieler versorgt sie oder schützt sie vor den Toten → sie vertraut ihm, auch wenn sie vor Angst zittert',
+          'Spieler erwähnt Dampf-Schleusenräder → sie hat dazu eine Meinung, und zwar eine lange',
+          'Henrietta überlebt → nie wieder Schleusengebühr, und sie erzählt die Geschichte jedem',
+          'Henrietta stirbt → Harold Garland übernimmt das Haus, mürrisch und einsilbig'
+        ]
+      },
+      {
+        id: 'hk_kurgorn', name: 'Kurgorn Three-Eyes', role: 'Halbtoter Häuptling der Unberogen',
+        triggers: [
+          'Spieler spricht ihn auf Klassisch an oder wurde von den Raben verwundet → er versteht ihn und hört zu',
+          'Spieler zeigt Respekt oder Verständnis für seinen Zorn → Gehör statt Kampf',
+          'Spieler bietet an, das Grab auszubessern und ihn wieder einzuschließen → er legt sich schlafen',
+          'Niemand gräbt rechtzeitig → er bricht selbst aus dem Boden; Charisma-Proben gegen ihn −20'
+        ]
+      }
+    ],
+    portraits: []
+  });
 })();
