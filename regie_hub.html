@@ -408,6 +408,23 @@ function loeschen(id) {
   db.ref().update(paket);
 }
 
+/* Ein Spiel loeschen geht nur, solange keine Sitzung daran haengt. Sonst
+   zeigte die Sitzung auf ein Spiel, das es nicht mehr gibt, und fiele still
+   auf Korsaren zurueck - samt Regelwerk. Die Wache liegt in der Funktion,
+   nicht nur am Knopf. */
+function spielLoeschen(id) {
+  const genutzt = Object.keys(sitzungen).filter(function (sid) {
+    return sitzungen[sid].meta && sitzungen[sid].meta.spiel === id;
+  }).length;
+  if (genutzt) {
+    alert('An diesem Spiel hängen noch ' + genutzt + ' Sitzung(en). Lösch erst die Sitzungen.');
+    return;
+  }
+  const s = spiele[id] || {};
+  if (!confirm('Spiel "' + (s.name || id) + '" löschen?')) return;
+  db.ref('spiele/' + id).remove();
+}
+
 /* ---------- Spieler ---------- */
 function spielerHinzu(id) {
   const name = prompt('Name des Spielers:');
@@ -955,6 +972,12 @@ function zeichneSpiele() {
         (genutzt ? genutzt + ' Sitzung' + (genutzt > 1 ? 'en' : '') : 'noch keine Sitzung') + '</div>' +
       '<div class="e-sub">Regelwerk: ' + regelwerkFeld(id, s, sitzIds) + '</div>' +
       '<div class="e-sub">Abenteuer: ' + abenteuerFeld(id, s, genutzt) + '</div>' +
+      '</div><div class="e-tat">' +
+        (genutzt
+          ? '<button class="klein gefahr" disabled title="Erst die ' +
+              (genutzt > 1 ? genutzt + ' Sitzungen' : 'Sitzung') +
+              ' dieses Spiels löschen — sonst hängen sie an einem Spiel, das es nicht mehr gibt.">löschen</button>'
+          : '<button class="klein gefahr" onclick="spielLoeschen(\'' + id + '\')">löschen</button>') +
       '</div></div></div>';
   }).join('') : '<div class="leer">Noch kein Spiel angelegt.</div>';
 
