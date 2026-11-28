@@ -48,6 +48,23 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
 
 ## Architektur-Muster (Details: Bibel 13.2)
 
+- **Abenteuer sind getrennt (seit 27.11.2026):** Ein neues Abenteuer liegt in
+  `abenteuer/{id}/` (`szenen.js` für Karte und Regie, `regie.js` für Orte und Szenenziel) und
+  meldet seine Szenen über `abenteuerSzenenRegistrieren()` in **`js/abenteuer.js`** an. Es
+  braucht damit KEINEN Eintrag in `MAP_REGISTRY` oder `getAllSceneEntries()`, nur die
+  `<script>`-Tags. Welches Abenteuer eine Sitzung spielt, steht am **Spiel**
+  (`spiele/{id}/abenteuer`, Auswahl im Regie-Hub); Regie und Karte zeigen nur dessen Szenen.
+  Korsaren bleibt, wie es ist: alles Nicht-Angemeldete und jedes Spiel ohne Feld ist Korsaren.
+  **Ein Abenteuer gehört zu einem Regelwerk:** Das Spiel wählt erst das Regelwerk
+  (`spiele/{id}/regelwerk`), dann eines seiner Abenteuer, und die Sitzung übernimmt das
+  Regelwerk beim Anlegen nach `meta.regelwerk` (dort lesen es die Figurenseiten).
+  Jede Kennung eines neuen Abenteuers trägt ein Präfix (`hk1.1`, `hk_kueche`). Wie man ein
+  PDF-Abenteuer umsetzt, sammelt `ABENTEUER-AUS-PDF.md`.
+- **Marker mit `verborgen: true`** sind zu Szenenbeginn ausgeblendet, bis die Spielleitung sie
+  aufdeckt (`markerVerborgen()` in `js/abenteuer.js`; in `hiddenMarkersLive` heißt `false`
+  „aufgedeckt“). Für jeden Marker ohne das Feld gilt alles wie vorher.
+- **NSC-Steckbriefe (`npcs`) können ein Feld `wfrp` tragen** (Profil, Eigenschaften,
+  Fertigkeiten, Zauber, Besitz); die Regie zeigt es als Wertetabelle (`wfrpProfilHTML()`).
 - **MAP_REGISTRY-/`getAllSceneEntries()`-Muster:** Jede Karte/Örtlichkeit (Grimsgate-Stadt,
   Golden-Lion-Schiff, Schatzinsel) ist eine eigene Datei (`js/scenes.js`,
   `js/golden_lion_scenes.js`, `js/schatzinsel_scenes.js`) mit direkten Funktionsreferenzen statt
@@ -132,6 +149,81 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-28 — Die Hartsklein-Schleuse ist spielbar <!-- MARKE_HK_INHALT -->
+- **Hendriks Auftrag:** „Mach das erst mal vollständig eigenständig. Ich möchte aber auch die
+  Bilder/Szene extrahiert haben, damit diese genutzt werden.“ Damit ist die offene Bilderfrage
+  entschieden: Die Bilder kommen aus dem PDF. **Das Repo ist öffentlich**, sie liegen also offen.
+- **Inhalt komplett** (`abenteuer/hartsklein/`): eine Szene, 12 Orte, 25 Interaktionen,
+  105 Trigger. Teil 1 an der Schleuse, Teil 2 in den Räumen (frei kombinierbar), Teil 3 am Flur
+  und im Grab, dazu der Rückfall „Kurgorn kommt“ und „Ausgang und Belohnung“ mit jeder EP-Zeile
+  als Trigger. Deutsch neu geschrieben, kein Buchtext; Proben in WFRP-Schreibweise mit den
+  Namen aus `js/wfrp_daten.js`, Zustände mit Seitenverweis aufs Regelwerk.
+- **Bilder:** Die Karte ist die Seite 7 des Abenteuers, neu gerendert. **Einzeln aus dem PDF
+  gezogen fehlte ihr das Haus**, weil sie aus mehreren Ebenen besteht. Dazu fünf Ausschnitte
+  (Außenansicht, beide Grundrisse, Schleuse) und zwei Illustrationen (die Toten als
+  Bildvariante der Schleuse, die Titelillustration fürs Grab).
+- **Neu `verborgen: true` am Marker** (`markerVerborgen()` in `js/abenteuer.js`): Das Grab ist
+  zu Beginn ausgeblendet. Vorher hätte die Spielleitung es zu Szenenbeginn von Hand ausblenden
+  müssen — vergessen, und die Karte verrät die Lösung des Abenteuers. Karte und Regie benutzen
+  denselben Helfer; für alle anderen Marker ändert sich nichts.
+- **Neu: WFRP-Werte im Steckbrief** (`wfrpProfilHTML()` in `js/regie_vault.js`). Henrietta,
+  die Toten, die Rabenschar und Kurgorn stehen mit vollem Profil an ihren Orten. Die
+  Zombiewerte nennt das Abenteuer nur als Verweis; sie kommen aus dem Regelwerk, S. 328.
+- **Getestet: `t_abenteuer.js` 103 Prüfungen** (36 neue). Die tragende prüft **jede Probe im
+  Text gegen die echten WFRP-Fertigkeiten und Schwierigkeiten**. Fünf Gegenproben: Grab nicht
+  verborgen (3) · erfundene Fertigkeit „Wille“ (1) · „Durchschnittlich (+10)“ (1) · Karte filtert
+  wieder alt (1) · Regie schaltet wieder alt (2). Alle übrigen Skripte unverändert, bis auf den
+  bekannten Fehlschlag in `t_figuren.js`.
+- **Eine Gegenprobe schlug zuerst nicht an**, und das lag an der Probe: `sed` hatte das erste
+  Vorkommen ersetzt, und das stand im Kommentar am Dateikopf. Gezielt auf einen Trigger
+  gesetzt, schlägt sie an.
+- **[OFFEN]** Kämpfe laufen am Tisch: Arena und Kampfmodus rechnen Savage Worlds (Etappe B).
+
+### 2026-11-27 (Fortsetzung) — Erst das Regelwerk, dann das Abenteuer
+- **Hendriks Einwand:** „Die Abenteuer sollten doch dem Regelwerk zugeordnet sein.“ Im ersten
+  Anlauf wählte das Spiel das Abenteuer und die Sitzung das Regelwerk, nur mit einem Vorschlag.
+  Damit ließ sich die Hartsklein-Schleuse nach Savage Worlds spielen.
+- **Jetzt:** Beim Spiel erst das Regelwerk, dann nur dessen Abenteuer. Die Sitzung hat keine
+  eigene Regelwahl mehr und schreibt das Regelwerk des Spiels nach `meta.regelwerk`.
+  `abenteuerVon()` lässt ein Abenteuer, das nicht zum Regelwerk passt, nicht gelten.
+- **Hendriks Testsitzung `test` lief schon nach WFRP**, ihr Spiel trug aber noch kein Feld und
+  galt damit als Korsaren. Statt das still zu übergehen, sagt die Sitzung das, und das Spiel
+  bietet **„Spiel angleichen“** an. Das geht nur, wenn alle Sitzungen des Spiels einig sind;
+  sonst würde eine von ihnen falsch.
+- **Getestet: `t_abenteuer.js` 67 Prüfungen** (18 neue, die Hub-Funktionen werden geschnitten
+  und ausgeführt). Gegenproben: Formular listet alle Abenteuer (1), Sitzung nimmt fest
+  Savage Worlds (1). Alle übrigen Skripte unverändert, bis auf den bekannten Fehlschlag in
+  `t_figuren.js`.
+
+### 2026-11-27 — Abenteuer getrennt, Pilot „Hartsklein-Schleuse“ angelegt
+- **Hendriks Auftrag:** einen Skill bauen, mit dem aus einem PDF-Abenteuer ein PnP-Desk-Abenteuer
+  wird. Vorgehen: erst ein Abenteuer von Hand umsetzen, dann daraus den Skill. Pilot ist das
+  kürzeste Abenteuer im Ordner, *Come Drown With Me* (One Shots of the Reikland, S. 4–9,
+  rund 3.900 Wörter). **Wir schreiben es auf Deutsch um, ohne Buchtext.**
+- **Erst gemessen:** Das PnP-Desk kannte genau ein Abenteuer. Ein zweites wäre in der
+  Szenenliste der Korsaren-Runde gelandet. Hendrik: „Das müssen wir natürlich getrennt
+  voneinander aufnehmen.“
+- **Neu `js/abenteuer.js`:** Abenteuer melden ihre Szenen an, die Sitzung findet ihr Abenteuer
+  über ihr Spiel. Der Stand kommt synchron aus dem Cache und wird nachgeprüft, eine Abweichung
+  kostet einen Reload, dasselbe Muster wie bei der Sitzung. Der Regie-Hub merkt sich das
+  Abenteuer jeder Sitzung schon beim Zeichnen, damit beim Öffnen nichts nachlädt.
+- **Regie und Karte filtern**, statt eine neue Weiche je Szenendatei zu bekommen. Eine
+  Live-Szene aus einem fremden Abenteuer gilt nicht, dann gilt der Start des eigenen.
+- **Regie-Hub:** Ein Spiel bekommt beim Anlegen sein Abenteuer. Umstellbar nur, solange keine
+  Sitzung daran hängt, weil deren Spielstand sonst verwaist. Das Regelwerk einer neuen
+  Sitzung wird aus dem Abenteuer vorgeschlagen und bleibt überschreibbar.
+- **Ein Zusammenstoß bricht laut ab:** `abenteuer/hartsklein/regie.js` trägt in `ORTE` und
+  `SZENEN_REGIE` ein und wirft, wenn es eine Kennung schon gibt.
+- **Neu `tests/t_abenteuer.js`, 49 Prüfungen.** Es führt den geschnittenen Code aus Regie, Karte
+  und Hub aus. Zwei Gegenproben schlagen an: Filter weg (2 Prüfungen, die Liste nennt `hk1.1`
+  zwischen den Korsaren-Szenen), Karte ignoriert den Start (1). `t_syntax.js` prüft jetzt auch
+  `abenteuer/*/` und den Export von `js/abenteuer.js`.
+- **Bekannte Falle wieder getreten:** Die Heredoc-Falle hat ein `\'` im Regie-Hub verschluckt
+  (und beim Schreiben dieses Eintrags gleich noch einmal),
+  `t_syntax.js` hat es sofort gemeldet.
+- **[OFFEN]** Der Inhalt der Hartsklein-Schleuse (das Gerüst steht leer), NSC-Blätter im
+  WFRP-Format, ein Ort für Belohnungen, die Bilderfrage. Alles in `ABENTEUER-AUS-PDF.md`.
 
 ### 2026-11-26 (Fortsetzung 2) — WFRP: Bild-Upload und die richtigen Würfel
 - **Hendriks Meldung:** Im WFRP-Bogen fehlte das Charakterbild, und die Würfelleiste bot W4–W12 an.

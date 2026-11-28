@@ -1086,6 +1086,7 @@
 
   <script src="js/firebase-config.js"></script>
 <script src="js/sitzung.js"></script>
+<script src="js/abenteuer.js"></script>
 
   <!--
     ALLE Karten-Dateien hier eintragen (scenes.js für Grimsgate-Stadt,
@@ -1105,6 +1106,7 @@
   <script src="js/riffinsel_scenes.js"></script>
 <script src="js/grabesinsel_scenes.js"></script>
 <script src="js/abspann_scenes.js"></script>
+<script src="abenteuer/hartsklein/szenen.js"></script>
 <script src="js/arena.js"></script>
 <script src="js/arena_scenes.js"></script>
   <script src="js/exploration_graphs.js"></script>
@@ -1144,6 +1146,17 @@
     // Array aufnehmen, plus die passende <script src="..."> oben ergänzen.
     // Diese Datei selbst braucht sonst keine Änderung mehr.
     const MAP_REGISTRY = [
+      // Abenteuer aus abenteuer/{id}/, angemeldet über js/abenteuer.js.
+      // Ihre Szenen tragen die Marker flach, wie Grimsgate.
+      {
+        getScene: function (sceneId) {
+          return (typeof abenteuerSzene === 'function') ? (abenteuerSzene(sceneId) || undefined) : undefined;
+        },
+        getMarkers: function (sceneId) {
+          const s = (typeof abenteuerSzene === 'function') ? abenteuerSzene(sceneId) : null;
+          return s ? (s.markers || []) : null;
+        }
+      },
       {
         getScene: function (sceneId) {
           return (typeof SCENES !== 'undefined') ? SCENES[sceneId] : undefined;
@@ -1289,8 +1302,17 @@
       return String(str).replace(/[.#$\[\]]/g, '-');
     }
 
+    // Welches Abenteuer diese Sitzung spielt (js/abenteuer.js). Gesetzt im
+    // Verbindungsaufbau ganz unten; die Vorgabe ist Korsaren.
+    var kartenAbenteuer = (typeof ABENTEUER_VORGABE !== 'undefined') ? ABENTEUER_VORGABE : 'korsaren';
+    function szeneImKartenAbenteuer(sceneId) {
+      return typeof abenteuerVonSzene !== 'function' || abenteuerVonSzene(sceneId) === kartenAbenteuer;
+    }
+
     function getFallbackDefaultScene() {
-      // Erste verfügbare DEFAULT_*-Konstante nehmen, sonst "1.1"
+      // Der Start des Abenteuers dieser Sitzung, sonst die erste
+      // verfügbare DEFAULT_*-Konstante, sonst "1.1"
+      if (typeof ABENTEUER !== 'undefined' && ABENTEUER[kartenAbenteuer]) return ABENTEUER[kartenAbenteuer].start;
       if (typeof DEFAULT_SCENE !== 'undefined') return DEFAULT_SCENE;
       if (typeof DEFAULT_GOLDEN_LION_SCENE !== 'undefined') return DEFAULT_GOLDEN_LION_SCENE;
       return '1.1';
@@ -2474,7 +2496,7 @@
         // Sub-Orte (parentId gesetzt) erscheinen nicht auf der Hauptkarte,
         // sondern nur als Hotspots im Overlay ihres Eltern-Markers (siehe
         // renderSubMarkers) - reduziert auf die Elternebene, kein Nest-Konzept.
-        .filter(function (marker) { return !currentHiddenMarkerIds[marker.id] && !marker.parentId; })
+        .filter(function (marker) { return !markerVerborgen(marker, currentHiddenMarkerIds) && !marker.parentId; })
         .forEach(function (marker) {
           const el = document.createElement('div');
           el.className = 'marker';
@@ -2551,7 +2573,7 @@
       if (!wasOpen) pinEl.classList.add('open');
     }
     function renderSubMarkers(marker) {
-      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id && !currentHiddenMarkerIds[m.id]; });
+      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id && !markerVerborgen(m, currentHiddenMarkerIds); });
       children.forEach(function (child) {
         const el = document.createElement('div');
         // Pins nahe am Rand: Callout würde sonst vom umgebenden Bild
@@ -3492,6 +3514,11 @@
       }
       firebase.initializeApp(firebaseConfig);
       db = sitzungsDbJetzt(firebase.database());
+      // Welches Abenteuer die Sitzung spielt (js/abenteuer.js).
+      if (typeof aktivesAbenteuer === 'function') {
+        kartenAbenteuer = aktivesAbenteuer(db.sitzung);
+        abenteuerAbgleichen(db, kartenAbenteuer);
+      }
       // Die Karte oeffnet erst, wenn die Spielleitung gestartet hat -
       // vorher gaebe es nichts zu sehen, und die Szene stuende auf dem
       // Stand einer fremden Runde.
@@ -3520,7 +3547,9 @@
       attachWuerfelAni();
 
       db.ref('currentScene').on('value', function (snapshot) {
-        const sceneId = snapshot.val() || getFallbackDefaultScene();
+        // Eine Szene aus einem anderen Abenteuer gilt hier nicht.
+        const wert = snapshot.val();
+        const sceneId = (wert && szeneImKartenAbenteuer(wert)) ? wert : getFallbackDefaultScene();
         aktuelleSzene = sceneId;
         if (wuerfelLeiste) wuerfelLeiste.neuZeichnen();
         statusEl.textContent = 'Verbunden';

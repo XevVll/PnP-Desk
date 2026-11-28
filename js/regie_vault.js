@@ -70,6 +70,18 @@ let vShowAdd = null;    // 'npc' | 'pc' | null
 // in diesem Modul ausgeführt wäre - Temporal Dead Zone).
 const SCENE_ORDER = ['1.1', '2.1', '3.1', '4.1', '5.1', '7.1', '6.1', '8.1', '9.1', '10.1', '11.1', '12.1', '13.1', '14.1', '15.1'];
 
+/* Welches Abenteuer diese Sitzung spielt (js/abenteuer.js). Die Regie
+   zeigt nur dessen Szenen - sonst stuende die Hartsklein-Schleuse in
+   der Szenenliste der Korsaren-Runde. Aus demselben TDZ-Grund wie
+   SCENE_ORDER hier oben; gesetzt wird es nach dem Aufbau der Datenbank. */
+let aktivAbenteuer = (typeof ABENTEUER_VORGABE !== 'undefined') ? ABENTEUER_VORGABE : 'korsaren';
+function szeneImAbenteuer(sceneId) {
+  return typeof abenteuerVonSzene !== 'function' || abenteuerVonSzene(sceneId) === aktivAbenteuer;
+}
+function startSzene() {
+  return (typeof ABENTEUER !== 'undefined' && ABENTEUER[aktivAbenteuer]) ? ABENTEUER[aktivAbenteuer].start : DEFAULT_SCENE;
+}
+
 // ---------- Live-Vorschau (Spieleransicht) ----------
 (function () {
   const toggle = document.getElementById('previewToggle');
@@ -101,6 +113,10 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = sitzungsDbJetzt(firebase.database());
   zeigeSitzung();
+  if (typeof aktivesAbenteuer === 'function') {
+    aktivAbenteuer = aktivesAbenteuer(db.sitzung);
+    abenteuerAbgleichen(db, aktivAbenteuer);
+  }
   // Die Spielleitung hat keine eigene Figur - sie fordert Proben an, statt
   // sie zu werfen (siehe regie_figuren.html). Hier bleiben die freien Würfel
   // für Statisten, Schaden und Zufallstabellen, dazu der Privat-Haken.
@@ -112,7 +128,10 @@ try {
   });
 
   db.ref('currentScene').on('value', function (snapshot) {
-    liveScene = snapshot.val() || DEFAULT_SCENE;
+    // Eine Szene aus einem anderen Abenteuer (etwa der Stand einer Sitzung,
+    // deren Spiel umgestellt wurde) gilt hier nicht - dann der Start.
+    const wert = snapshot.val();
+    liveScene = (wert && szeneImAbenteuer(wert)) ? wert : startSzene();
     if (!viewState.szene) {
       viewState.szene = liveScene;
       paneA = { type: 'ort', sceneId: viewState.szene, ortId: firstOrtOf(viewState.szene) };
@@ -145,7 +164,7 @@ try {
 } catch (e) {
   statusEl.textContent = 'Firebase-Konfiguration fehlt oder ist fehlerhaft. Bitte js/firebase-config.js prüfen.';
   statusEl.className = 'status error';
-  viewState.szene = DEFAULT_SCENE;
+  viewState.szene = startSzene();
   paneA = { type: 'ort', sceneId: viewState.szene, ortId: firstOrtOf(viewState.szene) };
   vOpenNodes.add('scene:' + viewState.szene);
   vOpenNodes.add('scene:' + viewState.szene + ':orte');
@@ -193,12 +212,27 @@ function getAllSceneEntries() {
   if (typeof ARENA_SCENES !== 'undefined') {
     Object.keys(ARENA_SCENES).forEach(function (id) { bySource[id] = { label: ARENA_SCENES[id].label, source: 'arena' }; });
   }
-  const ordered = SCENE_ORDER.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
-  const remaining = Object.keys(bySource).filter(function (id) { return SCENE_ORDER.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  // Angemeldete Abenteuer (js/abenteuer.js) in ihrer Anmelde-Reihenfolge.
+  const angemeldet = [];
+  if (typeof ABENTEUER_SZENEN !== 'undefined') {
+    Object.keys(ABENTEUER_SZENEN).forEach(function (a) {
+      Object.keys(ABENTEUER_SZENEN[a]).forEach(function (id) {
+        bySource[id] = { label: ABENTEUER_SZENEN[a][id].label, source: a };
+        angemeldet.push(id);
+      });
+    });
+  }
+  // Nur das Abenteuer dieser Sitzung.
+  Object.keys(bySource).forEach(function (id) { if (!szeneImAbenteuer(id)) delete bySource[id]; });
+  const reihe = SCENE_ORDER.concat(angemeldet);
+  const ordered = reihe.filter(function (id) { return bySource[id]; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
+  const remaining = Object.keys(bySource).filter(function (id) { return reihe.indexOf(id) === -1; }).map(function (id) { return Object.assign({ id: id }, bySource[id]); });
   return ordered.concat(remaining);
 }
 
 function getSceneLabel(sceneId) {
+  const angemeldet = (typeof abenteuerSzene === 'function') ? abenteuerSzene(sceneId) : null;
+  if (angemeldet) return angemeldet.label;
   if (SCENES[sceneId]) return SCENES[sceneId].label;
   if (typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return GOLDEN_LION_SCENES[sceneId].label;
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].label;
@@ -213,6 +247,8 @@ function getSceneLabel(sceneId) {
 }
 
 function getMarkersForScene(sceneId) {
+  const angemeldet = (typeof abenteuerSzene === 'function') ? abenteuerSzene(sceneId) : null;
+  if (angemeldet) return angemeldet.markers || [];
   if (SCENES[sceneId]) return SCENES[sceneId].markers;
   if (typeof getGoldenLionMarkers === 'function' && typeof GOLDEN_LION_SCENES !== 'undefined' && GOLDEN_LION_SCENES[sceneId]) return getGoldenLionMarkers(sceneId);
   if (typeof SCHATZINSEL_SCENES !== 'undefined' && SCHATZINSEL_SCENES[sceneId]) return SCHATZINSEL_SCENES[sceneId].markers;
@@ -272,8 +308,31 @@ function steckbriefCardsHTML(list) {
       (p.rolle ? '<span class="v-sb-rolle">' + p.rolle + (p.koerperlich ? ' · ✊ körperlich' : '') + '</span>' : '') + '</div>' +
       (p.verfassung ? '<div class="v-sb-line"><b>Verfassung</b> ' + p.verfassung + '</div>' : '') +
       (p.beduerfnis ? '<div class="v-sb-line"><b>Bedürfnis</b> ' + p.beduerfnis + '</div>' : '') +
+      (p.wfrp ? wfrpProfilHTML(p.wfrp) : '') +
       '</div>';
   }).join('');
+}
+
+/* Spielwerte einer WFRP-Figur (seit 28.11.2026, Abenteuer aus dem PDF).
+   Die Korsaren-NSC tragen ihre Werte in js/npcs.js nach Savage Worlds;
+   ein Abenteuer nach WFRP bringt seine Gegner im Steckbrief mit. Das
+   Feld ist optional - ohne "wfrp" sieht die Karte aus wie bisher.
+   Fehlt ein Wert, steht ein Strich da (Zombies haben keine IN/WK/CH). */
+const WFRP_PROFIL_SPALTEN = [
+  ['b', 'B'], ['kg', 'KG'], ['bf', 'BF'], ['st', 'ST'], ['wi', 'WI'], ['i', 'I'],
+  ['gw', 'GW'], ['gs', 'GS'], ['in', 'IN'], ['wk', 'WK'], ['ch', 'CH'], ['lep', 'LeP']
+];
+function wfrpProfilHTML(w) {
+  const p = w.profil || {};
+  const wert = function (k) { return (p[k] === undefined || p[k] === null || p[k] === '') ? '—' : p[k]; };
+  let h = '<table class="v-sb-wfrp"><tr>' +
+    WFRP_PROFIL_SPALTEN.map(function (s) { return '<th>' + s[1] + '</th>'; }).join('') + '</tr><tr>' +
+    WFRP_PROFIL_SPALTEN.map(function (s) { return '<td>' + wert(s[0]) + '</td>'; }).join('') + '</tr></table>';
+  [['eigenschaften', 'Eigenschaften'], ['talente', 'Talente'], ['fertigkeiten', 'Fertigkeiten'],
+   ['zauber', 'Zauber'], ['besitz', 'Besitz'], ['besonderes', 'Besonderes']].forEach(function (z) {
+    if (w[z[0]]) h += '<div class="v-sb-line"><b>' + z[1] + '</b> ' + w[z[0]] + '</div>';
+  });
+  return h;
 }
 
 // ---------- Live-Präsenz & Sichtbarkeit (unverändert aus der alten Ansicht) ----------
@@ -928,7 +987,12 @@ function toggleQuestDone(sceneId, triggerId) {
 function toggleMarkerVisibility(sceneId, markerId) {
   if (!db) return;
   const ref = db.ref('hiddenMarkersLive/' + fbKey(sceneId) + '/' + markerId);
-  if (hiddenMarkerIds[markerId]) ref.remove(); else ref.set(true);
+  // Ein Marker mit "verborgen: true" ist ohne Eintrag ausgeblendet -
+  // aufdecken heisst dort false schreiben, nicht den Eintrag loeschen
+  // (js/abenteuer.js, markerVerborgen).
+  const marker = (getMarkersForScene(sceneId) || []).find(function (m) { return m.id === markerId; }) || { id: markerId };
+  const neu = markerSichtbarkeitUmschalten(marker, hiddenMarkerIds);
+  if (neu === null) ref.remove(); else ref.set(neu);
 }
 
 // ---------- Text-Suche für automatische Erwähnungen (Backlinks) ----------
@@ -1106,7 +1170,7 @@ function renderTree() {
       const iaKeys = getSceneInteraktionen(ort, sceneId);
       const lKey = oKey + ':' + marker.id, lOpen = vOpenNodes.has(lKey);
       const openCount = openMarkerCounts[marker.id] || 0;
-      const hidden = !!hiddenMarkerIds[marker.id];
+      const hidden = markerVerborgen(marker, hiddenMarkerIds);
       const ortActive = paneMatches(paneA, { type: 'ort', sceneId: sceneId, ortId: marker.id });
       html += '<div class="v-node lvl2' + (ortActive ? ' active' : '') + '" onclick="vOpenOrtFolder(\'' + lKey + '\',\'' + sceneId + '\',\'' + marker.id + '\')" style="opacity:' + (hidden ? '.55' : '1') + '"><span class="v-caret">' + (lOpen ? '▾' : '▸') + '</span><span class="v-file-icon">📁</span><span class="v-file-label">' + marker.title + '</span>' +
         (openCount > 0 ? '<span class="v-tag" style="margin-left:auto">' + openCount + '</span>' : '') + '</div>';
@@ -1215,7 +1279,7 @@ function renderOrtNote(ref, target) {
   const marker = (getMarkersForScene(sceneId) || []).find(function (m) { return m.id === ortId; });
   const ortRaw = ORTE[ortId] || { personen: '', kurz: '', interaktionen: {} };
   const ort = resolveOrtForScene(ortRaw, sceneId);
-  const hidden = !!hiddenMarkerIds[ortId];
+  const hidden = markerVerborgen(marker || { id: ortId }, hiddenMarkerIds);
   const dynPath = 'regie/' + fbKey(sceneId) + '/' + fbKey(ortId);
 
   let html = '<h1 class="v-h1">' + (marker ? marker.title : ortId) +
