@@ -2496,7 +2496,7 @@
         // Sub-Orte (parentId gesetzt) erscheinen nicht auf der Hauptkarte,
         // sondern nur als Hotspots im Overlay ihres Eltern-Markers (siehe
         // renderSubMarkers) - reduziert auf die Elternebene, kein Nest-Konzept.
-        .filter(function (marker) { return !currentHiddenMarkerIds[marker.id] && !marker.parentId; })
+        .filter(function (marker) { return !markerVerborgen(marker, currentHiddenMarkerIds) && !marker.parentId; })
         .forEach(function (marker) {
           const el = document.createElement('div');
           el.className = 'marker';
@@ -2573,7 +2573,7 @@
       if (!wasOpen) pinEl.classList.add('open');
     }
     function renderSubMarkers(marker) {
-      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id && !currentHiddenMarkerIds[m.id]; });
+      const children = currentSceneRawMarkers.filter(function (m) { return m.parentId === marker.id && !markerVerborgen(m, currentHiddenMarkerIds); });
       children.forEach(function (child) {
         const el = document.createElement('div');
         // Pins nahe am Rand: Callout würde sonst vom umgebenden Bild

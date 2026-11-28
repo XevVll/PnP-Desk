@@ -308,6 +308,145 @@ function pruefe(daten, fehlschlag, cache) {
   chk('regie.html: Hartsklein-Szenen nach abenteuer.js', pos(REGIE, 'abenteuer/hartsklein/szenen.js') > pos(REGIE, 'js/abenteuer.js'));
   chk('karte.html: Hartsklein-Szenen nach abenteuer.js', pos(KARTE, 'abenteuer/hartsklein/szenen.js') > pos(KARTE, 'js/abenteuer.js'));
 
+  /* ---------- 8. Der Inhalt der Hartsklein-Schleuse (MARKE_INHALT_28_11) ----------
+     Geprueft wird, was am Tisch lautlos brechen wuerde: ein Marker ohne
+     GM-Seite, ein Bild ins Leere, eine Probe mit einem Fertigkeitsnamen,
+     den es in WFRP nicht gibt, oder ein Grab, das von Anfang an auf der
+     Karte steht und die Loesung verraet. */
+  {
+    const ictx = neuerKontext(['js/regie.js', 'abenteuer/hartsklein/regie.js',
+      'js/wfrp_daten.js', 'js/wfrp_regelwerk.js']);
+    const I = vm.runInContext('({ ORTE: ORTE, SR: SZENEN_REGIE, sz: abenteuerSzene("hk1.1"),' +
+      ' fert: WFRP_FERTIGKEITEN.map(function (x) { return x.n; }),' +
+      ' attr: WFRP_ATTRIBUTE.map(function (x) { return x.n; }),' +
+      ' schw: WFRP_SCHWIERIGKEITEN })', ictx);
+    const marker = I.sz.markers;
+    const ids = marker.map(m => m.id);
+    const hkOrte = Object.keys(I.ORTE).filter(k => k.indexOf('hk_') === 0);
+
+    chk('die Szene hat ein Kartenbild', !!I.sz.background);
+    chk('mindestens zehn Orte auf der Karte', marker.length >= 10, marker.length);
+    chk('jede Marker-Kennung traegt das Praefix hk_', ids.every(k => k.indexOf('hk_') === 0), ids);
+    chk('jeder Marker hat eine GM-Seite in ORTE', ids.every(k => I.ORTE[k]), ids.filter(k => !I.ORTE[k]));
+    chk('kein hk_-Ort ohne Marker', hkOrte.every(k => ids.indexOf(k) >= 0), hkOrte.filter(k => ids.indexOf(k) < 0));
+
+    const bilder = [I.sz.background];
+    marker.forEach(m => {
+      bilder.push(m.img);
+      Object.keys(m.variants || {}).forEach(v => bilder.push(m.variants[v].img));
+    });
+    const fehlt = bilder.filter(b => !b || !fs.existsSync(path.join(BASIS, b)));
+    chk('jedes Bild der Szene liegt wirklich in images/', fehlt.length === 0, fehlt);
+    chk('kein Marker ohne Bild und Beschreibung', marker.every(m => m.img && m.desc && m.title));
+
+    const verborgen = marker.filter(m => m.verborgen).map(m => m.id);
+    chk('genau das Grab ist zu Beginn verborgen', JSON.stringify(verborgen) === '["hk_grab"]', verborgen);
+
+    let probleme = [], interaktionen = 0, trigger = 0;
+    hkOrte.forEach(o => {
+      const ia = I.ORTE[o].interaktionen || {};
+      Object.keys(ia).forEach(k => {
+        interaktionen++;
+        const x = ia[k];
+        if (k.indexOf('hk_') !== 0) probleme.push(o + '.' + k + ': Kennung ohne hk_');
+        if (!x.title || !x.kurz || !x.details) probleme.push(o + '.' + k + ': Titel/Kurz/Details fehlt');
+        if (!x.trigger || !x.trigger.length) probleme.push(o + '.' + k + ': keine Trigger');
+        const tid = (x.trigger || []).map(t => t.id);
+        trigger += tid.length;
+        if (new Set(tid).size !== tid.length) probleme.push(o + '.' + k + ': doppelte Trigger-Kennung');
+        (x.trigger || []).forEach(t => { if (!t.id || !t.label) probleme.push(o + '.' + k + ': Trigger ohne id/label'); });
+      });
+    });
+    chk('jede Interaktion vollstaendig, Trigger eindeutig', probleme.length === 0, probleme);
+    chk('der Inhalt ist da (mind. 20 Interaktionen, 80 Trigger)', interaktionen >= 20 && trigger >= 80, { interaktionen, trigger });
+
+    const alles = JSON.stringify(hkOrte.map(k => I.ORTE[k])) + JSON.stringify(I.SR['hk1.1']);
+    chk('kein [OFFEN] mehr im Abenteuer', alles.indexOf('[OFFEN]') < 0);
+    chk('Szenenziel und Stimmung stehen', !!(I.SR['hk1.1'].uebergeordnetesZiel && I.SR['hk1.1'].stimmung));
+    chk('das Szenenziel bleibt kurz (unter 600 Zeichen)', I.SR['hk1.1'].uebergeordnetesZiel.length < 600,
+      I.SR['hk1.1'].uebergeordnetesZiel.length);
+
+    /* Jede Probe im Text: "Name, Schwierigkeit (+n)". Der Name muss eine
+       WFRP-Fertigkeit oder ein Attribut sein, die Zahl zur Schwierigkeit
+       passen. Ein erfundener Name ("Wille", "Koerper") faellt hier auf. */
+    const namen = new Set(I.fert.concat(I.attr));
+    const schw = {}; I.schw.forEach(x => { schw[x.n] = x.mod; });
+    const re = /([A-ZÄÖÜ][a-zäöüß]+)(?: \([^)]*\))?, (Sehr leicht|Leicht|Durchschnittlich|Herausfordernd|Schwierig|Schwer|Sehr schwer) \(([+−-]?\d+)\)/g;
+    let m, proben = 0; const falsch = [];
+    while ((m = re.exec(alles))) {
+      proben++;
+      const mod = parseInt(m[3].replace('−', '-'), 10);
+      if (!namen.has(m[1])) falsch.push('unbekannt: ' + m[1]);
+      if (schw[m[2]] !== mod) falsch.push(m[2] + ' ist ' + schw[m[2]] + ', nicht ' + m[3]);
+    }
+    chk('es gibt Proben im Text (mind. 15)', proben >= 15, proben);
+    chk('jede Probe nennt eine echte WFRP-Fertigkeit mit passender Schwierigkeit', falsch.length === 0, falsch);
+
+    /* Die NSC tragen ihr volles Profil. */
+    const npcs = [];
+    hkOrte.forEach(k => (I.ORTE[k].npcs || []).forEach(n => { if (npcs.indexOf(n) < 0) npcs.push(n); }));
+    const spalten = ['b', 'kg', 'bf', 'st', 'wi', 'i', 'gw', 'gs', 'in', 'wk', 'ch', 'lep'];
+    chk('vier Figuren mit Werten (Henrietta, Tote, Raben, Kurgorn)', npcs.length === 4, npcs.map(n => n.name));
+    chk('jedes Profil hat alle zwoelf Spalten', npcs.every(n => n.wfrp && spalten.every(s => s in n.wfrp.profil)),
+      npcs.filter(n => !(n.wfrp && spalten.every(s => s in n.wfrp.profil))).map(n => n.name));
+    const kur = npcs.find(n => n.name === 'Kurgorn Three-Eyes');
+    chk('Kurgorns Werte wie im Abenteuer (KG 75, WI 50, LeP 19)',
+      kur && kur.wfrp.profil.kg === 75 && kur.wfrp.profil.wi === 50 && kur.wfrp.profil.lep === 19, kur && kur.wfrp.profil);
+    const tot = npcs.find(n => n.name === 'Die Toten aus dem Kanal');
+    chk('Zombiewerte wie im Regelwerk S. 328 (KG 15, I 5, LeP 12)',
+      tot && tot.wfrp.profil.kg === 15 && tot.wfrp.profil.i === 5 && tot.wfrp.profil.lep === 12, tot && tot.wfrp.profil);
+    chk('Henrietta steht an mehreren Orten als DASSELBE Objekt',
+      I.ORTE.hk_schleuse.npcs[0] === I.ORTE.hk_flur.npcs[0]);
+  }
+
+  /* ---------- 9. Verborgen bis zum Aufdecken ---------- */
+  {
+    const vctx = neuerKontext();
+    const V = vm.runInContext('({ v: markerVerborgen, u: markerSichtbarkeitUmschalten })', vctx);
+    const grab = { id: 'hk_grab', verborgen: true }, flur = { id: 'hk_flur' };
+    chk('ein verborgener Marker ist ohne Eintrag ausgeblendet', V.v(grab, {}) === true);
+    chk('aufgedeckt (false) ist er sichtbar', V.v(grab, { hk_grab: false }) === false);
+    chk('ein normaler Marker ist ohne Eintrag sichtbar (wie bisher)', V.v(flur, {}) === false);
+    chk('ein normaler Marker mit true ist ausgeblendet (wie bisher)', V.v(flur, { hk_flur: true }) === true);
+    chk('Umschalten deckt den verborgenen auf: schreibt false', V.u(grab, {}) === false);
+    chk('und blendet ihn wieder aus: Eintrag weg', V.u(grab, { hk_grab: false }) === null);
+    chk('ein normaler Marker schreibt beim Ausblenden true', V.u(flur, {}) === true);
+    chk('und beim Einblenden wird der Eintrag geloescht (wie bisher)', V.u(flur, { hk_flur: true }) === null);
+
+    // Die Karte filtert ueber den Helfer, auf Haupt- UND Sub-Orten.
+    chk('karte.html blendet ueber markerVerborgen aus (Haupt- und Sub-Orte)',
+      (KARTE.match(/markerVerborgen\(/g) || []).length >= 2 && KARTE.indexOf('!currentHiddenMarkerIds[') < 0);
+
+    // Die Regie schaltet wirklich so um: echter Code, geschnitten.
+    const VAULT = lies('js/regie_vault.js');
+    const tctx = neuerKontext();
+    const geschrieben = [];
+    tctx.db = { ref(p) { return { set(v) { geschrieben.push([p, v]); }, remove() { geschrieben.push([p, 'REMOVE']); } }; } };
+    tctx.fbKey = k => String(k).replace(/\./g, '-');
+    vm.runInContext('var hiddenMarkerIds = {};' +
+      'function getMarkersForScene(s) { var x = abenteuerSzene(s); return x ? x.markers : []; }', tctx);
+    vm.runInContext(schnitt(VAULT, 'function toggleMarkerVisibility(', '// ---------- Text-Suche'), tctx);
+    vm.runInContext('toggleMarkerVisibility("hk1.1", "hk_grab")', tctx);
+    chk('Regie: das verborgene Grab aufdecken schreibt false',
+      JSON.stringify(geschrieben.pop()) === JSON.stringify(['hiddenMarkersLive/hk1-1/hk_grab', false]));
+    vm.runInContext('hiddenMarkerIds = { hk_grab: false }; toggleMarkerVisibility("hk1.1", "hk_grab")', tctx);
+    chk('Regie: wieder verbergen loescht den Eintrag',
+      JSON.stringify(geschrieben.pop()) === JSON.stringify(['hiddenMarkersLive/hk1-1/hk_grab', 'REMOVE']));
+    vm.runInContext('hiddenMarkerIds = {}; toggleMarkerVisibility("hk1.1", "hk_flur")', tctx);
+    chk('Regie: ein normaler Marker wird wie bisher mit true ausgeblendet',
+      JSON.stringify(geschrieben.pop()) === JSON.stringify(['hiddenMarkersLive/hk1-1/hk_flur', true]));
+
+    /* Die Steckbrief-Karte zeigt das WFRP-Profil - und ohne Feld nichts davon. */
+    const pctx = neuerKontext();
+    vm.runInContext(schnitt(VAULT, 'function steckbriefCardsHTML(', '// ---------- Live-Präsenz'), pctx);
+    const karteMit = vm.runInContext('steckbriefCardsHTML([{ name: "X", wfrp: { profil: { b: 4, kg: 15, lep: 12 }, eigenschaften: "Untot" } }])', pctx);
+    const karteOhne = vm.runInContext('steckbriefCardsHTML([{ name: "Y", rolle: "Matrose" }])', pctx);
+    chk('Karte mit WFRP: Tabelle mit allen zwoelf Spalten', (karteMit.match(/<th>/g) || []).length === 12 && /LeP/.test(karteMit), karteMit);
+    chk('fehlende Werte stehen als Strich da', (karteMit.match(/<td>—<\/td>/g) || []).length === 9, karteMit);
+    chk('Eigenschaften als eigene Zeile', /<b>Eigenschaften<\/b> Untot/.test(karteMit));
+    chk('Karte ohne WFRP-Feld bleibt wie bisher (keine Tabelle)', karteOhne.indexOf('<table') < 0);
+  }
+
   console.log('\nOK: ' + (anzahl - f) + '   FEHLER: ' + f);
   process.exitCode = f ? 1 : 0;
 })();

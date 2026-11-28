@@ -308,8 +308,31 @@ function steckbriefCardsHTML(list) {
       (p.rolle ? '<span class="v-sb-rolle">' + p.rolle + (p.koerperlich ? ' · ✊ körperlich' : '') + '</span>' : '') + '</div>' +
       (p.verfassung ? '<div class="v-sb-line"><b>Verfassung</b> ' + p.verfassung + '</div>' : '') +
       (p.beduerfnis ? '<div class="v-sb-line"><b>Bedürfnis</b> ' + p.beduerfnis + '</div>' : '') +
+      (p.wfrp ? wfrpProfilHTML(p.wfrp) : '') +
       '</div>';
   }).join('');
+}
+
+/* Spielwerte einer WFRP-Figur (seit 28.11.2026, Abenteuer aus dem PDF).
+   Die Korsaren-NSC tragen ihre Werte in js/npcs.js nach Savage Worlds;
+   ein Abenteuer nach WFRP bringt seine Gegner im Steckbrief mit. Das
+   Feld ist optional - ohne "wfrp" sieht die Karte aus wie bisher.
+   Fehlt ein Wert, steht ein Strich da (Zombies haben keine IN/WK/CH). */
+const WFRP_PROFIL_SPALTEN = [
+  ['b', 'B'], ['kg', 'KG'], ['bf', 'BF'], ['st', 'ST'], ['wi', 'WI'], ['i', 'I'],
+  ['gw', 'GW'], ['gs', 'GS'], ['in', 'IN'], ['wk', 'WK'], ['ch', 'CH'], ['lep', 'LeP']
+];
+function wfrpProfilHTML(w) {
+  const p = w.profil || {};
+  const wert = function (k) { return (p[k] === undefined || p[k] === null || p[k] === '') ? '—' : p[k]; };
+  let h = '<table class="v-sb-wfrp"><tr>' +
+    WFRP_PROFIL_SPALTEN.map(function (s) { return '<th>' + s[1] + '</th>'; }).join('') + '</tr><tr>' +
+    WFRP_PROFIL_SPALTEN.map(function (s) { return '<td>' + wert(s[0]) + '</td>'; }).join('') + '</tr></table>';
+  [['eigenschaften', 'Eigenschaften'], ['talente', 'Talente'], ['fertigkeiten', 'Fertigkeiten'],
+   ['zauber', 'Zauber'], ['besitz', 'Besitz'], ['besonderes', 'Besonderes']].forEach(function (z) {
+    if (w[z[0]]) h += '<div class="v-sb-line"><b>' + z[1] + '</b> ' + w[z[0]] + '</div>';
+  });
+  return h;
 }
 
 // ---------- Live-Präsenz & Sichtbarkeit (unverändert aus der alten Ansicht) ----------
@@ -964,7 +987,12 @@ function toggleQuestDone(sceneId, triggerId) {
 function toggleMarkerVisibility(sceneId, markerId) {
   if (!db) return;
   const ref = db.ref('hiddenMarkersLive/' + fbKey(sceneId) + '/' + markerId);
-  if (hiddenMarkerIds[markerId]) ref.remove(); else ref.set(true);
+  // Ein Marker mit "verborgen: true" ist ohne Eintrag ausgeblendet -
+  // aufdecken heisst dort false schreiben, nicht den Eintrag loeschen
+  // (js/abenteuer.js, markerVerborgen).
+  const marker = (getMarkersForScene(sceneId) || []).find(function (m) { return m.id === markerId; }) || { id: markerId };
+  const neu = markerSichtbarkeitUmschalten(marker, hiddenMarkerIds);
+  if (neu === null) ref.remove(); else ref.set(neu);
 }
 
 // ---------- Text-Suche für automatische Erwähnungen (Backlinks) ----------
@@ -1142,7 +1170,7 @@ function renderTree() {
       const iaKeys = getSceneInteraktionen(ort, sceneId);
       const lKey = oKey + ':' + marker.id, lOpen = vOpenNodes.has(lKey);
       const openCount = openMarkerCounts[marker.id] || 0;
-      const hidden = !!hiddenMarkerIds[marker.id];
+      const hidden = markerVerborgen(marker, hiddenMarkerIds);
       const ortActive = paneMatches(paneA, { type: 'ort', sceneId: sceneId, ortId: marker.id });
       html += '<div class="v-node lvl2' + (ortActive ? ' active' : '') + '" onclick="vOpenOrtFolder(\'' + lKey + '\',\'' + sceneId + '\',\'' + marker.id + '\')" style="opacity:' + (hidden ? '.55' : '1') + '"><span class="v-caret">' + (lOpen ? '▾' : '▸') + '</span><span class="v-file-icon">📁</span><span class="v-file-label">' + marker.title + '</span>' +
         (openCount > 0 ? '<span class="v-tag" style="margin-left:auto">' + openCount + '</span>' : '') + '</div>';
@@ -1251,7 +1279,7 @@ function renderOrtNote(ref, target) {
   const marker = (getMarkersForScene(sceneId) || []).find(function (m) { return m.id === ortId; });
   const ortRaw = ORTE[ortId] || { personen: '', kurz: '', interaktionen: {} };
   const ort = resolveOrtForScene(ortRaw, sceneId);
-  const hidden = !!hiddenMarkerIds[ortId];
+  const hidden = markerVerborgen(marker || { id: ortId }, hiddenMarkerIds);
   const dynPath = 'regie/' + fbKey(sceneId) + '/' + fbKey(ortId);
 
   let html = '<h1 class="v-h1">' + (marker ? marker.title : ortId) +

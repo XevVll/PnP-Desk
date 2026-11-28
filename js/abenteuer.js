@@ -102,6 +102,29 @@ function regelwerkVonSpiel(spiel) {
   return regelwerkBekannt(rw) ? rw : ABENTEUER[abenteuerVon(spiel)].regelwerk;
 }
 
+/* ---------- Marker, die zu Beginn verborgen sind (28.11.2026) ----------
+   Bisher war jeder Marker sichtbar, bis die Spielleitung ihn ueber
+   hiddenMarkersLive ausblendet. Fuer einen Ort, den die Gruppe erst
+   FINDEN soll (das Grab unter dem Haus), heisst das: Wer zu Beginn
+   nicht daran denkt, verraet den Fund mit dem ersten Blick auf die
+   Karte. Ein Marker mit "verborgen: true" ist deshalb ausgeblendet,
+   bis die Spielleitung ihn aufdeckt.
+   Gespeichert wird weiter unter hiddenMarkersLive/{szene}/{marker}:
+     true  = ausgeblendet, false = aufgedeckt, fehlt = Vorgabe des Markers.
+   Fuer jeden Marker OHNE das Feld bleibt alles wie vorher. */
+function markerVerborgen(marker, live) {
+  var v = marker && live ? live[marker.id] : undefined;
+  if (v === true) return true;
+  if (v === false) return false;
+  return !!(marker && marker.verborgen);
+}
+/* Was beim Umschalten zu schreiben ist: null heisst "Eintrag entfernen". */
+function markerSichtbarkeitUmschalten(marker, live) {
+  var jetztVerborgen = markerVerborgen(marker, live);
+  if (marker && marker.verborgen) return jetztVerborgen ? false : null;
+  return jetztVerborgen ? null : true;
+}
+
 /* ---------- Welches Abenteuer laeuft hier? ---------- */
 function abenteuerCacheKey(sid) {
   return 'pnp_abenteuer_' + (sid || (typeof SITZUNG_VORGABE !== 'undefined' ? SITZUNG_VORGABE : ''));
@@ -154,6 +177,7 @@ if (typeof module !== 'undefined' && module.exports) {
     ABENTEUER, ABENTEUER_VORGABE, ABENTEUER_SZENEN,
     abenteuerSzenenRegistrieren, abenteuerSzene, abenteuerVonSzene, abenteuerVon,
     abenteuerDesRegelwerks, regelwerkBekannt, regelwerkVonSpiel,
+    markerVerborgen, markerSichtbarkeitUmschalten,
     abenteuerCacheKey, abenteuerAusCache, abenteuerInCache, aktivesAbenteuer,
     abenteuerPruefen, abenteuerAbgleichen
   };

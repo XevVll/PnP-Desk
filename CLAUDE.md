@@ -60,6 +60,11 @@ Spielleiter-Ansicht (`regie.html`) live mit der Spieler-Kartenansicht (`karte.ht
   Regelwerk beim Anlegen nach `meta.regelwerk` (dort lesen es die Figurenseiten).
   Jede Kennung eines neuen Abenteuers trägt ein Präfix (`hk1.1`, `hk_kueche`). Wie man ein
   PDF-Abenteuer umsetzt, sammelt `ABENTEUER-AUS-PDF.md`.
+- **Marker mit `verborgen: true`** sind zu Szenenbeginn ausgeblendet, bis die Spielleitung sie
+  aufdeckt (`markerVerborgen()` in `js/abenteuer.js`; in `hiddenMarkersLive` heißt `false`
+  „aufgedeckt“). Für jeden Marker ohne das Feld gilt alles wie vorher.
+- **NSC-Steckbriefe (`npcs`) können ein Feld `wfrp` tragen** (Profil, Eigenschaften,
+  Fertigkeiten, Zauber, Besitz); die Regie zeigt es als Wertetabelle (`wfrpProfilHTML()`).
 - **MAP_REGISTRY-/`getAllSceneEntries()`-Muster:** Jede Karte/Örtlichkeit (Grimsgate-Stadt,
   Golden-Lion-Schiff, Schatzinsel) ist eine eigene Datei (`js/scenes.js`,
   `js/golden_lion_scenes.js`, `js/schatzinsel_scenes.js`) mit direkten Funktionsreferenzen statt
@@ -144,6 +149,36 @@ nachtragen, statt die Lücke über den Code zu umgehen. Bewusste Abweichungen au
 als solche kennzeichnen — die der Arena stehen gesammelt in `ARENA-ENDKAMPF.md` 3.5.
 
 ## Changelog
+
+### 2026-11-28 — Die Hartsklein-Schleuse ist spielbar <!-- MARKE_HK_INHALT -->
+- **Hendriks Auftrag:** „Mach das erst mal vollständig eigenständig. Ich möchte aber auch die
+  Bilder/Szene extrahiert haben, damit diese genutzt werden.“ Damit ist die offene Bilderfrage
+  entschieden: Die Bilder kommen aus dem PDF. **Das Repo ist öffentlich**, sie liegen also offen.
+- **Inhalt komplett** (`abenteuer/hartsklein/`): eine Szene, 12 Orte, 25 Interaktionen,
+  105 Trigger. Teil 1 an der Schleuse, Teil 2 in den Räumen (frei kombinierbar), Teil 3 am Flur
+  und im Grab, dazu der Rückfall „Kurgorn kommt“ und „Ausgang und Belohnung“ mit jeder EP-Zeile
+  als Trigger. Deutsch neu geschrieben, kein Buchtext; Proben in WFRP-Schreibweise mit den
+  Namen aus `js/wfrp_daten.js`, Zustände mit Seitenverweis aufs Regelwerk.
+- **Bilder:** Die Karte ist die Seite 7 des Abenteuers, neu gerendert. **Einzeln aus dem PDF
+  gezogen fehlte ihr das Haus**, weil sie aus mehreren Ebenen besteht. Dazu fünf Ausschnitte
+  (Außenansicht, beide Grundrisse, Schleuse) und zwei Illustrationen (die Toten als
+  Bildvariante der Schleuse, die Titelillustration fürs Grab).
+- **Neu `verborgen: true` am Marker** (`markerVerborgen()` in `js/abenteuer.js`): Das Grab ist
+  zu Beginn ausgeblendet. Vorher hätte die Spielleitung es zu Szenenbeginn von Hand ausblenden
+  müssen — vergessen, und die Karte verrät die Lösung des Abenteuers. Karte und Regie benutzen
+  denselben Helfer; für alle anderen Marker ändert sich nichts.
+- **Neu: WFRP-Werte im Steckbrief** (`wfrpProfilHTML()` in `js/regie_vault.js`). Henrietta,
+  die Toten, die Rabenschar und Kurgorn stehen mit vollem Profil an ihren Orten. Die
+  Zombiewerte nennt das Abenteuer nur als Verweis; sie kommen aus dem Regelwerk, S. 328.
+- **Getestet: `t_abenteuer.js` 103 Prüfungen** (36 neue). Die tragende prüft **jede Probe im
+  Text gegen die echten WFRP-Fertigkeiten und Schwierigkeiten**. Fünf Gegenproben: Grab nicht
+  verborgen (3) · erfundene Fertigkeit „Wille“ (1) · „Durchschnittlich (+10)“ (1) · Karte filtert
+  wieder alt (1) · Regie schaltet wieder alt (2). Alle übrigen Skripte unverändert, bis auf den
+  bekannten Fehlschlag in `t_figuren.js`.
+- **Eine Gegenprobe schlug zuerst nicht an**, und das lag an der Probe: `sed` hatte das erste
+  Vorkommen ersetzt, und das stand im Kommentar am Dateikopf. Gezielt auf einen Trigger
+  gesetzt, schlägt sie an.
+- **[OFFEN]** Kämpfe laufen am Tisch: Arena und Kampfmodus rechnen Savage Worlds (Etappe B).
 
 ### 2026-11-27 (Fortsetzung) — Erst das Regelwerk, dann das Abenteuer
 - **Hendriks Einwand:** „Die Abenteuer sollten doch dem Regelwerk zugeordnet sein.“ Im ersten
